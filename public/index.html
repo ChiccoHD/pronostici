@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pronostici</title>
+<meta name="description" content="Statistiche e probabilità per calcio, NBA e tennis">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a href="#/" class="brand" aria-label="Pronostici, torna all'elenco">
+      <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect x="3" y="17" width="6" height="12" rx="1.5"/><rect x="13" y="10" width="6" height="19" rx="1.5"/><rect x="23" y="4" width="6" height="25" rx="1.5"/></svg>
+      Pronostici
+    </a>
+    <span id="updated" class="muted small"></span>
+  </div>
+  <div id="banner"></div>
+</header>
+<main id="app" aria-live="polite"><p class="muted center pad">Caricamento…</p></main>
+<nav class="bottom" aria-label="Sezioni">
+  <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Partite</a>
+  <a href="#/affidabilita" data-nav="affidabilita"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Affidabilità</a>
+  <a href="#/info" data-nav="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</a>
+</nav>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{
+ "updated": "2026-11-09T10:36+00:00",
+ "sample": true,
+ "status": {
+  "calcio": {
+   "serie-a": {
+    "football-data": "ok",
+    "understat": "non raggiungibile (si usano solo i gol)",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "116 partite",
+    "partite_in_arrivo": 14
+   },
+   "premier-league": {
+    "football-data": "ok",
+    "understat": "non raggiungibile (si usano solo i gol)",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "113 partite",
+    "partite_in_arrivo": 17
+   },
+   "la-liga": {
+    "football-data": "ok",
+    "understat": "non raggiungibile (si usano solo i gol)",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "112 partite",
+    "partite_in_arrivo": 18
+   },
+   "bundesliga": {
+    "football-data": "ok",
+    "understat": "non raggiungibile (si usano solo i gol)",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "104 partite",
+    "partite_in_arrivo": 13
+   },
+   "ligue-1": {
+    "football-data": "ok",
+    "understat": "non raggiungibile (si usano solo i gol)",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "102 partite",
+    "partite_in_arrivo": 15
+   },
+   "aggiornato": "2026-11-09T10:36+00:00"
+  },
+  "nba": {
+   "espn": "ok",
+   "tabellini": "107 partite",
+   "partite_in_arrivo": 20,
+   "partite_stagione": 107,
+   "aggiornato": "2026-11-09T10:36+00:00"
+  },
+  "tennis": {
+   "atp": {
+    "tennis-data": "ok",
+    "espn": "8 incontri",
+    "incontri_in_arrivo": 8
+   },
+   "wta": {
+    "tennis-data": "ok",
+    "espn": "8 incontri",
+    "incontri_in_arrivo": 8
+   },
+   "aggiornato": "2026-11-09T10:36+00:00"
+  }
+ }
+}

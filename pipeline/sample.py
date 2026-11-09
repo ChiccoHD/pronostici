@@ -1,0 +1,381 @@
+"""Dati di ESEMPIO (inventati) per provare il sito e i modelli senza rete.
+Sostituisce le fonti con generatori casuali e lancia la pipeline vera.
+Uso: python -m pipeline.sample   — il sito mostrerà l'avviso "dati di esempio"."""
+import math
+import random
+import shutil
+from datetime import date, datetime, timedelta, timezone
+
+import numpy as np
+
+from . import config, store
+from .config import CACHE, PUBLIC_DATA, SOCCER_LEAGUES
+from .sources import espn, footballdata, understat, tennisdata
+
+rng = np.random.default_rng(7)
+random.seed(7)
+
+TEAMS = {
+    "I1": ["Inter", "Napoli", "Milan", "Juventus", "Atalanta", "Roma", "Lazio", "Fiorentina", "Bologna", "Como",
+           "Torino", "Udinese", "Genoa", "Verona", "Cagliari", "Lecce", "Parma", "Sassuolo", "Pisa", "Cremonese"],
+    "E0": ["Liverpool", "Arsenal", "Man City", "Chelsea", "Newcastle", "Tottenham", "Aston Villa", "Man United",
+           "Brighton", "Nott'm Forest", "Bournemouth", "Brentford", "Fulham", "Crystal Palace", "Everton",
+           "West Ham", "Wolves", "Leeds", "Burnley", "Sunderland"],
+    "SP1": ["Real Madrid", "Barcelona", "Ath Madrid", "Ath Bilbao", "Villarreal", "Betis", "Sociedad", "Celta",
+            "Sevilla", "Girona", "Valencia", "Osasuna", "Getafe", "Mallorca", "Vallecano", "Espanol", "Alaves",
+            "Elche", "Levante", "Oviedo"],
+    "D1": ["Bayern Munich", "Leverkusen", "Dortmund", "RB Leipzig", "Ein Frankfurt", "Stuttgart", "Freiburg",
+           "Wolfsburg", "M'gladbach", "Mainz", "Hoffenheim", "Werder Bremen", "Augsburg", "Union Berlin",
+           "St Pauli", "Heidenheim", "Hamburg", "FC Koln"],
+    "F1": ["Paris SG", "Marseille", "Monaco", "Lille", "Lyon", "Nice", "Lens", "Rennes", "Strasbourg", "Brest",
+           "Toulouse", "Nantes", "Auxerre", "Angers", "Le Havre", "Lorient", "Metz", "Paris FC"],
+}
+ESPN_NAMES = {"Inter": "Internazionale", "Milan": "AC Milan", "Roma": "AS Roma", "Verona": "Hellas Verona",
+              "Man City": "Manchester City", "Man United": "Manchester United", "Newcastle": "Newcastle United",
+              "Nott'm Forest": "Nottingham Forest", "Wolves": "Wolverhampton Wanderers", "Tottenham": "Tottenham Hotspur",
+              "West Ham": "West Ham United", "Brighton": "Brighton & Hove Albion", "Leeds": "Leeds United",
+              "Ath Madrid": "Atlético Madrid", "Ath Bilbao": "Athletic Club", "Betis": "Real Betis",
+              "Sociedad": "Real Sociedad", "Celta": "Celta Vigo", "Vallecano": "Rayo Vallecano", "Espanol": "Espanyol",
+              "Alaves": "Alavés", "Oviedo": "Real Oviedo", "Dortmund": "Borussia Dortmund",
+              "Leverkusen": "Bayer Leverkusen", "Ein Frankfurt": "Eintracht Frankfurt",
+              "M'gladbach": "Borussia Mönchengladbach", "Stuttgart": "VfB Stuttgart", "Freiburg": "SC Freiburg",
+              "Wolfsburg": "VfL Wolfsburg", "Hoffenheim": "TSG Hoffenheim", "Augsburg": "FC Augsburg",
+              "Union Berlin": "1. FC Union Berlin", "St Pauli": "St. Pauli", "Heidenheim": "1. FC Heidenheim 1846",
+              "Hamburg": "Hamburger SV", "FC Koln": "1. FC Köln", "Paris SG": "Paris Saint-Germain",
+              "Marseille": "Olympique de Marseille", "Monaco": "AS Monaco", "Rennes": "Stade Rennais",
+              "Brest": "Stade Brestois 29", "Lens": "RC Lens", "Nice": "OGC Nice"}
+FIRST = ["Marco", "Luca", "Kevin", "Diego", "Lukas", "Jonas", "Pierre", "Hugo", "Alvaro", "Pedro", "Tom", "Ben",
+         "Nico", "Federico", "Mattia", "Leon", "Theo", "Rafa", "Jamie", "Ollie", "Dusan", "Ivan", "Sergio", "Ruben"]
+LAST = ["Rossi", "Bianchi", "Muller", "Schmidt", "Martin", "Bernard", "Garcia", "Lopez", "Smith", "Walker",
+        "Novak", "Silva", "Costa", "Ferrari", "Romano", "Weber", "Moreau", "Ruiz", "Taylor", "Moretti", "Galli",
+        "Kovac", "Dubois", "Fischer", "Hughes", "Esposito", "Conti", "Navarro", "Sanchez", "Brown"]
+
+
+def _strength(n):
+    att = np.exp(rng.normal(0, 0.28, n)); dfn = np.exp(rng.normal(0, 0.24, n))
+    order = np.argsort(-(att / dfn))
+    return att[order], dfn[order]
+
+
+SOCCER = {}
+
+
+def _gen_soccer():
+    today = config.today()
+    sy = config.soccer_season_start_year(today)
+    eid = 700000
+    for key, lg in SOCCER_LEAGUES.items():
+        teams = TEAMS[lg["fd"]]
+        n = len(teams)
+        att, dfn = _strength(n)
+        seasons, events, players, boxes = {}, [], {}, {}
+        for ti, t in enumerate(teams):
+            players[t] = []
+            for k in range(20):
+                pos = "G" if k == 0 else ("D" if k < 7 else ("M" if k < 13 else "F"))
+                skill = {"G": 0.0, "D": 0.06, "M": 0.2, "F": 0.5}[pos] * math.exp(rng.normal(0, 0.5))
+                players[t].append({"pid": str(10000 * (ti + 1) + k + hash(key) % 997 * 100),
+                                   "name": f"{random.choice(FIRST)} {random.choice(LAST)}", "pos": pos, "skill": skill})
+        for y in (sy - 2, sy - 1, sy):
+            rounds = []
+            for rnd in range(2 * (n - 1)):
+                order = list(range(n))
+                random.shuffle(order)
+                rounds.append([(order[i], order[i + 1]) for i in range(0, n, 2)])
+            start = date(y, 8, 23)
+            rows = []
+            for ri, rd in enumerate(rounds):
+                d = start + timedelta(days=7 * ri + (14 if ri > 18 else 0))
+                for h, a in rd:
+                    dd = d + timedelta(days=random.choice([0, 0, 1, 1, 2]))
+                    lh = 1.38 * 1.15 * att[h] * dfn[a]; la = 1.38 / 1.15 * att[a] * dfn[h]
+                    eid += 1
+                    ev_date = datetime(dd.year, dd.month, dd.day, random.choice([12, 15, 18, 19]), random.choice([0, 30, 45]), tzinfo=timezone.utc)
+                    played = dd < today
+                    if y == sy:
+                        events.append({"id": str(eid), "date": ev_date.isoformat().replace("+00:00", "Z"),
+                                       "state": "post" if played else "pre", "completed": played,
+                                       "status": "FT" if played else "Programmata",
+                                       "home": {"id": str(100 + h), "name": ESPN_NAMES.get(teams[h], teams[h]), "short": teams[h], "abbr": teams[h][:3].upper(), "score": None, "logo": None},
+                                       "away": {"id": str(100 + a), "name": ESPN_NAMES.get(teams[a], teams[a]), "short": teams[a], "abbr": teams[a][:3].upper(), "score": None, "logo": None},
+                                       "season_type": 1, "venue": f"Stadio {teams[h]}"})
+                    if not played:
+                        continue
+                    hg, ag = int(rng.poisson(lh)), int(rng.poisson(la))
+                    if y == sy:
+                        events[-1]["home"]["score"], events[-1]["away"]["score"] = hg, ag
+                        boxes[str(eid)] = {"date": dd.isoformat(), "lines": _soccer_box(players, teams, h, a, hg, ag)}
+                    p = _probs(lh, la)
+                    m = {"date": dd.isoformat(), "time": "15:00", "home": teams[h], "away": teams[a],
+                         "hg": float(hg), "ag": float(ag), "hhg": float(rng.binomial(hg, 0.45)), "hag": float(rng.binomial(ag, 0.45)),
+                         "hs": float(rng.poisson(12 * att[h])), "as": float(rng.poisson(10 * att[a])),
+                         "hst": float(rng.poisson(4.4 * att[h])), "ast": float(rng.poisson(3.6 * att[a])),
+                         "hc": float(rng.poisson(5.4 * att[h] ** 0.5)), "ac": float(rng.poisson(4.5 * att[a] ** 0.5)),
+                         "hy": float(rng.poisson(1.9)), "ay": float(rng.poisson(2.2)), "hr": 0.0, "ar": 0.0,
+                         "hf": float(rng.poisson(12)), "af": float(rng.poisson(12.5)),
+                         "o1x2": [round(1 / (x * 1.05), 2) for x in p[:3]], "oou25": [round(1 / (p[3] * 1.05), 2), round(1 / ((1 - p[3]) * 1.05), 2)]}
+                    rows.append(m)
+            seasons[config.fd_season_code(y)] = rows
+        SOCCER[lg["fd"]] = {"seasons": seasons, "events": events, "boxes": boxes, "espn": lg["espn"]}
+
+
+def _probs(lh, la):
+    from .models.soccer import score_matrix, p1x2
+    M = score_matrix(lh, la)
+    i, j = np.indices(M.shape)
+    return (*p1x2(M), float(M[(i + j) > 2.5].sum()))
+
+
+def _soccer_box(players, teams, h, a, hg, ag):
+    lines = []
+    for side, ti, goals in (("home", h, hg), ("away", a, ag)):
+        squad = players[teams[ti]]
+        starters = [squad[0]] + random.sample(squad[1:7], 4) + random.sample(squad[7:13], 3) + random.sample(squad[13:], 3)
+        subs = random.sample([p for p in squad if p not in starters], 3)
+        onfield = starters + subs
+        w = np.array([p["skill"] * (1 if p in starters else 0.35) for p in onfield]) + 1e-6
+        scorers = rng.choice(len(onfield), size=goals, p=w / w.sum()) if goals else []
+        assists = rng.choice(len(onfield), size=goals, p=w / w.sum()) if goals else []
+        for k, p in enumerate(onfield):
+            g = int(sum(1 for s in scorers if s == k)); asst = int(sum(1 for s in assists if s == k))
+            sh = g + int(rng.poisson(p["skill"] * 3 * (1 if p in starters else 0.35)))
+            lines.append({"pid": p["pid"], "name": p["name"], "pos": p["pos"], "team": str(100 + ti), "side": side,
+                          "start": p in starters, "sub": p in subs, "g": g, "a": asst, "sh": sh,
+                          "sot": min(sh, g + int(rng.binomial(max(sh - g, 0), 0.3))),
+                          "yc": int(rng.random() < 0.11), "rc": 0, "fc": int(rng.poisson(1)), "fs": int(rng.poisson(1)),
+                          "sv": int(rng.poisson(3)) if p["pos"] == "G" else 0, "off": 0})
+    return lines
+
+
+# ----------------------------------------------------------------- NBA
+
+NBA_TEAMS = [("Boston Celtics", "BOS"), ("New York Knicks", "NY"), ("Milwaukee Bucks", "MIL"), ("Cleveland Cavaliers", "CLE"),
+             ("Orlando Magic", "ORL"), ("Indiana Pacers", "IND"), ("Philadelphia 76ers", "PHI"), ("Miami Heat", "MIA"),
+             ("Atlanta Hawks", "ATL"), ("Chicago Bulls", "CHI"), ("Toronto Raptors", "TOR"), ("Brooklyn Nets", "BKN"),
+             ("Charlotte Hornets", "CHA"), ("Detroit Pistons", "DET"), ("Washington Wizards", "WSH"),
+             ("Oklahoma City Thunder", "OKC"), ("Denver Nuggets", "DEN"), ("Minnesota Timberwolves", "MIN"),
+             ("Los Angeles Clippers", "LAC"), ("Dallas Mavericks", "DAL"), ("Phoenix Suns", "PHX"),
+             ("New Orleans Pelicans", "NO"), ("Los Angeles Lakers", "LAL"), ("Sacramento Kings", "SAC"),
+             ("Golden State Warriors", "GS"), ("Houston Rockets", "HOU"), ("Utah Jazz", "UTAH"),
+             ("Memphis Grizzlies", "MEM"), ("San Antonio Spurs", "SA"), ("Portland Trail Blazers", "POR")]
+NBA = {}
+
+
+def _gen_nba():
+    today = config.today()
+    sy = config.nba_season_start_year(today)
+    off = rng.normal(0, 4, 30); dfn = rng.normal(0, 3.5, 30)
+    roster = {}
+    for t in range(30):
+        roster[t] = [{"pid": str(5000 + t * 20 + k), "name": f"{random.choice(FIRST)} {random.choice(LAST)}",
+                      "pos": random.choice(["G", "F", "C"]), "min": max(8, 36 - k * 2.6 + rng.normal(0, 2)),
+                      "usage": max(0.4, 1.6 - k * 0.12 + rng.normal(0, 0.15)), "reb": rng.uniform(0.1, 0.35),
+                      "ast": rng.uniform(0.05, 0.3), "tp": rng.uniform(0.02, 0.12)} for k in range(12)]
+    gid = 401800000
+    for y in (sy - 1, sy):
+        games, box = [], {}
+        d = date(y, 10, 21)
+        end = date(y + 1, 4, 12)
+        while d <= end:
+            if y == sy and d > today + timedelta(days=5):
+                break
+            teams = list(range(30)); random.shuffle(teams)
+            for k in range(0, random.choice([8, 10, 12, 14]), 2):
+                h, a = teams[k], teams[k + 1]
+                gid += 1
+                hs_e = 114 + 2.2 + off[h] - dfn[a]; as_e = 114 + off[a] - dfn[h]
+                played = d < today
+                hs = int(round(hs_e + rng.normal(0, 11))) if played else None
+                as_ = int(round(as_e + rng.normal(0, 11))) if played else None
+                if played and hs == as_:
+                    hs += 3
+                ph = 1 / (1 + math.exp(-(hs_e - as_e) / 7.2))
+                g = {"id": str(gid), "date": f"{d.isoformat()}T{random.choice(['00:00', '00:30', '01:00', '02:30', '03:00'])}Z",
+                     "state": "post" if played else "pre", "home": str(h + 1), "away": str(a + 1),
+                     "home_name": NBA_TEAMS[h][0], "away_name": NBA_TEAMS[a][0],
+                     "home_abbr": NBA_TEAMS[h][1], "away_abbr": NBA_TEAMS[a][1], "home_logo": None, "away_logo": None,
+                     "hs": hs, "as": as_,
+                     "odds": {"provider": "Esempio", "total": round((hs_e + as_e) * 2) / 2, "spread": -round((hs_e - as_e) * 2) / 2,
+                              "p_home": ph, "p_away": 1 - ph, "details": ""}}
+                games.append(g)
+                if played and y == sy:
+                    box[g["id"]] = {"date": d.isoformat(), "lines": _nba_box(roster, h, hs) + _nba_box(roster, a, as_)}
+            d += timedelta(days=1)
+        NBA[y] = {"games": games, "box": box}
+
+
+def _nba_box(roster, t, pts):
+    lines = []
+    mins = [max(0, p["min"] + rng.normal(0, 4)) for p in roster[t]]
+    usage = np.array([p["usage"] * m for p, m in zip(roster[t], mins)])
+    share = usage / usage.sum()
+    for p, m, s in zip(roster[t], mins, share):
+        if m < 3:
+            continue
+        pt = int(rng.poisson(max(pts * s, 0.1)))
+        tpm = int(rng.poisson(p["tp"] * m)); tpa = tpm + int(rng.poisson(p["tp"] * m * 1.7))
+        fgm = max(tpm, int(pt / 2.3)); fga = fgm + int(rng.poisson(fgm * 1.1 + 1))
+        lines.append({"pid": p["pid"], "name": p["name"], "pos": p["pos"], "team": str(t + 1), "start": p["min"] > 26,
+                      "min": round(m), "pts": pt, "reb": int(rng.poisson(p["reb"] * m)), "ast": int(rng.poisson(p["ast"] * m)),
+                      "stl": int(rng.poisson(0.03 * m)), "blk": int(rng.poisson(0.02 * m)), "tov": int(rng.poisson(0.05 * m)),
+                      "pf": int(rng.poisson(0.06 * m)), "fgm": fgm, "fga": fga, "tpm": tpm, "tpa": tpa, "ftm": 0, "fta": 0})
+    return lines
+
+
+# ----------------------------------------------------------------- tennis
+
+TENNIS = {}
+
+
+def _gen_tennis():
+    today = config.today()
+    for tour, n in (("atp", 90), ("wta", 90)):
+        skill = sorted(rng.normal(0, 1, n), reverse=True)
+        names = []
+        while len(names) < n:
+            nm = f"{random.choice(LAST)}{random.choice(['', 'o', 'ic', 'er', 'ov'])} {random.choice('ABCDEFGHJKLMNPRST')}."
+            if nm not in names:
+                names.append(nm)
+        surf_bonus = {nm: {s: rng.normal(0, 0.3) for s in ("Hard", "Clay", "Grass")} for nm in names}
+        by_year = {}
+        for y in (today.year - 2, today.year - 1, today.year):
+            rows = []
+            d = date(y, 1, 6)
+            while d < min(date(y, 11, 25), today):
+                surface = "Clay" if 4 <= d.month <= 5 else ("Grass" if d.month == 6 else "Hard")
+                for _ in range(40):
+                    i, j = rng.choice(n, 2, replace=False)
+                    si = skill[i] + surf_bonus[names[i]][surface]; sj = skill[j] + surf_bonus[names[j]][surface]
+                    p = 1 / (1 + math.exp(-(si - sj) * 1.1))
+                    w, l = (i, j) if rng.random() < p else (j, i)
+                    pw = p if w == i else 1 - p
+                    sets = [[6, int(rng.integers(0, 5))], [7 if rng.random() < 0.2 else 6, int(rng.integers(2, 6))]]
+                    if rng.random() < 0.3:
+                        sets = [[6, 4], [int(rng.integers(3, 6)), 6], [6, int(rng.integers(1, 5))]]
+                    rows.append({"date": d.isoformat(), "tour": tour, "tournament": "Torneo di prova", "location": "Città",
+                                 "surface": surface, "court": "Outdoor", "round": "1st Round", "bo": 3,
+                                 "w": names[w], "l": names[l], "wr": float(w + 1), "lr": float(l + 1),
+                                 "sets": sets, "comment": "Completed",
+                                 "ow": round(1 / (pw * 1.05), 2), "ol": round(1 / ((1 - pw) * 1.05), 2)})
+                d += timedelta(days=7)
+            by_year[y] = rows
+        upcoming = []
+        for k in range(8):
+            i, j = int(rng.integers(0, 12)), int(rng.integers(12, 40))
+            def disp(nm):
+                last, ini = nm.rsplit(" ", 1)
+                return f"{ini[0]}{random.choice(['ario', 'ina', 'ean', 'ika'])} {last}"
+            upcoming.append({"id": str(9000 + k + (0 if tour == "atp" else 100)),
+                             "date": f"{(today + timedelta(days=k // 3)).isoformat()}T{12 + k % 6}:00Z", "state": "pre",
+                             "status": "Programmato", "tournament": "Finals di prova", "round": "Round robin",
+                             "players": [{"id": "a", "name": disp(names[i]), "order": 1}, {"id": "b", "name": disp(names[j]), "order": 2}]})
+        TENNIS[tour] = {"years": by_year, "upcoming": upcoming}
+
+
+# ----------------------------------------------------------------- collegamento alle fonti
+
+def _install_fakes():
+    def fd_season(code, sc):
+        return [dict(m) for m in SOCCER.get(code, {}).get("seasons", {}).get(sc, [])]
+
+    def fd_fixtures():
+        out = []
+        for code, s in SOCCER.items():
+            name_back = {v: k for k, v in ESPN_NAMES.items()}
+            for e in s["events"]:
+                if e["state"] == "pre":
+                    h = name_back.get(e["home"]["name"], e["home"]["name"]); a = name_back.get(e["away"]["name"], e["away"]["name"])
+                    out.append({"div": code, "date": e["date"][:10], "home": h, "away": a,
+                                "o1x2": [round(random.uniform(1.6, 3.2), 2), round(random.uniform(3.0, 3.8), 2), round(random.uniform(2.2, 4.5), 2)],
+                                "oou25": [round(random.uniform(1.7, 2.1), 2), round(random.uniform(1.7, 2.1), 2)]})
+        return out
+
+    def scoreboard_range(sport, league, start, end, chunk_days=14):
+        if sport == "soccer":
+            s = next(v for v in SOCCER.values() if v["espn"] == league)
+            return [{"_parsed": e} for e in s["events"] if start.isoformat() <= e["date"][:10] <= end.isoformat()]
+        if sport == "basketball":
+            out = []
+            for y, s in NBA.items():
+                for g in s["games"]:
+                    if start.isoformat() <= g["date"][:10] <= end.isoformat():
+                        out.append({"_nba": g})
+            return out
+        return []
+
+    real_parse = espn.parse_event
+
+    def parse_event(ev):
+        if "_parsed" in ev:
+            return dict(ev["_parsed"])
+        if "_nba" in ev:
+            g = ev["_nba"]
+            done = g["hs"] is not None
+            return {"id": g["id"], "date": g["date"], "state": g["state"], "completed": done, "status": "",
+                    "home": {"id": g["home"], "name": g["home_name"], "abbr": g["home_abbr"], "short": g["home_abbr"], "score": g["hs"], "logo": None},
+                    "away": {"id": g["away"], "name": g["away_name"], "abbr": g["away_abbr"], "short": g["away_abbr"], "score": g["as"], "logo": None},
+                    "season_type": 2, "odds": g["odds"]}
+        return real_parse(ev)
+
+    def summary(sport, league, event_id):
+        if sport == "soccer":
+            for s in SOCCER.values():
+                if event_id in s["boxes"]:
+                    return {"_lines": s["boxes"][event_id]["lines"]}
+            return None
+        if sport == "basketball":
+            for s in NBA.values():
+                if event_id in s["box"]:
+                    return {"_lines": s["box"][event_id]["lines"]}
+                for g in s["games"]:
+                    if g["id"] == event_id and g["state"] == "pre":
+                        inj = []
+                        team_lines = [x for b in s["box"].values() for x in b["lines"] if x["team"] == g["home"]]
+                        if team_lines:
+                            x = team_lines[0]
+                            inj = [{"team": {"id": g["home"]}, "injuries": [{"athlete": {"id": x["pid"], "displayName": x["name"]}, "status": "Day-To-Day", "details": {"type": "Caviglia"}}]}]
+                        return {"injuries": inj, "_odds": g["odds"]}
+        return None
+
+    espn.scoreboard_range = scoreboard_range
+    espn.parse_event = parse_event
+    espn.summary = summary
+    espn.soccer_player_lines = lambda summ: summ.get("_lines", [])
+    espn.nba_player_lines = lambda summ: summ.get("_lines", [])
+    espn.pickcenter_odds = lambda summ: summ.get("_odds")
+    espn.scoreboard = lambda sport, league, start, end=None: [{"_t": m} for m in TENNIS.get(league, {}).get("upcoming", [])] if sport == "tennis" else []
+    espn.tennis_matches = lambda evs: [e["_t"] for e in evs]
+    footballdata.season = fd_season
+    footballdata.fixtures = fd_fixtures
+    understat.league_matches = lambda league, y: []
+    tennisdata.year = lambda tour, y: TENNIS.get(tour, {}).get("years", {}).get(y, [])
+
+    from . import build_nba
+    real_games = build_nba._games
+
+    def games(season_year, today, status, final):
+        return real_games(season_year, today, status, final)
+    build_nba._games = games
+
+
+def main():
+    import logging
+    logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")
+    shutil.rmtree(CACHE, ignore_errors=True)
+    shutil.rmtree(PUBLIC_DATA, ignore_errors=True)
+    _gen_soccer(); _gen_nba(); _gen_tennis()
+    _install_fakes()
+    import sys
+    from . import run
+    sys.argv = ["run"]
+    run.main()
+    meta = store.load(PUBLIC_DATA / "meta.json")
+    meta["sample"] = True
+    store.save(PUBLIC_DATA / "meta.json", meta, pretty=True)
+    shutil.rmtree(CACHE, ignore_errors=True)  # la cache di esempio non va nel repository
+    CACHE.mkdir(parents=True, exist_ok=True)
+    (CACHE / ".gitkeep").write_text("")
+
+
+if __name__ == "__main__":
+    main()

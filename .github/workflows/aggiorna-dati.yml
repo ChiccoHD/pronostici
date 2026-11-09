@@ -1,0 +1,63 @@
+name: Aggiorna dati
+
+on:
+  schedule:
+    # Orari in UTC (in Italia +1 d'inverno, +2 d'estate)
+    - cron: "17 5 * * *"
+    - cron: "47 10 * * *"
+    - cron: "17 16 * * *"
+    - cron: "47 21 * * *"
+  workflow_dispatch:
+    inputs:
+      solo:
+        description: "Sport da aggiornare (calcio,nba,tennis)"
+        required: false
+        default: "calcio,nba,tennis"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aggiorna-dati
+  cancel-in-progress: false
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installa dipendenze
+        run: pip install -r requirements.txt
+
+      - name: Scarica dati e calcola le percentuali
+        run: python -m pipeline.run --solo "${{ github.event.inputs.solo || 'calcio,nba,tennis' }}"
+
+      - name: Riepilogo
+        if: always()
+        run: |
+          echo '### Stato fonti' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat public/data/meta.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Salva i dati nel repository
+        run: |
+          git config user.name "aggiornamento-automatico"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data data/cache
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica"
+            exit 0
+          fi
+          git commit -m "Dati aggiornati $(date -u +'%Y-%m-%d %H:%M') UTC"
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push && break
+            sleep 5
+          done

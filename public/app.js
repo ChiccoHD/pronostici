@@ -250,8 +250,9 @@ function showList() {
     const d = fmtDay(groups.values().next().value[0].date);
     html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`;
     for (const [g, list] of groups) {
-      const closed = closedGroups().includes(g);
-      html += `<section class="group ${closed ? "closed" : ""}"><button type="button" class="group-h" data-group="${esc(g)}" aria-expanded="${!closed}">
+      const gk = `${k}|${g}`;   // un riquadro = una competizione in un giorno
+      const closed = closedGroups().includes(gk);
+      html += `<section class="group ${closed ? "closed" : ""}"><button type="button" class="group-h" data-group="${esc(gk)}" aria-expanded="${!closed}">
         <span class="group-dot g-${list[0].sport}"></span><b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
         <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="group-body">${list.map(fixture).join("")}</div></section>`;

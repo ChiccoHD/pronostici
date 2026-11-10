@@ -236,11 +236,22 @@ function showList() {
     const why = state.sport === "soccer" ? "Nei prossimi giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
     html += `<div class="empty"><b>Nessuna partita in programma</b>${why}</div>`;
   }
-  let last = null;
+  // per ogni giorno, un riquadro per campionato o torneo, nell'ordine della prima partita
+  const days = new Map();
   for (const e of evs) {
-    const d = fmtDay(e.date);
-    if (d.key !== last) { html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`; last = d.key; }
-    html += fixture(e);
+    const k = isoDay(e.date);
+    if (!days.has(k)) days.set(k, new Map());
+    const g = groupName(e);
+    const m = days.get(k);
+    if (!m.has(g)) m.set(g, []);
+    m.get(g).push(e);
+  }
+  for (const [k, groups] of days) {
+    const d = fmtDay(groups.values().next().value[0].date);
+    html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`;
+    for (const [g, list] of groups) {
+      html += `<section class="group"><header class="group-h"><span class="group-dot g-${list[0].sport}"></span><b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}</small></header>${list.map(fixture).join("")}</section>`;
+    }
   }
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => {
@@ -259,6 +270,11 @@ function teamMark(logo, flag, color, cls = "") {
   return `<span class="tdot" style="background:${color || "var(--ink-3)"}"></span>`;
 }
 
+function groupName(e) {
+  if (e.sport === "tennis") return e.league_name.replace(" · ", " – ");
+  return e.league_name;
+}
+
 function fixture(e) {
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
@@ -273,9 +289,8 @@ function fixture(e) {
     const gap = Math.max(...e.main.map((p, i) => Math.abs(p - (e.book[i] ?? p))));
     if (gap >= 0.07) sub.push(`<span class="gap">${Math.round(gap * 100)} punti dalle quote</span>`);
   }
-  const lg = e.sport === "tennis" ? e.league_name.replace(/^(ATP|WTA) · .*/, "$1") : e.league_name;
   return `<a class="fx" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${e.time_valid === false ? "–" : fmtTime(e.date)}<small>${esc(lg)}</small></div>
+    <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}</div>
     <div class="fx-mid">
       <div class="fx-t ${pH >= pA ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span>${esc(e.home)}</span></div>
       <div class="fx-t ${pA > pH ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span>${esc(e.away)}</span></div>

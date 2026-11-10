@@ -158,34 +158,36 @@ function showList() {
   });
 }
 
-function splitBar(parts) {
-  return `<div class="split" aria-hidden="true">${parts.map(([p, c]) =>
-    `<i ${c ? `style="flex:${Math.max(p, .02)} 1 0;background:${c}"` : `class="mid" style="flex:${Math.max(p, .02)} 1 0"`}></i>`).join("")}</div>`;
+
+function teamMark(logo, flag, color, cls = "") {
+  if (logo) return img(logo, "tlogo " + cls);
+  if (flag) return img(flag, "tflag " + cls);
+  return `<span class="tdot" style="background:${color || "var(--ink-3)"}"></span>`;
 }
 
 function fixture(e) {
   const three = e.main.length === 3;
-  const pH = e.main[0], pA = e.main[three ? 2 : 1], pD = three ? e.main[1] : null;
+  const pH = e.main[0], pA = e.main[three ? 2 : 1];
   const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
   const max = Math.max(...e.main);
-  const team = (name, p, c, cc, logo, flag) => `<div class="fx-team"><span class="stripe" style="background:${c}"></span>
-    <span class="fx-name">${img(logo, "logo")}${img(flag, "flag", cc || "")}${esc(name)}${cc && !flag ? `<span class="cc">${esc(cc)}</span>` : ""}</span><span class="fx-p pct ${p === max ? "lead" : ""}">${pct(p)}</span></div>`;
-  const foot = [];
-  if (three) foot.push(`Pareggio <b>${pct(pD)}</b>`);
-  for (const [k, v] of Object.entries(e.extra || {})) if (v != null) foot.push(`${esc(line(k))} <b>${pct(v)}</b>`);
-  if (e.sport === "soccer" && e.xg) foot.push(`Gol attesi <b>${num(e.xg[0])}–${num(e.xg[1])}</b>`);
-  if (e.sport === "nba" && e.exp_score) foot.push(`Punteggio atteso <b>${Math.round(e.exp_score[0])}–${Math.round(e.exp_score[1])}</b>`);
+  const labels = three ? ["1", "X", "2"] : ["1", "2"];
+  const sub = [];
+  for (const [k, v] of Object.entries(e.extra || {})) if (v != null) sub.push(`${esc(line(k))} <b>${pct(v)}</b>`);
+  if (e.sport === "nba" && e.exp_score) sub.push(`atteso <b>${Math.round(e.exp_score[0])}–${Math.round(e.exp_score[1])}</b>`);
+  if (e.sport === "tennis" && e.surface) sub.push(surfaceIt(e.surface));
   if (e.book) {
     const gap = Math.max(...e.main.map((p, i) => Math.abs(p - (e.book[i] ?? p))));
-    if (gap >= 0.07) foot.push(`<span class="flag-gap">Lontano dalle quote: ${Math.round(gap * 100)} punti</span>`);
+    if (gap >= 0.07) sub.push(`<span class="gap">${Math.round(gap * 100)} punti dalle quote</span>`);
   }
-  const where = e.sport === "tennis" ? `${esc(e.league_name.replace(/^(ATP|WTA) · /, "$1 "))}${e.surface ? `, ${surfaceIt(e.surface).toLowerCase()}` : ""}` : esc(e.league_name);
+  const lg = e.sport === "tennis" ? e.league_name.replace(/^(ATP|WTA) · .*/, "$1") : e.league_name;
   return `<a class="fx" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-meta"><b>${where}</b><span>${fmtTime(e.date, e.time_valid)}</span></div>
-    ${team(e.home, pH, cH, e.sport === "tennis" ? e.home_short : "", e.home_logo, e.home_flag)}
-    ${team(e.away, pA, cA, e.sport === "tennis" ? e.away_short : "", e.away_logo, e.away_flag)}
-    ${splitBar(three ? [[pH, cH], [pD, null], [pA, cA]] : [[pH, cH], [pA, cA]])}
-    <div class="fx-foot">${foot.map(x => `<span>${x}</span>`).join("")}</div>
+    <div class="fx-time">${e.time_valid === false ? "–" : fmtTime(e.date)}<small>${esc(lg)}</small></div>
+    <div class="fx-mid">
+      <div class="fx-t ${pH >= pA ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span>${esc(e.home)}</span></div>
+      <div class="fx-t ${pA > pH ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span>${esc(e.away)}</span></div>
+      ${sub.length ? `<div class="fx-sub">${sub.map(x => `<span>${x}</span>`).join("")}</div>` : ""}
+    </div>
+    <div class="fx-rings">${e.main.map((p, i) => `<span class="fx-ring">${ring(p, p === max)}<small>${labels[i]}</small></span>`).join("")}</div>
   </a>`;
 }
 
@@ -197,17 +199,15 @@ function sec(title, inner, right = "") {
 
 function picks(items, book) {
   const max = Math.max(...items.map(x => x[1] ?? 0));
-  return `<div class="picks" style="--n:${items.length}">${items.map(([lab, p], i) => `
-    <div class="pick ${p === max ? "lead" : ""}"><b class="pct">${pct(p)}</b><span>${esc(lab)}</span>
-    <em>quota equa ${odd(p)}${book && book[i] != null ? `<br>quote: ${pct(book[i])}` : ""}</em></div>`).join("")}</div>`;
+  return `<div class="rgrid" style="--n:${items.length}">${items.map(([lab, p], i) => `
+    <div class="rcell ${p === max && items.length > 1 ? "lead" : ""}">${ring(p, p === max)}<span class="lab">${esc(lab)}</span>
+    <span class="q">quota equa ${odd(p)}${book && book[i] != null ? `<br>quote ${pct(book[i])}` : ""}</span></div>`).join("")}</div>`;
 }
 
 function rows(obj, { label = k => k, book = null } = {}) {
-  return `<div class="rows">${Object.entries(obj).filter(([, v]) => v != null).map(([k, v]) => {
-    const hot = v >= 0.6;
-    return `<div class="r"><span class="l">${esc(label(k))}</span><span class="v pct ${hot ? "hot" : ""}">${pct(v)}</span>
-      <span class="x"><span class="meter"><i style="width:${Math.round(v * 100)}%"></i></span>quota equa ${odd(v)}${book && book[k] != null ? ` · quote ${pct(book[k])}` : ""}</span></div>`;
-  }).join("")}</div>`;
+  return `<div class="bars">${Object.entries(obj).filter(([, v]) => v != null).map(([k, v]) =>
+    `<div class="bar ${v >= 0.6 ? "hi" : ""}"><i style="width:${Math.round(v * 100)}%"></i>
+      <span>${esc(label(k))}<small>${odd(v)}${book && book[k] != null ? ` · quote ${pct(book[k])}` : ""}</small></span><b>${pct(v)}</b></div>`).join("")}</div>`;
 }
 
 const formSeq = seq => `<span class="form">${(seq || []).map(r => `<span class="f ${r}" title="${{ V: "vittoria", N: "pareggio", P: "sconfitta" }[r]}">${r}</span>`).join("")}</span>`;
@@ -225,18 +225,20 @@ function seg(name, opts, cur) {
   return `<span class="seg" role="group" data-seg="${name}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`).join("")}</span>`;
 }
 
-function board(d, { subH = "", subA = "", pH, pA, pD, bookTxt = "", cH, cA, extra = "" }) {
-  const max = Math.max(pH, pA, pD ?? 0);
-  const team = (t, sub, p, c) => `<div class="board-team"><span class="stripe" style="background:${c}"></span>
-    <div class="board-id">${img(t.logo, "board-logo")}${img(t.flag, "board-flag")}<div><div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div></div>
-    <div class="board-p pct ${p === max ? "lead" : ""}">${pct(p)}<small>quota equa ${odd(p)}</small></div></div>`;
+function board(d, { subH = "", subA = "", probs, labels, book = null, foot = [] }) {
+  const max = Math.max(...probs);
+  const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
+  const crest = (t, c) => t.logo ? img(t.logo, "") : t.flag ? img(t.flag, "tflag") :
+    `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(t.name))}</span>`;
+  const team = (t, sub, c) => `<div class="board-t"><span class="crest">${crest(t, c)}</span>
+    <div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div>`;
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
   return `<div class="board">
     <div class="board-meta"><span>${esc(d.league_name)}</span><span>${esc(when)}</span></div>
-    ${team(d.home, subH, pH, cH)}
-    ${team(d.away, subA, pA, cA)}
-    ${splitBar(pD != null ? [[pH, cH], [pD, null], [pA, cA]] : [[pH, cH], [pA, cA]])}
-    ${pD != null || bookTxt || extra ? `<div class="board-draw"><span>${pD != null ? `Pareggio <b class="pct">${pct(pD)}</b>` : extra}</span><span>${bookTxt}</span></div>` : ""}
+    <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
+    <div class="board-rings">${probs.map((p, i) => `<div class="cell">${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
+      <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
+    ${foot.filter(Boolean).length ? `<div class="board-foot">${foot.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</div>` : ""}
   </div>`;
 }
 
@@ -286,7 +288,8 @@ function soccerView(d) {
   const [cH, cA] = teamColors(H, A);
   const pos = t => t.pos ? `${t.pos}ª in classifica, ${t.pts} punti` : "";
   const bookTxt = b["1x2"] ? `${b.provider === "media bookmaker" || !b.provider ? "Quote" : esc(b.provider)}: ${b["1x2"].map(pct).join(" / ")}` : "";
-  let s = board(d, { subH: pos(H), subA: pos(A), pH: m["1x2"][0], pD: m["1x2"][1], pA: m["1x2"][2], cH, cA, bookTxt });
+  let s = board(d, { subH: pos(H), subA: pos(A), probs: m["1x2"], labels: ["1", "X", "2"], book: b["1x2"],
+    foot: [`Gol attesi <b class="num">${num(m.xg[0], 2)}–${num(m.xg[1], 2)}</b>`, b["1x2"] ? `Quote: ${esc(b.provider && b.provider !== "media bookmaker" ? b.provider : "media bookmaker")}` : ""] });
   if (d.cup === "women") s += `<div class="warn">Per la Champions femminile ci sono solo i risultati della competizione stessa: le percentuali sono indicative.</div>`;
   else if (d.low_data) s += `<div class="warn">Una delle due squadre gioca in un campionato che il modello non segue: la sua forza è stimata solo dalle partite di coppa.</div>`;
 
@@ -297,7 +300,8 @@ function soccerView(d) {
     + sec("Primo tempo", picks([["1", m.ht["1x2"][0]], ["X", m.ht["1x2"][1]], ["2", m.ht["1x2"][2]]]) + rows(m.ht.ou, { label: k => `Over ${line(k)} nel primo tempo` }));
 
   const ouBook = b.ou25 ? { "2.5": b.ou25[0] } : null;
-  const gol = sec("Under / Over", rows(m.ou, { label: k => `Over ${line(k)}`, book: ouBook }))
+  const gol = sec("Gol in sintesi", picks([["Over 1,5", m.ou["1.5"]], ["Over 2,5", m.ou["2.5"]], ["Over 3,5", m.ou["3.5"]], ["Goal", m.btts]]))
+    + sec("Under / Over", rows(m.ou, { label: k => `Over ${line(k)}`, book: ouBook }))
     + sec("Goal / No Goal", rows({ "Goal, segnano entrambe": m.btts, "No Goal": 1 - m.btts }))
     + sec("Multigol", rows(m.multigol, { label: k => `Multigol ${k}` }))
     + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`Over ${line(k)}`, v])), "Porta inviolata": m.clean_sheet[0] }))
@@ -384,15 +388,17 @@ function nbaView(d) {
   const [cH, cA] = teamColors(H, A);
   const sub = t => `${t.record.w} vinte, ${t.record.l} perse${t.b2b ? ", seconda sera di fila" : ""}`;
   const bookTxt = b.p_home ? `${esc(b.provider || "Quote")}: ${pct(b.p_home)} / ${pct(b.p_away)}` : "";
-  let s = board(d, { subH: sub(H), subA: sub(A), pH: m.win[0], pA: m.win[1], cH, cA, bookTxt,
-    extra: `Punteggio atteso <b class="num">${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b>` });
+  let s = board(d, { subH: sub(H), subA: sub(A), probs: m.win, labels: [H.short || "Casa", A.short || "Ospite"], book: b.p_home ? [b.p_home, b.p_away] : null,
+    foot: [`Punteggio atteso <b class="num">${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b>`, b.p_home ? `Quote: ${esc(b.provider || "")}` : ""] });
 
   const bpi = m.espn_bpi != null ? `<p class="note">Il modello di previsione di ESPN (BPI) dà ${esc(H.short)} al ${pct(m.espn_bpi)}. ${m.espn_weight ? `Pesa per il ${Math.round(m.espn_weight * 100)}% nella percentuale qui sopra: è il peso che ha sbagliato meno sulle partite già giocate.` : "Non è incluso nel calcolo."}</p>` : "";
   const esito = sec("Vincente", picks([[H.short || H.name, m.win[0]], [A.short || A.name, m.win[1]]], b.p_home ? [b.p_home, b.p_away] : null) + bpi)
     + sec("Handicap", rows(m.spreads, { label: k => `${H.short || "Casa"} ${line(k)}` }), `margine atteso ${m.margin > 0 ? "+" : ""}${num(m.margin)}`)
     + sec("Margine di vittoria", rows(Object.fromEntries(Object.entries(m.bands).map(([k, v]) =>
       [k.replace("casa", `${H.short || "Casa"} vince di`).replace("ospite", `${A.short || "Ospite"} vince di`), v]))));
-  const punti = sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
+  const tl = `${m.total_line}`, pOver = m.totals[`${Number(m.total_line)}`] ?? m.totals[tl];
+  const punti = (pOver != null ? sec("Linea principale", picks([[`Over ${line(m.total_line)}`, pOver], [`Under ${line(m.total_line)}`, 1 - pOver]]), `attesi ${num(m.total)}`) : "")
+    + sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
     + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `Over ${line(k)}` }))
     + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `Over ${line(k)}` }));
   const forma = sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
@@ -466,8 +472,8 @@ function tennisView(d) {
   const cH = "#8a6aa8", cA = "#a08a9e";
   const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
   d = { ...d, home: { ...d.home, flag: P.home.flag }, away: { ...d.away, flag: P.away.flag } };
-  let s = board(d, { subH: sub(P.home), subA: sub(P.away), pH: m.win[0], pA: m.win[1], cH, cA,
-    extra: `${esc(d.round || "")}${d.round ? ", " : ""}${surfaceIt(d.surface).toLowerCase()}, al meglio dei ${m.best_of} set` });
+  let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)],
+    foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;
   const ln = n => lastName(n);
   const esito = sec("Vincente", picks([[ln(d.home.name), m.win[0]], [ln(d.away.name), m.win[1]]]))
@@ -476,7 +482,9 @@ function tennisView(d) {
       return [`${a > b ? ln(d.home.name) : ln(d.away.name)} ${Math.max(a, b)}-${Math.min(a, b)}`, v];
     }))))
     + sec("Tie-break e set decisivo", rows({ "Almeno un tie-break": m.tiebreak, "Si arriva al set decisivo": m.deciding_set }));
-  const game = sec("Game totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.exp_games)}`)
+  const tt = Object.entries(m.totals), mid = tt[Math.floor(tt.length / 2)];
+  const game = sec("In sintesi", picks([[`Over ${line(mid[0])}`, mid[1]], ["Tie-break", m.tiebreak], ["Set decisivo", m.deciding_set]]))
+    + sec("Game totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.exp_games)}`)
     + sec("Handicap game", rows(m.handicap, { label: k => `${ln(d.home.name)} ${line(k)}` }))
     + `<p class="note">Game di servizio tenuti, stima: ${ln(d.home.name)} ${pct(m.hold[0])}, ${ln(d.away.name)} ${pct(m.hold[1])}.</p>`;
   const gioc = sec("Confronto", tennisPlayers(d, cH, cA)) + sec("Testa a testa", tennisH2h(d), d.h2h.n ? `${d.h2h.a}–${d.h2h.b}` : "")
@@ -519,10 +527,11 @@ function tennisLast(d) {
 const SPORT_OF = { soccer: "soccer", nba: "nba", tennis: "tennis" };
 if (!state.bestWin) state.bestWin = load("bestWin", "48");
 
-function ring(p) {
-  const r = 21, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, p));
-  return `<span class="ring ${p >= .75 ? "hi" : ""}" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="${r}" class="ring-bg"/>
-    <circle cx="26" cy="26" r="${r}" class="ring-fg" stroke-dasharray="${(v * c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 26 26)"/></svg><b>${pct(p)}</b></span>`;
+function ring(p, lead = false) {
+  const v = Math.max(0, Math.min(1, p ?? 0));
+  const cls = v >= .7 ? "r-hi" : v >= .5 ? "r-md" : "";
+  return `<span class="ring ${cls} ${lead ? "lead" : ""}" aria-hidden="true"><svg viewBox="0 0 36 36"><circle class="rb" cx="18" cy="18" r="15.9155" stroke-width="3.2"/>
+    <circle class="rf" cx="18" cy="18" r="15.9155" stroke-width="3.2" stroke-dasharray="${(v * 100).toFixed(1)} 100"/></svg><b>${pct(p)}</b></span>`;
 }
 
 function pickMark(it) {
@@ -536,7 +545,7 @@ function pickRow(it, big) {
   const when = `${fmtDay(it.date).rel || fmtShort(it.date)}, ${fmtTime(it.date, it.time_valid)}`;
   const edge = it.edge != null ? `<span class="edge ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">bookmaker ${pct(it.book)}</span>` : "";
   return `<a class="pk ${big ? "big" : ""}" href="#/e/${encodeURIComponent(it.event)}">
-    ${big ? ring(it.p) : `<span class="pk-p pct ${it.p >= .75 ? "hot" : ""}">${pct(it.p)}</span>`}
+    ${ring(it.p, it.p >= .75)}
     ${big ? pickMark(it) : ""}
     <span class="pk-txt"><b>${esc(it.label)}</b><span>${esc(it.match)}, ${esc(when)}${it.low ? ", pochi dati" : ""}</span>${edge}</span>
   </a>`;
@@ -627,7 +636,7 @@ function showInfo() {
       <li><b>NBA</b>: valutazione di attacco e difesa in punti, fattore campo e stanchezza per le partite in due sere di fila, incrociata con il modello di previsione di ESPN con il peso che ha sbagliato meno sulle partite già giocate. Le soglie dei giocatori partono da minuti attesi e medie recenti.</li>
       <li><b>Tennis</b>: punteggio Elo generale e per superficie, poi una simulazione punto per punto per game, set e tie-break.</li>
     </ul>
-    <p>Fonti gratuite: calendari, tabellini, infortuni, quote e previsioni da ESPN; risultati, statistiche, gol attesi e quote medie del calcio da football-data.co.uk; gol attesi anche da Understat quando è online. Le quote dei bookmaker non entrano mai nel calcolo: servono solo per il confronto. Carattere Barlow con licenza SIL Open Font.</p>
+    <p>Fonti gratuite: calendari, tabellini, infortuni, quote e previsioni da ESPN; risultati, statistiche, gol attesi e quote medie del calcio da football-data.co.uk; gol attesi anche da Understat quando è online. Le quote dei bookmaker non entrano mai nel calcolo: servono solo per il confronto. Carattere Manrope con licenza SIL Open Font.</p>
     <p>Sono stime statistiche, non certezze, e battere le quote con costanza è molto difficile. Se il gioco smette di essere un divertimento, il Telefono Verde nazionale dell'Istituto Superiore di Sanità risponde all'800 558 822, gratis e in forma anonima.</p></div>`)
     + sec("Stato delle fonti", status || `<p class="note">Nessun aggiornamento ancora eseguito.</p>`, META?.updated ? esc(ago(META.updated)) : "");
 }

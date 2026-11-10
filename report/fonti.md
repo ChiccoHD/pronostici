@@ -43,10 +43,10 @@
 - ✅ **ESPN: quote nel calendario** (6 con quote)
 - ✅ **ESPN: tabellino giocatori** (24 giocatori; es. Herbert Jones: 10.0 pt, 6.0 rimb, 1.0 ast, 24.0 min)
 - ✅ **ESPN: infortuni partita in arrivo** (2 giocatori)
-- ✅ **ESPN: quote partita in arrivo** ({'provider': 'Draft Kings', 'details': 'NY -15.5', 'total': 219.5, 'spread': -15.5, 'p_home': 0.8800000000000001, 'p_away': 0.12000000000000002})
+- ✅ **ESPN: quote partita in arrivo** ({'provider': 'DraftKings', 'details': 'NY -15.5', 'total': 220.5, 'spread': -15.5, 'p_home': 0.8800000000000001, 'p_away': 0.12000000000000002})
 
 ## Tennis
-- ❌ **tennis-data ATP 2026** (0 incontri; ultimo -; quote 0)
-- ✅ **ESPN ATP: incontri** (39 incontri, 19 in programma; tornei: Bybit Stockholm Open)
-- ❌ **tennis-data WTA 2026** (0 incontri; ultimo -; quote 0)
-- ✅ **ESPN WTA: incontri** (50 incontri, 34 in programma; tornei: DIRECTV Open Presentado por Compesar, FAGE WTA Finals Indian Wells)
+- ✅ **ESPN ATP: incontri** (29 incontri, 9 in programma; tornei: Bybit Stockholm Open)
+- ✅ **ESPN ATP: storico (200 giorni fa)** (130 incontri conclusi)
+- ✅ **ESPN WTA: incontri** (32 incontri, 16 in programma; tornei: DIRECTV Open Presentado por Compesar, FAGE WTA Finals Indian Wells)
+- ✅ **ESPN WTA: storico (200 giorni fa)** (172 incontri conclusi)

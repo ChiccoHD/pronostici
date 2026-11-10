@@ -314,3 +314,5 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .days button[aria-pressed="true"] small { color: rgba(255, 255, 255, .85); }
 .leagues button span { font-weight: 600; color: var(--ink-3); margin-left: 2px; }
 .leagues button[aria-pressed="true"] span { color: inherit; opacity: .75; }
+.days button { gap: 3px; padding: 8px 13px 7px; min-width: 64px; line-height: 1.1; }
+.days button small { font-size: 11.5px; line-height: 1; }

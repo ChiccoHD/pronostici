@@ -126,9 +126,18 @@ def parse_odds(o: dict) -> dict:
     if h is None and ml:
         h = _ml_to_prob(((ml.get("home") or {}).get("close") or {}).get("odds"))
         a = _ml_to_prob(((ml.get("away") or {}).get("close") or {}).get("odds"))
-    if h and a:
+    dr = _ml_to_prob((o.get("drawOdds") or {}).get("moneyLine"))
+    if dr is None and ml:
+        dr = _ml_to_prob(((ml.get("draw") or {}).get("close") or {}).get("odds"))
+    if h and a and dr:  # calcio: 1X2
+        s = h + a + dr
+        out["p_home"], out["p_draw"], out["p_away"] = h / s, dr / s, a / s
+    elif h and a:
         s = h + a
         out["p_home"], out["p_away"] = h / s, a / s
+    ov, un = _ml_to_prob(o.get("overOdds")), _ml_to_prob(o.get("underOdds"))
+    if ov and un:
+        out["p_over"], out["p_under"] = ov / (ov + un), un / (ov + un)
     return out
 
 
@@ -231,6 +240,13 @@ def injuries(summ: dict) -> dict[str, list[dict]]:
             })
         out[tid] = lst
     return out
+
+
+def predictor(summ: dict) -> float | None:
+    """Probabilità di vittoria della squadra di casa secondo il modello di ESPN (BPI), 0-1."""
+    p = ((summ.get("predictor") or {}).get("homeTeam") or {}).get("gameProjection")
+    v = _num(p)
+    return v / 100 if v is not None and 0 < v < 100 else None
 
 
 def pickcenter_odds(summ: dict) -> dict | None:

@@ -64,8 +64,10 @@ def _gen_soccer():
     today = config.today()
     sy = config.soccer_season_start_year(today)
     eid = 700000
+    cities = ["Porto Alto", "Vila Nova", "Riverside", "Lakeview", "Kita", "Minato", "Fjord", "Nordby", "Sandvik",
+              "Hillcrest", "Eastport", "Westfield", "Bayside", "Kawa", "Yama", "Stavby", "Brookton", "Fairhaven"]
     for key, lg in SOCCER_LEAGUES.items():
-        teams = TEAMS[lg["fd"]]
+        teams = TEAMS.get(lg.get("fd")) or [f"{c} {lg['country'][:3]}" for c in cities]
         n = len(teams)
         att, dfn = _strength(n)
         seasons, events, players, boxes = {}, [], {}, {}
@@ -116,7 +118,66 @@ def _gen_soccer():
                          "o1x2": [round(1 / (x * 1.05), 2) for x in p[:3]], "oou25": [round(1 / (p[3] * 1.05), 2), round(1 / ((1 - p[3]) * 1.05), 2)]}
                     rows.append(m)
             seasons[config.fd_season_code(y)] = rows
-        SOCCER[lg["fd"]] = {"seasons": seasons, "events": events, "boxes": boxes, "espn": lg["espn"]}
+        SOCCER[lg.get("fd") or key] = {"seasons": seasons, "events": events, "boxes": boxes, "espn": lg["espn"],
+                                       "fdnew": lg.get("fdnew"), "power": {ESPN_NAMES.get(t, t): (att[i], dfn[i]) for i, t in enumerate(teams)},
+                                       "fdname": {ESPN_NAMES.get(t, t): t for t in teams},
+                                       "level": {"I1": 1, "E0": 1.05, "SP1": 1, "D1": .98, "F1": .95, "P1": .85}.get(lg.get("fd"), .8)}
+    _gen_cups(today, sy)
+
+
+CUPS_FAKE = {}
+
+
+def _gen_cups(today, sy):
+    """Coppe inventate: squadre dei campionati europei di esempio, forza relativa al livello del campionato."""
+    pool = []
+    for code, s in SOCCER.items():
+        if code in ("I1", "E0", "SP1", "D1", "F1", "P1"):
+            for name, (a, d) in s["power"].items():
+                pool.append((name, a * s["level"], d / s["level"], code))
+    eid = 900000
+    for cup in ("uefa.champions", "uefa.europa", "uefa.europa.conf"):
+        evs = []
+        d = date(sy - 1, 9, 16)
+        while d <= today + timedelta(days=14):
+            if 9 <= d.month or d.month <= 5:
+                random.shuffle(pool)
+                for k in range(0, 16, 2):
+                    (hn, ha, hd, _), (an, aa, ad, _) = pool[k], pool[k + 1]
+                    eid += 1
+                    played = d < today
+                    lh, la = 1.35 * 1.12 * ha * ad, 1.35 / 1.12 * aa * hd
+                    hg, ag = (int(rng.poisson(lh)), int(rng.poisson(la))) if played else (None, None)
+                    p = _probs(lh, la)
+                    evs.append({"id": str(eid), "date": f"{d.isoformat()}T20:00Z", "state": "post" if played else "pre",
+                                "completed": played, "status": "",
+                                "home": {"id": str(eid) + "h", "name": hn, "short": hn, "abbr": hn[:3].upper(), "score": hg, "color": "#1d3a8a", "alt": "#ffffff"},
+                                "away": {"id": str(eid) + "a", "name": an, "short": an, "abbr": an[:3].upper(), "score": ag, "color": "#8a1d2b", "alt": "#ffffff"},
+                                "season_type": 1, "venue": f"Stadio {hn}",
+                                "odds": {"provider": "Esempio", "p_home": p[0], "p_draw": p[1], "p_away": p[2], "total": 2.5,
+                                         "p_over": p[3], "p_under": 1 - p[3]}})
+            d += timedelta(days=7 if d.weekday() == 1 else 1)
+            while d.weekday() not in (1, 2):
+                d += timedelta(days=1)
+        CUPS_FAKE[cup] = evs
+    women = [f"{c} Women" for c in ("Lyon", "Barcelona", "Chelsea", "Wolfsburg", "Arsenal", "Bayern", "Roma", "PSG",
+                                    "Juventus", "Real Madrid", "Benfica", "Twente", "Hacken", "Brann", "Manchester City", "Celtic")]
+    pw = {w: float(np.exp(rng.normal(0, .45))) for w in women}
+    evs, d = [], date(sy - 2, 10, 1)
+    while d <= today + timedelta(days=14):
+        if 10 <= d.month or d.month <= 5:
+            random.shuffle(women)
+            for k in range(0, 8, 2):
+                h, a = women[k], women[k + 1]
+                eid += 1
+                played = d < today
+                lh, la = 1.5 * pw[h] / pw[a] ** .5, 1.3 * pw[a] / pw[h] ** .5
+                evs.append({"id": str(eid), "date": f"{d.isoformat()}T18:45Z", "state": "post" if played else "pre", "completed": played,
+                            "status": "", "season_type": 1, "venue": "",
+                            "home": {"id": h, "name": h, "short": h, "abbr": h[:3].upper(), "score": int(rng.poisson(lh)) if played else None, "color": "#5b2a86", "alt": "#ffffff"},
+                            "away": {"id": a, "name": a, "short": a, "abbr": a[:3].upper(), "score": int(rng.poisson(la)) if played else None, "color": "#0f6e56", "alt": "#ffffff"}})
+        d += timedelta(days=7)
+    CUPS_FAKE["uefa.wchampions"] = evs
 
 
 def _probs(lh, la):
@@ -286,6 +347,17 @@ def _install_fakes():
     def fd_season(code, sc):
         return [dict(m) for m in SOCCER.get(code, {}).get("seasons", {}).get(sc, [])]
 
+    def fd_new(country, name, since):
+        s = next((v for v in SOCCER.values() if v.get("fdnew") == (country, name)), None)
+        if not s:
+            return []
+        rows = [dict(m) for ms in s["seasons"].values() for m in ms if m["date"] >= since]
+        for m in rows:
+            for k in ("hs", "as", "hst", "ast", "hc", "ac", "hy", "ay", "hr", "ar", "hf", "af", "hhg", "hag", "oou25"):
+                m.pop(k, None)
+        return sorted(rows, key=lambda m: m["date"])
+    footballdata.new_league = fd_new
+
     def fd_fixtures():
         out = []
         for code, s in SOCCER.items():
@@ -332,9 +404,15 @@ def _install_fakes():
                     return {"_lines": s["boxes"][event_id]["lines"]}
             return None
         if sport == "basketball":
+            def pred(gid):
+                g = next((x for v in NBA.values() for x in v["games"] if x["id"] == gid), None)
+                if not g:
+                    return {}
+                p = min(max(g["odds"]["p_home"] + rng.normal(0, .04), .02), .98)
+                return {"homeTeam": {"gameProjection": f"{p * 100:.1f}"}}
             for s in NBA.values():
                 if event_id in s["box"]:
-                    return {"_lines": s["box"][event_id]["lines"]}
+                    return {"_lines": s["box"][event_id]["lines"], "predictor": pred(event_id)}
                 for g in s["games"]:
                     if g["id"] == event_id and g["state"] == "pre":
                         inj = []
@@ -342,7 +420,7 @@ def _install_fakes():
                         if team_lines:
                             x = team_lines[0]
                             inj = [{"team": {"id": g["home"]}, "injuries": [{"athlete": {"id": x["pid"], "displayName": x["name"]}, "status": "Day-To-Day", "details": {"type": "Caviglia"}}]}]
-                        return {"injuries": inj, "_odds": g["odds"]}
+                        return {"injuries": inj, "_odds": g["odds"], "predictor": pred(event_id)}
         return None
 
     espn.scoreboard_range = scoreboard_range
@@ -352,6 +430,8 @@ def _install_fakes():
     espn.nba_player_lines = lambda summ: summ.get("_lines", [])
     espn.pickcenter_odds = lambda summ: summ.get("_odds")
     def tennis_day(sport, league, day):
+        if sport == "soccer":
+            return [{"_parsed": e} for e in CUPS_FAKE.get(league, []) if e["date"][:10] == day.isoformat()]
         if sport != "tennis":
             return []
         lo, hi = day.isoformat(), (day + timedelta(days=3)).isoformat()

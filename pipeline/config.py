@@ -6,17 +6,32 @@ ROOT = Path(__file__).resolve().parent.parent
 PUBLIC_DATA = ROOT / "public" / "data"
 CACHE = ROOT / "data" / "cache"
 
-# Calcio: codice ESPN, codice football-data.co.uk, codice Understat
+# Calcio. kind "fd": file stagionali di football-data (con tiri, angoli, cartellini, xG);
+# kind "fdnew": file unico per nazione (risultati e quote di chiusura). season: "aug" (agosto-maggio) o "cal" (anno solare).
 SOCCER_LEAGUES = {
-    "serie-a": {"name": "Serie A", "country": "Italia", "espn": "ita.1", "fd": "I1", "understat": "Serie_A"},
-    "premier-league": {"name": "Premier League", "country": "Inghilterra", "espn": "eng.1", "fd": "E0", "understat": "EPL"},
-    "la-liga": {"name": "LaLiga", "country": "Spagna", "espn": "esp.1", "fd": "SP1", "understat": "La_liga"},
-    "bundesliga": {"name": "Bundesliga", "country": "Germania", "espn": "ger.1", "fd": "D1", "understat": "Bundesliga"},
-    "ligue-1": {"name": "Ligue 1", "country": "Francia", "espn": "fra.1", "fd": "F1", "understat": "Ligue_1"},
+    "serie-a": {"name": "Serie A", "country": "Italia", "espn": "ita.1", "kind": "fd", "fd": "I1", "understat": "Serie_A", "season": "aug"},
+    "premier-league": {"name": "Premier League", "country": "Inghilterra", "espn": "eng.1", "kind": "fd", "fd": "E0", "understat": "EPL", "season": "aug"},
+    "la-liga": {"name": "LaLiga", "country": "Spagna", "espn": "esp.1", "kind": "fd", "fd": "SP1", "understat": "La_liga", "season": "aug"},
+    "bundesliga": {"name": "Bundesliga", "country": "Germania", "espn": "ger.1", "kind": "fd", "fd": "D1", "understat": "Bundesliga", "season": "aug"},
+    "ligue-1": {"name": "Ligue 1", "country": "Francia", "espn": "fra.1", "kind": "fd", "fd": "F1", "understat": "Ligue_1", "season": "aug"},
+    "primeira-liga": {"name": "Primeira Liga", "country": "Portogallo", "espn": "por.1", "kind": "fd", "fd": "P1", "season": "aug"},
+    "j1": {"name": "J1 League", "country": "Giappone", "espn": "jpn.1", "kind": "fdnew", "fdnew": ("JPN", "J1"), "season": "cal"},
+    "mls": {"name": "MLS", "country": "Stati Uniti", "espn": "usa.1", "kind": "fdnew", "fdnew": ("USA", "MLS"), "season": "cal"},
+    "eliteserien": {"name": "Eliteserien", "country": "Norvegia", "espn": "nor.1", "kind": "fdnew", "fdnew": ("NOR", "Eliteserien"), "season": "cal"},
 }
 
+# Coppe europee: modello unico su campionati europei (football-data) + partite di coppa (ESPN)
+CUPS = {
+    "champions": {"name": "Champions League", "espn": "uefa.champions"},
+    "europa-league": {"name": "Europa League", "espn": "uefa.europa"},
+    "conference": {"name": "Conference League", "espn": "uefa.europa.conf"},
+}
+WOMEN_CUPS = {"champions-femminile": {"name": "Champions League femminile", "espn": "uefa.wchampions"}}
+# Campionati europei che servono solo a collegare le squadre delle coppe (oltre a quelli sopra di tipo "fd")
+EURO_LINK_FD = {"N1": "Olanda", "B1": "Belgio", "T1": "Turchia", "G1": "Grecia", "SC0": "Scozia"}
+
 # Quanti giorni in avanti mostrare le partite
-DAYS_AHEAD = {"soccer": 10, "nba": 4, "tennis": 3}
+DAYS_AHEAD = {"soccer": 10, "cups": 14, "nba": 4, "tennis": 3}
 
 # Pausa tra una richiesta e l'altra verso la stessa fonte (secondi)
 POLITE_DELAY = 0.6
@@ -41,3 +56,9 @@ def nba_season_start_year(d: date | None = None) -> int:
     """La stagione NBA inizia a ottobre; prima di agosto vale quella precedente."""
     d = d or today()
     return d.year if d.month >= 8 else d.year - 1
+
+
+def calendar_season_from(d: date | None = None) -> date:
+    """Campionati ad anno solare (Giappone, MLS, Norvegia): a gennaio-febbraio vale ancora la stagione precedente."""
+    d = d or today()
+    return date(d.year if d.month >= 3 else d.year - 1, 1, 1)

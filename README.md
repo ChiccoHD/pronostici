@@ -1,6 +1,6 @@
 # Pronostici
 
-Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
+Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1, Primeira Liga, Eliteserien, MLS, J1 League, Champions, Europa League, Conference League e Champions femminile), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
 
 > Le percentuali sono stime statistiche, non certezze. Nella pagina *Affidabilità* dell'app vedi quanto il modello ha azzeccato sulle partite passate rispetto alle quote dei bookmaker.
 
@@ -15,6 +15,13 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 ## Grafica
 
 Ispirata alla carta rosa dei quotidiani sportivi: titoli in Barlow Condensed (stile tabellone), testo in Barlow, entrambi con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile da logo e colori sociali, i tennisti dalla bandiera: arrivano da ESPN insieme ai dati e sono collegati, non copiati nel repository. I giocatori sono indicati con le iniziali nei colori della squadra, senza foto. Icona e favicon sono originali (`public/favicon.svg`).
+
+## Incrocio delle fonti
+
+- **Calcio**: il modello mescola gol reali e gol attesi (xG) di football-data; Understat si aggiunge quando torna online.
+- **Coppe europee**: un solo modello su 11 campionati europei (football-data) più le partite di coppa (ESPN), che collegano i campionati tra loro. La Champions femminile usa solo le sue partite (ESPN).
+- **NBA**: la probabilità di vittoria combina il nostro modello con quello di ESPN (BPI). Il peso si ricalcola a ogni aggiornamento sulle partite già giocate e si vede nella pagina *Affidabilità*.
+- Le quote dei bookmaker non entrano nel calcolo: restano un termine di paragone.
 
 ## Come funziona
 

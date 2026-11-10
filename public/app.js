@@ -11,7 +11,9 @@ const SPORTS = [
   { key: "tennis", label: "Tennis" },
 ];
 const LEAGUES = {
-  soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"]],
+  soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
+    ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
+    ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"]],
   tennis: [["atp", "ATP"], ["wta", "WTA"]],
 };
 const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home" };
@@ -132,7 +134,8 @@ function showList() {
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   if (LEAGUES[state.sport]) {
-    html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti"], ...LEAGUES[state.sport]].map(([k, l]) =>
+    const has = new Set(INDEX.events.map(e => e.league));
+    html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti"], ...LEAGUES[state.sport].filter(([k]) => has.has(k) || k === state.league)].map(([k, l]) =>
       `<button data-league="${k}" aria-pressed="${state.league === k}">${l}</button>`).join("")}</div>`;
   }
   html += `</div>`;
@@ -282,8 +285,10 @@ function soccerView(d) {
   const m = d.markets, b = d.book || {}, H = d.home, A = d.away;
   const [cH, cA] = teamColors(H, A);
   const pos = t => t.pos ? `${t.pos}ª in classifica, ${t.pts} punti` : "";
-  const bookTxt = b["1x2"] ? `Quote: ${b["1x2"].map(pct).join(" / ")}` : "";
+  const bookTxt = b["1x2"] ? `${b.provider === "media bookmaker" || !b.provider ? "Quote" : esc(b.provider)}: ${b["1x2"].map(pct).join(" / ")}` : "";
   let s = board(d, { subH: pos(H), subA: pos(A), pH: m["1x2"][0], pD: m["1x2"][1], pA: m["1x2"][2], cH, cA, bookTxt });
+  if (d.cup === "women") s += `<div class="warn">Per la Champions femminile ci sono solo i risultati della competizione stessa: le percentuali sono indicative.</div>`;
+  else if (d.low_data) s += `<div class="warn">Una delle due squadre gioca in un campionato che il modello non segue: la sua forza è stimata solo dalle partite di coppa.</div>`;
 
   const esito = sec("Esito finale", picks([["1 " + H.short, m["1x2"][0]], ["X", m["1x2"][1]], ["2 " + A.short, m["1x2"][2]]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
     + sec("Doppia chance", rows(m.dc))
@@ -365,7 +370,7 @@ function soccerPlayers(d, cH, cA) {
   const tbl = (list, c) => list.length ? `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
     ${list.map(p => `<div class="sp-row">${avatar(p.name, c)}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
       <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`
-    : `<p class="note">I dati sui giocatori arrivano con i tabellini delle prime partite.</p>`;
+    : `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
   return `<div data-segpane="pl:home">${tbl(d.players.home, cH)}</div><div data-segpane="pl:away" hidden>${tbl(d.players.away, cA)}</div>
     <p class="note">Stime da presenze, titolarità e gol attesi della squadra in questa partita. Con le formazioni ufficiali possono cambiare parecchio.</p>`;
 }
@@ -382,7 +387,8 @@ function nbaView(d) {
   let s = board(d, { subH: sub(H), subA: sub(A), pH: m.win[0], pA: m.win[1], cH, cA, bookTxt,
     extra: `Punteggio atteso <b class="num">${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b>` });
 
-  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0]], [A.short || A.name, m.win[1]]], b.p_home ? [b.p_home, b.p_away] : null))
+  const bpi = m.espn_bpi != null ? `<p class="note">Il modello di previsione di ESPN (BPI) dà ${esc(H.short)} al ${pct(m.espn_bpi)}. ${m.espn_weight ? `Pesa per il ${Math.round(m.espn_weight * 100)}% nella percentuale qui sopra: è il peso che ha sbagliato meno sulle partite già giocate.` : "Non è incluso nel calcolo."}</p>` : "";
+  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0]], [A.short || A.name, m.win[1]]], b.p_home ? [b.p_home, b.p_away] : null) + bpi)
     + sec("Handicap", rows(m.spreads, { label: k => `${H.short || "Casa"} ${line(k)}` }), `margine atteso ${m.margin > 0 ? "+" : ""}${num(m.margin)}`)
     + sec("Margine di vittoria", rows(Object.fromEntries(Object.entries(m.bands).map(([k, v]) =>
       [k.replace("casa", `${H.short || "Casa"} vince di`).replace("ospite", `${A.short || "Ospite"} vince di`), v]))));
@@ -571,7 +577,12 @@ async function showReliability() {
   if (!entries.length) html += `<div class="empty"><b>Verifica non ancora disponibile</b>Compare dopo il primo aggiornamento dei dati.</div>`;
   for (const [, comp] of entries) {
     for (const [mk, s] of Object.entries(comp)) {
-      if (mk === "name" || !s || !s.n) continue;
+      if (mk === "espn" && s && s.n) {
+        html += sec("NBA, incrocio con il modello ESPN", `<p style="margin:0 0 6px">Su ${s.n} partite di questa stagione: errore del nostro modello ${num(s.logloss_model, 3)}, del modello ESPN ${num(s.logloss_espn, 3)}, della combinazione ${num(s.logloss_mix, 3)} (più basso è meglio).</p>
+          <p class="note">Peso dato a ESPN nelle percentuali: ${Math.round((s.weight || 0) * 100)}%.</p>`);
+        continue;
+      }
+      if (mk === "name" || !s || !s.n || s.brier == null) continue;
       html += sec(`${esc(comp.name)}, ${names[mk] || mk}`, `
         <p style="margin:0 0 6px"><span class="grade g${s.grade?.level ?? 0}">${esc(s.grade?.label || "")}</span>${esc(s.grade?.text || "")}</p>
         <div class="rows">
@@ -611,11 +622,12 @@ function showInfo() {
   $app.innerHTML = sec("Come funziona", `<div class="prose">
     <p>I dati si aggiornano da soli sei volte al giorno, verso le ${UPDATE_TIMES}. A volte GitHub ritarda di qualche decina di minuti.</p>
     <ul>
-      <li><b>Calcio</b>: forza d'attacco e di difesa di ogni squadra, ricavata dalle ultime tre stagioni con più peso alle partite recenti. Da lì si calcola la probabilità di ogni risultato e quindi tutti i mercati.</li>
-      <li><b>NBA</b>: valutazione di attacco e difesa in punti, fattore campo e stanchezza per le partite in due sere di fila. Le soglie dei giocatori partono da minuti attesi e medie recenti.</li>
+      <li><b>Calcio</b>: forza d'attacco e di difesa di ogni squadra, ricavata dalle ultime tre stagioni con più peso alle partite recenti e mescolando gol reali e gol attesi (xG). Da lì si calcola la probabilità di ogni risultato e quindi tutti i mercati.</li>
+      <li><b>Coppe europee</b>: un unico modello su 11 campionati europei più le partite di coppa, che collegano i campionati tra loro e dicono quanto vale una squadra rispetto a quelle di altri paesi. La Champions femminile usa solo i risultati della competizione.</li>
+      <li><b>NBA</b>: valutazione di attacco e difesa in punti, fattore campo e stanchezza per le partite in due sere di fila, incrociata con il modello di previsione di ESPN con il peso che ha sbagliato meno sulle partite già giocate. Le soglie dei giocatori partono da minuti attesi e medie recenti.</li>
       <li><b>Tennis</b>: punteggio Elo generale e per superficie, poi una simulazione punto per punto per game, set e tie-break.</li>
     </ul>
-    <p>Fonti gratuite: risultati, statistiche, infortuni e quote NBA da ESPN; risultati, statistiche e quote del calcio da football-data.co.uk; gol attesi da Understat quando è online. Carattere Barlow con licenza SIL Open Font.</p>
+    <p>Fonti gratuite: calendari, tabellini, infortuni, quote e previsioni da ESPN; risultati, statistiche, gol attesi e quote medie del calcio da football-data.co.uk; gol attesi anche da Understat quando è online. Le quote dei bookmaker non entrano mai nel calcolo: servono solo per il confronto. Carattere Barlow con licenza SIL Open Font.</p>
     <p>Sono stime statistiche, non certezze, e battere le quote con costanza è molto difficile. Se il gioco smette di essere un divertimento, il Telefono Verde nazionale dell'Istituto Superiore di Sanità risponde all'800 558 822, gratis e in forma anonima.</p></div>`)
     + sec("Stato delle fonti", status || `<p class="note">Nessun aggiornamento ancora eseguito.</p>`, META?.updated ? esc(ago(META.updated)) : "");
 }

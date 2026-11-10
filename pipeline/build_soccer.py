@@ -33,7 +33,41 @@ def _fd_history(code: str, start_year: int, status: dict) -> list[dict]:
     return out
 
 
+def _fdnew_history(lg: dict, season_from: date, status: dict) -> list[dict]:
+    country, name = lg["fdnew"]
+    path = CACHE / "soccer" / f"fdnew_{country}_{name}.json"
+    since = date(season_from.year - 3, 1, 1).isoformat()
+    fresh = footballdata.new_league(country, name, since)
+    if fresh:
+        store.save(path, fresh)
+        status["football-data"] = "ok"
+        return fresh
+    status["football-data"] = "non raggiungibile, uso l'ultima copia"
+    return store.load(path, [])
+
+
+def season_info(lg: dict, today: date) -> dict:
+    """Inizio della stagione in corso, data da cui parte la verifica e anno per i file di cache."""
+    if lg.get("season") == "cal":
+        sf = config.calendar_season_from(today)
+        return {"from": sf, "bt_from": date(sf.year - 1, 3, 1), "year": sf.year}
+    y = config.soccer_season_start_year(today)
+    return {"from": date(y, 7, 1), "bt_from": date(y - 1, 8, 1), "year": y}
+
+
+def history(lg: dict, today: date, status: dict) -> list[dict]:
+    si = season_info(lg, today)
+    if lg.get("kind") == "fdnew":
+        return _fdnew_history(lg, si["from"], status)
+    return _fd_history(lg["fd"], si["year"], status)
+
+
 def _attach_xg(matches: list[dict], league: dict, start_year: int, matcher: Matcher, status: dict):
+    have = sum(1 for m in matches if m.get("hxg") is not None)
+    if have:
+        status["xg"] = f"football-data, {have} partite"
+    if not league.get("understat") or have > len(matches) * 0.6:
+        return have
     xg_rows = []
     for y in (start_year - 1, start_year):
         path = CACHE / "soccer" / f"understat_{league['understat']}_{y}.json"
@@ -67,14 +101,32 @@ def _attach_xg(matches: list[dict], league: dict, start_year: int, matcher: Matc
     return n
 
 
-def _espn_events(league: dict, season_from: date, today: date, status: dict) -> list[dict]:
+def espn_book(e: dict) -> dict:
+    """Quote ESPN (DraftKings) per una partita in arrivo, senza margine."""
+    o = e.get("odds") or {}
+    book = {}
+    if o.get("p_draw") is not None:
+        book["1x2"] = [r(o["p_home"]), r(o["p_draw"]), r(o["p_away"])]
+    if o.get("total") == 2.5 and o.get("p_over") is not None:
+        book["ou25"] = [r(o["p_over"]), r(o["p_under"])]
+    if book:
+        book["provider"] = o.get("provider")
+    return book
+
+
+def espn_events(league: dict, season_from: date, today: date, status: dict, days_ahead: int | None = None) -> list[dict]:
+    return _espn_events(league, season_from, today, status, days_ahead)
+
+
+def _espn_events(league: dict, season_from: date, today: date, status: dict, days_ahead: int | None = None) -> list[dict]:
     path = CACHE / "soccer" / f"espn_events_{league['espn']}_{season_from.year}.json"
     cached = {e["id"]: e for e in store.load(path, [])}
     start = season_from
     done = [e for e in cached.values() if e["completed"]]
     if done:
         start = max(season_from, date.fromisoformat(max(e["date"][:10] for e in done)) - timedelta(days=4))
-    fresh = espn.scoreboard_range("soccer", league["espn"], start, today + timedelta(days=config.DAYS_AHEAD["soccer"]))
+    ahead = days_ahead if days_ahead is not None else config.DAYS_AHEAD["soccer"]
+    fresh = espn.scoreboard_range("soccer", league["espn"], start, today + timedelta(days=ahead))
     for ev in fresh:
         p = espn.parse_event(ev)
         if p:
@@ -118,14 +170,14 @@ def _book_from_fixtures(fixtures, code, matcher, d_iso, home, away):
 
 
 def build(today: date) -> tuple[list[dict], dict, dict]:
-    start_year = config.soccer_season_start_year(today)
-    season_from = date(start_year, 7, 1)
     fixtures = footballdata.fixtures()
     index, reliability, status_all = [], {}, {}
     for key, lg in SOCCER_LEAGUES.items():
         status = {}
         try:
-            matches = _fd_history(lg["fd"], start_year, status)
+            si = season_info(lg, today)
+            season_from, start_year = si["from"], si["year"]
+            matches = history(lg, today, status)
             if not matches:
                 status_all[key] = {**status, "errore": "nessuno storico disponibile"}
                 continue
@@ -142,8 +194,7 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
             share = S.ht_share(matches)
             table = S.standings(matches, season_from.isoformat())
             pos = {t["team"]: t for t in table}
-            bt_from = date(start_year - 1, 8, 1).isoformat()
-            bt = S.backtest(matches, bt_from)
+            bt = S.backtest(matches, si["bt_from"].isoformat())
             reliability[key] = {"name": lg["name"], **bt}
 
             now = datetime.now(timezone.utc)
@@ -188,7 +239,7 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
     corners = S.side_counts(matches, today, home, away, "hc", "ac", "corners_f", "corners_a")
     cards = S.side_counts(matches, today, home, away, "hy", "ay", "yellow_f", "yellow_a")
     book = {}
-    f = _book_from_fixtures(fixtures, lg["fd"], matcher, e["date"][:10], home, away)
+    f = _book_from_fixtures(fixtures, lg["fd"], matcher, e["date"][:10], home, away) if lg.get("fd") else None
     if f:
         p = devig(f.get("o1x2"))
         if p:
@@ -198,6 +249,10 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
         if p:
             book["ou25"] = [r(x) for x in p]
             book["odds_ou25"] = f["oou25"]
+        if book:
+            book["provider"] = "media bookmaker"
+    if not book:
+        book = espn_book(e)
     sf = season_from.isoformat()
     th, ta = S.team_summary(matches, home, sf), S.team_summary(matches, away, sf)
     avg_h = th["season"].get("gf") or 1.35

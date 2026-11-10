@@ -335,10 +335,11 @@ def player_markets(lines: list[dict], team_id: str, lam_team: float, team_avg_go
 
 # --------------------------------------------------------------- verifica affidabilità
 
-def backtest(matches: list[dict], from_date: str) -> dict:
-    """Rifà le previsioni settimana per settimana usando solo i dati disponibili prima."""
+def backtest(matches: list[dict], from_date: str, is_test=None) -> dict:
+    """Rifà le previsioni settimana per settimana usando solo i dati disponibili prima.
+    is_test: funzione che sceglie quali partite verificare (tutte se None)."""
     s1x2, sou = Scorer(), Scorer()
-    test = sorted([m for m in matches if m["date"] >= from_date], key=lambda m: m["date"])
+    test = sorted([m for m in matches if m["date"] >= from_date and (is_test is None or is_test(m))], key=lambda m: m["date"])
     weeks = defaultdict(list)
     for m in test:
         d = date.fromisoformat(m["date"])

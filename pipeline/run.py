@@ -8,12 +8,20 @@ from datetime import datetime, timezone
 from . import config, store
 from .config import PUBLIC_DATA
 
-SPORTS = {"calcio": "build_soccer", "nba": "build_nba", "tennis": "build_tennis"}
+SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nba": "build_nba", "tennis": "build_tennis"}
+CUP_KEYS = set(config.CUPS) | set(config.WOMEN_CUPS)
+
+
+def owner(e: dict) -> str:
+    """Quale modulo ha prodotto un evento (per sostituire solo i suoi)."""
+    if e["sport"] == "soccer":
+        return "coppe" if e["league"] in CUP_KEYS else "calcio"
+    return e["sport"]
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--solo", default="calcio,nba,tennis")
+    ap.add_argument("--solo", default="calcio,coppe,nba,tennis")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     today = config.today()
@@ -29,7 +37,6 @@ def main():
 
     events = {e["id"]: e for e in old_index.get("events", [])}
     status, reliability = dict(old_meta.get("status", {})) if not sample else {}, old_rel
-    sport_prefix = {"calcio": "soccer", "nba": "nba", "tennis": "tennis"}
     for s in wanted:
         mod = __import__(f"pipeline.{SPORTS[s]}", fromlist=["build"])
         logging.info("=== %s ===", s)
@@ -40,8 +47,8 @@ def main():
             status[s] = {"errore": f"{type(ex).__name__}: {ex}"}
             continue
         # Sostituisce gli eventi di questo sport solo se la raccolta ha prodotto qualcosa
-        if idx or not any(e["sport"] == sport_prefix[s] for e in events.values()):
-            events = {k: v for k, v in events.items() if v["sport"] != sport_prefix[s]}
+        if idx or not any(owner(e) == s for e in events.values()):
+            events = {k: v for k, v in events.items() if owner(v) != s}
             events.update({e["id"]: e for e in idx})
         reliability.update({f"{s}:{k}": v for k, v in rel.items()})
         status[s] = {**st, "aggiornato": datetime.now(timezone.utc).isoformat(timespec="minutes")}

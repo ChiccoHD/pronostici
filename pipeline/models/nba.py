@@ -98,8 +98,20 @@ def _half(x):
     return math.floor(x) + 0.5
 
 
-def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None) -> dict:
+def blend_shift(m: NbaModel, home, away, b2b_home, b2b_away, p_espn, weight) -> float:
+    """Punti da spostare sul margine perché la vittoria rifletta la media pesata modello/ESPN."""
+    if p_espn is None or not weight:
+        return 0.0
+    from statistics import NormalDist
     hs, as_ = m.expected(home, away, b2b_home, b2b_away)
+    p_model = norm_cdf((hs - as_) / m.s_m)
+    p = min(max((1 - weight) * p_model + weight * p_espn, 0.01), 0.99)
+    return NormalDist().inv_cdf(p) * m.s_m - (hs - as_)
+
+
+def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None, shift: float = 0.0) -> dict:
+    hs, as_ = m.expected(home, away, b2b_home, b2b_away)
+    hs, as_ = hs + shift / 2, as_ - shift / 2
     margin, total = hs - as_, hs + as_
     p_home = norm_cdf(margin / m.s_m)
     tl = book.get("total") if book and book.get("total") else _half(total)
@@ -251,7 +263,10 @@ def player_props(lines, team_id, team_game_ids, pts_factor, injuries_by_pid) -> 
 
 # ----------------------------------------------------------------- verifica affidabilità
 
-def backtest(games, from_date, current_season_from):
+def backtest(games, from_date, current_season_from, preds: dict | None = None):
+    """preds: id partita -> probabilità ESPN (BPI) per la squadra di casa, per pesare l'incrocio."""
+    preds = preds or {}
+    pairs = []
     sc = Scorer()
     sc_ou = Scorer()
     test = sorted([g for g in games if g.get("hs") is not None and g["date"][:10] >= from_date],
@@ -277,9 +292,29 @@ def backtest(games, from_date, current_season_from):
                     book = g.get("odds") or {}
                     pb = [book["p_home"], book["p_away"]] if book.get("p_home") else None
                     sc.add([p, 1 - p], 0 if g["hs"] > g["as"] else 1, pb)
+                    if preds.get(g["id"]) is not None:
+                        pairs.append((p, preds[g["id"]], 1 if g["hs"] > g["as"] else 0))
                     if book.get("total"):
                         po = 1 - norm_cdf((book["total"] - (hs + as_)) / mdl.s_t)
                         if g["hs"] + g["as"] != book["total"]:
                             sc_ou.add([po, 1 - po], 0 if g["hs"] + g["as"] > book["total"] else 1, [0.5, 0.5])
         d = nxt
-    return {"win": sc.summary(), "total": sc_ou.summary()}
+    return {"win": sc.summary(), "total": sc_ou.summary(), "espn": _best_weight(pairs)}
+
+
+def _best_weight(pairs):
+    """Sceglie il peso del modello ESPN che minimizza l'errore (log loss) sulle partite già giocate."""
+    if len(pairs) < 40:
+        return {"n": len(pairs), "weight": 0.0}
+    def ll(w):
+        tot = 0.0
+        for pm, pe, y in pairs:
+            p = min(max((1 - w) * pm + w * pe, 1e-4), 1 - 1e-4)
+            tot -= math.log(p if y else 1 - p)
+        return tot / len(pairs)
+    grid = [i / 10 for i in range(11)]
+    best = min(grid, key=ll)
+    # prudenza: con poche partite si dimezza il peso
+    w = best if len(pairs) >= 150 else best / 2
+    return {"n": len(pairs), "weight": round(w, 2), "logloss_model": round(ll(0), 4),
+            "logloss_espn": round(ll(1), 4), "logloss_mix": round(ll(w), 4)}

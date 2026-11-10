@@ -79,6 +79,9 @@ def parse_row(r: dict) -> dict | None:
         "hr": _f(r.get("HR")), "ar": _f(r.get("AR")),
         "hf": _f(r.get("HF")), "af": _f(r.get("AF")),
     }
+    hxg, axg = _f(r.get("HxG")), _f(r.get("AxG"))
+    if hxg is not None and axg is not None:
+        m["hxg"], m["axg"] = hxg, axg
     trip = _odds_triplet(r, [("AvgH", "AvgD", "AvgA"), ("B365H", "B365D", "B365A"),
                              ("PSH", "PSD", "PSA"), ("AvgCH", "AvgCD", "AvgCA")])
     if trip:
@@ -106,3 +109,38 @@ def fixtures() -> list[dict]:
             m["div"] = (r.get("Div") or "").strip().lstrip("﻿")
             out.append(m)
     return out
+
+
+def new_league(country_file: str, league_name: str, since: str) -> list[dict]:
+    """Campionati "extra" (un file per nazione con tutte le stagioni): risultati e quote di chiusura.
+    country_file es. 'JPN', league_name es. 'J1'; since = data ISO minima."""
+    rows = _download_raw(f"{BASE}/new/{country_file}.csv")
+    out = []
+    for r in rows:
+        if (r.get("League") or "").strip() != league_name:
+            continue
+        d = _date(r.get("Date", ""))
+        hg, ag = _f(r.get("HG")), _f(r.get("AG"))
+        if not d or d < since or hg is None or ag is None:
+            continue
+        m = {"date": d, "time": r.get("Time") or None, "home": (r.get("Home") or "").strip(),
+             "away": (r.get("Away") or "").strip(), "hg": hg, "ag": ag, "season": (r.get("Season") or "").strip()}
+        trip = _odds_triplet(r, [("AvgCH", "AvgCD", "AvgCA"), ("PSCH", "PSCD", "PSCA"), ("B365CH", "B365CD", "B365CA")])
+        if trip:
+            m["o1x2"] = list(trip)
+        out.append(m)
+    out.sort(key=lambda m: m["date"])
+    return out
+
+
+def _download_raw(url: str) -> list[dict]:
+    r = http.get(url, delay=1.0, timeout=60)
+    if r is None:
+        return []
+    for enc in ("utf-8-sig", "latin-1"):
+        try:
+            text = r.content.decode(enc).lstrip("\ufeff")
+            return [x for x in csv.DictReader(io.StringIO(text)) if x.get("Home")]
+        except UnicodeDecodeError:
+            continue
+    return []

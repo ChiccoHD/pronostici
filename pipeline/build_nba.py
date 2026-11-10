@@ -50,11 +50,11 @@ def _games(season_year: int, today: date, status: dict, final: bool) -> list[dic
 def _box(season_year: int, games: list[dict], status: dict, max_new: int = 200) -> list[dict]:
     path = CACHE / "nba" / f"box_{season_year}.json"
     box = store.load(path, {})
-    todo = [g for g in games if g.get("hs") is not None and g["id"] not in box][:max_new]
+    todo = [g for g in games if g.get("hs") is not None and (g["id"] not in box or "pred" not in box[g["id"]])][:max_new]
     for g in todo:
         summ = espn.summary("basketball", "nba", g["id"])
         if summ:
-            box[g["id"]] = {"date": g["date"][:10], "lines": espn.nba_player_lines(summ)}
+            box[g["id"]] = {"date": g["date"][:10], "lines": espn.nba_player_lines(summ), "pred": espn.predictor(summ)}
     if todo:
         store.save(path, box)
     status["tabellini"] = f"{len(box)} partite"
@@ -62,7 +62,7 @@ def _box(season_year: int, games: list[dict], status: dict, max_new: int = 200) 
     for gid, b in box.items():
         for x in b["lines"]:
             lines.append({**x, "event": gid, "date": b["date"]})
-    return lines
+    return lines, {gid: b.get("pred") for gid, b in box.items() if b.get("pred") is not None}
 
 
 def build(today: date):
@@ -77,11 +77,14 @@ def build(today: date):
     games = prev + cur
     cur_done = [g for g in cur if g.get("hs") is not None]
     season_from = min((g["date"][:10] for g in cur), default=f"{sy}-10-15")
-    lines = _box(sy, cur, status)
+    lines, preds = _box(sy, cur, status)
     mdl = N.fit(games, today, season_from)
     if mdl is None:
         return [], {}, {**status, "errore": "storico insufficiente"}
-    bt = N.backtest(games, (date.fromisoformat(prev[0]["date"][:10]) + timedelta(days=45)).isoformat() if prev else season_from, season_from)
+    bt = N.backtest(games, (date.fromisoformat(prev[0]["date"][:10]) + timedelta(days=45)).isoformat() if prev else season_from,
+                    season_from, preds)
+    w_espn = bt["espn"]["weight"]
+    status["incrocio_espn"] = bt["espn"]
     reliability = {"nba": {"name": "NBA", **bt}}
     rec = N.records(games, season_from)
     rest = N.rest_days(games)
@@ -107,7 +110,11 @@ def build(today: date):
             book = espn.pickcenter_odds(summ) or g.get("odds")
             hb = rest.get((g["id"], g["home"]), 9) == 1
             ab = rest.get((g["id"], g["away"]), 9) == 1
-            mk = N.markets(mdl, g["home"], g["away"], hb, ab, book)
+            p_espn = espn.predictor(summ)
+            shift = N.blend_shift(mdl, g["home"], g["away"], hb, ab, p_espn, w_espn)
+            mk = N.markets(mdl, g["home"], g["away"], hb, ab, book, shift)
+            mk["espn_bpi"] = p_espn
+            mk["espn_weight"] = w_espn if p_espn is not None else 0.0
             th = N.team_summary(games, g["home"], season_from)
             ta = N.team_summary(games, g["away"], season_from)
             fh = mk["exp"][0] / (th["season"].get("pf") or mk["exp"][0])

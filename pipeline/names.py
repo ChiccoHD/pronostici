@@ -50,6 +50,21 @@ ALIASES = {
     "toulouse": "toulouse", "reims": "reims", "montpellier": "montpellier", "le havre": "le havre",
     "havre": "le havre", "auxerre": "auxerre", "angers": "angers", "saint etienne": "st etienne",
     "st etienne": "st etienne", "lorient": "lorient", "metz": "metz", "paris fc": "paris fc",
+    # Portogallo e altri campionati europei (per le coppe)
+    "sporting cp": "sp lisbon", "sporting": "sp lisbon", "sporting lisbon": "sp lisbon", "sporting braga": "sp braga",
+    "braga": "sp braga", "fc porto": "porto", "porto": "porto", "benfica": "benfica", "vitoria guimaraes": "guimaraes",
+    "psv": "psv eindhoven", "psv eindhoven": "psv eindhoven", "az": "az alkmaar", "az alkmaar": "az alkmaar",
+    "feyenoord": "feyenoord", "ajax": "ajax", "twente": "twente", "utrecht": "utrecht", "go ahead eagles": "go ahead eagles",
+    "club brugge": "club brugge", "union st gilloise": "st gilloise", "royale union st gilloise": "st gilloise",
+    "union saint gilloise": "st gilloise", "anderlecht": "anderlecht", "genk": "genk", "gent": "gent", "antwerp": "antwerp",
+    "galatasaray": "galatasaray", "fenerbahce": "fenerbahce", "besiktas": "besiktas", "trabzonspor": "trabzonspor",
+    "istanbul basaksehir": "buyuksehyr", "basaksehir": "buyuksehyr", "olympiacos": "olympiakos", "olympiakos": "olympiakos",
+    "paok": "paok", "paok salonika": "paok", "aek athens": "aek", "panathinaikos": "panathinaikos",
+    "celtic": "celtic", "rangers": "rangers", "hearts": "hearts", "heart of midlothian": "hearts", "aberdeen": "aberdeen",
+    "hibernian": "hibernian",
+    # MLS e Giappone (nomi brevi di football-data)
+    "lafc": "los angeles fc", "la galaxy": "la galaxy", "new york red bulls": "ny red bulls",
+    "new york city": "new york city", "atlanta united": "atlanta utd", "inter miami": "inter miami",
 }
 
 
@@ -64,7 +79,8 @@ def norm(name: str) -> str:
 class Matcher:
     """Abbina nomi esterni a un insieme di nomi canonici (quelli di football-data)."""
 
-    def __init__(self, canonical: list[str]):
+    def __init__(self, canonical: list[str], min_score: float = 0.72):
+        self.min_score = min_score
         self.canonical = sorted(set(canonical))
         self._by_key = {norm(c): c for c in self.canonical}
         self._cache: dict[str, str | None] = {}
@@ -100,7 +116,7 @@ class Matcher:
                 score = difflib.SequenceMatcher(None, k, ck).ratio()
             if score > best_score:
                 best, best_score = c, score
-        return best if best_score >= 0.72 else None
+        return best if best_score >= self.min_score else None
 
 
 def person_key(full_name: str) -> str:

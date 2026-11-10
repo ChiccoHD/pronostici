@@ -1,6 +1,6 @@
 # Istruzioni per Claude
 
-Web app personale "Pronostici": statistiche e probabilità per calcio (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
+Web app personale "Pronostici": statistiche e probabilità per calcio (5 campionati principali, Portogallo, Norvegia, MLS, Giappone, coppe europee e Champions femminile), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
 
 ## Vincoli
 - **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.
@@ -11,7 +11,9 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (Serie A, 
 ## Struttura
 - `pipeline/sources/` scarica i dati, una fonte per file.
 - `pipeline/models/` calcola le probabilità: `soccer.py` (Poisson + Dixon-Coles), `nba.py` (rating in punti), `tennis.py` (Elo + catena di Markov), `common.py` (statistica e misure di affidabilità).
-- `pipeline/build_*.py` prepara uno sport; `pipeline/run.py` lancia tutto e scrive `public/data/`.
+- `pipeline/build_*.py` prepara uno sport (`build_cups.py` le coppe); `pipeline/run.py` lancia tutto e scrive `public/data/`; `pipeline/picks.py` crea la classifica "Migliori".
+- I campionati si aggiungono in `pipeline/config.py` (`SOCCER_LEAGUES`, `CUPS`) e nei filtri di `public/app.js` (`LEAGUES`).
+- Le quote dei bookmaker non devono entrare nei modelli: servono solo come confronto.
 - `pipeline/names.py` abbina i nomi tra fonti diverse: se compare "nomi_non_abbinati" in `public/data/meta.json`, aggiungi l'alias qui.
 - `data/cache/` storico già scaricato (scritto dal workflow, non modificarlo a mano).
 - `public/` il sito; `public/data/` è generato dal workflow.

@@ -74,6 +74,10 @@ function avatar(name, color, badge) {
   return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc(initials(name))}${badge ? `<small>${esc(badge)}</small>` : ""}</span>`;
 }
 
+function img(src, cls, alt = "") {
+  return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="this.remove()">` : "";
+}
+
 async function getJSON(path) {
   const r = await fetch(path, { cache: "no-cache" });
   if (!r.ok) throw new Error(r.status);
@@ -160,8 +164,8 @@ function fixture(e) {
   const pH = e.main[0], pA = e.main[three ? 2 : 1], pD = three ? e.main[1] : null;
   const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
   const max = Math.max(...e.main);
-  const team = (name, p, c, cc) => `<div class="fx-team"><span class="stripe" style="background:${c}"></span>
-    <span class="fx-name">${esc(name)}${cc ? `<span class="cc">${esc(cc)}</span>` : ""}</span><span class="fx-p pct ${p === max ? "lead" : ""}">${pct(p)}</span></div>`;
+  const team = (name, p, c, cc, logo, flag) => `<div class="fx-team"><span class="stripe" style="background:${c}"></span>
+    <span class="fx-name">${img(logo, "logo")}${img(flag, "flag", cc || "")}${esc(name)}${cc && !flag ? `<span class="cc">${esc(cc)}</span>` : ""}</span><span class="fx-p pct ${p === max ? "lead" : ""}">${pct(p)}</span></div>`;
   const foot = [];
   if (three) foot.push(`Pareggio <b>${pct(pD)}</b>`);
   for (const [k, v] of Object.entries(e.extra || {})) if (v != null) foot.push(`${esc(line(k))} <b>${pct(v)}</b>`);
@@ -174,8 +178,8 @@ function fixture(e) {
   const where = e.sport === "tennis" ? `${esc(e.league_name.replace(/^(ATP|WTA) · /, "$1 "))}${e.surface ? `, ${surfaceIt(e.surface).toLowerCase()}` : ""}` : esc(e.league_name);
   return `<a class="fx" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-meta"><b>${where}</b><span>${fmtTime(e.date, e.time_valid)}</span></div>
-    ${team(e.home, pH, cH, e.sport === "tennis" ? e.home_short : "")}
-    ${team(e.away, pA, cA, e.sport === "tennis" ? e.away_short : "")}
+    ${team(e.home, pH, cH, e.sport === "tennis" ? e.home_short : "", e.home_logo, e.home_flag)}
+    ${team(e.away, pA, cA, e.sport === "tennis" ? e.away_short : "", e.away_logo, e.away_flag)}
     ${splitBar(three ? [[pH, cH], [pD, null], [pA, cA]] : [[pH, cH], [pA, cA]])}
     <div class="fx-foot">${foot.map(x => `<span>${x}</span>`).join("")}</div>
   </a>`;
@@ -220,7 +224,7 @@ function seg(name, opts, cur) {
 function board(d, { subH = "", subA = "", pH, pA, pD, bookTxt = "", cH, cA, extra = "" }) {
   const max = Math.max(pH, pA, pD ?? 0);
   const team = (t, sub, p, c) => `<div class="board-team"><span class="stripe" style="background:${c}"></span>
-    <div><div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div>
+    <div class="board-id">${img(t.logo, "board-logo")}${img(t.flag, "board-flag")}<div><div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div></div>
     <div class="board-p pct ${p === max ? "lead" : ""}">${pct(p)}<small>quota equa ${odd(p)}</small></div></div>`;
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
   return `<div class="board">
@@ -453,7 +457,8 @@ function nbaPlayers(d, cH, cA) {
 function tennisView(d) {
   const m = d.markets, P = d.players;
   const cH = "#8a6aa8", cA = "#a08a9e";
-  const sub = p => [p.cc ? p.cc.toUpperCase() : "", p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
+  const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
+  d = { ...d, home: { ...d.home, flag: P.home.flag }, away: { ...d.away, flag: P.away.flag } };
   let s = board(d, { subH: sub(P.home), subA: sub(P.away), pH: m.win[0], pA: m.win[1], cH, cA,
     extra: `${esc(d.round || "")}${d.round ? ", " : ""}${surfaceIt(d.surface).toLowerCase()}, al meglio dei ${m.best_of} set` });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;

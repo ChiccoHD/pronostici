@@ -32,6 +32,7 @@ def _games(season_year: int, today: date, status: dict, final: bool) -> list[dic
              "home_abbr": p["home"]["abbr"], "away_abbr": p["away"]["abbr"],
              "home_color": p["home"].get("color"), "away_color": p["away"].get("color"),
              "home_alt": p["home"].get("alt"), "away_alt": p["away"].get("alt"),
+             "home_logo": p["home"].get("logo"), "away_logo": p["away"].get("logo"),
              "hs": p["home"]["score"] if p["completed"] else None,
              "as": p["away"]["score"] if p["completed"] else None}
         if p.get("odds"):
@@ -86,8 +87,9 @@ def build(today: date):
     rest = N.rest_days(games)
     names = {}
     for g in games:
-        names[g["home"]] = (g["home_name"], g.get("home_abbr"), g.get("home_color") or names.get(g["home"], (0, 0, None))[2])
-        names[g["away"]] = (g["away_name"], g.get("away_abbr"), g.get("away_color") or names.get(g["away"], (0, 0, None))[2])
+        for side in ("home", "away"):
+            old = names.get(g[side], (None, None, None, None))
+            names[g[side]] = (g[side + "_name"], g.get(side + "_abbr"), g.get(side + "_color") or old[2], g.get(side + "_logo") or old[3])
     team_ids = {}
     for g in sorted(cur_done, key=lambda g: g["date"], reverse=True):
         for t in (g["home"], g["away"]):
@@ -113,9 +115,9 @@ def build(today: date):
             inj_h = {x["pid"]: x for x in inj.get(g["home"], [])}
             inj_a = {x["pid"]: x for x in inj.get(g["away"], [])}
             def team(t, b2b, injd):
-                n = names.get(t, (t, None, None))
+                n = names.get(t, (t, None, None, None))
                 rr = rec.get(t, {"w": 0, "l": 0})
-                return {"name": n[0], "short": n[1], "color": n[2], "id": t, "record": rr,
+                return {"name": n[0], "short": n[1], "color": n[2], "logo": n[3], "id": t, "record": rr,
                         "b2b": b2b, "rating": mdl.ratings().get(t), "injuries": list(injd.values())}
             detail = {
                 "id": f"basket-nba-{g['id']}", "sport": "nba", "league": "nba", "league_name": "NBA",
@@ -133,6 +135,7 @@ def build(today: date):
                           "date": g["date"], "home": detail["home"]["name"], "away": detail["away"]["name"],
                           "home_short": detail["home"]["short"], "away_short": detail["away"]["short"],
                           "home_color": detail["home"]["color"], "away_color": detail["away"]["color"],
+                          "home_logo": detail["home"]["logo"], "away_logo": detail["away"]["logo"],
                           "main": mk["win"], "main_labels": ["1", "2"],
                           "book": [r(book["p_home"]), r(book["p_away"])] if book and book.get("p_home") else None,
                           "extra": {f"Over {mk['total_line']:g}": mk["totals"].get(f"{mk['total_line']:g}")},

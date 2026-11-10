@@ -14,7 +14,7 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 
 ## Grafica
 
-Ispirata alla carta rosa dei quotidiani sportivi: titoli in Barlow Condensed (stile tabellone), testo in Barlow, entrambi con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile dai suoi colori sociali, forniti da ESPN come dato. Niente loghi di club né foto di giocatori, perché sono protetti da diritti: i giocatori sono indicati con le iniziali nei colori della squadra. Icona e favicon sono originali (`public/favicon.svg`).
+Ispirata alla carta rosa dei quotidiani sportivi: titoli in Barlow Condensed (stile tabellone), testo in Barlow, entrambi con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile da logo e colori sociali, i tennisti dalla bandiera: arrivano da ESPN insieme ai dati e sono collegati, non copiati nel repository. I giocatori sono indicati con le iniziali nei colori della squadra, senza foto. Icona e favicon sono originali (`public/favicon.svg`).
 
 ## Come funziona
 

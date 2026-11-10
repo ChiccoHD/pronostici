@@ -16,6 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preload" href="fonts/manrope-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/manrope-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>try { var t = localStorage.getItem("p_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -25,7 +26,8 @@
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0a9b5a"/><path d="M46.5 12.5 17.5 51.5" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round"/><circle cx="19.5" cy="20" r="9.5" fill="#ffffff"/><path d="M19.5 15.6l4.2 3-1.6 5h-5.2l-1.6-5z" fill="#101826"/><circle cx="44.5" cy="44" r="9.5" fill="#ffffff"/><path d="M35 44h19M44.5 34.5v19M37.8 37.3c3.6 3.6 3.6 9.8 0 13.4M51.2 37.3c-3.6 3.6-3.6 9.8 0 13.4" fill="none" stroke="#101826" stroke-width="1.6"/></svg>
       Pronostici
     </a>
-    <div id="updated" class="updated"></div>
+    <div class="top-right"><div id="updated" class="updated"></div>
+      <button id="theme" class="theme-btn" type="button" aria-label="Cambia tema"></button></div>
   </div>
   <div id="banner"></div>
 </header>
@@ -33,6 +35,7 @@
 <nav class="bottom" aria-label="Sezioni">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Partite</a>
   <a href="#/migliori" data-nav="migliori"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>Migliori</a>
+  <a href="#/schedina" data-nav="schedina"><span class="nav-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span id="slip-count" class="badge" hidden></span></span>Schedina</a>
   <a href="#/affidabilita" data-nav="affidabilita"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4"/><circle cx="7" cy="7" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg>Affidabilità</a>
   <a href="#/info" data-nav="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</a>
 </nav>

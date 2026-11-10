@@ -52,6 +52,52 @@ function ago(iso) {
   return `${Math.round(m / 1440)} giorni fa`;
 }
 
+/* schedina: giocate salvate su questo telefono */
+let CUR = null;                 // partita aperta: contesto per le giocate salvate
+const FAVMETA = new Map();      // chiave -> dati della giocata mostrata
+function favs() { try { return JSON.parse(localStorage.getItem("p_favs") || "[]"); } catch { return []; } }
+function saveFavs(list) { try { localStorage.setItem("p_favs", JSON.stringify(list)); } catch { /* niente */ } updateFavBadge(); }
+const isFav = key => favs().some(f => f.key === key);
+function favKey(label, p, book = null, ctx = CUR) {
+  if (!ctx || p == null) return null;
+  const key = `${ctx.event}|${label}`;
+  FAVMETA.set(key, { key, event: ctx.event, match: ctx.match, date: ctx.date, time_valid: ctx.time_valid, league_name: ctx.league_name, sport: ctx.sport, label, p, book });
+  return key;
+}
+function star(key) {
+  if (!key) return "";
+  const on = isFav(key);
+  return `<button type="button" class="star ${on ? "on" : ""}" data-fav="${esc(key)}" aria-pressed="${on}" aria-label="${on ? "Togli dalla schedina" : "Aggiungi alla schedina"}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>`;
+}
+function toggleFav(key) {
+  let list = favs();
+  const had = list.some(f => f.key === key);
+  if (had) list = list.filter(f => f.key !== key);
+  else if (FAVMETA.has(key)) list.push({ ...FAVMETA.get(key), added: new Date().toISOString() });
+  saveFavs(list);
+  document.querySelectorAll(`[data-fav="${CSS.escape(key)}"]`).forEach(b => { b.classList.toggle("on", !had); b.setAttribute("aria-pressed", String(!had)); });
+  toast(had ? "Tolta dalla schedina" : "Aggiunta alla schedina");
+  if (location.hash.startsWith("#/schedina")) showSlip();
+}
+function updateFavBadge() {
+  const n = favs().filter(f => new Date(f.date).getTime() > Date.now() - 3 * 3600e3).length;
+  const el = document.getElementById("slip-count");
+  if (el) { el.textContent = n; el.hidden = !n; }
+}
+let toastTimer = null;
+function toast(msg) {
+  let t = document.getElementById("toast");
+  if (!t) { t = document.createElement("div"); t.id = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-fav]");
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  toggleFav(b.dataset.fav);
+}, true);
+
 /* colori squadra: leggibili sulla carta, distinti tra le due squadre */
 function lum(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
@@ -88,6 +134,26 @@ async function getJSON(path) {
 
 /* ------------------------------------------------------------------ avvio e navigazione */
 
+/* tema: automatico (segue il telefono), chiaro, scuro */
+const THEMES = [["auto", "Auto", '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>'],
+  ["light", "Chiaro", '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'],
+  ["dark", "Scuro", '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>']];
+function applyTheme(t) {
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  const [, label, icon] = THEMES.find(x => x[0] === t) || THEMES[0];
+  const btn = document.getElementById("theme");
+  if (btn) { btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>${label}`; btn.setAttribute("aria-label", `Tema: ${label}. Tocca per cambiare`); }
+  const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", dark ? "#0d1117" : "#f3f5f7"));
+}
+(function initTheme() {
+  let t = load("theme", "auto");
+  applyTheme(t);
+  const btn = document.getElementById("theme");
+  if (btn) btn.onclick = () => { const i = THEMES.findIndex(x => x[0] === t); t = THEMES[(i + 1) % THEMES.length][0]; save("theme", t); applyTheme(t); };
+})();
+
 function measureHeader() {
   const h = document.querySelector(".top");
   if (h) document.documentElement.style.setProperty("--head", h.offsetHeight + "px");
@@ -103,24 +169,26 @@ async function boot() {
     return;
   }
   if (META.updated) {
-    document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>ultimo aggiornamento`;
+    document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>aggiornato`;
   }
   if (META.sample) {
     document.getElementById("banner").innerHTML = `<div class="banner">Stai guardando dati di esempio inventati: l'aggiornamento automatico non è ancora partito.</div>`;
   }
   measureHeader();
+  updateFavBadge();
   window.addEventListener("hashchange", route);
   route();
 }
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["affidabilita", "info", "migliori"].includes(view) ? view : "home";
+  const navKey = ["affidabilita", "info", "migliori", "schedina"].includes(view) ? view : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   window.scrollTo(0, 0);
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
   if (view === "affidabilita") return showReliability();
   if (view === "migliori") return showBest();
+  if (view === "schedina") return showSlip();
   if (view === "info") return showInfo();
   showList();
 }
@@ -197,17 +265,17 @@ function sec(title, inner, right = "") {
   return `<section class="sec"><h2>${title}${right ? `<small>${right}</small>` : ""}</h2>${inner}</section>`;
 }
 
-function picks(items, book) {
+function picks(items, book, { fav = true } = {}) {
   const max = Math.max(...items.map(x => x[1] ?? 0));
-  return `<div class="rgrid" style="--n:${items.length}">${items.map(([lab, p], i) => `
-    <div class="rcell ${p === max && items.length > 1 ? "lead" : ""}">${ring(p, p === max)}<span class="lab">${esc(lab)}</span>
+  return `<div class="rgrid" style="--n:${items.length}">${items.map(([lab, p, favLab], i) => `
+    <div class="rcell ${p === max && items.length > 1 ? "lead" : ""}">${fav ? star(favKey(favLab || lab, p, book ? book[i] : null)) : ""}${ring(p, p === max)}<span class="lab">${esc(lab)}</span>
     <span class="q">quota equa ${odd(p)}${book && book[i] != null ? `<br>quote ${pct(book[i])}` : ""}</span></div>`).join("")}</div>`;
 }
 
 function rows(obj, { label = k => k, book = null } = {}) {
   return `<div class="bars">${Object.entries(obj).filter(([, v]) => v != null).map(([k, v]) =>
     `<div class="bar ${v >= 0.6 ? "hi" : ""}"><i style="width:${Math.round(v * 100)}%"></i>
-      <span>${esc(label(k))}<small>${odd(v)}${book && book[k] != null ? ` · quote ${pct(book[k])}` : ""}</small></span><b>${pct(v)}</b></div>`).join("")}</div>`;
+      <span>${esc(label(k))}<small>${odd(v)}${book && book[k] != null ? ` · quote ${pct(book[k])}` : ""}</small></span><b>${pct(v)}</b>${star(favKey(label(k), v, book ? book[k] : null))}</div>`).join("")}</div>`;
 }
 
 const formSeq = seq => `<span class="form">${(seq || []).map(r => `<span class="f ${r}" title="${{ V: "vittoria", N: "pareggio", P: "sconfitta" }[r]}">${r}</span>`).join("")}</span>`;
@@ -225,7 +293,7 @@ function seg(name, opts, cur) {
   return `<span class="seg" role="group" data-seg="${name}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`).join("")}</span>`;
 }
 
-function board(d, { subH = "", subA = "", probs, labels, book = null, foot = [] }) {
+function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, book = null, foot = [] }) {
   const max = Math.max(...probs);
   const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
   const crest = (t, c) => t.logo ? img(t.logo, "") : t.flag ? img(t.flag, "tflag") :
@@ -236,7 +304,7 @@ function board(d, { subH = "", subA = "", probs, labels, book = null, foot = [] 
   return `<div class="board">
     <div class="board-meta"><span>${esc(d.league_name)}</span><span>${esc(when)}</span></div>
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
-    <div class="board-rings">${probs.map((p, i) => `<div class="cell">${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
+    <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
     ${foot.filter(Boolean).length ? `<div class="board-foot">${foot.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</div>` : ""}
   </div>`;
@@ -276,6 +344,7 @@ async function showEvent(id) {
   let d;
   try { d = await getJSON(`data/events/${encodeURIComponent(id)}.json`); }
   catch { $app.innerHTML = back + `<div class="empty"><b>Partita non più disponibile</b>Torna all'elenco per vedere quelle in programma.</div>`; return; }
+  CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
   $app.innerHTML = back + body + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
   wire(d.sport);
@@ -288,26 +357,26 @@ function soccerView(d) {
   const [cH, cA] = teamColors(H, A);
   const pos = t => t.pos ? `${t.pos}ª in classifica, ${t.pts} punti` : "";
   const bookTxt = b["1x2"] ? `${b.provider === "media bookmaker" || !b.provider ? "Quote" : esc(b.provider)}: ${b["1x2"].map(pct).join(" / ")}` : "";
-  let s = board(d, { subH: pos(H), subA: pos(A), probs: m["1x2"], labels: ["1", "X", "2"], book: b["1x2"],
+  let s = board(d, { subH: pos(H), subA: pos(A), probs: m["1x2"], labels: ["1", "X", "2"], favLabels: [`${H.short} vince`, "Pareggio", `${A.short} vince`], book: b["1x2"],
     foot: [`Gol attesi <b class="num">${num(m.xg[0], 2)}–${num(m.xg[1], 2)}</b>`, b["1x2"] ? `Quote: ${esc(b.provider && b.provider !== "media bookmaker" ? b.provider : "media bookmaker")}` : ""] });
   if (d.cup === "women") s += `<div class="warn">Per la Champions femminile ci sono solo i risultati della competizione stessa: le percentuali sono indicative.</div>`;
   else if (d.low_data) s += `<div class="warn">Una delle due squadre gioca in un campionato che il modello non segue: la sua forza è stimata solo dalle partite di coppa.</div>`;
 
-  const esito = sec("Esito finale", picks([["1 " + H.short, m["1x2"][0]], ["X", m["1x2"][1]], ["2 " + A.short, m["1x2"][2]]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
-    + sec("Doppia chance", rows(m.dc))
+  const esito = sec("Esito finale", picks([["1 " + H.short, m["1x2"][0], `${H.short} vince`], ["X", m["1x2"][1], "Pareggio"], ["2 " + A.short, m["1x2"][2], `${A.short} vince`]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
+    + sec("Doppia chance", rows(m.dc, { label: k => ({ "1X": `${H.short} o pareggio`, "X2": `${A.short} o pareggio`, "12": "Una delle due vince" }[k] || k) }))
     + sec("Combo", rows(m.combo))
     + sec("Risultato esatto", rows(Object.fromEntries(m.exact.map(x => [x.score, x.p]))), "i 10 più probabili")
-    + sec("Primo tempo", picks([["1", m.ht["1x2"][0]], ["X", m.ht["1x2"][1]], ["2", m.ht["1x2"][2]]]) + rows(m.ht.ou, { label: k => `Over ${line(k)} nel primo tempo` }));
+    + sec("Primo tempo", picks([["1", m.ht["1x2"][0], `${H.short} vince il primo tempo`], ["X", m.ht["1x2"][1], "Pareggio nel primo tempo"], ["2", m.ht["1x2"][2], `${A.short} vince il primo tempo`]]) + rows(m.ht.ou, { label: k => `Over ${line(k)} nel primo tempo` }));
 
   const ouBook = b.ou25 ? { "2.5": b.ou25[0] } : null;
-  const gol = sec("Gol in sintesi", picks([["Over 1,5", m.ou["1.5"]], ["Over 2,5", m.ou["2.5"]], ["Over 3,5", m.ou["3.5"]], ["Goal", m.btts]]))
+  const gol = sec("Gol in sintesi", picks([["Over 1,5", m.ou["1.5"]], ["Over 2,5", m.ou["2.5"]], ["Over 3,5", m.ou["3.5"]], ["Goal", m.btts, "Goal, segnano entrambe"]]))
     + sec("Under / Over", rows(m.ou, { label: k => `Over ${line(k)}`, book: ouBook }))
     + sec("Goal / No Goal", rows({ "Goal, segnano entrambe": m.btts, "No Goal": 1 - m.btts }))
     + sec("Multigol", rows(m.multigol, { label: k => `Multigol ${k}` }))
-    + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`Over ${line(k)}`, v])), "Porta inviolata": m.clean_sheet[0] }))
-    + sec(`Gol di ${esc(A.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.away).map(([k, v]) => [`Over ${line(k)}`, v])), "Porta inviolata": m.clean_sheet[1] }))
-    + (d.corners ? sec("Calci d'angolo", rows(d.corners.ou, { label: k => `Over ${line(k)}` }), `attesi ${num(d.corners.exp[2])}`) : "")
-    + (d.cards ? sec("Cartellini gialli", rows(d.cards.ou, { label: k => `Over ${line(k)}` }), `attesi ${num(d.cards.exp[2])}`) : "");
+    + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`${H.short} over ${line(k)}`, v])), [`${H.short} porta inviolata`]: m.clean_sheet[0] }))
+    + sec(`Gol di ${esc(A.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.away).map(([k, v]) => [`${A.short} over ${line(k)}`, v])), [`${A.short} porta inviolata`]: m.clean_sheet[1] }))
+    + (d.corners ? sec("Calci d'angolo", rows(d.corners.ou, { label: k => `Over ${line(k)} angoli` }), `attesi ${num(d.corners.exp[2])}`) : "")
+    + (d.cards ? sec("Cartellini gialli", rows(d.cards.ou, { label: k => `Over ${line(k)} gialli` }), `attesi ${num(d.cards.exp[2])}`) : "");
 
   const forma = sec("Forma recente", soccerForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("In stagione", soccerSplit(d, cH, cA))
@@ -359,7 +428,7 @@ function soccerSplit(d, cH, cA) {
 function h2hSoccer(d) {
   const h = d.h2h;
   if (!h.n) return `<p class="note">Nessun precedente nelle ultime tre stagioni.</p>`;
-  return picks([[d.home.short, h.a / h.n], ["Pareggi", h.d / h.n], [d.away.short, h.b / h.n]]).replace(/quota equa [^<]*/g, "")
+  return picks([[d.home.short, h.a / h.n], ["Pareggi", h.d / h.n], [d.away.short, h.b / h.n]], null, { fav: false }).replace(/quota equa [^<]*/g, "")
     + `<div class="rows games">${h.games.map(g => `<div class="r"><span class="l">${fmtShort(g.date)}, ${esc(g.home)} – ${esc(g.away)}</span><span class="v num">${g.hg}-${g.ag}</span></div>`).join("")}</div>
     <p class="note">Over 2,5 nel ${pct(h.over25)} dei precedenti, Goal nel ${pct(h.btts)}.</p>`;
 }
@@ -381,6 +450,7 @@ function soccerPlayers(d, cH, cA) {
 
 /* ------------------------------------------------------------------ NBA */
 
+const PROP_UNIT = { pts: "punti", reb: "rimbalzi", ast: "assist", tpm: "triple", pra: "P+R+A" };
 const PROP_NAME = { pts: "Punti", reb: "Rimbalzi", ast: "Assist", tpm: "Triple", pra: "P+R+A" };
 
 function nbaView(d) {
@@ -388,19 +458,19 @@ function nbaView(d) {
   const [cH, cA] = teamColors(H, A);
   const sub = t => `${t.record.w} vinte, ${t.record.l} perse${t.b2b ? ", seconda sera di fila" : ""}`;
   const bookTxt = b.p_home ? `${esc(b.provider || "Quote")}: ${pct(b.p_home)} / ${pct(b.p_away)}` : "";
-  let s = board(d, { subH: sub(H), subA: sub(A), probs: m.win, labels: [H.short || "Casa", A.short || "Ospite"], book: b.p_home ? [b.p_home, b.p_away] : null,
+  let s = board(d, { subH: sub(H), subA: sub(A), probs: m.win, labels: [H.short || "Casa", A.short || "Ospite"], favLabels: [`${H.short || H.name} vince`, `${A.short || A.name} vince`], book: b.p_home ? [b.p_home, b.p_away] : null,
     foot: [`Punteggio atteso <b class="num">${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b>`, b.p_home ? `Quote: ${esc(b.provider || "")}` : ""] });
 
   const bpi = m.espn_bpi != null ? `<p class="note">Il modello di previsione di ESPN (BPI) dà ${esc(H.short)} al ${pct(m.espn_bpi)}. ${m.espn_weight ? `Pesa per il ${Math.round(m.espn_weight * 100)}% nella percentuale qui sopra: è il peso che ha sbagliato meno sulle partite già giocate.` : "Non è incluso nel calcolo."}</p>` : "";
-  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0]], [A.short || A.name, m.win[1]]], b.p_home ? [b.p_home, b.p_away] : null) + bpi)
+  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0], `${H.short || H.name} vince`], [A.short || A.name, m.win[1], `${A.short || A.name} vince`]], b.p_home ? [b.p_home, b.p_away] : null) + bpi)
     + sec("Handicap", rows(m.spreads, { label: k => `${H.short || "Casa"} ${line(k)}` }), `margine atteso ${m.margin > 0 ? "+" : ""}${num(m.margin)}`)
     + sec("Margine di vittoria", rows(Object.fromEntries(Object.entries(m.bands).map(([k, v]) =>
       [k.replace("casa", `${H.short || "Casa"} vince di`).replace("ospite", `${A.short || "Ospite"} vince di`), v]))));
   const tl = `${m.total_line}`, pOver = m.totals[`${Number(m.total_line)}`] ?? m.totals[tl];
-  const punti = (pOver != null ? sec("Linea principale", picks([[`Over ${line(m.total_line)}`, pOver], [`Under ${line(m.total_line)}`, 1 - pOver]]), `attesi ${num(m.total)}`) : "")
-    + sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
-    + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `Over ${line(k)}` }))
-    + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `Over ${line(k)}` }));
+  const punti = (pOver != null ? sec("Linea principale", picks([[`Over ${line(m.total_line)}`, pOver, `Over ${line(m.total_line)} punti`], [`Under ${line(m.total_line)}`, 1 - pOver, `Under ${line(m.total_line)} punti`]]), `attesi ${num(m.total)}`) : "")
+    + sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)} punti` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
+    + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `${H.short} over ${line(k)}` }))
+    + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `${A.short} over ${line(k)}` }));
   const forma = sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("Testa a testa", nbaH2h(d), d.h2h.n ? `ultime ${d.h2h.n}` : "")
     + sec("Infortuni", injuries(d));
@@ -448,7 +518,10 @@ function nbaPlayers(d, cH, cA) {
   const block = (list, c) => list.length ? list.map(p => {
     const a = p.avg5 || {}, a10 = p.avg10 || {}, a15 = p.avg15 || {};
     const props = Object.entries(p.props || {}).map(([k, v]) => {
-      const chips = Object.entries(v.p).map(([L, pr]) => `<span class="chip ${pr >= .6 ? "hot" : ""}">${L}+<b>${pct(pr)}</b></span>`).join("");
+      const chips = Object.entries(v.p).map(([L, pr]) => {
+        const key = favKey(`${p.name} almeno ${L} ${PROP_UNIT[k]}`, pr);
+        return `<button type="button" class="chip ${pr >= .6 ? "hot" : ""} ${isFav(key) ? "on" : ""}" data-fav="${esc(key)}" aria-label="${esc(p.name)} almeno ${L} ${PROP_UNIT[k]}, ${pct(pr)}. Tocca per salvarla nella schedina">${L}+<b>${pct(pr)}</b></button>`;
+      }).join("");
       return chips ? `<div class="line"><span>${PROP_NAME[k]}<br><b>${num(v.mean)}</b> attesi</span><div class="chips">${chips}</div></div>` : "";
     }).join("");
     const tag = p.out ? `<span class="p-tag out">Fuori</span>` : `<span class="p-tag">${p.status ? esc(statusIt(p.status)) + ", " : ""}${num(p.min_proj, 0)} minuti attesi</span>`;
@@ -472,19 +545,19 @@ function tennisView(d) {
   const cH = "#8a6aa8", cA = "#a08a9e";
   const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
   d = { ...d, home: { ...d.home, flag: P.home.flag }, away: { ...d.away, flag: P.away.flag } };
-  let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)],
+  let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)], favLabels: [`${d.home.name} vince`, `${d.away.name} vince`],
     foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;
   const ln = n => lastName(n);
-  const esito = sec("Vincente", picks([[ln(d.home.name), m.win[0]], [ln(d.away.name), m.win[1]]]))
+  const esito = sec("Vincente", picks([[ln(d.home.name), m.win[0], `${d.home.name} vince`], [ln(d.away.name), m.win[1], `${d.away.name} vince`]]))
     + sec("Risultato in set", rows(Object.fromEntries(Object.entries(m.sets).map(([k, v]) => {
       const [a, b] = k.split("-").map(Number);
       return [`${a > b ? ln(d.home.name) : ln(d.away.name)} ${Math.max(a, b)}-${Math.min(a, b)}`, v];
     }))))
     + sec("Tie-break e set decisivo", rows({ "Almeno un tie-break": m.tiebreak, "Si arriva al set decisivo": m.deciding_set }));
   const tt = Object.entries(m.totals), mid = tt[Math.floor(tt.length / 2)];
-  const game = sec("In sintesi", picks([[`Over ${line(mid[0])}`, mid[1]], ["Tie-break", m.tiebreak], ["Set decisivo", m.deciding_set]]))
-    + sec("Game totali", rows(m.totals, { label: k => `Over ${line(k)}` }), `attesi ${num(m.exp_games)}`)
+  const game = sec("In sintesi", picks([[`Over ${line(mid[0])}`, mid[1], `Over ${line(mid[0])} game`], ["Tie-break", m.tiebreak, "Almeno un tie-break"], ["Set decisivo", m.deciding_set, "Si arriva al set decisivo"]]))
+    + sec("Game totali", rows(m.totals, { label: k => `Over ${line(k)} game` }), `attesi ${num(m.exp_games)}`)
     + sec("Handicap game", rows(m.handicap, { label: k => `${ln(d.home.name)} ${line(k)}` }))
     + `<p class="note">Game di servizio tenuti, stima: ${ln(d.home.name)} ${pct(m.hold[0])}, ${ln(d.away.name)} ${pct(m.hold[1])}.</p>`;
   const gioc = sec("Confronto", tennisPlayers(d, cH, cA)) + sec("Testa a testa", tennisH2h(d), d.h2h.n ? `${d.h2h.a}–${d.h2h.b}` : "")
@@ -542,12 +615,13 @@ function pickMark(it) {
 }
 
 function pickRow(it, big) {
+  const key = favKey(it.label, it.p, it.book, { event: it.event, match: it.match, date: it.date, time_valid: it.time_valid, league_name: it.league_name, sport: it.sport });
   const when = `${fmtDay(it.date).rel || fmtShort(it.date)}, ${fmtTime(it.date, it.time_valid)}`;
   const edge = it.edge != null ? `<span class="edge ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">bookmaker ${pct(it.book)}</span>` : "";
   return `<a class="pk ${big ? "big" : ""}" href="#/e/${encodeURIComponent(it.event)}">
     ${ring(it.p, it.p >= .75)}
     ${big ? pickMark(it) : ""}
-    <span class="pk-txt"><b>${esc(it.label)}</b><span>${esc(it.match)}, ${esc(when)}${it.low ? ", pochi dati" : ""}</span>${edge}</span>
+    ${star(key)}<span class="pk-txt"><b>${esc(it.label)}</b><span>${esc(it.match)}, ${esc(when)}${it.low ? ", pochi dati" : ""}</span>${edge}</span>
   </a>`;
 }
 
@@ -572,6 +646,47 @@ async function showBest() {
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll('[data-seg="win"] button').forEach(b => b.onclick = () => { state.bestWin = b.dataset.v; save("bestWin", state.bestWin); showBest(); });
+}
+
+/* ------------------------------------------------------------------ schedina */
+
+function showSlip() {
+  const now = Date.now();
+  const all = favs().sort((a, b) => a.date.localeCompare(b.date));
+  const next = all.filter(f => new Date(f.date).getTime() > now - 3 * 3600e3);
+  const past = all.filter(f => new Date(f.date).getTime() <= now - 3 * 3600e3);
+  const row = f => {
+    FAVMETA.set(f.key, f);
+    const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
+    return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b>
+      <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span></a>${star(f.key)}</div>`;
+  };
+  if (!all.length) {
+    $app.innerHTML = `<div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui.</div>`;
+    return;
+  }
+  let html = "";
+  if (next.length) {
+    const events = new Set(next.map(f => f.event));
+    const prod = next.reduce((a, f) => a * f.p, 1);
+    const sameMatch = events.size < next.length;
+    html += `<section class="sec slip-sum"><h2>La tua schedina<small>${next.length} ${next.length === 1 ? "giocata" : "giocate"}</small></h2>
+      <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
+      <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
+      <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
+      <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></section>`;
+    html += `<section class="sec">${next.map(row).join("")}</section>`;
+  }
+  if (past.length) {
+    html += `<section class="sec past"><h2>Già iniziate<small>${past.length}</small></h2>${past.map(row).join("")}
+      <button type="button" class="link-btn" id="slip-clear-past">Togli quelle già iniziate</button></section>`;
+  }
+  html += `<p class="note">La schedina è salvata su questo telefono.</p>`;
+  $app.innerHTML = html;
+  const c = document.getElementById("slip-clear");
+  if (c) c.onclick = () => { if (confirm("Svuotare la schedina?")) { saveFavs(past); showSlip(); } };
+  const cp = document.getElementById("slip-clear-past");
+  if (cp) cp.onclick = () => { saveFavs(next); showSlip(); };
 }
 
 /* ------------------------------------------------------------------ affidabilità */

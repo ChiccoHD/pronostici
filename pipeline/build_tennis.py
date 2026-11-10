@@ -106,6 +106,7 @@ def build(today: date):
                     s["country"] = p.get("country")
                     s["cc"] = p.get("cc")
                     s["flag"] = p.get("flag")
+                    s["pid"] = p.get("pid") or p.get("id") or None  # numero ESPN del giocatore: serve al sito per la foto
                     s["elo"] = round(elo.rating(p["name"], surface))
                     pls.append(s)
                 detail = {

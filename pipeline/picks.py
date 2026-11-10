@@ -45,7 +45,7 @@ def soccer(d):
     out.append({**base, "tag": "NG", "cat": "Gol", "label": "No Goal", "p": 1 - m["btts"], "book": None})
     for side, T in (("home", H), ("away", A)):
         for p in (d.get("players") or {}).get(side, [])[:6]:
-            out.append({**base, **_team(T), "player": p["name"], "cat": "Marcatori",
+            out.append({**base, **_team(T), "player": p["name"], "pid": p.get("pid"), "cat": "Marcatori",
                         "label": f"{p['name']} segna", "p": p["p_goal"], "book": None})
     if d.get("corners"):
         for line, p in d["corners"]["ou"].items():
@@ -76,7 +76,7 @@ def nba(d):
                     if L >= NBA_MIN_LINE[stat] and pr >= NBA_MIN_P and (best is None or L > best[0]):
                         best = (L, pr)
                 if best:
-                    out.append({**base, **_team(T), "player": p["name"], "pos": p.get("pos"), "cat": NBA_CAT[stat],
+                    out.append({**base, **_team(T), "player": p["name"], "pid": p.get("pid"), "pos": p.get("pos"), "cat": NBA_CAT[stat],
                                 "label": f"{p['name']} almeno {best[0]} {NBA_UNIT[stat]}", "p": best[1], "book": None,
                                 "mean": v["mean"]})
     return out

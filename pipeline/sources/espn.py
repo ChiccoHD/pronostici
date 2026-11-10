@@ -282,7 +282,7 @@ def tennis_matches(events: list[dict], tour: str) -> list[dict]:
                     if not name or name == "TBD" or "/" in name:
                         continue
                     players.append({
-                        "id": str(p.get("id") or ""), "name": name, "winner": bool(p.get("winner")),
+                        "id": str(p.get("id") or ""), "pid": str(ath.get("id") or p.get("id") or ""), "name": name, "winner": bool(p.get("winner")),
                         "order": p.get("order") or 0, "rank": (p.get("curatedRank") or {}).get("current"),
                         "country": (ath.get("flag") or {}).get("alt"),
                         "flag": (ath.get("flag") or {}).get("href"),

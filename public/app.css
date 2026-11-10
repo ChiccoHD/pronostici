@@ -117,6 +117,9 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .board-t .crest { width: 52px; height: 52px; display: grid; place-items: center; }
 .board-t .crest img { max-width: 52px; max-height: 52px; object-fit: contain; }
 .board-t .crest .tflag { width: 46px; height: 31px; border-radius: 4px; }
+.board-t .crest { position: relative; }
+.board-t .crest .pphoto { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: 50% 12%; background: var(--soft-2); box-shadow: 0 0 0 1px var(--rule-strong); }
+.board-t .crest .pphoto + .tflag { position: absolute; right: -6px; bottom: -2px; width: 21px; height: 14px; border-radius: 3px; }
 .board-t .crest .mono { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 15px; }
 .board-name { font-weight: 800; font-size: 16px; line-height: 1.2; letter-spacing: -.01em; }
 .board-sub { font-size: 12px; color: var(--ink-2); font-weight: 500; line-height: 1.3; }
@@ -183,7 +186,8 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 
 /* giocatori */
 .ava { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13.5px; position: relative; flex: none; }
-.ava small { position: absolute; right: -4px; bottom: -3px; font-weight: 700; font-size: 9.5px; background: var(--card); color: var(--ink-2); border: 1px solid var(--rule-strong); border-radius: 5px; padding: 1px 3px; }
+.ava-ph { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 12%; background: var(--soft-2); box-shadow: 0 0 0 1px var(--rule-strong); }
+.ava small { z-index: 1; position: absolute; right: -4px; bottom: -3px; font-weight: 700; font-size: 9.5px; background: var(--card); color: var(--ink-2); border: 1px solid var(--rule-strong); border-radius: 5px; padding: 1px 3px; }
 .player { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
 .player:first-of-type { border-top: 0; padding-top: 2px; }
 .p-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }

@@ -117,9 +117,16 @@ function initials(name) {
   const p = String(name || "").replace(/[^\p{L}\s'-]/gu, "").trim().split(/\s+/);
   return ((p[0]?.[0] || "") + (p.length > 1 ? p[p.length - 1][0] : (p[0]?.[1] || ""))).toUpperCase();
 }
-function avatar(name, color, badge) {
+/* foto dei giocatori: collegate da ESPN tramite il loro numero, non copiate nel repository.
+   Se la foto manca l'immagine si toglie da sola e restano le iniziali. Con i dati di esempio (inventati) niente foto. */
+const HEADSHOT_DIR = { soccer: "soccer", nba: "nba", tennis: "tennis" };
+let PHOTOS_ON = true;
+function headshot(sport, pid) {
+  return PHOTOS_ON && HEADSHOT_DIR[sport] && /^\d+$/.test(String(pid ?? "")) ? `https://a.espncdn.com/i/headshots/${HEADSHOT_DIR[sport]}/players/full/${pid}.png` : "";
+}
+function avatar(name, color, badge, photo) {
   const c = color || "#6d5a6b";
-  return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc(initials(name))}${badge ? `<small>${esc(badge)}</small>` : ""}</span>`;
+  return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc(initials(name))}${photo ? img(photo, "ava-ph") : ""}${badge ? `<small>${esc(badge)}</small>` : ""}</span>`;
 }
 
 function img(src, cls, alt = "") {
@@ -171,6 +178,7 @@ async function boot() {
   if (META.updated) {
     document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>aggiornato`;
   }
+  PHOTOS_ON = !META.sample;
   if (META.sample) {
     document.getElementById("banner").innerHTML = `<div class="banner">Stai guardando dati di esempio inventati: l'aggiornamento automatico non è ancora partito.</div>`;
   }
@@ -353,7 +361,7 @@ function seg(name, opts, cur) {
 function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, book = null, foot = [] }) {
   const max = Math.max(...probs);
   const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
-  const crest = (t, c) => t.logo ? img(t.logo, "") : t.flag ? img(t.flag, "tflag") :
+  const crest = (t, c) => t.logo ? img(t.logo, "") : t.photo ? img(t.photo, "pphoto") + img(t.flag, "tflag") : t.flag ? img(t.flag, "tflag") :
     `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(t.name))}</span>`;
   const team = (t, sub, c) => `<div class="board-t"><span class="crest">${crest(t, c)}</span>
     <div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div>`;
@@ -500,7 +508,7 @@ function lastSoccer(d) {
 
 function soccerPlayers(d, cH, cA) {
   const tbl = (list, c) => list.length ? `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
-    ${list.map(p => `<div class="sp-row">${avatar(p.name, c)}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
+    ${list.map(p => `<div class="sp-row">${avatar(p.name, c, null, headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
       <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`
     : `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
   return `<div data-segpane="pl:home">${tbl(d.players.home, cH)}</div><div data-segpane="pl:away" hidden>${tbl(d.players.away, cA)}</div>
@@ -584,7 +592,7 @@ function nbaPlayers(d, cH, cA) {
       return chips ? `<div class="line"><span>${PROP_NAME[k]}<br><b>${num(v.mean)}</b> attesi</span><div class="chips">${chips}</div></div>` : "";
     }).join("");
     const tag = p.out ? `<span class="p-tag out">Fuori</span>` : `<span class="p-tag">${p.status ? esc(statusIt(p.status)) + ", " : ""}${num(p.min_proj, 0)} minuti attesi</span>`;
-    return `<div class="player">${avatar(p.name, c, p.pos)}<div>
+    return `<div class="player">${avatar(p.name, c, p.pos, headshot("nba", p.pid))}<div>
       <div class="p-head"><span class="p-name">${esc(p.name)}</span>${tag}</div>
       <div class="p-avg" aria-label="Medie nelle ultime 5 partite">
         <div><b>${num(a.pts)}</b><span>punti</span></div><div><b>${num(a.reb)}</b><span>rimbalzi</span></div>
@@ -603,7 +611,7 @@ function tennisView(d) {
   const m = d.markets, P = d.players;
   const cH = "#8a6aa8", cA = "#a08a9e";
   const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
-  d = { ...d, home: { ...d.home, flag: P.home.flag }, away: { ...d.away, flag: P.away.flag } };
+  d = { ...d, home: { ...d.home, flag: P.home.flag, photo: headshot("tennis", P.home.pid) }, away: { ...d.away, flag: P.away.flag, photo: headshot("tennis", P.away.pid) } };
   let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)], favLabels: [`${d.home.name} vince`, `${d.away.name} vince`],
     foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;
@@ -666,7 +674,7 @@ function ring(p, lead = false) {
 }
 
 function pickMark(it) {
-  if (it.player) return avatar(it.player, it.color, it.pos);
+  if (it.player) return avatar(it.player, it.color, it.pos, headshot(it.sport, it.pid));
   if (it.logo) return `<span class="pk-logo">${img(it.logo, "", "")}</span>`;
   const c = usable(it.color) ? it.color : "#6d5a6b";
   return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc((it.tag || "").slice(0, 3))}</span>`;

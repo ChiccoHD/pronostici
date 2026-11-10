@@ -685,6 +685,7 @@ function pickRow(it, big, showCat = false) {
   </a>`;
 }
 
+const HIGH = 0.70;   // soglia della classifica "in assoluto"
 async function showBest() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
   const now = Date.now();
@@ -698,16 +699,16 @@ async function showBest() {
     `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} giocate</small></button>`).join("")}</div>
     ${dayChips(oneEach, it => it.date).replace(/<small>\d+<\/small>/g, "")}</div>`;
   if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
-  // classifica unica tra tutti gli sport e le categorie: una giocata per partita, senza la doppia chance
+  // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance
   if (cats.length) {
-    const best = [], usedEv = new Set();
     const main = it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true;
-    cats.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name }))).filter(main)
-      .sort((a, b) => b.p - a.p)
-      .forEach(it => { if (!usedEv.has(it.event)) { usedEv.add(it.event); best.push(it); } });
-    const top = best.slice(0, 5), rest = best.slice(5, 30);
+    const sorted = cats.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name }))).filter(main)
+      .sort((a, b) => b.p - a.p);
+    const high = sorted.filter(it => it.p >= HIGH);
+    const best = (high.length >= 5 ? high : sorted.slice(0, 5)).slice(0, 60);
+    const top = best.slice(0, 10), rest = best.slice(10);
     const who = { all: "di tutti gli sport", soccer: "del calcio", nba: "del basket", tennis: "del tennis" }[state.sport];
-    html += `<section class="sec best overall"><h2>Le migliori in assoluto<small>${who}, linee principali, una per partita</small></h2>
+    html += `<section class="sec best overall"><h2>Le migliori in assoluto<small>${who}, ${high.length >= 5 ? `dal ${Math.round(HIGH * 100)}% in su` : "le più probabili"}</small></h2>
       ${top.map(it => pickRow(it, true, true)).join("")}
       ${rest.length ? `<details class="more"><summary>Altre ${rest.length} in classifica</summary>${rest.map(it => pickRow(it, false, true)).join("")}</details>` : ""}
     </section>`;
@@ -719,7 +720,7 @@ async function showBest() {
       ${rest.length ? `<details class="more"><summary>Altre giocate: ${esc(c.name)} (${rest.length})</summary>${rest.map(it => pickRow(it, false)).join("")}</details>` : ""}
     </section>`;
   }
-  html += `<p class="note">Classifica per probabilità stimata dal modello. Dove ci sono le quote, sotto c'è la percentuale dei bookmaker, in verde quando il modello è più ottimista di almeno 5 punti. La classifica in assoluto usa solo le linee principali (esito, Over/Under 2,5, Goal, angoli 9,5, vincente, linea punti dei bookmaker, soglie dei giocatori): giocate scontate come Over 1,5 o la doppia chance starebbero sempre in cima. Le probabilità alte non sono certezze, e più giocate insieme si moltiplicano tra loro.</p>`;
+  html += `<p class="note">Classifica per probabilità stimata dal modello. Dove ci sono le quote, sotto c'è la percentuale dei bookmaker, in verde quando il modello è più ottimista di almeno 5 punti. La classifica in assoluto raccoglie tutte le giocate dal 70% in su, anche più di una per partita, e le stesse giocate restano anche nella loro categoria qui sotto. Usa solo le linee principali (esito, Over/Under 2,5, Goal, angoli 9,5, vincente, linea punti dei bookmaker, soglie dei giocatori): giocate scontate come Over 1,5 o la doppia chance starebbero sempre in cima. Le probabilità alte non sono certezze, e più giocate insieme si moltiplicano tra loro.</p>`;
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });

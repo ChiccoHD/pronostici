@@ -15,7 +15,7 @@ const LEAGUES = {
   tennis: [["atp", "ATP"], ["wta", "WTA"]],
 };
 const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home" };
-let INDEX = null, META = null, REL = null;
+let INDEX = null, META = null, REL = null, BEST = null;
 
 /* ------------------------------------------------------------------ utilità */
 
@@ -113,11 +113,12 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = view === "affidabilita" ? "affidabilita" : view === "info" ? "info" : "home";
+  const navKey = ["affidabilita", "info", "migliori"].includes(view) ? view : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   window.scrollTo(0, 0);
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
   if (view === "affidabilita") return showReliability();
+  if (view === "migliori") return showBest();
   if (view === "info") return showInfo();
   showList();
 }
@@ -505,6 +506,57 @@ function tennisLast(d) {
     `<div class="r"><span class="l">${fmtShort(g.date)}, con ${esc(g.opp)} <span class="faint">${esc(surfaceIt(g.surface).toLowerCase())}</span></span><span class="v num" style="font-size:16px"><span class="f ${g.res}">${g.res}</span> ${esc(g.score)}</span></div>`).join("")}</div>`
     : `<p class="note">Nessun incontro nello storico.</p>`);
   return list(d.players.home, d.home.name) + list(d.players.away, d.away.name);
+}
+
+/* ------------------------------------------------------------------ migliori giocate */
+
+const SPORT_OF = { soccer: "soccer", nba: "nba", tennis: "tennis" };
+if (!state.bestWin) state.bestWin = load("bestWin", "48");
+
+function ring(p) {
+  const r = 21, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, p));
+  return `<span class="ring ${p >= .75 ? "hi" : ""}" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="${r}" class="ring-bg"/>
+    <circle cx="26" cy="26" r="${r}" class="ring-fg" stroke-dasharray="${(v * c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 26 26)"/></svg><b>${pct(p)}</b></span>`;
+}
+
+function pickMark(it) {
+  if (it.player) return avatar(it.player, it.color, it.pos);
+  if (it.logo) return `<span class="pk-logo">${img(it.logo, "", "")}</span>`;
+  const c = usable(it.color) ? it.color : "#6d5a6b";
+  return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc((it.tag || "").slice(0, 3))}</span>`;
+}
+
+function pickRow(it, big) {
+  const when = `${fmtDay(it.date).rel || fmtShort(it.date)}, ${fmtTime(it.date, it.time_valid)}`;
+  const edge = it.edge != null ? `<span class="edge ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">bookmaker ${pct(it.book)}</span>` : "";
+  return `<a class="pk ${big ? "big" : ""}" href="#/e/${encodeURIComponent(it.event)}">
+    ${big ? ring(it.p) : `<span class="pk-p pct ${it.p >= .75 ? "hot" : ""}">${pct(it.p)}</span>`}
+    ${big ? pickMark(it) : ""}
+    <span class="pk-txt"><b>${esc(it.label)}</b><span>${esc(it.match)}, ${esc(when)}${it.low ? ", pochi dati" : ""}</span>${edge}</span>
+  </a>`;
+}
+
+async function showBest() {
+  if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
+  const now = Date.now(), lim = state.bestWin === "48" ? now + 48 * 3600e3 : Infinity;
+  const ok = it => { const t = new Date(it.date).getTime(); return t > now - 3 * 3600e3 && t <= lim && (state.sport === "all" || it.sport === state.sport); };
+  const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
+  const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3 && new Date(it.date).getTime() <= lim).length, 0);
+  let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+    `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} giocate</small></button>`).join("")}</div>
+    <div class="best-bar">${seg("win", [["48", "Prossime 48 ore"], ["all", "Tutti i giorni"]], state.bestWin)}</div></div>`;
+  if (!cats.length) html += `<div class="empty"><b>Nessuna giocata in questa finestra</b>Prova "Tutti i giorni" o un altro sport.</div>`;
+  for (const c of cats) {
+    const top = c.items.slice(0, 3), rest = c.items.slice(3);
+    html += `<section class="sec best"><h2>${esc(c.name)}<small>${c.items.length} giocate</small></h2>
+      ${top.map(it => pickRow(it, true)).join("")}
+      ${rest.length ? `<details class="more"><summary>Altre giocate: ${esc(c.name)} (${rest.length})</summary>${rest.map(it => pickRow(it, false)).join("")}</details>` : ""}
+    </section>`;
+  }
+  html += `<p class="note">Classifica per probabilità stimata dal modello. Dove ci sono le quote, sotto c'è la percentuale dei bookmaker, in rosa quando il modello è più ottimista di almeno 5 punti. Le probabilità alte non sono certezze, e più giocate insieme si moltiplicano tra loro.</p>`;
+  $app.innerHTML = html;
+  $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
+  $app.querySelectorAll('[data-seg="win"] button').forEach(b => b.onclick = () => { state.bestWin = b.dataset.v; save("bestWin", state.bestWin); showBest(); });
 }
 
 /* ------------------------------------------------------------------ affidabilità */

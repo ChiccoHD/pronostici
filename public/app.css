@@ -228,3 +228,32 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .board-id { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .board-logo { width: 40px; height: 40px; object-fit: contain; flex: none; background: #fff; border-radius: 50%; padding: 4px; }
 .board-flag { width: 34px; height: 23px; object-fit: cover; border-radius: 3px; flex: none; }
+
+/* migliori giocate */
+.best-bar { margin-top: 8px; }
+.pk { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--rule); }
+.pk.big { grid-template-columns: 56px 44px 1fr; padding: 11px 0; }
+.pk:last-of-type { border-bottom: 0; }
+.pk-txt { min-width: 0; }
+.pk-txt b { display: block; font: 700 19px/1.15 var(--cond); }
+.pk:not(.big) .pk-txt b { font-size: 17px; font-weight: 600; }
+.pk-txt > span { display: block; font-size: 13.5px; color: var(--ink-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-p { font: 700 21px/1 var(--cond); text-align: center; }
+.pk-p.hot { color: var(--rosa); }
+.ring { position: relative; width: 56px; height: 56px; display: grid; place-items: center; }
+.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ring-bg { fill: none; stroke: var(--bar-bg); stroke-width: 5; }
+.ring-fg { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; }
+.ring.hi .ring-fg { stroke: var(--rosa); }
+.ring b { position: relative; font: 700 17px/1 var(--cond); }
+.pk-logo { width: 44px; height: 44px; display: grid; place-items: center; background: #fff; border-radius: 50%; overflow: hidden; }
+.pk-logo img { width: 34px; height: 34px; object-fit: contain; }
+.edge { display: inline-block; margin-top: 4px; font-size: 12.5px; padding: 2px 6px; border-radius: 5px; background: var(--sheet-2); color: var(--ink-2); }
+.edge.pos { background: var(--rosa-soft); color: var(--rosa-ink); font-weight: 600; }
+.more { margin-top: 6px; border: 1px solid var(--rule-strong); border-radius: 10px; padding: 0 12px; }
+.more summary { cursor: pointer; padding: 10px 0; font: 600 17px/1.2 var(--cond); list-style: none; }
+.more summary::-webkit-details-marker { display: none; }
+.more summary::before { content: "›"; display: inline-block; margin-right: 8px; transition: transform .15s; }
+.more[open] summary::before { transform: rotate(90deg); }
+.more[open] summary { border-bottom: 1px solid var(--rule); }
+.pk-txt > span.edge { display: inline-block; white-space: nowrap; }

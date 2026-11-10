@@ -60,6 +60,11 @@ def main():
         for f in ev_dir.glob("*.json"):
             if f.stem not in ids:
                 f.unlink()
+    try:
+        from . import picks
+        picks.write([e["id"] for e in keep])
+    except Exception:
+        logging.exception("Classifica delle giocate non creata")
     logging.info("Fatto: %d eventi", len(keep))
 
 

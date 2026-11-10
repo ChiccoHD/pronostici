@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-10T08:38+00:00",
- "sample": true,
+ "updated": "2026-11-10T08:55+00:00",
+ "sample": false,
  "status": {
   "calcio": {
    "serie-a": {
@@ -8,60 +8,60 @@
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "120 partite",
-    "partite_in_arrivo": 10
+    "espn_tabellini": "110 partite",
+    "partite_in_arrivo": 0
    },
    "premier-league": {
     "football-data": "ok",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "116 partite",
-    "partite_in_arrivo": 14
+    "espn_tabellini": "100 partite",
+    "partite_in_arrivo": 0
    },
    "la-liga": {
     "football-data": "ok",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "117 partite",
-    "partite_in_arrivo": 13
+    "espn_tabellini": "119 partite",
+    "partite_in_arrivo": 1
    },
    "bundesliga": {
     "football-data": "ok",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "104 partite",
-    "partite_in_arrivo": 13
+    "espn_tabellini": "81 partite",
+    "partite_in_arrivo": 1
    },
    "ligue-1": {
     "football-data": "ok",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "105 partite",
-    "partite_in_arrivo": 12
+    "espn_tabellini": "90 partite",
+    "partite_in_arrivo": 1
    },
-   "aggiornato": "2026-11-10T08:38+00:00"
+   "aggiornato": "2026-11-10T08:49+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "105 partite",
-   "partite_in_arrivo": 21,
-   "partite_stagione": 105,
-   "aggiornato": "2026-11-10T08:38+00:00"
+   "tabellini": "154 partite",
+   "partite_in_arrivo": 29,
+   "partite_stagione": 154,
+   "aggiornato": "2026-11-10T08:53+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "4170 incontri (+4170)",
-    "espn": "8 incontri in programma"
+    "storico": "7725 incontri (+7725)",
+    "espn": "9 incontri in programma"
    },
    "wta": {
-    "storico": "4167 incontri (+4167)",
-    "espn": "8 incontri in programma"
+    "storico": "12379 incontri (+12379)",
+    "espn": "16 incontri in programma"
    },
-   "aggiornato": "2026-11-10T08:38+00:00"
+   "aggiornato": "2026-11-10T08:55+00:00"
   }
  }
 }

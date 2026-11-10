@@ -52,3 +52,22 @@ def get_json(url: str, params: dict | None = None, **kw):
     except ValueError:
         log.warning("Risposta non JSON da %s", url)
         return None
+
+
+def exists(url: str, *, delay: float = 0.25, timeout: int = 20) -> bool | None:
+    """Dice se un file (es. una foto) c'è: True, False (404) oppure None se non si capisce."""
+    host = url.split("/")[2]
+    for method in ("head", "get"):
+        _wait(host, delay)
+        try:
+            r = _session.request(method, url, timeout=timeout, stream=True, allow_redirects=True)
+            code = r.status_code
+            r.close()
+        except requests.RequestException as e:
+            log.warning("Errore rete %s: %s", url, e)
+            return None
+        if code == 200:
+            return True
+        if code == 404:
+            return False
+    return None

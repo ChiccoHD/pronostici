@@ -14,7 +14,7 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 
 ## Grafica
 
-Chiara e pulita, con un solo accento verde campo e cerchi percentuali in elenco, schede e classifica. Carattere Manrope con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile da logo e colori sociali, i tennisti dalla bandiera: arrivano da ESPN insieme ai dati e sono collegati, non copiati nel repository. I giocatori hanno la foto di ESPN (collegata anche lei, tramite il numero del giocatore); se manca restano le iniziali nei colori della squadra. Nel tennis la foto compare nella scheda dell'incontro, con la bandiera accanto. Icona e favicon sono originali (`public/favicon.svg`).
+Chiara e pulita, con un solo accento verde campo e cerchi percentuali in elenco, schede e classifica. Carattere Manrope con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile da logo e colori sociali, i tennisti dalla bandiera: arrivano da ESPN insieme ai dati e sono collegati, non copiati nel repository. I giocatori hanno la foto di ESPN (collegata anche lei, tramite il numero del giocatore). Per i calciatori che ESPN non ha, l'aggiornamento cerca la foto su TheSportsDB (gratuito, serve che nome e squadra coincidano) e ricorda l'esito in `data/cache/photos.json`; se non c'è da nessuna parte restano le iniziali nei colori della squadra. Nella pagina *Info* la riga "foto_giocatori" dice quante foto arrivano da ciascuna fonte. Nel tennis la foto compare nella scheda dell'incontro, con la bandiera accanto. Icona e favicon sono originali (`public/favicon.svg`).
 
 ## Incrocio delle fonti
 

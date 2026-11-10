@@ -3,7 +3,7 @@
 Web app personale "Pronostici": statistiche e probabilità per calcio (5 campionati principali, Portogallo, Norvegia, MLS, Giappone, coppe europee e Champions femminile), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
 
 ## Vincoli
-- **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.
+- **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, TheSportsDB per le foto, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.
 - **Si lavora solo nel repository**: le modifiche vanno caricate su GitHub, Cloudflare Pages pubblica da solo la cartella `public/`. Niente artefatti o pubblicazioni separate.
 - **Interfaccia in italiano**, pensata per smartphone.
 - Il sito è statico (HTML/CSS/JS senza compilazione): niente framework o build step senza motivo.

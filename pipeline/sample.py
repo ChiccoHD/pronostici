@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
 
-from . import config, store
+from . import config, photos, store
 from .config import CACHE, PUBLIC_DATA, SOCCER_LEAGUES
 from .sources import espn, footballdata, understat
 
@@ -458,6 +458,7 @@ def main():
     shutil.rmtree(PUBLIC_DATA, ignore_errors=True)
     _gen_soccer(); _gen_nba(); _gen_tennis()
     _install_fakes()
+    photos.ENABLED = False  # nessuna rete con i dati di esempio
     import sys
     from . import run
     sys.argv = ["run"]

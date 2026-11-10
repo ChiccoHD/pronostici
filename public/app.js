@@ -508,7 +508,7 @@ function lastSoccer(d) {
 
 function soccerPlayers(d, cH, cA) {
   const tbl = (list, c) => list.length ? `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
-    ${list.map(p => `<div class="sp-row">${avatar(p.name, c, null, headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
+    ${list.map(p => `<div class="sp-row">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
       <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`
     : `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
   return `<div data-segpane="pl:home">${tbl(d.players.home, cH)}</div><div data-segpane="pl:away" hidden>${tbl(d.players.away, cA)}</div>
@@ -674,7 +674,7 @@ function ring(p, lead = false) {
 }
 
 function pickMark(it) {
-  if (it.player) return avatar(it.player, it.color, it.pos, headshot(it.sport, it.pid));
+  if (it.player) return avatar(it.player, it.color, it.pos, it.photo ?? headshot(it.sport, it.pid));
   if (it.logo) return `<span class="pk-logo">${img(it.logo, "", "")}</span>`;
   const c = usable(it.color) ? it.color : "#6d5a6b";
   return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc((it.tag || "").slice(0, 3))}</span>`;

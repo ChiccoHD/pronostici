@@ -45,7 +45,7 @@ def soccer(d):
     out.append({**base, "tag": "NG", "cat": "Gol", "label": "No Goal", "p": 1 - m["btts"], "book": None})
     for side, T in (("home", H), ("away", A)):
         for p in (d.get("players") or {}).get(side, [])[:6]:
-            out.append({**base, **_team(T), "player": p["name"], "pid": p.get("pid"), "cat": "Marcatori",
+            out.append({**base, **_team(T), "player": p["name"], "pid": p.get("pid"), **({"photo": p["photo"]} if "photo" in p else {}), "cat": "Marcatori",
                         "label": f"{p['name']} segna", "p": p["p_goal"], "book": None})
     if d.get("corners"):
         for line, p in d["corners"]["ou"].items():

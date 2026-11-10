@@ -250,7 +250,11 @@ function showList() {
     const d = fmtDay(groups.values().next().value[0].date);
     html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`;
     for (const [g, list] of groups) {
-      html += `<section class="group"><header class="group-h"><span class="group-dot g-${list[0].sport}"></span><b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}</small></header>${list.map(fixture).join("")}</section>`;
+      const closed = closedGroups().includes(g);
+      html += `<section class="group ${closed ? "closed" : ""}"><button type="button" class="group-h" data-group="${esc(g)}" aria-expanded="${!closed}">
+        <span class="group-dot g-${list[0].sport}"></span><b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="group-body">${list.map(fixture).join("")}</div></section>`;
     }
   }
   $app.innerHTML = html;
@@ -258,6 +262,11 @@ function showList() {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
+  $app.querySelectorAll("[data-group]").forEach(b => b.onclick = () => {
+    const g = b.dataset.group, list = closedGroups();
+    saveClosedGroups(list.includes(g) ? list.filter(x => x !== g) : [...list, g]);
+    showListKeepScroll();
+  });
   $app.querySelectorAll("[data-league]").forEach(b => b.onclick = () => {
     state.league = b.dataset.league; save("league", state.league); showList();
   });
@@ -269,6 +278,11 @@ function teamMark(logo, flag, color, cls = "") {
   if (flag) return img(flag, "tflag " + cls);
   return `<span class="tdot" style="background:${color || "var(--ink-3)"}"></span>`;
 }
+
+/* riquadri chiusi: ricordati su questo telefono */
+function closedGroups() { try { return JSON.parse(localStorage.getItem("p_closed") || "[]"); } catch { return []; } }
+function saveClosedGroups(list) { try { localStorage.setItem("p_closed", JSON.stringify(list.slice(-60))); } catch { /* niente */ } }
+function showListKeepScroll() { const y = window.scrollY; showList(); window.scrollTo(0, y); }
 
 function groupName(e) {
   if (e.sport === "tennis") return e.league_name.replace(" · ", " – ");

@@ -14,24 +14,24 @@ def _d(x: date) -> str:
 
 def scoreboard(sport: str, league: str, start: date, end: date | None = None) -> list[dict]:
     """Eventi tra due date. Restituisce la lista grezza 'events'."""
-    dates = _d(start) if not end or end == start else f"{_d(start)}-{_d(end)}"
-    js = http.get_json(f"{SITE}/{sport}/{league}/scoreboard", {"dates": dates, "limit": 1000})
+    if end and end != start:
+        return scoreboard_range(sport, league, start, end)
+    js = http.get_json(f"{SITE}/{sport}/{league}/scoreboard", {"dates": _d(start)}, delay=0.35)
     if not js:
         return []
     return js.get("events", []) or []
 
 
 def scoreboard_range(sport: str, league: str, start: date, end: date, chunk_days: int = 14) -> list[dict]:
-    """Scarica un intervallo lungo a blocchi, senza duplicati."""
+    """Scarica un intervallo un giorno alla volta (ESPN rifiuta gli intervalli di date), senza duplicati."""
     seen, out = set(), []
     cur = start
     while cur <= end:
-        stop = min(cur + timedelta(days=chunk_days - 1), end)
-        for ev in scoreboard(sport, league, cur, stop):
+        for ev in scoreboard(sport, league, cur):
             if ev.get("id") not in seen:
                 seen.add(ev.get("id"))
                 out.append(ev)
-        cur = stop + timedelta(days=1)
+        cur += timedelta(days=1)
     return out
 
 

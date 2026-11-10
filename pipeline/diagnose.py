@@ -31,6 +31,69 @@ def probe(label, url, params=None, ua=UA_APP, extra=None):
         return f"| {label} | ERRORE | | | `{type(e).__name__}: {str(e)[:150]}` | {url[:90]} |"
 
 
+def samples(t):
+    """Salva risposte reali complete (compresse) per scrivere i lettori sui dati veri."""
+    import gzip
+    import re
+    folder = ROOT / "report" / "campioni"
+    folder.mkdir(parents=True, exist_ok=True)
+    E = "https://site.api.espn.com/apis/site/v2/sports"
+    h = {"User-Agent": UA_BROWSER, "Accept": "application/json, text/plain, */*"}
+    got = []
+
+    def keep(name, url, params=None, headers=None):
+        try:
+            r = requests.get(url, params=params, headers={**h, **(headers or {})}, timeout=30)
+            with gzip.open(folder / f"{name}.gz", "wb") as f:
+                f.write(r.content)
+            got.append(f"- {name}: {r.status_code}, {len(r.content)} byte")
+            return r
+        except Exception as e:
+            got.append(f"- {name}: ERRORE {e}")
+            return None
+
+    yday = (t - timedelta(days=1)).strftime("%Y%m%d")
+    r = keep("espn_tennis_atp_ieri", f"{E}/tennis/atp/scoreboard", {"dates": yday})
+    keep("espn_tennis_atp_oggi", f"{E}/tennis/atp/scoreboard", {"dates": t.strftime("%Y%m%d")})
+    keep("espn_tennis_wta_ieri", f"{E}/tennis/wta/scoreboard", {"dates": yday})
+    keep("espn_tennis_atp_giugno", f"{E}/tennis/atp/scoreboard", {"dates": f"{t.year}0703"})
+    for back in range(1, 5):
+        d = (t - timedelta(days=back)).strftime("%Y%m%d")
+        r = keep(f"espn_seriea_{back}", f"{E}/soccer/ita.1/scoreboard", {"dates": d})
+        try:
+            evs = r.json().get("events", [])
+        except Exception:
+            evs = []
+        if evs:
+            keep("espn_seriea_summary", f"{E}/soccer/ita.1/summary", {"event": evs[0]["id"]})
+            break
+    r = keep("espn_nba_ieri", f"{E}/basketball/nba/scoreboard", {"dates": yday})
+    try:
+        evs = r.json().get("events", [])
+        if evs:
+            keep("espn_nba_summary_giocata", f"{E}/basketball/nba/summary", {"event": evs[0]["id"]})
+    except Exception:
+        pass
+    r = keep("espn_nba_domani", f"{E}/basketball/nba/scoreboard", {"dates": (t + timedelta(days=1)).strftime("%Y%m%d")})
+    try:
+        evs = r.json().get("events", [])
+        if evs:
+            keep("espn_nba_summary_futura", f"{E}/basketball/nba/summary", {"event": evs[0]["id"]})
+    except Exception:
+        pass
+    sy = config.soccer_season_start_year(t)
+    xhr = {"X-Requested-With": "XMLHttpRequest", "Referer": f"https://understat.com/league/Serie_A/{sy}"}
+    keep("understat_api_xhr", f"https://understat.com/getLeagueData/Serie_A/{sy}", headers=xhr)
+    page = keep("understat_pagina", f"https://understat.com/league/Serie_A/{sy}")
+    if page is not None:
+        for js in re.findall(r'src="([^"]+\.js[^"]*)"', page.text)[:6]:
+            url = js if js.startswith("http") else "https://understat.com" + ("" if js.startswith("/") else "/") + js
+            keep("understat_js_" + re.sub(r"[^a-z0-9]", "_", js.lower())[-40:], url)
+    keep("tennisdata_referer", f"http://www.tennis-data.co.uk/{t.year}/{t.year}.xlsx",
+         headers={"Referer": "http://www.tennis-data.co.uk/alldata.php"})
+    return got
+
+
 def main():
     t = config.today()
     d = t.strftime("%Y%m%d")
@@ -65,6 +128,7 @@ def main():
         line = probe(label, url, params, ua)
         print(line)
         out.append(line)
+    out += ["", "## Campioni salvati in report/campioni", *samples(t)]
     path = ROOT / "report" / "diagnostica.md"
     path.parent.mkdir(exist_ok=True)
     path.write_text("\n".join(out) + "\n", encoding="utf-8")

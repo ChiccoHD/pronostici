@@ -1,6 +1,6 @@
 # Pronostici
 
-Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna quattro volte al giorno e Cloudflare pubblica il sito.
+Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
 
 > Le percentuali sono stime statistiche, non certezze. Nella pagina *Affidabilità* dell'app vedi quanto il modello ha azzeccato sulle partite passate rispetto alle quote dei bookmaker.
 
@@ -12,10 +12,14 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 | NBA | Vincente, punti totali, handicap, punti per squadra, margine; per giocatore: soglie di punti, rimbalzi, assist, triple, punti+rimbalzi+assist | Forma 5/10/15, medie giocatori 5/10/15/stagione, infortuni, testa a testa, partite in due sere di fila |
 | Tennis | Vincente, risultato in set, game totali, handicap game, tie-break, set decisivo | Classifica, Elo per superficie, forma, record per superficie, testa a testa |
 
+## Grafica
+
+Ispirata alla carta rosa dei quotidiani sportivi: titoli in Barlow Condensed (stile tabellone), testo in Barlow, entrambi con licenza SIL Open Font e ospitati nel sito (`public/fonts/`, nessuna richiesta a servizi esterni). Ogni squadra è riconoscibile dai suoi colori sociali, forniti da ESPN come dato. Niente loghi di club né foto di giocatori, perché sono protetti da diritti: i giocatori sono indicati con le iniziali nei colori della squadra. Icona e favicon sono originali (`public/favicon.svg`).
+
 ## Come funziona
 
 ```
-Fonti gratuite ──► GitHub Actions (4 volte al giorno) ──► file JSON in public/data ──► Cloudflare Pages
+Fonti gratuite ──► GitHub Actions (6 volte al giorno) ──► file JSON in public/data ──► Cloudflare Pages
 ESPN, football-data.co.uk,      scarica, salva la cache,          il sito li legge
 Understat                       calcola i modelli
 ```

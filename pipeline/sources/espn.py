@@ -1,5 +1,6 @@
 """ESPN (API pubblica non ufficiale): calendari, tabellini, giocatori, infortuni, quote NBA."""
 import logging
+import re
 from datetime import date, timedelta
 
 from .. import http
@@ -60,6 +61,11 @@ def _num(v):
         return None
 
 
+def _hex(c):
+    c = (c or "").strip().lstrip("#")
+    return "#" + c.lower() if re.fullmatch(r"[0-9a-fA-F]{6}", c) else None
+
+
 def parse_event(ev: dict) -> dict | None:
     """Evento a squadre (calcio, NBA) in forma compatta."""
     try:
@@ -73,7 +79,7 @@ def parse_event(ev: dict) -> dict | None:
                 "short": t.get("shortDisplayName") or t.get("abbreviation"),
                 "abbr": t.get("abbreviation"),
                 "score": _num(c.get("score")),
-                "logo": t.get("logo"),
+                "color": _hex(t.get("color")), "alt": _hex(t.get("alternateColor")),
             }
         if "home" not in teams or "away" not in teams:
             return None
@@ -263,6 +269,7 @@ def tennis_matches(events: list[dict], tour: str) -> list[dict]:
                         "id": str(p.get("id") or ""), "name": name, "winner": bool(p.get("winner")),
                         "order": p.get("order") or 0, "rank": (p.get("curatedRank") or {}).get("current"),
                         "country": (ath.get("flag") or {}).get("alt"),
+                        "cc": (re.search(r"/([a-z]{3})\.png", (ath.get("flag") or {}).get("href") or "") or [None, None])[1],
                         "sets": [int(_num(x.get("value")) or 0) for x in p.get("linescores") or []],
                     })
                 if len(players) != 2:

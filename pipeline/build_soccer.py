@@ -209,7 +209,7 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
     def team(side, name):
         t = e[side]
         p = pos.get(name, {})
-        return {"name": t["name"], "short": t["short"], "logo": t.get("logo"), "fd": name,
+        return {"name": t["name"], "short": t["short"], "abbr": t.get("abbr"), "color": t.get("color"), "alt": t.get("alt"), "fd": name,
                 "pos": p.get("pos"), "pts": p.get("pts"), "played": p.get("p"),
                 "rating": ratings.table().get(name)}
     return {
@@ -232,7 +232,8 @@ def _index_entry(d):
     mk = d["markets"]
     return {"id": d["id"], "sport": "soccer", "league": d["league"], "league_name": d["league_name"],
             "date": d["date"], "home": d["home"]["name"], "away": d["away"]["name"],
-            "home_logo": d["home"].get("logo"), "away_logo": d["away"].get("logo"),
+            "home_short": d["home"].get("abbr") or d["home"]["short"], "away_short": d["away"].get("abbr") or d["away"]["short"],
+            "home_color": d["home"].get("color"), "away_color": d["away"].get("color"),
             "main": mk["1x2"], "main_labels": ["1", "X", "2"],
             "book": (d.get("book") or {}).get("1x2"),
             "extra": {"Over 2,5": mk["ou"]["2.5"], "Goal": mk["btts"]},

@@ -2,11 +2,15 @@ name: Aggiorna dati
 
 on:
   schedule:
-    # Orari in UTC (in Italia +1 d'inverno, +2 d'estate)
-    - cron: "17 5 * * *"
-    - cron: "47 10 * * *"
-    - cron: "17 16 * * *"
-    - cron: "47 21 * * *"
+    # Sei volte al giorno. Orari in UTC: in Italia +1 ora d'inverno, +2 d'estate
+    # (inverno: 7:13, 10:43, 13:43, 16:43, 19:43, 23:13). Minuti "strani" perché
+    # allo scoccare dell'ora GitHub è più congestionato e ritarda di più.
+    - cron: "13 6 * * *"
+    - cron: "43 9 * * *"
+    - cron: "43 12 * * *"
+    - cron: "43 15 * * *"
+    - cron: "43 18 * * *"
+    - cron: "13 22 * * *"
   workflow_dispatch:
     inputs:
       solo:

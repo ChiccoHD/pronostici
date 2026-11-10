@@ -96,8 +96,8 @@ def _gen_soccer():
                         events.append({"id": str(eid), "date": ev_date.isoformat().replace("+00:00", "Z"),
                                        "state": "post" if played else "pre", "completed": played,
                                        "status": "FT" if played else "Programmata",
-                                       "home": {"id": str(100 + h), "name": ESPN_NAMES.get(teams[h], teams[h]), "short": teams[h], "abbr": teams[h][:3].upper(), "score": None, "logo": None},
-                                       "away": {"id": str(100 + a), "name": ESPN_NAMES.get(teams[a], teams[a]), "short": teams[a], "abbr": teams[a][:3].upper(), "score": None, "logo": None},
+                                       "home": {"id": str(100 + h), "name": ESPN_NAMES.get(teams[h], teams[h]), "short": teams[h], "abbr": teams[h][:3].upper(), "score": None, "color": "#%06x" % random.randint(0x202020, 0xd0d0d0), "alt": "#ffffff"},
+                                       "away": {"id": str(100 + a), "name": ESPN_NAMES.get(teams[a], teams[a]), "short": teams[a], "abbr": teams[a][:3].upper(), "score": None, "color": "#%06x" % random.randint(0x202020, 0xd0d0d0), "alt": "#ffffff"},
                                        "season_type": 1, "venue": f"Stadio {teams[h]}"})
                     if not played:
                         continue
@@ -159,6 +159,9 @@ NBA_TEAMS = [("Boston Celtics", "BOS"), ("New York Knicks", "NY"), ("Milwaukee B
              ("Golden State Warriors", "GS"), ("Houston Rockets", "HOU"), ("Utah Jazz", "UTAH"),
              ("Memphis Grizzlies", "MEM"), ("San Antonio Spurs", "SA"), ("Portland Trail Blazers", "POR")]
 NBA = {}
+NBA_COLORS = ["#007a33", "#006bb6", "#00471b", "#860038", "#0077c0", "#002d62", "#006bb6", "#98002e", "#c8102e", "#ce1141",
+              "#ce1141", "#000000", "#1d1160", "#c8102e", "#002b5c", "#007ac1", "#0e2240", "#0c2340", "#c8102e", "#00538c",
+              "#1d1160", "#0c2340", "#552583", "#5a2d81", "#1d428a", "#ce1141", "#002b5c", "#5d76a9", "#c4ced4", "#e03a3e"]
 
 
 def _gen_nba():
@@ -193,7 +196,7 @@ def _gen_nba():
                 g = {"id": str(gid), "date": f"{d.isoformat()}T{random.choice(['00:00', '00:30', '01:00', '02:30', '03:00'])}Z",
                      "state": "post" if played else "pre", "home": str(h + 1), "away": str(a + 1),
                      "home_name": NBA_TEAMS[h][0], "away_name": NBA_TEAMS[a][0],
-                     "home_abbr": NBA_TEAMS[h][1], "away_abbr": NBA_TEAMS[a][1], "home_logo": None, "away_logo": None,
+                     "home_abbr": NBA_TEAMS[h][1], "away_abbr": NBA_TEAMS[a][1], "home_color": NBA_COLORS[h], "away_color": NBA_COLORS[a],
                      "hs": hs, "as": as_,
                      "odds": {"provider": "Esempio", "total": round((hs_e + as_e) * 2) / 2, "spread": -round((hs_e - as_e) * 2) / 2,
                               "p_home": ph, "p_away": 1 - ph, "details": ""}}
@@ -261,9 +264,9 @@ def _gen_tennis():
                                 "tournament": tname, "location": "Città", "major": False, "court": None,
                                 "round": "1st Round", "best_of": 3,
                                 "players": [{"id": "a", "name": names[i], "winner": bool(iw), "order": 1, "rank": int(i) + 1,
-                                             "country": None, "sets": ws if iw else ls},
+                                             "country": None, "cc": "ita", "sets": ws if iw else ls},
                                             {"id": "b", "name": names[j], "winner": not iw, "order": 2, "rank": int(j) + 1,
-                                             "country": None, "sets": ls if iw else ws}]})
+                                             "country": None, "cc": "esp", "sets": ls if iw else ws}]})
             d += timedelta(days=7)
         for k in range(8):
             i, j = int(rng.integers(0, 12)), int(rng.integers(12, 40))
@@ -272,8 +275,8 @@ def _gen_tennis():
                             "time_valid": True, "state": "pre", "status_name": "STATUS_SCHEDULED", "status": "Programmato",
                             "tournament": "Finals di prova", "location": "Città", "major": False, "court": None,
                             "round": "Round robin", "best_of": 3,
-                            "players": [{"id": "a", "name": names[i], "winner": False, "order": 1, "rank": i + 1, "country": None, "sets": []},
-                                        {"id": "b", "name": names[j], "winner": False, "order": 2, "rank": j + 1, "country": None, "sets": []}]})
+                            "players": [{"id": "a", "name": names[i], "winner": False, "order": 1, "rank": i + 1, "country": None, "cc": "ita", "sets": []},
+                                        {"id": "b", "name": names[j], "winner": False, "order": 2, "rank": j + 1, "country": None, "cc": "usa", "sets": []}]})
         TENNIS[tour] = matches
 
 
@@ -317,8 +320,8 @@ def _install_fakes():
             g = ev["_nba"]
             done = g["hs"] is not None
             return {"id": g["id"], "date": g["date"], "state": g["state"], "completed": done, "status": "",
-                    "home": {"id": g["home"], "name": g["home_name"], "abbr": g["home_abbr"], "short": g["home_abbr"], "score": g["hs"], "logo": None},
-                    "away": {"id": g["away"], "name": g["away_name"], "abbr": g["away_abbr"], "short": g["away_abbr"], "score": g["as"], "logo": None},
+                    "home": {"id": g["home"], "name": g["home_name"], "abbr": g["home_abbr"], "short": g["home_abbr"], "score": g["hs"], "color": g["home_color"]},
+                    "away": {"id": g["away"], "name": g["away_name"], "abbr": g["away_abbr"], "short": g["away_abbr"], "score": g["as"], "color": g["away_color"]},
                     "season_type": 2, "odds": g["odds"]}
         return real_parse(ev)
 

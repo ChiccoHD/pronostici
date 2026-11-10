@@ -104,6 +104,7 @@ def build(today: date):
                     s["display"] = p["name"]
                     s["rank"] = p.get("rank") or s.get("rank")
                     s["country"] = p.get("country")
+                    s["cc"] = p.get("cc")
                     s["elo"] = round(elo.rating(p["name"], surface))
                     pls.append(s)
                 detail = {
@@ -121,6 +122,7 @@ def build(today: date):
                 index.append({"id": detail["id"], "sport": "tennis", "league": tour,
                               "league_name": detail["league_name"], "date": m["date"], "time_valid": m.get("time_valid"),
                               "home": a["name"], "away": b["name"], "main": mk["win"], "main_labels": ["1", "2"],
+                              "home_short": a.get("cc"), "away_short": b.get("cc"),
                               "book": None, "extra": {f"Over {k}": v for k, v in tot[3:4]}, "surface": surface})
             status_all[tour] = status
         except Exception as ex:

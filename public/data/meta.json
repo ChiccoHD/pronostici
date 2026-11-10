@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T23:10+00:00",
+ "updated": "2026-11-10T23:29+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -28,7 +28,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "119 partite",
-    "partite_in_arrivo": 1
+    "partite_in_arrivo": 1,
+    "foto_giocatori": "TheSportsDB 15, da controllare 18, ESPN 1, senza foto 2"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -37,7 +38,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "81 partite",
-    "partite_in_arrivo": 1
+    "partite_in_arrivo": 1,
+    "foto_giocatori": "senza foto 3, TheSportsDB 12, ESPN 2, da controllare 18"
    },
    "ligue-1": {
     "football-data": "ok",
@@ -46,7 +48,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "90 partite",
-    "partite_in_arrivo": 1
+    "partite_in_arrivo": 1,
+    "foto_giocatori": "senza foto 6, TheSportsDB 7, da controllare 21, ESPN 1"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -61,23 +64,26 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "340 partite",
-    "partite_in_arrivo": 3
+    "partite_in_arrivo": 3,
+    "foto_giocatori": "da controllare 92, senza foto 15, TheSportsDB 1"
    },
    "mls": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "480 partite",
-    "partite_in_arrivo": 2
+    "espn_tabellini": "511 partite",
+    "partite_in_arrivo": 2,
+    "foto_giocatori": "da controllare 35, ESPN 35"
    },
    "eliteserien": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "208 partite",
-    "partite_in_arrivo": 1
+    "partite_in_arrivo": 1,
+    "foto_giocatori": "da controllare 35"
    },
-   "aggiornato": "2026-11-10T23:09+00:00"
+   "aggiornato": "2026-11-10T23:29+00:00"
   },
   "nba": {
    "espn": "ok",

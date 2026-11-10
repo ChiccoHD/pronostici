@@ -8,9 +8,9 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 
 from . import config, store
-from .config import CACHE, CUPS, EURO_LINK_FD, PUBLIC_DATA, SOCCER_LEAGUES, WOMEN_CUPS
+from .config import CACHE, CUPS, EURO_LINK_FD, EURO_LINK_FDNEW, PUBLIC_DATA, SOCCER_LEAGUES, WOMEN_CUPS
 from .names import Matcher
-from .sources import espn
+from .sources import espn, footballdata
 from .models import soccer as S
 from .build_soccer import _fd_history, espn_book
 
@@ -103,6 +103,16 @@ def build_men(today: date):
         pool += rows
         if not rows:
             status.setdefault("campionati_mancanti", []).append(code)
+    since = date(y - 3, 1, 1).isoformat()
+    for country, lname in EURO_LINK_FDNEW:
+        path = CACHE / "cups" / f"link_{country}.json"
+        rows = footballdata.new_league(country, lname, since)
+        if rows:
+            store.save(path, rows)
+        else:
+            rows = store.load(path, [])
+            status.setdefault("campionati_mancanti", []).append(country)
+        pool += rows
     matcher = Matcher([m["home"] for m in pool] + [m["away"] for m in pool], min_score=0.86)
     # 2) partite di coppa delle ultime due stagioni
     cup_events = {}
@@ -137,7 +147,7 @@ def build_men(today: date):
             n += 1
         status[f"in_arrivo_{key}"] = n
     if unmatched:
-        status["squadre_senza_campionato"] = len(unmatched)
+        status["squadre_senza_campionato"] = sorted(unmatched)
     return index, reliability, status
 
 

@@ -61,7 +61,9 @@ ALIASES = {
     "istanbul basaksehir": "buyuksehyr", "basaksehir": "buyuksehyr", "olympiacos": "olympiakos", "olympiakos": "olympiakos",
     "paok": "paok", "paok salonika": "paok", "aek athens": "aek", "panathinaikos": "panathinaikos",
     "celtic": "celtic", "rangers": "rangers", "hearts": "hearts", "heart of midlothian": "hearts", "aberdeen": "aberdeen",
-    "hibernian": "hibernian",
+    "hibernian": "hibernian", "sint truidense": "st truiden", "kobenhavn": "copenhagen", "fc kobenhavn": "copenhagen",
+    "rb salzburg": "salzburg", "red bull salzburg": "salzburg", "sk sturm graz": "sturm graz", "rapid vienna": "rapid vienna",
+    "malmo": "malmo ff", "fcsb": "fcsb", "csu craiova": "u craiova",
     # MLS e Giappone (nomi brevi di football-data)
     "lafc": "los angeles fc", "la galaxy": "la galaxy", "new york red bulls": "ny red bulls",
     "new york city": "new york city", "atlanta united": "atlanta utd", "inter miami": "inter miami",

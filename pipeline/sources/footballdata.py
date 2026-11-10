@@ -115,9 +115,14 @@ def new_league(country_file: str, league_name: str, since: str) -> list[dict]:
     """Campionati "extra" (un file per nazione con tutte le stagioni): risultati e quote di chiusura.
     country_file es. 'JPN', league_name es. 'J1'; since = data ISO minima."""
     rows = _download_raw(f"{BASE}/new/{country_file}.csv")
+    leagues = {(r.get("League") or "").strip() for r in rows}
+    if league_name in leagues:
+        keep = {league_name}
+    else:  # il nome esatto può cambiare (es. "J1" o "J1 League"): prima per inizio, poi l'unico presente
+        keep = {lg for lg in leagues if lg.lower().startswith(league_name.lower())} or (leagues if len(leagues) == 1 else set())
     out = []
     for r in rows:
-        if (r.get("League") or "").strip() != league_name:
+        if (r.get("League") or "").strip() not in keep:
             continue
         d = _date(r.get("Date", ""))
         hg, ag = _f(r.get("HG")), _f(r.get("AG"))

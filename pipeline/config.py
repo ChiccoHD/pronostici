@@ -29,6 +29,10 @@ CUPS = {
 WOMEN_CUPS = {"champions-femminile": {"name": "Champions League femminile", "espn": "uefa.wchampions"}}
 # Campionati europei che servono solo a collegare le squadre delle coppe (oltre a quelli sopra di tipo "fd")
 EURO_LINK_FD = {"N1": "Olanda", "B1": "Belgio", "T1": "Turchia", "G1": "Grecia", "SC0": "Scozia"}
+# ...e dai file per nazione di football-data (nome del campionato indicativo: se non coincide si usa l'unico del file)
+EURO_LINK_FDNEW = [("AUT", "Bundesliga"), ("DNK", "Superliga"), ("POL", "Ekstraklasa"), ("ROU", "Liga 1"),
+                   ("SWE", "Allsvenskan"), ("SWZ", "Super League"), ("NOR", "Eliteserien"), ("IRL", "Premier Division"),
+                   ("FIN", "Veikkausliiga")]
 
 # Quanti giorni in avanti mostrare le partite
 DAYS_AHEAD = {"soccer": 10, "cups": 14, "nba": 4, "tennis": 3}

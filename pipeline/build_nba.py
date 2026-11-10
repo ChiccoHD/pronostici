@@ -78,6 +78,9 @@ def build(today: date):
     cur_done = [g for g in cur if g.get("hs") is not None]
     season_from = min((g["date"][:10] for g in cur), default=f"{sy}-10-15")
     lines, preds = _box(sy, cur, status)
+    bpi_path = CACHE / "nba" / f"bpi_{sy}.json"
+    bpi = store.load(bpi_path, {})        # previsione ESPN registrata prima della partita
+    preds = {**preds, **bpi}
     mdl = N.fit(games, today, season_from)
     if mdl is None:
         return [], {}, {**status, "errore": "storico insufficiente"}
@@ -111,6 +114,8 @@ def build(today: date):
             hb = rest.get((g["id"], g["home"]), 9) == 1
             ab = rest.get((g["id"], g["away"]), 9) == 1
             p_espn = espn.predictor(summ)
+            if p_espn is not None:
+                bpi[g["id"]] = round(p_espn, 4)
             shift = N.blend_shift(mdl, g["home"], g["away"], hb, ab, p_espn, w_espn)
             mk = N.markets(mdl, g["home"], g["away"], hb, ab, book, shift)
             mk["espn_bpi"] = p_espn
@@ -150,6 +155,7 @@ def build(today: date):
         except Exception as ex:
             log.exception("NBA partita %s", g["id"])
             status.setdefault("errori_partite", []).append(f"{g['id']}: {ex}")
+    store.save(bpi_path, bpi)
     status["partite_in_arrivo"] = len(upcoming)
     status["partite_stagione"] = len(cur_done)
     return index, reliability, status

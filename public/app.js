@@ -406,6 +406,7 @@ async function showEvent(id) {
   const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));
   $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
   wire(d.sport);
+  attachLive(d);
 }
 
 /* ------------------------------------------------------------------ calcio */
@@ -735,7 +736,8 @@ function showSlip() {
     FAVMETA.set(f.key, f);
     const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
     return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b>
-      <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span></a>${star(f.key)}</div>`;
+      <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span>
+      ${new Date(f.date).getTime() <= now ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>` : ""}</a>${star(f.key)}</div>`;
   };
   if (!all.length) {
     $app.innerHTML = `<div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui.</div>`;
@@ -749,7 +751,7 @@ function showSlip() {
     html += `<section class="sec slip-sum"><h2>La tua schedina<small>${next.length} ${next.length === 1 ? "giocata" : "giocate"}</small></h2>
       <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
       <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
-      <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
+      <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. Quando una partita inizia, sotto ogni giocata compare come sta andando: in verde se è già presa o per ora va bene, in rosso se è persa o per ora va male. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
       <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></section>`;
     html += `<section class="sec">${next.map(row).join("")}</section>`;
   }
@@ -763,6 +765,7 @@ function showSlip() {
   if (c) c.onclick = () => { if (confirm("Svuotare la schedina?")) { saveFavs(past); showSlip(); } };
   const cp = document.getElementById("slip-clear-past");
   if (cp) cp.onclick = () => { saveFavs(next); showSlip(); };
+  attachSlipStatus();
 }
 
 /* ------------------------------------------------------------------ affidabilità */

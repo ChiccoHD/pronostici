@@ -1,10 +1,11 @@
 {
- "updated": "2026-11-10T10:29+00:00",
+ "updated": "2026-11-10T11:02+00:00",
  "sample": false,
  "status": {
   "calcio": {
    "serie-a": {
     "football-data": "ok",
+    "xg": "football-data, 110 partite",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
@@ -13,6 +14,7 @@
    },
    "premier-league": {
     "football-data": "ok",
+    "xg": "football-data, 100 partite",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
@@ -21,6 +23,7 @@
    },
    "la-liga": {
     "football-data": "ok",
+    "xg": "football-data, 119 partite",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
@@ -29,6 +32,7 @@
    },
    "bundesliga": {
     "football-data": "ok",
+    "xg": "football-data, 81 partite",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
@@ -37,20 +41,51 @@
    },
    "ligue-1": {
     "football-data": "ok",
+    "xg": "football-data, 90 partite",
     "understat": "non raggiungibile (si usano solo i gol)",
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 1
    },
-   "aggiornato": "2026-11-10T10:28+00:00"
+   "primeira-liga": {
+    "football-data": "ok",
+    "xg": "football-data, 98 partite",
+    "xg_partite": 98,
+    "espn": "ok",
+    "espn_tabellini": "98 partite",
+    "partite_in_arrivo": 0
+   },
+   "j1": {
+    "football-data": "non raggiungibile, uso l'ultima copia",
+    "errore": "nessuno storico disponibile"
+   },
+   "mls": {
+    "football-data": "ok",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "120 partite",
+    "partite_in_arrivo": 2
+   },
+   "eliteserien": {
+    "football-data": "ok",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "120 partite",
+    "partite_in_arrivo": 1
+   },
+   "aggiornato": "2026-11-10T10:53+00:00"
   },
   "nba": {
    "espn": "ok",
    "tabellini": "154 partite",
+   "incrocio_espn": {
+    "n": 0,
+    "weight": 0.0
+   },
    "partite_in_arrivo": 29,
    "partite_stagione": 154,
-   "aggiornato": "2026-11-10T10:29+00:00"
+   "aggiornato": "2026-11-10T11:02+00:00"
   },
   "tennis": {
    "atp": {
@@ -61,7 +96,24 @@
     "storico": "12379 incontri (+0)",
     "espn": "16 incontri in programma"
    },
-   "aggiornato": "2026-11-10T10:29+00:00"
+   "aggiornato": "2026-11-10T11:02+00:00"
+  },
+  "coppe": {
+   "uomini": {
+    "espn_uefa.champions": "261 giocate, 234 giorni controllati",
+    "espn_uefa.europa": "261 giocate, 234 giorni controllati",
+    "espn_uefa.europa.conf": "206 giocate, 234 giorni controllati",
+    "partite_modello": "7972 di campionato, 728 di coppa",
+    "in_arrivo_champions": 9,
+    "in_arrivo_europa-league": 0,
+    "in_arrivo_conference": 0,
+    "squadre_senza_campionato": 68
+   },
+   "donne": {
+    "espn_uefa.wchampions": "156 giocate, 394 giorni controllati",
+    "partite_storico": 156
+   },
+   "aggiornato": "2026-11-10T11:00+00:00"
   }
  }
 }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T11:02+00:00",
+ "updated": "2026-11-10T18:28+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -57,24 +57,27 @@
     "partite_in_arrivo": 0
    },
    "j1": {
-    "football-data": "non raggiungibile, uso l'ultima copia",
-    "errore": "nessuno storico disponibile"
+    "football-data": "ok",
+    "xg_partite": 0,
+    "espn": "ok",
+    "espn_tabellini": "120 partite",
+    "partite_in_arrivo": 3
    },
    "mls": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "120 partite",
+    "espn_tabellini": "240 partite",
     "partite_in_arrivo": 2
    },
    "eliteserien": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "120 partite",
+    "espn_tabellini": "208 partite",
     "partite_in_arrivo": 1
    },
-   "aggiornato": "2026-11-10T10:53+00:00"
+   "aggiornato": "2026-11-10T18:27+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -85,35 +88,78 @@
    },
    "partite_in_arrivo": 29,
    "partite_stagione": 154,
-   "aggiornato": "2026-11-10T11:02+00:00"
+   "aggiornato": "2026-11-10T18:28+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7725 incontri (+0)",
-    "espn": "9 incontri in programma"
+    "storico": "7729 incontri (+4)",
+    "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12379 incontri (+0)",
-    "espn": "16 incontri in programma"
+    "storico": "12382 incontri (+3)",
+    "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-10T11:02+00:00"
+   "aggiornato": "2026-11-10T18:28+00:00"
   },
   "coppe": {
    "uomini": {
-    "espn_uefa.champions": "261 giocate, 234 giorni controllati",
-    "espn_uefa.europa": "261 giocate, 234 giorni controllati",
-    "espn_uefa.europa.conf": "206 giocate, 234 giorni controllati",
-    "partite_modello": "7972 di campionato, 728 di coppa",
+    "espn_uefa.champions": "261 giocate, 10 giorni controllati",
+    "espn_uefa.europa": "261 giocate, 10 giorni controllati",
+    "espn_uefa.europa.conf": "206 giocate, 10 giorni controllati",
+    "partite_modello": "16059 di campionato, 728 di coppa",
     "in_arrivo_champions": 9,
     "in_arrivo_europa-league": 0,
     "in_arrivo_conference": 0,
-    "squadre_senza_campionato": 68
+    "squadre_senza_campionato": [
+     "AGF",
+     "Ararat-Armenia",
+     "Borac Banja Luka",
+     "Breidablik",
+     "CSKA Sofia",
+     "CSU Craiova",
+     "Dinamo Zagreb",
+     "Drita Gjilan",
+     "Dynamo Kyiv",
+     "Egnatia",
+     "F.C. København",
+     "FC Noah",
+     "FK Qarabag",
+     "Ferencvaros",
+     "Hajduk Split",
+     "Hamrun Spartans",
+     "Hapoel Be'er",
+     "Iberia 1999",
+     "Jablonec",
+     "KF Shkëndija",
+     "Kairat Almaty",
+     "Kauno Zalgiris",
+     "Levski Sofia",
+     "Lincoln Red Imps",
+     "Ludogorets Razgrad",
+     "Maccabi Tel-Aviv",
+     "NK Celje",
+     "Omonia Nicosia",
+     "Pafos",
+     "Rapid Vienna",
+     "Red Star Belgrade",
+     "Riga FC",
+     "Rijeka",
+     "Sabah FK",
+     "Shakhtar Donetsk",
+     "Sigma Olomouc",
+     "Slavia Prague",
+     "Slovan Bratislava",
+     "Sparta Prague",
+     "Torreense",
+     "Viktoria Plzen",
+     "Zrinjski Mostar"
+    ]
    },
    "donne": {
-    "espn_uefa.wchampions": "156 giocate, 394 giorni controllati",
+    "espn_uefa.wchampions": "156 giocate, 10 giorni controllati",
     "partite_storico": 156
    },
-   "aggiornato": "2026-11-10T11:00+00:00"
+   "aggiornato": "2026-11-10T18:28+00:00"
   }
  }
 }

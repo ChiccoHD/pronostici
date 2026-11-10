@@ -392,7 +392,7 @@ function nbaPlayers(d) {
 
 function tennisView(d) {
   const m = d.markets, P = d.players;
-  const sub = p => [p.rank ? `n. ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(" · ");
+  const sub = p => [p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(" · ");
   let s = hero(d, sub(P.home), sub(P.away), `${esc(d.round || "")}${d.round ? " · " : ""}${surfaceIt(d.surface)} · al meglio dei ${m.best_of} set`);
   if (d.low_data) s += `<div class="warnbox">Uno dei due giocatori ha pochi incontri nei dati: le percentuali sono meno affidabili.</div>`;
   s += card("Vincente", bigs([[short(d.home.name), m.win[0]], [short(d.away.name), m.win[1]]]));
@@ -415,7 +415,7 @@ function tennisPlayers(d) {
   const A = d.players.home, B = d.players.away;
   const rec = r => r ? `${r.w}-${r.l}` : "–";
   const tbl = `<table class="cmp"><tr><th></th><th>${esc(short(d.home.name))}</th><th>${esc(short(d.away.name))}</th></tr>
-    <tr><td>Classifica</td><td>${A.rank ?? "–"}</td><td>${B.rank ?? "–"}</td></tr>
+    <tr><td>Testa di serie</td><td>${A.rank ?? "–"}</td><td>${B.rank ?? "–"}</td></tr>
     <tr><td>Elo su ${surfaceIt(d.surface).toLowerCase()}</td><td class="${A.elo > B.elo ? "hi" : ""}">${A.elo ?? "–"}</td><td class="${B.elo > A.elo ? "hi" : ""}">${B.elo ?? "–"}</td></tr>
     <tr><td>Ultime 10</td><td>${formSeq((A.form10?.seq || []).slice(0, 5))}</td><td>${formSeq((B.form10?.seq || []).slice(0, 5))}</td></tr>
     <tr><td>V-P ultime 10</td><td>${A.form10 ? `${A.form10.w}-${A.form10.n - A.form10.w}` : "–"}</td><td>${B.form10 ? `${B.form10.w}-${B.form10.n - B.form10.w}` : "–"}</td></tr>

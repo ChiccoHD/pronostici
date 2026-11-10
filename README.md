@@ -65,7 +65,7 @@ python -m http.server -d public    # apre il sito su http://localhost:8000
 ## Limiti da conoscere
 
 - **ESPN e Understat non sono fonti ufficiali**: possono cambiare senza preavviso. Se succede, la pagina *Info* dell'app mostra l'errore e gli altri sport continuano a funzionare.
-- **Tennis**: storico e tabelloni arrivano da ESPN (tennis-data.co.uk blocca i server di GitHub). La superficie è dedotta dal nome del torneo e dal periodo dell'anno; la classifica è nota solo per le teste di serie.
+- **Tennis**: storico e tabelloni arrivano da ESPN (tennis-data.co.uk blocca i server di GitHub). La superficie è dedotta dal nome del torneo e dal periodo dell'anno; la classifica mondiale non è disponibile: si mostra il numero di testa di serie nel torneo.
 - **Understat** (xG) a novembre 2026 è in manutenzione: il calcio funziona lo stesso con gol e tiri in porta, e gli xG torneranno da soli quando il sito sarà di nuovo online.
 - **Voti dei giocatori**: nessuna fonte gratuita li fornisce in modo affidabile, quindi non ci sono.
 - **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per il tennis non ci sono quote.

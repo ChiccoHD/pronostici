@@ -332,3 +332,7 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .group .fx { border-radius: 0; margin: 0; box-shadow: none; grid-template-columns: 42px 1fr auto; }
 .group .fx + .fx { border-top: 1px solid var(--rule); }
 .fx-time { font-size: 13.5px; }
+
+.best.overall { border: 2px solid var(--go); }
+.best.overall h2 { color: var(--go-ink); }
+.best.overall .pk-txt > span { white-space: normal; }

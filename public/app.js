@@ -195,20 +195,45 @@ function route() {
 
 /* ------------------------------------------------------------------ elenco */
 
+/* filtro per data: chiave giorno in ora italiana (AAAA-MM-GG) */
+const isoDay = iso => new Date(iso).toLocaleDateString("sv-SE", { timeZone: TZ });
+function dayChipLabel(key) {
+  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5);
+  if (key === today) return "Oggi";
+  if (key === tom) return "Domani";
+  const d = new Date(key + "T12:00:00");
+  const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function dayChips(items, getDate) {
+  const counts = {};
+  for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
+  const keys = Object.keys(counts).sort();
+  if (state.day !== "all" && !counts[state.day]) state.day = "all";
+  return `<div class="days" role="group" aria-label="Giorno">${[["all", "Tutte", items.length], ...keys.map(k => [k, dayChipLabel(k), counts[k]])].map(([k, l, n]) =>
+    `<button data-day="${k}" aria-pressed="${state.day === k}">${esc(l)}<small>${n}</small></button>`).join("")}</div>`;
+}
+if (!state.day) state.day = "all";
+
 function showList() {
-  const evs = INDEX.events.filter(e => (state.sport === "all" || e.sport === state.sport) &&
-    (state.league === "all" || e.league === state.league));
+  const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
+  const byDay = bySport.filter(e => state.day === "all" || isoDay(e.date) === state.day);
+  if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
+  const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} partite</small></button>`).join("")}</div>`;
+  html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
-    const has = new Set(INDEX.events.map(e => e.league));
-    html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti"], ...LEAGUES[state.sport].filter(([k]) => has.has(k) || k === state.league)].map(([k, l]) =>
-      `<button data-league="${k}" aria-pressed="${state.league === k}">${l}</button>`).join("")}</div>`;
+    const n = {};
+    for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
+    const opts = LEAGUES[state.sport].filter(([k]) => n[k]);
+    if (opts.length > 1) html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti", byDay.length], ...opts.map(([k, l]) => [k, l, n[k]])].map(([k, l, c]) =>
+      `<button data-league="${k}" aria-pressed="${state.league === k}">${l} <span>${c}</span></button>`).join("")}</div>`;
   }
   html += `</div>`;
   if (!evs.length) {
-    const why = state.sport === "soccer" ? "Nei prossimi 10 giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
+    const why = state.sport === "soccer" ? "Nei prossimi giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
     html += `<div class="empty"><b>Nessuna partita in programma</b>${why}</div>`;
   }
   let last = null;
@@ -221,6 +246,7 @@ function showList() {
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
+  $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
   $app.querySelectorAll("[data-league]").forEach(b => b.onclick = () => {
     state.league = b.dataset.league; save("league", state.league); showList();
   });
@@ -598,7 +624,6 @@ function tennisLast(d) {
 /* ------------------------------------------------------------------ migliori giocate */
 
 const SPORT_OF = { soccer: "soccer", nba: "nba", tennis: "tennis" };
-if (!state.bestWin) state.bestWin = load("bestWin", "48");
 
 function ring(p, lead = false) {
   const v = Math.max(0, Math.min(1, p ?? 0));
@@ -627,14 +652,17 @@ function pickRow(it, big) {
 
 async function showBest() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
-  const now = Date.now(), lim = state.bestWin === "48" ? now + 48 * 3600e3 : Infinity;
-  const ok = it => { const t = new Date(it.date).getTime(); return t > now - 3 * 3600e3 && t <= lim && (state.sport === "all" || it.sport === state.sport); };
+  const now = Date.now();
+  const live = it => new Date(it.date).getTime() > now - 3 * 3600e3 && (state.sport === "all" || it.sport === state.sport);
+  const ok = it => live(it) && (state.day === "all" || isoDay(it.date) === state.day);
+  const allItems = BEST.categories.flatMap(c => c.items.filter(live));
+  const seen = new Set(), oneEach = allItems.filter(it => !seen.has(it.event) && seen.add(it.event));
   const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
-  const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3 && new Date(it.date).getTime() <= lim).length, 0);
+  const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3).length, 0);
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} giocate</small></button>`).join("")}</div>
-    <div class="best-bar">${seg("win", [["48", "Prossime 48 ore"], ["all", "Tutti i giorni"]], state.bestWin)}</div></div>`;
-  if (!cats.length) html += `<div class="empty"><b>Nessuna giocata in questa finestra</b>Prova "Tutti i giorni" o un altro sport.</div>`;
+    ${dayChips(oneEach, it => it.date).replace(/<small>\d+<\/small>/g, "")}</div>`;
+  if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
   for (const c of cats) {
     const top = c.items.slice(0, 3), rest = c.items.slice(3);
     html += `<section class="sec best"><h2>${esc(c.name)}<small>${c.items.length} giocate</small></h2>
@@ -645,7 +673,7 @@ async function showBest() {
   html += `<p class="note">Classifica per probabilità stimata dal modello. Dove ci sono le quote, sotto c'è la percentuale dei bookmaker, in rosa quando il modello è più ottimista di almeno 5 punti. Le probabilità alte non sono certezze, e più giocate insieme si moltiplicano tra loro.</p>`;
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
-  $app.querySelectorAll('[data-seg="win"] button').forEach(b => b.onclick = () => { state.bestWin = b.dataset.v; save("bestWin", state.bestWin); showBest(); });
+  $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
 }
 
 /* ------------------------------------------------------------------ schedina */

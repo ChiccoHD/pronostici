@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T08:55+00:00",
+ "updated": "2026-11-10T10:15+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -43,25 +43,25 @@
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 1
    },
-   "aggiornato": "2026-11-10T08:49+00:00"
+   "aggiornato": "2026-11-10T10:15+00:00"
   },
   "nba": {
    "espn": "ok",
    "tabellini": "154 partite",
    "partite_in_arrivo": 29,
    "partite_stagione": 154,
-   "aggiornato": "2026-11-10T08:53+00:00"
+   "aggiornato": "2026-11-10T10:15+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7725 incontri (+7725)",
+    "storico": "7725 incontri (+0)",
     "espn": "9 incontri in programma"
    },
    "wta": {
-    "storico": "12379 incontri (+12379)",
+    "storico": "12379 incontri (+0)",
     "espn": "16 incontri in programma"
    },
-   "aggiornato": "2026-11-10T08:55+00:00"
+   "aggiornato": "2026-11-10T10:15+00:00"
   }
  }
 }

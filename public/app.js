@@ -182,7 +182,7 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["affidabilita", "info", "migliori", "schedina"].includes(view) ? view : "home";
+  const navKey = ["affidabilita", "info", "live", "migliori", "schedina"].includes(view) ? view : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   window.scrollTo(0, 0);
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
@@ -190,6 +190,7 @@ function route() {
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfo();
+  if (view === "live") return showLive();
   showList();
 }
 
@@ -402,7 +403,8 @@ async function showEvent(id) {
   catch { $app.innerHTML = back + `<div class="empty"><b>Partita non più disponibile</b>Torna all'elenco per vedere quelle in programma.</div>`; return; }
   CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
-  $app.innerHTML = back + body + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
+  const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));
+  $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
   wire(d.sport);
 }
 

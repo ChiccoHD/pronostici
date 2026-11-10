@@ -12,7 +12,8 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - `pipeline/sources/` scarica i dati, una fonte per file.
 - `pipeline/models/` calcola le probabilità: `soccer.py` (Poisson + Dixon-Coles), `nba.py` (rating in punti), `tennis.py` (Elo + catena di Markov), `common.py` (statistica e misure di affidabilità).
 - `pipeline/build_*.py` prepara uno sport (`build_cups.py` le coppe); `pipeline/run.py` lancia tutto e scrive `public/data/`; `pipeline/picks.py` crea la classifica "Migliori".
-- I campionati si aggiungono in `pipeline/config.py` (`SOCCER_LEAGUES`, `CUPS`) e nei filtri di `public/app.js` (`LEAGUES`).
+- I campionati si aggiungono in `pipeline/config.py` (`SOCCER_LEAGUES`, `CUPS`), nei filtri di `public/app.js` (`LEAGUES`) e in `public/live.js` (`ESPN_CODE` per la diretta, `WHERE` per i canali TV).
+- `public/live.js`: sezione Live (risultati ESPN letti dal telefono ogni 30 secondi), link "Segui in diretta" e "Dove vederla". Solo servizi ufficiali o siti di risultati: niente streaming non autorizzati. I canali TV vanno ricontrollati a ogni stagione.
 - Le quote dei bookmaker non devono entrare nei modelli: servono solo come confronto.
 - `pipeline/names.py` abbina i nomi tra fonti diverse: se compare "nomi_non_abbinati" in `public/data/meta.json`, aggiungi l'alias qui.
 - `data/cache/` storico già scaricato (scritto dal workflow, non modificarlo a mano).

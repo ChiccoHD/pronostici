@@ -131,7 +131,7 @@ function evCard(e) {
   const right = e.sport === "soccer" ? `xG ${num(e.xg[0], 2)}` : e.sport === "nba" ? `${Math.round(e.exp_score[0])}` : (e.surface ? surfaceIt(e.surface) : "");
   const right2 = e.sport === "soccer" ? `${num(e.xg[1], 2)}` : e.sport === "nba" ? `${Math.round(e.exp_score[1])}` : "";
   return `<a class="ev" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="ev-top"><span>${esc(e.league_name)}</span><span>${fmtTime(e.date)}</span></div>
+    <div class="ev-top"><span>${esc(e.league_name)}</span><span>${e.time_valid === false ? "orario da definire" : fmtTime(e.date)}</span></div>
     <div class="ev-teams">
       <div>${logo(e.home_logo)}${esc(e.home)}</div><div class="xs">${esc(right)}</div>
       <div>${logo(e.away_logo)}${esc(e.away)}</div><div class="xs">${esc(right2)}</div>
@@ -162,7 +162,7 @@ async function showEvent(id) {
 
 function hero(d, subH, subA, meta) {
   return `<div class="hero">
-    <div class="meta">${esc(d.league_name)} · ${esc(fmtDay(d.date).label)} · ${fmtTime(d.date)}</div>
+    <div class="meta">${esc(d.league_name)} · ${esc(fmtDay(d.date).label)} · ${d.time_valid === false ? "orario da definire" : fmtTime(d.date)}</div>
     <div class="vs">
       <div class="t">${logo(d.home.logo)}${esc(d.home.name)}<div class="sub">${subH || ""}</div></div>
       <div class="mid">vs</div>
@@ -495,7 +495,7 @@ function showInfo() {
       <li><b>NBA</b>: rating di attacco e difesa in punti, fattore campo e partite in due sere consecutive. Soglie dei giocatori da minuti attesi, medie recenti e avversario.</li>
       <li><b>Tennis</b>: Elo generale e per superficie, poi una simulazione esatta punto per punto per game, set e tie-break.</li>
     </ul>
-    <p>Fonti gratuite: ESPN, football-data.co.uk, Understat, tennis-data.co.uk. Le fonti non ufficiali possono cambiare senza preavviso: in quel caso qui sotto compare l'errore.</p>
+    <p>Fonti gratuite: ESPN, football-data.co.uk e Understat (quando è online). Le fonti non ufficiali possono cambiare senza preavviso: in quel caso qui sotto compare l'errore.</p>
     <p><b>Attenzione</b>: sono stime statistiche, non certezze. Battere le quote con costanza è molto difficile. Se il gioco diventa un problema, il Telefono Verde nazionale dell'Istituto Superiore di Sanità è l'800 558 822 (gratuito e anonimo).</p>
     </section>
     <section class="card"><h2>Stato delle fonti<small>${META?.updated ? esc(ago(META.updated)) : ""}</small></h2>${statusRows || '<p class="muted small">Nessun aggiornamento ancora eseguito.</p>'}</section>`;

@@ -13,12 +13,17 @@ def _d(x: date) -> str:
 
 
 def scoreboard(sport: str, league: str, start: date, end: date | None = None) -> list[dict]:
-    """Eventi tra due date. Restituisce la lista grezza 'events'."""
+    """Eventi tra due date. Restituisce la lista grezza 'events' (vuota se la fonte non risponde)."""
     if end and end != start:
         return scoreboard_range(sport, league, start, end)
-    js = http.get_json(f"{SITE}/{sport}/{league}/scoreboard", {"dates": _d(start)}, delay=0.35)
-    if not js:
-        return []
+    return scoreboard_day(sport, league, start) or []
+
+
+def scoreboard_day(sport: str, league: str, day: date) -> list[dict] | None:
+    """Eventi di un giorno; None se la fonte non ha risposto (per non segnarlo come già scaricato)."""
+    js = http.get_json(f"{SITE}/{sport}/{league}/scoreboard", {"dates": _d(day)}, delay=0.35)
+    if js is None:
+        return None
     return js.get("events", []) or []
 
 
@@ -231,39 +236,66 @@ def pickcenter_odds(summ: dict) -> dict | None:
 
 # ---------------------------------------------------------------- tennis
 
-def tennis_matches(events: list[dict]) -> list[dict]:
-    """Incontri di singolare da uno scoreboard tennis (eventi = tornei)."""
+TENNIS_SLUG = {"atp": "mens-singles", "wta": "womens-singles"}
+_TENNIS_STATUS = {"STATUS_FINAL": "Completed", "STATUS_RETIRED": "Retired"}
+
+
+def tennis_matches(events: list[dict], tour: str) -> list[dict]:
+    """Incontri di singolare (uomini per 'atp', donne per 'wta') da uno scoreboard tennis.
+    Ogni evento ESPN è un torneo con l'intero tabellone."""
+    slug = TENNIS_SLUG[tour]
     out = []
     for ev in events:
-        tour_name = ev.get("name") or ev.get("shortName")
-        groupings = ev.get("groupings") or []
-        comps = []
-        for g in groupings:
-            slug = ((g.get("grouping") or {}).get("slug") or "").lower()
-            if "doubles" in slug or "mixed" in slug:
+        tour_name = ev.get("name") or ev.get("shortName") or ""
+        location = (ev.get("venue") or {}).get("displayName") or ""
+        major = bool(ev.get("major"))
+        for g in ev.get("groupings") or []:
+            if ((g.get("grouping") or {}).get("slug") or "") != slug:
                 continue
-            comps.extend(g.get("competitions") or [])
-        if not groupings:
-            comps = ev.get("competitions") or []
-        for c in comps:
-            players = []
-            for p in c.get("competitors", []) or []:
-                ath = p.get("athlete") or {}
-                name = ath.get("displayName") or ath.get("fullName")
-                if not name or "/" in name:
+            for c in g.get("competitions") or []:
+                players = []
+                for p in c.get("competitors", []) or []:
+                    ath = p.get("athlete") or {}
+                    name = ath.get("displayName") or ath.get("fullName")
+                    if not name or name == "TBD" or "/" in name:
+                        continue
+                    players.append({
+                        "id": str(p.get("id") or ""), "name": name, "winner": bool(p.get("winner")),
+                        "order": p.get("order") or 0, "rank": (p.get("curatedRank") or {}).get("current"),
+                        "country": (ath.get("flag") or {}).get("alt"),
+                        "sets": [int(_num(x.get("value")) or 0) for x in p.get("linescores") or []],
+                    })
+                if len(players) != 2:
                     continue
-                players.append({"id": str(p.get("id") or ath.get("id")), "name": name,
-                                "winner": p.get("winner"), "order": p.get("order")})
-            if len(players) != 2:
-                continue
-            st = (c.get("status") or {}).get("type", {})
-            out.append({
-                "id": str(c.get("id")),
-                "date": c.get("date") or c.get("startDate") or ev.get("date"),
-                "state": st.get("state"),
-                "status": st.get("shortDetail") or st.get("description"),
-                "tournament": tour_name,
-                "round": (c.get("round") or {}).get("displayName") if isinstance(c.get("round"), dict) else c.get("round"),
-                "players": sorted(players, key=lambda x: x.get("order") or 0),
-            })
+                players.sort(key=lambda x: x["order"])
+                st = (c.get("status") or {}).get("type", {})
+                out.append({
+                    "id": str(c.get("id")),
+                    "date": c.get("date") or c.get("startDate") or ev.get("date"),
+                    "time_valid": c.get("timeValid", True),
+                    "state": st.get("state"), "status_name": st.get("name"),
+                    "status": st.get("shortDetail") or st.get("description"),
+                    "tournament": tour_name, "location": location, "major": major,
+                    "court": (c.get("venue") or {}).get("court"),
+                    "round": (c.get("round") or {}).get("displayName") if isinstance(c.get("round"), dict) else c.get("round"),
+                    "best_of": 5 if major and tour == "atp" else 3,  # il campo "format" di ESPN dice sempre 5
+                    "players": players,
+                })
     return out
+
+
+def tennis_result_row(m: dict, tour: str, surface: str) -> dict | None:
+    """Incontro concluso -> riga dello storico (stesso formato usato dal modello)."""
+    comment = _TENNIS_STATUS.get(m.get("status_name"))
+    if not comment or m.get("state") != "post":
+        return None
+    a, b = m["players"]
+    if a["winner"] == b["winner"]:
+        return None
+    w, l = (a, b) if a["winner"] else (b, a)
+    sets = [[x, y] for x, y in zip(w["sets"], l["sets"])]
+    if comment == "Completed" and not sets:
+        return None
+    return {"id": m["id"], "date": (m["date"] or "")[:10], "tour": tour, "tournament": m["tournament"],
+            "location": m["location"], "surface": surface, "round": m["round"] or "", "bo": m["best_of"],
+            "w": w["name"], "l": l["name"], "wr": w["rank"], "lr": l["rank"], "sets": sets, "comment": comment}

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from . import config
 from .config import ROOT, SOCCER_LEAGUES
-from .sources import espn, footballdata, understat, tennisdata
+from .sources import espn, footballdata, understat
 
 lines: list[str] = []
 
@@ -79,13 +79,13 @@ def main():
 
     out("\n## Tennis")
     for tour in ("atp", "wta"):
-        rows = tennisdata.year(tour, today.year)
-        check(f"tennis-data {tour.upper()} {today.year}", bool(rows),
-              f"({len(rows)} incontri; ultimo {rows[-1]['date'] if rows else '-'}; quote {sum(1 for x in rows if x.get('ow'))})")
         evs = espn.scoreboard("tennis", tour, today, today + timedelta(days=3))
-        ms = espn.tennis_matches(evs)
+        ms = espn.tennis_matches(evs, tour)
         check(f"ESPN {tour.upper()}: incontri", bool(ms),
               f"({len(ms)} incontri, {sum(1 for m in ms if m['state'] == 'pre')} in programma; tornei: {', '.join(sorted({m['tournament'] for m in ms})[:4])})")
+        old = espn.tennis_matches(espn.scoreboard("tennis", tour, today - timedelta(days=200)), tour)
+        rows = [r for r in (espn.tennis_result_row(m, tour, "Hard") for m in old) if r]
+        check(f"ESPN {tour.upper()}: storico (200 giorni fa)", bool(rows), f"({len(rows)} incontri conclusi)")
 
     path = ROOT / "report" / "fonti.md"
     path.parent.mkdir(exist_ok=True)

@@ -128,7 +128,8 @@ def main():
         line = probe(label, url, params, ua)
         print(line)
         out.append(line)
-    out += ["", "## Campioni salvati in report/campioni", *samples(t)]
+    if os.environ.get("CAMPIONI"):
+        out += ["", "## Campioni salvati in report/campioni", *samples(t)]
     path = ROOT / "report" / "diagnostica.md"
     path.parent.mkdir(exist_ok=True)
     path.write_text("\n".join(out) + "\n", encoding="utf-8")

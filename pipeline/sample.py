@@ -10,7 +10,7 @@ import numpy as np
 
 from . import config, store
 from .config import CACHE, PUBLIC_DATA, SOCCER_LEAGUES
-from .sources import espn, footballdata, understat, tennisdata
+from .sources import espn, footballdata, understat
 
 rng = np.random.default_rng(7)
 random.seed(7)
@@ -228,48 +228,53 @@ TENNIS = {}
 
 
 def _gen_tennis():
+    """Incontri inventati nel formato restituito da espn.tennis_matches."""
     today = config.today()
+    mid = 600000
     for tour, n in (("atp", 90), ("wta", 90)):
         skill = sorted(rng.normal(0, 1, n), reverse=True)
         names = []
         while len(names) < n:
-            nm = f"{random.choice(LAST)}{random.choice(['', 'o', 'ic', 'er', 'ov'])} {random.choice('ABCDEFGHJKLMNPRST')}."
+            nm = f"{random.choice(FIRST)} {random.choice(LAST)}{random.choice(['', 'o', 'ic', 'er', 'ov'])}"
             if nm not in names:
                 names.append(nm)
         surf_bonus = {nm: {s: rng.normal(0, 0.3) for s in ("Hard", "Clay", "Grass")} for nm in names}
-        by_year = {}
-        for y in (today.year - 2, today.year - 1, today.year):
-            rows = []
-            d = date(y, 1, 6)
-            while d < min(date(y, 11, 25), today):
-                surface = "Clay" if 4 <= d.month <= 5 else ("Grass" if d.month == 6 else "Hard")
-                for _ in range(40):
-                    i, j = rng.choice(n, 2, replace=False)
-                    si = skill[i] + surf_bonus[names[i]][surface]; sj = skill[j] + surf_bonus[names[j]][surface]
-                    p = 1 / (1 + math.exp(-(si - sj) * 1.1))
-                    w, l = (i, j) if rng.random() < p else (j, i)
-                    pw = p if w == i else 1 - p
-                    sets = [[6, int(rng.integers(0, 5))], [7 if rng.random() < 0.2 else 6, int(rng.integers(2, 6))]]
-                    if rng.random() < 0.3:
-                        sets = [[6, 4], [int(rng.integers(3, 6)), 6], [6, int(rng.integers(1, 5))]]
-                    rows.append({"date": d.isoformat(), "tour": tour, "tournament": "Torneo di prova", "location": "Città",
-                                 "surface": surface, "court": "Outdoor", "round": "1st Round", "bo": 3,
-                                 "w": names[w], "l": names[l], "wr": float(w + 1), "lr": float(l + 1),
-                                 "sets": sets, "comment": "Completed",
-                                 "ow": round(1 / (pw * 1.05), 2), "ol": round(1 / ((1 - pw) * 1.05), 2)})
-                d += timedelta(days=7)
-            by_year[y] = rows
-        upcoming = []
+        matches = []
+        d = today - timedelta(days=740)
+        while d < today:
+            month = d.month
+            tname = "Madrid Open" if month in (4, 5) else ("Halle Open" if month == 6 else "Hard Court Open")
+            surface = "Clay" if month in (4, 5) else ("Grass" if month == 6 else "Hard")
+            for _ in range(40):
+                i, j = rng.choice(n, 2, replace=False)
+                si = skill[i] + surf_bonus[names[i]][surface]; sj = skill[j] + surf_bonus[names[j]][surface]
+                p = 1 / (1 + math.exp(-(si - sj) * 1.1))
+                iw = rng.random() < p
+                sets = [[6, int(rng.integers(0, 5))], [7 if rng.random() < 0.2 else 6, int(rng.integers(2, 6))]]
+                if rng.random() < 0.3:
+                    sets = [[6, 4], [int(rng.integers(3, 6)), 6], [6, int(rng.integers(1, 5))]]
+                ws, ls = [x[0] for x in sets], [x[1] for x in sets]
+                mid += 1
+                dd = d + timedelta(days=int(rng.integers(0, 4)))
+                matches.append({"id": str(mid), "date": f"{dd.isoformat()}T12:00Z", "time_valid": True,
+                                "state": "post", "status_name": "STATUS_FINAL", "status": "Final",
+                                "tournament": tname, "location": "Città", "major": False, "court": None,
+                                "round": "1st Round", "best_of": 3,
+                                "players": [{"id": "a", "name": names[i], "winner": bool(iw), "order": 1, "rank": int(i) + 1,
+                                             "country": None, "sets": ws if iw else ls},
+                                            {"id": "b", "name": names[j], "winner": not iw, "order": 2, "rank": int(j) + 1,
+                                             "country": None, "sets": ls if iw else ws}]})
+            d += timedelta(days=7)
         for k in range(8):
             i, j = int(rng.integers(0, 12)), int(rng.integers(12, 40))
-            def disp(nm):
-                last, ini = nm.rsplit(" ", 1)
-                return f"{ini[0]}{random.choice(['ario', 'ina', 'ean', 'ika'])} {last}"
-            upcoming.append({"id": str(9000 + k + (0 if tour == "atp" else 100)),
-                             "date": f"{(today + timedelta(days=k // 3)).isoformat()}T{12 + k % 6}:00Z", "state": "pre",
-                             "status": "Programmato", "tournament": "Finals di prova", "round": "Round robin",
-                             "players": [{"id": "a", "name": disp(names[i]), "order": 1}, {"id": "b", "name": disp(names[j]), "order": 2}]})
-        TENNIS[tour] = {"years": by_year, "upcoming": upcoming}
+            mid += 1
+            matches.append({"id": str(mid), "date": f"{(today + timedelta(days=k // 3)).isoformat()}T{12 + k % 6}:00Z",
+                            "time_valid": True, "state": "pre", "status_name": "STATUS_SCHEDULED", "status": "Programmato",
+                            "tournament": "Finals di prova", "location": "Città", "major": False, "court": None,
+                            "round": "Round robin", "best_of": 3,
+                            "players": [{"id": "a", "name": names[i], "winner": False, "order": 1, "rank": i + 1, "country": None, "sets": []},
+                                        {"id": "b", "name": names[j], "winner": False, "order": 2, "rank": j + 1, "country": None, "sets": []}]})
+        TENNIS[tour] = matches
 
 
 # ----------------------------------------------------------------- collegamento alle fonti
@@ -343,12 +348,17 @@ def _install_fakes():
     espn.soccer_player_lines = lambda summ: summ.get("_lines", [])
     espn.nba_player_lines = lambda summ: summ.get("_lines", [])
     espn.pickcenter_odds = lambda summ: summ.get("_odds")
-    espn.scoreboard = lambda sport, league, start, end=None: [{"_t": m} for m in TENNIS.get(league, {}).get("upcoming", [])] if sport == "tennis" else []
-    espn.tennis_matches = lambda evs: [e["_t"] for e in evs]
+    def tennis_day(sport, league, day):
+        if sport != "tennis":
+            return []
+        lo, hi = day.isoformat(), (day + timedelta(days=3)).isoformat()
+        return [{"_t": m} for m in TENNIS.get(league, []) if lo <= m["date"][:10] <= hi]
+    espn.scoreboard_day = tennis_day
+    espn.scoreboard = lambda sport, league, start, end=None: tennis_day(sport, league, start)
+    espn.tennis_matches = lambda evs, tour: [e["_t"] for e in evs]
     footballdata.season = fd_season
     footballdata.fixtures = fd_fixtures
     understat.league_matches = lambda league, y: []
-    tennisdata.year = lambda tour, y: TENNIS.get(tour, {}).get("years", {}).get(y, [])
 
     from . import build_nba
     real_games = build_nba._games

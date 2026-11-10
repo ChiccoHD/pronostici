@@ -17,7 +17,7 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 ```
 Fonti gratuite ──► GitHub Actions (4 volte al giorno) ──► file JSON in public/data ──► Cloudflare Pages
 ESPN, football-data.co.uk,      scarica, salva la cache,          il sito li legge
-Understat, tennis-data.co.uk    calcola i modelli
+Understat                       calcola i modelli
 ```
 
 - `pipeline/` — codice Python: `sources/` scarica i dati, `models/` calcola le probabilità, `build_*.py` prepara ogni sport, `run.py` lancia tutto.
@@ -65,7 +65,9 @@ python -m http.server -d public    # apre il sito su http://localhost:8000
 ## Limiti da conoscere
 
 - **ESPN e Understat non sono fonti ufficiali**: possono cambiare senza preavviso. Se succede, la pagina *Info* dell'app mostra l'errore e gli altri sport continuano a funzionare.
+- **Tennis**: storico e tabelloni arrivano da ESPN (tennis-data.co.uk blocca i server di GitHub). La superficie è dedotta dal nome del torneo e dal periodo dell'anno; la classifica è nota solo per le teste di serie.
+- **Understat** (xG) a novembre 2026 è in manutenzione: il calcio funziona lo stesso con gol e tiri in porta, e gli xG torneranno da soli quando il sito sarà di nuovo online.
 - **Voti dei giocatori**: nessuna fonte gratuita li fornisce in modo affidabile, quindi non ci sono.
-- **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per il tennis non ci sono quote sulle partite future.
+- **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per il tennis non ci sono quote.
 - **Orari**: GitHub a volte ritarda o salta le esecuzioni programmate. Se serve, si può affiancare un orario di Cloudflare che le avvia.
 - **Niente dati in diretta**: solo prima e dopo le partite.

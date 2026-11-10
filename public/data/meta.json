@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T18:28+00:00",
+ "updated": "2026-11-10T20:21+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -60,14 +60,14 @@
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "120 partite",
+    "espn_tabellini": "240 partite",
     "partite_in_arrivo": 3
    },
    "mls": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "240 partite",
+    "espn_tabellini": "360 partite",
     "partite_in_arrivo": 2
    },
    "eliteserien": {
@@ -77,7 +77,7 @@
     "espn_tabellini": "208 partite",
     "partite_in_arrivo": 1
    },
-   "aggiornato": "2026-11-10T18:27+00:00"
+   "aggiornato": "2026-11-10T20:20+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -88,18 +88,18 @@
    },
    "partite_in_arrivo": 29,
    "partite_stagione": 154,
-   "aggiornato": "2026-11-10T18:28+00:00"
+   "aggiornato": "2026-11-10T20:21+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7729 incontri (+4)",
+    "storico": "7731 incontri (+2)",
     "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12382 incontri (+3)",
+    "storico": "12385 incontri (+3)",
     "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-10T18:28+00:00"
+   "aggiornato": "2026-11-10T20:21+00:00"
   },
   "coppe": {
    "uomini": {
@@ -156,10 +156,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "156 giocate, 10 giorni controllati",
-    "partite_storico": 156
+    "espn_uefa.wchampions": "158 giocate, 10 giorni controllati",
+    "partite_storico": 158
    },
-   "aggiornato": "2026-11-10T18:28+00:00"
+   "aggiornato": "2026-11-10T20:21+00:00"
   }
  }
 }

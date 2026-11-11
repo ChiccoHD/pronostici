@@ -8,10 +8,14 @@ import numpy as np
 
 from .common import poisson_pmf, negbin_sf, devig, r, Scorer
 
+# Parametri scelti rifacendo le previsioni settimana per settimana su 12 campionati
+# (stagione 2025-26 per scegliere, 2026-27 per controllare): vedi report/taratura.md
 HALF_LIFE_DAYS = 200     # una partita di 200 giorni fa pesa la metà di una di oggi
-PRIOR = 2.5              # quanto "tirare" verso la media le squadre con pochi dati
-RHO = -0.07              # correzione per i punteggi bassi (0-0, 1-0, 0-1, 1-1)
-XG_WEIGHT = 0.4          # peso degli xG rispetto ai gol reali
+PRIOR = 4.0              # quanto "tirare" verso la media le squadre con pochi dati
+RHO = -0.11              # correzione per i punteggi bassi (0-0, 1-0, 0-1, 1-1)
+W_XG = 0.67              # peso degli xG (i gol reali pesano 1)
+W_SOT = 1.0              # peso dei tiri in porta, convertiti in gol con la media del campionato
+XG_WEIGHT = W_XG / (1 + W_XG)   # (compatibilità: vecchio peso relativo degli xG)
 NEW_TEAM = (0.85, 1.15)  # attacco/difesa iniziali per squadre senza storico (neopromosse)
 KMAX = 10
 
@@ -34,11 +38,26 @@ class Ratings:
         return {t: {"att": r(self.att[i], 3), "def": r(self.dfn[i], 3)} for t, i in self.idx.items()}
 
 
-def _target(m):
+def _target(m, conv=None):
+    """Quanto ha "meritato" di segnare ogni squadra: gol reali, xG e tiri in porta (se ci sono), mescolati.
+    I tiri in porta dicono quante occasioni vere crea una squadra anche quando non segna."""
+    parts = [(1.0, m["hg"], m["ag"])]
     if m.get("hxg") is not None and m.get("axg") is not None:
-        return ((1 - XG_WEIGHT) * m["hg"] + XG_WEIGHT * m["hxg"],
-                (1 - XG_WEIGHT) * m["ag"] + XG_WEIGHT * m["axg"])
-    return m["hg"], m["ag"]
+        parts.append((W_XG, m["hxg"], m["axg"]))
+    if conv and m.get("hst") is not None and m.get("ast") is not None:
+        parts.append((W_SOT, m["hst"] * conv, m["ast"] * conv))
+    tw = sum(p[0] for p in parts)
+    return sum(p[0] * p[1] for p in parts) / tw, sum(p[0] * p[2] for p in parts) / tw
+
+
+def sot_conversion(matches: list[dict]) -> float | None:
+    """Gol per tiro in porta, in media (per trasformare i tiri in porta in gol)."""
+    g = s = 0.0
+    for m in matches:
+        if m.get("hst") is not None and m.get("ast") is not None:
+            g += m["hg"] + m["ag"]
+            s += m["hst"] + m["ast"]
+    return g / s if s > 50 else None
 
 
 def fit(matches: list[dict], as_of: date, iters: int = 80) -> Ratings | None:
@@ -50,7 +69,8 @@ def fit(matches: list[dict], as_of: date, iters: int = 80) -> Ratings | None:
     n = len(teams)
     hi = np.array([idx[m["home"]] for m in hist])
     ai = np.array([idx[m["away"]] for m in hist])
-    ys = np.array([_target(m) for m in hist], dtype=float)
+    conv = sot_conversion(hist)
+    ys = np.array([_target(m, conv) for m in hist], dtype=float)
     yh, ya = ys[:, 0], ys[:, 1]
     age = np.array([(as_of - date.fromisoformat(m["date"])).days for m in hist], dtype=float)
     w = np.exp(-math.log(2) * age / HALF_LIFE_DAYS)

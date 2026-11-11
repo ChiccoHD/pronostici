@@ -14,8 +14,13 @@ P0 = {("atp", "Hard"): 0.645, ("atp", "Clay"): 0.625, ("atp", "Grass"): 0.665,
       ("wta", "Hard"): 0.565, ("wta", "Clay"): 0.555, ("wta", "Grass"): 0.575}
 
 
+# Tarati rifacendo le previsioni sugli incontri passati (vedi report/taratura.md)
+K_BASE, K_SHAPE = 300, 0.5   # quanto si muove l'Elo dopo ogni incontro: tanto all'inizio, meno con l'esperienza
+SURFACE_BLEND = 0.3          # peso dell'Elo sulla superficie rispetto a quello generale
+
+
 def k_factor(n):
-    return 250 / ((n + 5) ** 0.4)
+    return K_BASE / ((n + 5) ** K_SHAPE)
 
 
 def expected(ra, rb):
@@ -32,7 +37,7 @@ class Elo:
 
     def rating(self, p, surface):
         s = SURF.get(surface, "Hard")
-        return 0.5 * self.r[p] + 0.5 * self.rs[(p, s)]
+        return (1 - SURFACE_BLEND) * self.r[p] + SURFACE_BLEND * self.rs[(p, s)]
 
     def prob(self, a, b, surface):
         return expected(self.rating(a, surface), self.rating(b, surface))

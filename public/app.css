@@ -433,3 +433,15 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .search svg { position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; }
 .search input { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; padding: 11px 12px 11px 38px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); }
 .search input:focus { outline: 2px solid var(--go); outline-offset: -1px; }
+
+/* riquadri apribili */
+.sec > h2 { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
+.sec-t { display: inline-flex; align-items: center; gap: 6px; }
+.sec-t .chev { width: 16px; height: 16px; fill: none; stroke: var(--ink-3); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; flex: none; }
+.sec.shut .sec-t .chev { transform: rotate(-90deg); }
+.sec.shut > h2 { margin-bottom: 0; }
+.sec.shut > :not(h2) { display: none !important; }
+.sec > h2:focus-visible { outline: 2px solid var(--go); outline-offset: 4px; border-radius: 6px; }
+/* distanza dalle quote nella scheda */
+.board-gap { margin: 12px 2px 0; padding: 9px 11px; border-radius: 10px; background: var(--draw-bg); color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
+.board-gap b { color: var(--draw); }

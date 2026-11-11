@@ -13,7 +13,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - `pipeline/models/` calcola le probabilità: `soccer.py` (Poisson + Dixon-Coles), `nba.py` (rating in punti), `tennis.py` (Elo + catena di Markov), `common.py` (statistica e misure di affidabilità).
 - `pipeline/build_*.py` prepara uno sport (`build_cups.py` le coppe); `pipeline/run.py` lancia tutto e scrive `public/data/`; `pipeline/picks.py` crea la classifica "Migliori".
 - I campionati si aggiungono in `pipeline/config.py` (`SOCCER_LEAGUES`, `CUPS`), nei filtri di `public/app.js` (`LEAGUES`) e in `public/live.js` (`ESPN_CODE` per la diretta, `WHERE` per i canali TV).
-- `public/live.js`: sezione Live (risultati ESPN letti dal telefono ogni 30 secondi), link "Segui in diretta" e "Dove vederla". Solo servizi ufficiali o siti di risultati: niente streaming non autorizzati. I canali TV vanno ricontrollati a ogni stagione.
+- `public/live.js`: sezione Live (risultati ESPN letti dal telefono: ogni 8 secondi con partite in corso, altrimenti ogni 30), link "Segui in diretta" e "Dove vederla". Solo servizi ufficiali o siti di risultati: niente streaming non autorizzati. I canali TV vanno ricontrollati a ogni stagione.
 - Le quote dei bookmaker non devono entrare nei modelli: servono solo come confronto (in Migliori, "Modello contro bookmaker" da `disagree` di `migliori.json`).
 - Dal telefono, oltre al Live: formazioni ufficiali del calcio (`attachLineups` in `live.js`, da 90 minuti prima) che ricalcolano le percentuali dei giocatori (`withLineup` in `app.js`); lo storico della schedina vive nel `localStorage` del telefono (campo `result` delle giocate).
 - Foto dei calciatori: `pipeline/photos.py` (ESPN, poi Wikidata, poi TheSportsDB), esito in `data/cache/photos.json`.

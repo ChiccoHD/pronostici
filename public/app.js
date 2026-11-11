@@ -97,6 +97,22 @@ function toast(msg) {
   t.textContent = msg; t.classList.add("show");
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
 }
+function toggleSec(h) {
+  const s = h.closest("[data-sec]");
+  if (!s) return;
+  const k = s.dataset.sec, list = shutList().filter(x => x !== k);
+  const shut = !s.classList.contains("shut");
+  s.classList.toggle("shut", shut); h.setAttribute("aria-expanded", String(!shut));
+  try { localStorage.setItem("p_shut", JSON.stringify(shut ? [...list, k].slice(-200) : list)); } catch { /* niente */ }
+}
+document.addEventListener("click", e => {
+  const h = e.target.closest("[data-sec] > h2");
+  if (h && !e.target.closest("button, a, input, select")) toggleSec(h);
+});
+document.addEventListener("keydown", e => {
+  const h = e.target.closest?.("[data-sec] > h2");
+  if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleSec(h); }
+});
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-fav]");
   if (!b) return;
@@ -356,8 +372,12 @@ function fixture(e) {
 
 /* ------------------------------------------------------------------ mattoncini delle schede */
 
-function sec(title, inner, right = "") {
-  return `<section class="sec"><h2>${title}${right ? `<small>${right}</small>` : ""}</h2>${inner}</section>`;
+/* ogni riquadro si chiude toccando il titolo; quelli chiusi sono ricordati su questo telefono (per sport e titolo) */
+function shutList() { try { return JSON.parse(localStorage.getItem("p_shut") || "[]"); } catch { return []; } }
+function secKey(title, key) { return `${CUR?.sport || "gen"}|${key || String(title).replace(/<[^>]*>/g, "")}`; }
+function sec(title, inner, right = "", key = "") {
+  const k = secKey(title, key), shut = shutList().includes(k);
+  return `<section class="sec ${shut ? "shut" : ""}" data-sec="${esc(k)}"><h2 role="button" tabindex="0" aria-expanded="${!shut}"><span class="sec-t">${title}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>${right ? `<small>${right}</small>` : ""}</h2>${inner}</section>`;
 }
 
 function picks(items, book, { fav = true } = {}) {
@@ -388,6 +408,16 @@ function seg(name, opts, cur) {
   return `<span class="seg" role="group" data-seg="${name}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`).join("")}</span>`;
 }
 
+/* stessa regola dell'elenco: se il modello e le quote sono lontani almeno 7 punti su un esito, lo dico */
+function bookGap(probs, book, labels) {
+  if (!book) return "";
+  let gi = -1, gap = 0;
+  probs.forEach((p, i) => { if (book[i] != null && Math.abs(p - book[i]) > gap) { gap = Math.abs(p - book[i]); gi = i; } });
+  if (gap < 0.07) return "";
+  const more = probs[gi] > book[gi];
+  return `<div class="board-gap"><b>${Math.round(gap * 100)} punti dalle quote</b> su «${esc(labels[gi])}»: il modello dice ${pct(probs[gi])}, i bookmaker ${pct(book[gi])}. Il modello è ${more ? "più" : "meno"} ottimista: possono pesare cose che non vede, come infortuni o formazioni.</div>`;
+}
+
 function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, book = null, foot = [] }) {
   const max = Math.max(...probs);
   const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
@@ -401,6 +431,7 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
+    ${bookGap(probs, book, favLabels)}
     ${foot.filter(Boolean).length ? `<div class="board-foot">${foot.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</div>` : ""}
   </div>`;
 }
@@ -471,8 +502,8 @@ function soccerView(d) {
     + sec("Under / Over", rows(m.ou, { label: k => `Over ${line(k)}`, book: ouBook }))
     + sec("Goal / No Goal", rows({ "Goal, segnano entrambe": m.btts, "No Goal": 1 - m.btts }))
     + sec("Multigol", rows(m.multigol, { label: k => `Multigol ${k}` }))
-    + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`${H.short} over ${line(k)}`, v])), [`${H.short} porta inviolata`]: m.clean_sheet[0] }))
-    + sec(`Gol di ${esc(A.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.away).map(([k, v]) => [`${A.short} over ${line(k)}`, v])), [`${A.short} porta inviolata`]: m.clean_sheet[1] }))
+    + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`${H.short} over ${line(k)}`, v])), [`${H.short} porta inviolata`]: m.clean_sheet[0] }), "", "Gol squadra di casa")
+    + sec(`Gol di ${esc(A.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.away).map(([k, v]) => [`${A.short} over ${line(k)}`, v])), [`${A.short} porta inviolata`]: m.clean_sheet[1] }), "", "Gol squadra ospite")
     + (d.corners ? sec("Calci d'angolo", rows(d.corners.ou, { label: k => `Over ${line(k)} angoli` }), `attesi ${num(d.corners.exp[2])}`) : "")
     + (d.cards ? sec("Cartellini gialli", rows(d.cards.ou, { label: k => `Over ${line(k)} gialli` }), `attesi ${num(d.cards.exp[2])}`) : "");
 
@@ -609,8 +640,8 @@ function nbaView(d) {
   const tl = `${m.total_line}`, pOver = m.totals[`${Number(m.total_line)}`] ?? m.totals[tl];
   const punti = (pOver != null ? sec("Linea principale", picks([[`Over ${line(m.total_line)}`, pOver, `Over ${line(m.total_line)} punti`], [`Under ${line(m.total_line)}`, 1 - pOver, `Under ${line(m.total_line)} punti`]]), `attesi ${num(m.total)}`) : "")
     + sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)} punti` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
-    + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `${H.short} over ${line(k)}` }))
-    + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `${A.short} over ${line(k)}` }));
+    + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `${H.short} over ${line(k)}` }), "", "Punti squadra di casa")
+    + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `${A.short} over ${line(k)}` }), "", "Punti squadra ospite");
   const forma = sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("Testa a testa", nbaH2h(d), d.h2h.n ? `ultime ${d.h2h.n}` : "")
     + sec("Infortuni", injuries(d));

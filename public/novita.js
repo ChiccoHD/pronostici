@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Notifiche", items: [
+    "In Tu → Notifiche scegli sport e avvisi: gol, espulsioni, fine primo tempo, fine di ogni quarto, set o game, inizio e fine partita.",
+    "Per le tue partite (stellina, schedine, squadre e tennisti seguiti) oppure per tutte quelle dello sport.",
+    "Arrivano anche ad app chiusa, entro un minuto circa. Su iPhone l'app deve essere sulla schermata Home." ] },
   { d: "2026-11-11", t: "Partite concluse", items: [
     "Le partite finite restano in elenco per tre giorni con il risultato: tocca \"Concluse\" tra i giorni.",
     "Su ogni partita finita vedi se il pronostico più probabile è uscito e, nella scheda, \"Com'è andata\": percentuali del modello, quote ed esito a confronto.",

@@ -68,6 +68,10 @@ def main():
     keep = [e for e in keep if alive(e)]
     try:
         from . import results
+        for e in keep:      # percorso ESPN del tabellone (serve alle notifiche del Worker)
+            tg = results._target(e)
+            if tg:
+                e["espn"] = f"{tg[0]}/{tg[1]}"
         rs = {}
         results.attach(keep, rs)
         status["risultati"] = {"esiti": rs.get("risultati"), "aggiornato": now.isoformat(timespec="minutes")}

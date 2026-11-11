@@ -89,6 +89,7 @@ function saveFavs(list) {
   if (closed.length > 500) { const drop = new Set(closed.slice(500).map(f => f.key)); list = list.filter(f => !drop.has(f.key)); }
   try { localStorage.setItem("p_favs", JSON.stringify(list)); } catch { /* niente */ }
   updateFavBadge();
+  if (typeof notifySync === "function") notifySync();
 }
 const isFav = key => favs().some(f => f.key === key);
 function favKey(label, p, book = null, ctx = CUR) {

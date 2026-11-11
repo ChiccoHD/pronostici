@@ -112,7 +112,10 @@ async function showTeam(lk, id) {
 /* ------------------------------------------------------------------ squadre e giocatori preferiti */
 
 function myTeams() { try { return JSON.parse(localStorage.getItem("p_myteams") || "[]"); } catch { return []; } }
-function saveMyTeams(list) { try { localStorage.setItem("p_myteams", JSON.stringify(list)); } catch { /* niente */ } }
+function saveMyTeams(list) {
+  try { localStorage.setItem("p_myteams", JSON.stringify(list)); } catch { /* niente */ }
+  if (typeof notifySync === "function") notifySync();
+}
 const isMine = (lk, id) => myTeams().some(t => t.lk === lk && String(t.id) === String(id));
 function toggleMine(item) {
   const list = myTeams(), had = list.some(t => t.lk === item.lk && String(t.id) === String(item.id));

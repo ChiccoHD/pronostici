@@ -12,6 +12,8 @@ function showMe() {
     <div class="me-tiles">${tile(teams.length, teams.length === 1 ? "squadra seguita" : "squadre seguite", "#/tu")}${tile(openSlips.length, "schedine aperte", "#/tu")}
       ${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte", "#/tu")}</div>`;
 
+  if (typeof notifSection === "function") html += notifSection();
+
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
   const evs = [], seen = new Set();
@@ -36,7 +38,8 @@ function showMe() {
     <div class="me-acts"><button type="button" class="btn-main" id="me-export">Salva una copia</button>
     <label class="btn-main alt" style="cursor:pointer">Ripristina da una copia<input type="file" id="me-import" accept="application/json,.json" hidden></label></div>`, "", "Tu dati");
   $app.innerHTML = html;
-  wireSlips(); wirePlayed(); attachSlipStatus();
+  wireSlips();
+  if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
 
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
   document.getElementById("me-export").onclick = () => {

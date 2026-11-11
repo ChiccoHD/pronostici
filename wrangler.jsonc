@@ -1,10 +1,13 @@
 {
-  // Configurazione del Worker di Cloudflare che pubblica il sito (cartella public/)
-  // e fa da timer per l'aggiornamento dei dati (worker/timer.js).
+  // Configurazione del Worker di Cloudflare che pubblica il sito (cartella public/),
+  // fa da timer per l'aggiornamento dei dati e manda le notifiche (worker/index.js).
   "name": "pronostici",
-  "main": "worker/timer.js",
+  "main": "worker/index.js",
   "compatibility_date": "2026-11-01",
   "assets": { "directory": "./public", "binding": "ASSETS" },
-  // Orari in UTC, gli stessi del workflow: in Italia d'inverno 7:17, 10:47, 13:47, 16:47, 19:47, 23:17
-  "triggers": { "crons": ["17 6,22 * * *", "47 9,12,15,18 * * *"] }
+  // Ogni minuto: notifiche delle partite; gli orari dell'aggiornamento dati sono in worker/index.js (UPDATE)
+  "triggers": { "crons": ["* * * * *"] },
+  // Abbonamenti alle notifiche e stato delle partite: Durable Object con archivio SQLite (piano gratuito)
+  "durable_objects": { "bindings": [{ "name": "PUSH", "class_name": "Push" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Push"] }]
 }

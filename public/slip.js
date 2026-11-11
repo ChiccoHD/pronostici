@@ -171,7 +171,10 @@ function showShared(data) {
    Quota e puntata del sito dove la giochi sono facoltative: servono solo a vedere la vincita possibile. */
 
 function mySlips() { try { return JSON.parse(localStorage.getItem("p_slips") || "[]"); } catch { return []; } }
-function saveMySlips(list) { try { localStorage.setItem("p_slips", JSON.stringify(list.slice(-60))); } catch { /* niente */ } }
+function saveMySlips(list) {
+  try { localStorage.setItem("p_slips", JSON.stringify(list.slice(-60))); } catch { /* niente */ }
+  if (typeof notifySync === "function") notifySync();
+}
 
 function saveAsSlip(legs, name) {
   const list = mySlips();

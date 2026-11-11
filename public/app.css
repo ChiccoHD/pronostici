@@ -805,3 +805,21 @@ a.btn-main, label.btn-main { box-sizing: border-box; text-align: center; }
 .rv-l { font-weight: 700; font-size: 13.5px; }
 .rv-p { display: flex; align-items: baseline; gap: 8px; text-align: right; }
 .rv-p small { color: var(--ink-3); font-size: 11.5px; min-width: 64px; }
+
+/* Notifiche (pagina Tu) */
+.nt-steps { margin: 6px 0 0; padding-left: 20px; font-size: 13.5px; color: var(--ink-2); }
+.nt-steps li { margin: 4px 0; }
+.nt-sport { border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; margin-top: 8px; }
+.nt-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.nt-head b { font-size: 15px; }
+.nt-sport.off .nt-body { display: none; }
+.nt-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--soft-2); padding: 3px; border-radius: 10px; margin: 10px 0 6px; }
+.nt-mode button { border: 0; background: transparent; padding: 7px; border-radius: 8px; font: inherit; font-weight: 700; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.nt-mode button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.nt-opt { display: flex; align-items: center; gap: 10px; padding: 7px 2px; font-size: 14px; cursor: pointer; }
+.nt-opt input { width: 18px; height: 18px; accent-color: var(--go); }
+.nt-msg { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); min-height: 1em; }
+.switch { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; border-radius: 999px; background: var(--rule); position: relative; cursor: pointer; transition: background .15s; flex: none; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
+.switch:checked { background: var(--go); }
+.switch:checked::after { transform: translateX(18px); }

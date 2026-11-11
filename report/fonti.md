@@ -1,17 +1,26 @@
-## Loghi dei campionati
-- ita.1: id 730 · Italian Serie A · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/12.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/12.png'}
-- eng.1: id 700 · English Premier League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/23.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/23.png'}
-- esp.1: id 740 · Spanish LALIGA · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/15.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/15.png'}
-- ger.1: id 720 · German Bundesliga · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/10.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/10.png'}
-- fra.1: id 710 · French Ligue 1 · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/9.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/9.png'}
-- por.1: id 715 · Portuguese Primeira Liga · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/14.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/14.png'}
-- jpn.1: id 750 · Japanese J.League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2199.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2199.png'}
-- usa.1: id 770 · MLS · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/19.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/19.png'}
-- nor.1: id 3960 · Norwegian Eliteserien · {'full,default': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/default-team-logo-500.png&w=100&h=100'}
-- uefa.champions: id 775 · UEFA Champions League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2.png'}
-- uefa.europa: id 776 · UEFA Europa League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2310.png'}
-- uefa.europa.conf: id 20296 · UEFA Conference League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/20296.png'}
-- uefa.wchampions: id 19483 · UEFA Women's Champions League · {'full,default': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2408.png', 'full,dark': 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2408.png'}
-- nba: id 46 · National Basketball Association · {'full,default': 'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png', 'full,dark': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/nba.png&w=500&h=500&transparent=true'}
-- atp: id 851 · ATP · {'full,default': 'https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png', 'full,dark': 'https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png'}
-- wta: id 900 · WTA · {'full,default': 'https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png', 'full,dark': 'https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png'}
+## Nuovi campionati di calcio
+- ita.2/I2: Italian Serie B · logo http://a.espncdn.com/i/leaguelogos/soccer/500/99.png · ESPN ±10gg 23 partite, tabellino 32 giocatori · football-data 110 partite, quote 110, xG 110
+- eng.2/E1: English League Championship · logo https://a.espncdn.com/i/leaguelogos/soccer/500/24.png · ESPN ±10gg 35 partite, tabellino 32 giocatori · football-data 180 partite, quote 180, xG 180
+- ned.1/N1: Dutch Eredivisie · logo https://a.espncdn.com/i/leaguelogos/soccer/500/11.png · ESPN ±10gg 18 partite, tabellino 32 giocatori · football-data 108 partite, quote 108, xG 108
+- tur.1/T1: Turkish Super Lig · logo https://a.espncdn.com/i/leaguelogos/soccer/500/18.png · ESPN ±10gg 18 partite, tabellino 32 giocatori · football-data 99 partite, quote 99, xG 99
+- sco.1/SC0: Scottish Premiership · logo https://a.espncdn.com/i/leaguelogos/soccer/500/45.png · ESPN ±10gg 13 partite, tabellino 31 giocatori · football-data 75 partite, quote 75, xG 75
+- bel.1/B1: Belgian Pro League · logo https://a.espncdn.com/i/leaguelogos/soccer/500/6.png · ESPN ±10gg 19 partite, tabellino 30 giocatori · football-data 99 partite, quote 99, xG 99
+
+## Tennis: competizioni su ESPN
+- atp · ATP · ATP
+- wta · WTA · WTA
+- prova /tennis/davis-cup/scoreboard: niente
+- prova /tennis/billie-jean-king-cup/scoreboard: niente
+- prova /tennis/united-cup/scoreboard: niente
+- prova /tennis/itf/scoreboard: niente
+- prova /tennis/atp-challenger/scoreboard: niente
+- prova /tennis/challenger/scoreboard: niente
+- ATP 2026-09-12: ['US Open']
+- ATP 2026-01-03: ['Brisbane International presented by ANZ', 'ASB Classic', 'Bank of China Hong Kong Tennis Open']
+- ATP 2025-11-21: []
+
+## Tennis: riepilogo di un incontro concluso
+- https://site.api.espn.com/apis/site/v2/sports/tennis/atp/summary?event=186543: niente
+- https://site.api.espn.com/apis/site/v2/sports/tennis/atp/summary?event=148-2026&competition=186543: niente
+- competizione nel tabellone: chiavi broadcast, broadcasts, competitors, date, format, geoBroadcasts, id, notes, recent, round, startDate, status, timeValid, tournamentId, type, uid, venue, wasSuspended
+  concorrente: {"id": "10645", "uid": "s:850~l:851~a:10645", "type": "athlete", "order": 2, "homeAway": "away", "winner": false, "linescores": [{"value": 1.0, "winner": false}, {"value": 4.0, "winner": false}], "athlete": {"guid": "6e1d3d0c-3766-37e5-be13-596245f579ff", "displayName": "Toby Samuel", "shortName": "T. Samuel", "fullName": "Toby Samuel", "flag": {"href": "https://a.espncdn.com/i/teamlogos/countries/500/gbr.png", "alt": "Great Britain", "rel": ["country-flag"]}, "links": [{"language": "en-US", "rel": ["playercard", "desktop", "athlete"], "href": "https://www.espn.com/tennis/player/_/id/10645/toby-samuel", "text": "Player Card", "shortText": "Player Card", "isExternal": false, "isPremium": false, "isHidden": false}]}, "statistics": []}

@@ -11,7 +11,7 @@ from .sources import thesportsdb, wikidata
 log = logging.getLogger("photos")
 ENABLED = True          # i dati di esempio la spengono (nessuna rete)
 RETRY_DAYS = 30         # chi è senza foto si ricontrolla dopo un mese
-BUDGET = {"espn": 600, "wd": 400, "tsdb": 60}  # controlli nuovi per aggiornamento, il resto al giro dopo
+BUDGET = {"espn": 1500, "wd": 2000, "tsdb": 60}  # controlli nuovi per aggiornamento, il resto al giro dopo
 SOURCES = ("espn", "wd", "tsdb")
 NAMES = {"espn": "ESPN", "wd": "Wikipedia", "tsdb": "TheSportsDB"}
 PATH = CACHE / "photos.json"

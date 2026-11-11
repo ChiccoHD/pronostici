@@ -1,6 +1,7 @@
 "use strict";
 /* Pronostici — sezione Live e collegamenti "Segui in diretta" / "Dove vederla".
-   I risultati in diretta arrivano da ESPN direttamente dal telefono, ogni 30 secondi mentre la pagina è aperta.
+   I risultati in diretta arrivano da ESPN direttamente dal telefono mentre la pagina è aperta:
+   ogni pochi secondi se c'è una partita in corso, ogni 30 secondi altrimenti. Con l'app in secondo piano si ferma.
    Usa funzioni e dati di app.js (INDEX, esc, pct, ring, fmtTime, favs...). */
 
 const ESPN_SITE = "https://site.api.espn.com/apis/site/v2/sports";
@@ -10,7 +11,22 @@ const ESPN_CODE = {
   "champions": "uefa.champions", "europa-league": "uefa.europa", "conference": "uefa.europa.conf",
   "champions-femminile": "uefa.wchampions",
 };
-const LIVE_REFRESH = 30000;
+const LIVE_FAST = 8000;     // con una partita in corso: ESPN aggiorna i suoi dati ogni 10 secondi circa, più spesso non serve
+const LIVE_SLOW = 30000;    // nessuna partita in corso (o in attesa del fischio d'inizio)
+
+/* punteggi visti l'ultima volta: se cambiano, il numero lampeggia (gol, canestro, game) */
+const lastScore = new Map();
+function scoreChanged(id, info) {
+  const now = info.sport === "tennis" ? info.sets.map(s => s.join(".")).join("|") : `${info.H}-${info.A}`;
+  const before = lastScore.get(id);
+  lastScore.set(id, now);
+  return before != null && before !== now;
+}
+/* rimanda un aggiornamento: se l'app è in secondo piano aspetta che torni visibile */
+function later(fn, ms) {
+  return setTimeout(() => { if (document.hidden) pending.add(fn); else fn(); }, ms);
+}
+const pending = new Set();
 let liveTimer = null;
 
 /* ------------------------------------------------------------------ dove vederla (Italia, stagione 2026-27) */
@@ -337,23 +353,23 @@ async function attachLive(d) {
   if (location.hash !== hash) return;
   box = document.getElementById("live-box");
   if (!box) return;
-  if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra 30 secondi; intanto usa i link in fondo alla scheda.</div>`;
-  else if (info && info.state !== "pre") box.innerHTML = liveBox(info, d);
+  if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
+  else if (info && info.state !== "pre") box.innerHTML = liveBox(info, d, scoreChanged(d.id, info));
   else box.innerHTML = "";
   if (failed || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
-    boxTimer = setTimeout(() => { if (location.hash === hash) attachLive(d); }, LIVE_REFRESH);
+    boxTimer = later(() => { if (location.hash === hash) attachLive(d); }, info?.state === "in" ? LIVE_FAST : LIVE_SLOW);
 }
 
-function liveBox(info, d) {
+function liveBox(info, d, flash = false) {
   const ix = INDEX.events.find(e => e.id === d.id);
   const on = info.state === "in";
   const head = `<div class="lb-head">${on ? `<span class="pulse"></span><b>In diretta</b>` : `<b>Finita</b>`}<small>${esc(on ? (info.sport === "soccer" ? info.clock || info.detail : info.detail) : "risultato finale")}</small></div>`;
   let score;
   if (info.sport === "tennis") {
     const row = (p, i) => `<div class="lb-tennis">${img(p.flag, "tflag")}<span>${esc(p.name)}</span>${info.sets[i].map((g, k) => `<b class="${(info.sets[1 - i][k] ?? 0) < g ? "w" : ""}">${g}</b>`).join("")}</div>`;
-    score = row(info.home, 0) + row(info.away, 1);
+    score = `<div class="${flash ? "flash" : ""}">${row(info.home, 0) + row(info.away, 1)}</div>`;
   } else {
-    score = `<div class="lb-score"><span>${esc(info.home.name)}</span><b>${info.H}<i>-</i>${info.A}</b><span>${esc(info.away.name)}</span></div>`;
+    score = `<div class="lb-score"><span>${esc(info.home.name)}</span><b class="${flash ? "flash" : ""}">${info.H}<i>-</i>${info.A}</b><span>${esc(info.away.name)}</span></div>`;
   }
   const lr = liveRings(info, ix);
   const probs = lr ? `<div class="live-probs">${lr.rings ? `<div class="fx-rings">${lr.rings}</div>` : ""}${lr.sub ? `<div class="live-sub">${lr.sub}</div>` : ""}</div>` : "";
@@ -390,7 +406,7 @@ async function attachSlipStatus() {
     el.innerHTML = s ? `<span class="ls-dot ${s.cls}"></span>${info.state === "in" ? "<b>Live</b> " : ""}${esc(s.txt)}` : "";
     el.className = `slip-live ${s?.cls || ""}`;
   });
-  if (anyLive) slipTimer = setTimeout(() => { if (location.hash === hash) attachSlipStatus(); }, LIVE_REFRESH);
+  if (anyLive) slipTimer = later(() => { if (location.hash === hash) attachSlipStatus(); }, LIVE_FAST);
 }
 
 /* ------------------------------------------------------------------ pagina Live */
@@ -424,17 +440,18 @@ async function showLive() {
 
   const card = e => {
     const ix = byKey[e.id], info = e.info;
+    const fl = info.state === "in" && scoreChanged(e.id, info) ? "flash" : "";
     const href = ix ? `#/e/${encodeURIComponent(ix.id)}` : "#/live";
     const mine = statusChips(favs().filter(f => f.event === e.id), info);
     if (info.sport === "tennis") {
       const row = (p, i) => `<div>${img(p.flag, "tflag")}<span>${esc(p.name)}</span><b>${info.sets[i].join(" ")}</b></div>`;
       return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min on">${esc(info.detail || "Live")}</div>
-        <div class="live-teams">${row(info.home, 0)}${row(info.away, 1)}</div></div>${mine}</a>`;
+        <div class="live-teams ${fl}">${row(info.home, 0)}${row(info.away, 1)}</div></div>${mine}</a>`;
     }
     const lr = liveRings(info, ix);
     const min = info.state === "in" ? (info.sport === "soccer" ? (info.clock || info.detail) : info.detail) : "Finale";
     return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(min)}</div>
-      <div class="live-teams"><div>${teamMark(ix?.home_logo || info.home.logo, null, ix?.home_color)}<span>${esc(info.home.name)}</span><b>${info.H}</b></div>
+      <div class="live-teams ${fl}"><div>${teamMark(ix?.home_logo || info.home.logo, null, ix?.home_color)}<span>${esc(info.home.name)}</span><b>${info.H}</b></div>
       <div>${teamMark(ix?.away_logo || info.away.logo, null, ix?.away_color)}<span>${esc(info.away.name)}</span><b>${info.A}</b></div></div></div>
       ${lr ? `<div class="live-probs">${lr.rings ? `<div class="fx-rings">${lr.rings}</div>` : ""}${lr.sub ? `<div class="live-sub">${lr.sub}</div>` : ""}</div>` : ""}${mine}</a>`;
   };
@@ -449,8 +466,8 @@ async function showLive() {
   };
 
   let html = `<div class="live-page"><div class="live-head"><span class="pulse"></span><b>${live.length ? `${live.length} ${live.length === 1 ? "partita" : "partite"} in corso` : "Nessuna partita in corso"}</b>
-    <small>si aggiorna ogni 30 secondi</small></div>`;
-  if (data.failed && data.failed === data.total) html += `<div class="warn">Non riesco a leggere i risultati in diretta in questo momento. Riprovo tra 30 secondi; intanto puoi usare Diretta.it o SofaScore dalla scheda della partita.</div>`;
+    <small>${live.length ? "si aggiorna ogni pochi secondi" : "si aggiorna ogni 30 secondi"}</small></div>`;
+  if (data.failed && data.failed === data.total) html += `<div class="warn">Non riesco a leggere i risultati in diretta in questo momento. Riprovo tra poco; intanto puoi usare Diretta.it o SofaScore dalla scheda della partita.</div>`;
   if (live.length) html += groups(live);
   if (done.length) html += `<h2 class="day">Finite da poco</h2>` + groups(done);
   if (!live.length && soon.length) html += `<h2 class="day">Tra poco</h2>` + soon.slice(0, 15).map(e => `<section class="group">${fixture(e)}</section>`).join("");
@@ -458,7 +475,7 @@ async function showLive() {
   html += `<p class="note">Sotto ogni partita vedi come stanno andando le giocate che hai salvato nella schedina. Tocca una partita per il risultato aggiornato e i dettagli.</p>
     <p class="note">Durante le partite di calcio le percentuali ripartono dal risultato del momento e dai gol attesi del modello per il tempo che resta. Nell'NBA uso la probabilità in diretta di ESPN quando c'è. Sono stime: un gol o un canestro le cambia subito.</p></div>`;
   $app.innerHTML = html;
-  liveTimer = setTimeout(() => { if (location.hash.startsWith("#/live") && !document.hidden) showLive(); else liveTimer = setTimeout(showLive, LIVE_REFRESH); }, LIVE_REFRESH);
+  liveTimer = later(() => { if (location.hash.startsWith("#/live")) showLive(); }, live.length ? LIVE_FAST : LIVE_SLOW);
 }
 
 function leagueLabel(k) {
@@ -470,4 +487,11 @@ window.addEventListener("hashchange", () => {
   if (!location.hash.startsWith("#/live")) clearTimeout(liveTimer);
   clearTimeout(boxTimer); clearTimeout(slipTimer);
 });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && location.hash.startsWith("#/live")) showLive(); });
+/* tornando sull'app (o quando torna la rete) i risultati si aggiornano subito, senza aspettare il prossimo giro */
+function resume() {
+  if (document.hidden) return;
+  const fns = [...pending]; pending.clear();
+  fns.forEach(fn => fn());
+}
+document.addEventListener("visibilitychange", resume);
+window.addEventListener("online", () => { if (location.hash.startsWith("#/live")) showLive(); else resume(); });

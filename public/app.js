@@ -18,6 +18,21 @@ const LEAGUES = {
     ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"]],
   tennis: [["atp", "ATP"], ["wta", "WTA"]],
 };
+/* logo di ogni campionato (da ESPN, con la versione per il tema scuro); bandiera dove ESPN non ce l'ha */
+const LG = "https://a.espncdn.com/i/leaguelogos/soccer/";
+const LEAGUE_LOGO = {
+  "serie-a": 12, "premier-league": 23, "la-liga": 15, "bundesliga": 10, "ligue-1": 9, "primeira-liga": 14, "j1": 2199, "mls": 19,
+  "champions": 2, "europa-league": 2310, "conference": 20296, "champions-femminile": 2408,
+};
+const LEAGUE_FLAG = { "eliteserien": "🇳🇴" };
+function leagueMark(key, sport) {
+  if (LEAGUE_LOGO[key]) { const id = LEAGUE_LOGO[key];
+    return `<span class="lgm">${img(`${LG}500/${id}.png`, "lg-l")}${img(`${LG}500-dark/${id}.png`, "lg-d")}</span>`; }
+  if (key === "nba") return `<span class="lgm">${img("https://a.espncdn.com/i/teamlogos/leagues/500/nba.png", "lg-l")}${img("https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/nba.png&w=80&h=80&transparent=true", "lg-d")}</span>`;
+  if (LEAGUE_FLAG[key]) return `<span class="lgm flag">${LEAGUE_FLAG[key]}</span>`;
+  if (key === "atp" || key === "wta") return `<span class="lgm tour ${key}">${key.toUpperCase()}</span>`;
+  return `<span class="group-dot g-${sport || "soccer"}"></span>`;
+}
 const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home" };
 let INDEX = null, META = null, REL = null, BEST = null;
 
@@ -276,7 +291,7 @@ function showList() {
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
     const opts = LEAGUES[state.sport].filter(([k]) => n[k]);
     if (opts.length > 1) html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti", byDay.length], ...opts.map(([k, l]) => [k, l, n[k]])].map(([k, l, c]) =>
-      `<button data-league="${k}" aria-pressed="${state.league === k}">${l} <span>${c}</span></button>`).join("")}</div>`;
+      `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k)}${l} <span>${c}</span></button>`).join("")}</div>`;
   }
   html += `</div>`;
   if (!evs.length) {
@@ -300,7 +315,7 @@ function showList() {
       const gk = `${k}|${g}`;   // un riquadro = una competizione in un giorno
       const closed = closedGroups().includes(gk);
       html += `<section class="group ${closed ? "closed" : ""}"><button type="button" class="group-h" data-group="${esc(gk)}" aria-expanded="${!closed}">
-        <span class="group-dot g-${list[0].sport}"></span><b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
+        ${leagueMark(list[0].league, list[0].sport)}<b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
         <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="group-body">${list.map(fixture).join("")}</div></section>`;
     }
@@ -348,7 +363,7 @@ function runSearch() {
   for (const e of found) {
     const k = isoDay(e.date);
     if (k !== day) { const d = fmtDay(e.date); html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`; day = k; }
-    html += `<section class="group"><div class="group-h static"><span class="group-dot g-${e.sport}"></span><b>${esc(groupName(e))}</b></div>${fixture(e)}</section>`;
+    html += `<section class="group"><div class="group-h static">${leagueMark(e.league, e.sport)}<b>${esc(groupName(e))}</b></div>${fixture(e)}</section>`;
   }
   box.innerHTML = `<p class="note" style="margin:4px 2px 10px">${found.length} ${found.length === 1 ? "partita trovata" : "partite trovate"}</p>` + html;
 }

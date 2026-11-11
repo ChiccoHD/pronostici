@@ -620,7 +620,7 @@ async function showLive() {
       const g = e.info.sport === "tennis" ? `${e.league.toUpperCase()} – ${e.info.tournament || ""}` : (byKey[e.id]?.league_name || leagueLabel(e.league));
       if (!m.has(g)) m.set(g, []); m.get(g).push(e);
     }
-    return [...m].map(([g, l]) => `<section class="group"><div class="group-h static"><span class="group-dot g-${l[0].info.sport}"></span><b>${esc(g)}</b><small>${l.length}</small></div>${l.map(card).join("")}</section>`).join("");
+    return [...m].map(([g, l]) => `<section class="group"><div class="group-h static">${leagueMark(l[0].league, l[0].info.sport)}<b>${esc(g)}</b><small>${l.length}</small></div>${l.map(card).join("")}</section>`).join("");
   };
 
   let html = `<div class="live-page"><div class="live-head"><span class="pulse"></span><b>${live.length ? `${live.length} ${live.length === 1 ? "partita" : "partite"} in corso` : "Nessuna partita in corso"}</b>

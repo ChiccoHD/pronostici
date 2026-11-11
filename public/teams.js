@@ -19,7 +19,7 @@ async function showStandings(key) {
   key = TABLE_LEAGUES.some(([k]) => k === key) ? key : load("table", "serie-a");
   save("table", key);
   const chips = `<div class="leagues tbl-leagues" role="group" aria-label="Campionato">${TABLE_LEAGUES.map(([k, l]) =>
-    `<a href="#/classifiche/${k}" class="chip-a" aria-pressed="${k === key}">${esc(l)}</a>`).join("")}</div>`;
+    `<a href="#/classifiche/${k}" class="chip-a" aria-pressed="${k === key}">${leagueMark(k)}${esc(l)}</a>`).join("")}</div>`;
   $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + `<p class="muted" style="padding:16px 4px">Caricamento…</p>`;
   $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   const L = await leagueData(key);
@@ -62,9 +62,10 @@ async function showTeam(lk, id) {
   const c = usable(T.color ? "#" + String(T.color).replace("#", "") : null) ? "#" + String(T.color).replace("#", "") : usable(T.alt ? "#" + String(T.alt).replace("#", "") : null) ? "#" + String(T.alt).replace("#", "") : "#6d5a6b";
   const S = T.season || {};
   const rec = nba ? `${T.record.w} vinte, ${T.record.l} perse` : `${S.w ?? 0} vinte, ${S.d ?? 0} pari, ${S.l ?? 0} perse`;
+  const lgName = `<span class="th-lg">${leagueMark(lk)}${esc(L.name)}</span>`;
   const posTxt = nba ? `${T.pos}ª nella Conference ${T.group}` : `${T.pos}ª in ${L.name}, ${T.pts} punti`;
   const head = `<div class="board team-head"><div class="th-logo">${T.logo ? img(T.logo, "") : `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(T.name))}</span>`}</div>
-    <h1>${esc(T.name)}</h1><div class="th-sub">${esc(posTxt)}</div><div class="th-sub">${esc(rec)}</div>
+    ${lgName}<h1>${esc(T.name)}</h1><div class="th-sub">${esc(posTxt)}</div><div class="th-sub">${esc(rec)}</div>
     <div class="th-form">${formSeq((T.form5?.seq || []).slice(0, 5))}<small>ultime 5, la più recente a sinistra</small></div>
     <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a></div>`;
 

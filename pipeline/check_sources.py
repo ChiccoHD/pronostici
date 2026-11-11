@@ -146,8 +146,33 @@ def tennis_live_check():
     out("nessun incontro in corso")
 
 
+def cache_check():
+    """Quanto sono vecchie le risposte ESPN: header di cache, con e senza un parametro che cambia ogni volta."""
+    import time, requests
+    urls = [("tennis atp", "https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard"),
+            ("tennis atp web", "https://site.web.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard"),
+            ("calcio ita.1", "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard"),
+            ("nba", "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard")]
+    keys = ("cache-control", "age", "expires", "x-cache", "last-modified", "date", "cf-cache-status", "x-akamai-staging")
+    for label, u in urls:
+        for bust in (False, True):
+            url = u + (f"?_={int(time.time() * 1000)}" if bust else "")
+            try:
+                r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+                h = {k: r.headers.get(k) for k in keys if r.headers.get(k)}
+                out(f"- {label}{' (parametro anti-cache)' if bust else ''}: HTTP {r.status_code} {h}")
+            except Exception as e:
+                out(f"- {label}: errore {e}")
+            time.sleep(1)
+
+
 def main():
     import sys
+    if "cache" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        cache_check()
+        _write()
+        return
     if "tennislive" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         tennis_live_check()

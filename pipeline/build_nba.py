@@ -102,8 +102,8 @@ def build(today: date):
             team_ids.setdefault(t, []).append(g["id"])
 
     now = datetime.now(timezone.utc)
-    upcoming = [g for g in cur if g["state"] == "pre"
-                and datetime.fromisoformat(g["date"].replace("Z", "+00:00")) >= now - timedelta(hours=2)
+    upcoming = [g for g in cur if g["state"] in ("pre", "in")     # anche quelle in corso
+                and datetime.fromisoformat(g["date"].replace("Z", "+00:00")) >= now - timedelta(hours=4)
                 and date.fromisoformat(g["date"][:10]) <= today + timedelta(days=config.DAYS_AHEAD["nba"])]
     index = []
     for g in upcoming:

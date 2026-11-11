@@ -198,8 +198,9 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
             reliability[key] = {"name": lg["name"], **bt}
 
             now = datetime.now(timezone.utc)
-            upcoming = [e for e in events if e["state"] == "pre"
-                        and datetime.fromisoformat(e["date"].replace("Z", "+00:00")) >= now - timedelta(hours=2)
+            # anche quelle in corso: la scheda deve restare apribile durante la partita
+            upcoming = [e for e in events if e["state"] in ("pre", "in")
+                        and datetime.fromisoformat(e["date"].replace("Z", "+00:00")) >= now - timedelta(hours=4)
                         and date.fromisoformat(e["date"][:10]) <= today + timedelta(days=config.DAYS_AHEAD["soccer"])]
             unmatched = set()
             foto, details = {}, []

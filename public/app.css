@@ -651,3 +651,28 @@ a.board-t.linked { color: inherit; text-decoration: none; }
 .link-btn.danger { color: var(--loss); }
 .ss-acts .link-btn { color: var(--ink-2); margin-top: 4px; }
 .ss-acts .link-btn.danger { color: var(--loss); }
+
+/* tabellone del tennis */
+.tboard { display: grid; gap: 4px; }
+.tb-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) repeat(var(--n, 3), 34px) 30px; align-items: center; gap: 4px; }
+.tboard { --n: 3; }
+.tb-row > span { font-weight: 700; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tb-row.winner > span { color: var(--go-ink); }
+.tb-row > b { text-align: center; font-size: 18px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; border-radius: 7px; padding: 3px 0; position: relative; }
+.tb-row > b.w { color: var(--ink); font-weight: 800; }
+.tb-row > b.cur { background: #fde8e6; color: #c42a22; font-weight: 800; }
+:root[data-theme="dark"] .tb-row > b.cur { background: #3b1a1c; color: #ff8a8e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tb-row > b.cur { background: #3b1a1c; color: #ff8a8e; } }
+.tb-row > b sup { font-size: 10px; font-weight: 700; margin-left: 1px; position: relative; top: -2px; }
+.tb-row > b.tb-tot { color: var(--ink); background: var(--soft-2); font-weight: 800; }
+.tb-head { font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.tb-head i { font-style: normal; text-align: center; white-space: nowrap; }
+.tb-head i.cur { color: #e0352b; }
+.tb-head i.tb-tot { font-weight: 800; }
+.tboard.compact .tb-row { grid-template-columns: 18px minmax(0, 1fr) repeat(var(--n, 3), 26px) 24px; }
+.tboard.compact .tb-row > b { font-size: 15px; padding: 1px 0; }
+.tboard.compact .tb-row > span { font-size: 14px; }
+.tlog .r { padding: 7px 0; }
+.tlog .l { font-size: 13px; line-height: 1.35; }
+.tlog .r.big .l { color: var(--ink); }
+.tb-fl { display: grid; place-items: center; width: 20px; height: 14px; }

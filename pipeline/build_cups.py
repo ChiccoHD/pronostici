@@ -109,8 +109,8 @@ def _index_entry(d):
 
 def _upcoming(events, today, days):
     now = datetime.now(timezone.utc)
-    return [e for e in events if e["state"] == "pre"
-            and datetime.fromisoformat(e["date"].replace("Z", "+00:00")) >= now - timedelta(hours=2)
+    return [e for e in events if e["state"] in ("pre", "in")     # anche quelle in corso
+            and datetime.fromisoformat(e["date"].replace("Z", "+00:00")) >= now - timedelta(hours=4)
             and date.fromisoformat(e["date"][:10]) <= today + timedelta(days=days)]
 
 

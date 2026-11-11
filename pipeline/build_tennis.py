@@ -88,7 +88,7 @@ def build(today: date):
             seen, todo = set(), []
             for k in range(config.DAYS_AHEAD["tennis"] + 1):
                 for m in espn.tennis_matches(espn.scoreboard("tennis", tour, today + timedelta(days=k)), tour):
-                    if m["state"] == "pre" and m["id"] not in seen:
+                    if m["state"] in ("pre", "in") and m["id"] not in seen:   # anche gli incontri in corso
                         seen.add(m["id"])
                         todo.append(m)
             status["espn"] = f"{len(todo)} incontri in programma"

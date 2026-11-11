@@ -55,7 +55,12 @@ def main():
 
     now = datetime.now(timezone.utc)
     keep = sorted(events.values(), key=lambda e: e["date"])
-    keep = [e for e in keep if datetime.fromisoformat(e["date"].replace("Z", "+00:00")).timestamp() > now.timestamp() - 3 * 3600]
+    # le partite restano fino a 4 ore dopo l'inizio; nel tennis l'orario è spesso indicativo
+    # (incontri "a seguire"), quindi restano fino a 24 ore
+    def alive(e):
+        hours = 24 if e["sport"] == "tennis" or e.get("time_valid") is False else 4
+        return datetime.fromisoformat(e["date"].replace("Z", "+00:00")).timestamp() > now.timestamp() - hours * 3600
+    keep = [e for e in keep if alive(e)]
     store.save(PUBLIC_DATA / "index.json", {"updated": now.isoformat(timespec="minutes"), "events": keep})
     store.save(PUBLIC_DATA / "affidabilita.json", reliability)
     store.save(PUBLIC_DATA / "meta.json", {"updated": now.isoformat(timespec="minutes"), "sample": False,

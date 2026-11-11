@@ -219,9 +219,12 @@ function tennisInfo(tg, evs) {
     if (ps.length !== 2) return null;
     const ty = c.status?.type || {};
     const sets = ps.map(p => (p.linescores || []).map(x => statNum(x.value)));
+    const tb = ps.map(p => (p.linescores || []).map(x => x.tiebreak ?? null));
+    const setWin = (ps[0].linescores || []).map((x, k) => x.winner ? 0 : ps[1].linescores?.[k]?.winner ? 1 : null);
     let won = [0, 0];
     sets[0].forEach((g, i) => { const o = sets[1][i] ?? 0; const done = ty.state === "post" || i < sets[0].length - 1; if (done && g !== o) won[g > o ? 0 : 1]++; });
-    return { sport: "tennis", state: ty.state || "pre", detail: ty.shortDetail || "", tournament: ev.name, sets, won,
+    return { sport: "tennis", state: ty.state || "pre", detail: ty.shortDetail || "", tournament: ev.name, sets, won, tb, setWin,
+      period: c.status?.period || sets[0].length, round: c.round?.displayName || "", note: (c.notes || [])[0]?.text || "",
       winner: ps[0].winner ? 0 : ps[1].winner ? 1 : null, H: won[0], A: won[1],
       games: sets[0].reduce((a, b) => a + b, 0) + sets[1].reduce((a, b) => a + b, 0),
       home: { name: ps[0].athlete?.displayName, flag: ps[0].athlete?.flag?.href, keys: [normName(ps[0].athlete?.displayName)] },
@@ -230,6 +233,52 @@ function tennisInfo(tg, evs) {
   }
   return null;
 }
+
+/* tabellone dei set: una colonna per set, il set in corso evidenziato, tie-break in piccolo */
+function tennisBoard(info, compact = false) {
+  const n = Math.max(info.sets[0].length, info.sets[1].length, 1);
+  const cur = info.state === "in" ? Math.min(info.period || n, n) - 1 : -1;
+  const head = `<div class="tb-row tb-head"><span></span>${Array.from({ length: n }, (_, k) => `<i class="${k === cur ? "cur" : ""}">${k === cur ? "in corso" : `${k + 1}° set`}</i>`).join("")}<i class="tb-tot">Set</i></div>`;
+  const row = (p, i) => {
+    const cells = Array.from({ length: n }, (_, k) => {
+      const g = info.sets[i][k], t = info.tb?.[i]?.[k];
+      const w = info.setWin?.[k] === i, l = info.setWin?.[k] === 1 - i;
+      return `<b class="${k === cur ? "cur" : w ? "w" : l ? "l" : ""}">${g ?? ""}${t != null && k !== cur ? `<sup>${t}</sup>` : ""}</b>`;
+    }).join("");
+    const lead = info.winner === i;
+    return `<div class="tb-row ${lead ? "winner" : ""}"><i class="tb-fl">${img(p.flag, "tflag")}</i><span>${esc(compact ? lastName(p.name) : p.name)}${lead ? " ✓" : ""}</span>${cells}<b class="tb-tot">${info.won[i]}</b></div>`;
+  };
+  return `<div class="tboard ${compact ? "compact" : ""}" style="--n:${n}">${compact ? "" : head}${row(info.home, 0)}${row(info.away, 1)}</div>`;
+}
+
+/* cronaca del tennis: ESPN non la dà, quindi la scrive l'app confrontando il punteggio a ogni aggiornamento */
+function tennisLog(id, info) {
+  const key = "p_tl_" + id;
+  let st;
+  try { st = JSON.parse(localStorage.getItem(key) || "null"); } catch { st = null; }
+  const time = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  const names = [lastName(info.home.name), lastName(info.away.name)];
+  if (!st) st = { sets: info.sets, log: [{ t: time, txt: `Inizio della cronaca: ${info.sets[0].map((g, k) => `${g}-${info.sets[1][k] ?? 0}`).join(", ") || "0-0"}` }] };
+  const prev = st.sets;
+  const n = Math.max(info.sets[0].length, prev[0].length);
+  for (let k = 0; k < n; k++) {
+    const a0 = prev[0][k] ?? 0, b0 = prev[1][k] ?? 0, a1 = info.sets[0][k] ?? 0, b1 = info.sets[1][k] ?? 0;
+    if (a1 > a0) st.log.push({ t: time, txt: `Game ${names[0]}: ${a1}-${b1} nel ${k + 1}° set` });
+    if (b1 > b0) st.log.push({ t: time, txt: `Game ${names[1]}: ${a1}-${b1} nel ${k + 1}° set` });
+    const w = info.setWin?.[k];
+    if (w != null && (a1 !== a0 || b1 !== b0 || !st.done?.includes(k))) {
+      st.done = [...new Set([...(st.done || []), k])];
+      if (a1 !== a0 || b1 !== b0) st.log.push({ t: time, txt: `<b>${names[w]} vince il ${k + 1}° set ${w === 0 ? a1 : b1}-${w === 0 ? b1 : a1}${info.tb?.[w]?.[k] != null ? ` (tie-break ${info.tb[w][k]}-${info.tb[1 - w][k]})` : ""}</b>`, big: 1 });
+    }
+  }
+  if (info.state === "post" && !st.end) { st.end = 1; st.log.push({ t: time, txt: `<b>Fine: vince ${info.winner != null ? info.winner === 0 ? info.home.name : info.away.name : ""}, set ${info.won[0]}-${info.won[1]}</b>`, big: 1 }); }
+  st.sets = info.sets; st.ts = Date.now();
+  st.log = st.log.slice(-80);
+  try { localStorage.setItem(key, JSON.stringify(st)); } catch { /* niente */ }
+  return st.log;
+}
+/* pulizia delle cronache vecchie */
+try { for (const k of Object.keys(localStorage)) if (k.startsWith("p_tl_")) { const v = JSON.parse(localStorage.getItem(k)); if (!v?.ts || Date.now() - v.ts > 2 * 864e5) localStorage.removeItem(k); } } catch { /* niente */ }
 
 /* ------------------------------------------------------------------ formazioni ufficiali (calcio) */
 
@@ -423,11 +472,11 @@ async function attachLive(d) {
 function liveBox(info, d, flash = false) {
   const ix = INDEX.events.find(e => e.id === d.id);
   const on = info.state === "in";
-  const head = `<div class="lb-head">${on ? `<span class="pulse"></span><b>In diretta</b>` : `<b>Finita</b>`}<small>${esc(on ? (info.sport === "soccer" ? info.clock || info.detail : info.detail) : "risultato finale")}</small></div>`;
+  const detail = info.sport === "tennis" ? `${Math.min(info.period || 1, Math.max(info.sets[0].length, 1))}° set` : info.sport === "soccer" ? info.clock || info.detail : info.detail;
+  const head = `<div class="lb-head">${on ? `<span class="pulse"></span><b>In diretta</b>` : `<b>Finita</b>`}<small>${esc(on ? detail : "risultato finale")}</small></div>`;
   let score;
   if (info.sport === "tennis") {
-    const row = (p, i) => `<div class="lb-tennis">${img(p.flag, "tflag")}<span>${esc(p.name)}</span>${info.sets[i].map((g, k) => `<b class="${(info.sets[1 - i][k] ?? 0) < g ? "w" : ""}">${g}</b>`).join("")}</div>`;
-    score = `<div class="${flash ? "flash" : ""}">${row(info.home, 0) + row(info.away, 1)}</div>`;
+    score = `<div class="${flash ? "flash" : ""}">${tennisBoard(info)}</div>`;
   } else {
     score = `<div class="lb-score"><span>${esc(info.home.name)}</span><b class="${flash ? "flash" : ""}">${info.H}<i>-</i>${info.A}</b><span>${esc(info.away.name)}</span></div>`;
   }
@@ -522,7 +571,11 @@ function nbaPlays(info) {
     <p class="note">Descrizioni in inglese, come le scrive ESPN. Il punteggio è casa-ospite.</p>`, "le più recenti in alto", "Azioni live");
 }
 function liveDetails(info, d) {
-  if (info.sport === "tennis") return "";
+  if (info.sport === "tennis") {
+    const log = tennisLog(d.id, info).slice().reverse();
+    return sec("Cronaca", `<div class="rows tlog">${log.map(e => `<div class="r ${e.big ? "big" : ""}"><span class="l"><span class="faint">${esc(e.t)}</span> ${e.txt}</span></div>`).join("")}</div>
+      <p class="note">ESPN per il tennis dà solo i game di ogni set: niente punti del game (15-30-40), servizio o statistiche. Questa cronaca la scrive l'app da quando segue l'incontro, confrontando il punteggio a ogni aggiornamento; i game vinti da chi riceve non si distinguono da quelli al servizio.</p>`, "la più recente in alto", "Cronaca tennis");
+  }
   const [cH, cA] = teamColors(d.home, d.away);
   if (info.sport === "soccer") return soccerTimeline(info) + liveStats(info, cH, cA);
   return nbaPeriods(info, cH, cA) + liveStats(info, cH, cA) + nbaPlays(info);
@@ -611,12 +664,12 @@ async function showLive() {
   const card = e => {
     const ix = byKey[e.id], info = e.info;
     const fl = info.state === "in" && scoreChanged(e.id, info) ? "flash" : "";
-    const href = ix ? `#/e/${encodeURIComponent(ix.id)}` : "#/live";
+    const href = `#/e/${encodeURIComponent(ix?.id || e.id)}`;
     const mine = statusChips(favs().filter(f => f.event === e.id), info);
     if (info.sport === "tennis") {
-      const row = (p, i) => `<div>${img(p.flag, "tflag")}<span>${esc(p.name)}</span><b>${info.sets[i].join(" ")}</b></div>`;
-      return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min on">${esc(info.detail || "Live")}</div>
-        <div class="live-teams ${fl}">${row(info.home, 0)}${row(info.away, 1)}</div></div>${mine}</a>`;
+      const setTxt = info.state === "in" ? `${Math.min(info.period || 1, Math.max(info.sets[0].length, 1))}° set` : "Finale";
+      return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(setTxt)}</div>
+        <div class="${fl}">${tennisBoard(info, true)}</div></div>${mine}</a>`;
     }
     const lr = liveRings(info, ix);
     const min = info.state === "in" ? (info.sport === "soccer" ? (info.clock || info.detail) : info.detail) : "Finale";

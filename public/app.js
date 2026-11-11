@@ -508,7 +508,17 @@ async function showEvent(id) {
   $app.innerHTML = back + `<p class="muted">Caricamento…</p>`;
   let d;
   try { d = await getJSON(`data/events/${encodeURIComponent(id)}.json`); }
-  catch { $app.innerHTML = back + `<div class="empty"><b>Partita non più disponibile</b>Torna all'elenco per vedere quelle in programma.</div>`; return; }
+  catch {
+    const tg = typeof espnTarget === "function" ? espnTarget(id) : null;
+    if (!tg) { $app.innerHTML = back + `<div class="empty"><b>Partita non più disponibile</b>Torna all'elenco per vedere quelle in programma.</div>`; return; }
+    // la scheda con le percentuali non c'è più (partita iniziata da tempo o finita): mostro solo la diretta
+    const m = id.match(/^(calcio|basket|tennis)-(.+)-\d+$/);
+    d = { id, sport: tg.sport, league: m ? m[2] : "", date: new Date(Date.now() - 3600e3).toISOString(), home: { name: "" }, away: { name: "" } };
+    CUR = null;
+    $app.innerHTML = back + `<p class="note" style="margin:0 2px 10px">Le percentuali di questa partita non sono più in elenco: qui c'è il risultato in diretta.</p>`;
+    attachLive(d);
+    return;
+  }
   CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
   const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));

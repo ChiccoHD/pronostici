@@ -127,6 +127,29 @@ export function diff(sport, prev, cur, ev) {
   return out;
 }
 
+/* ------------------------------------------------------------------ cronaca del tennis, game per game
+   (ESPN dà solo i game di ogni set: confrontando ogni minuto si ricostruisce chi ha vinto ogni game) */
+export function tennisLogStep(log, prev, cur, now) {
+  const add = x => log.push({ ...x, t: now });
+  const n = cur.sets[0].length;
+  if (!prev) {       // prima volta: i game già giocati restano un blocco unico
+    for (let k = 0; k < n; k++) {
+      const g = [cur.sets[0][k] ?? 0, cur.sets[1]?.[k] ?? 0];
+      if (g[0] + g[1] > 0) add({ k, g, pre: true });
+    }
+    return log;
+  }
+  for (let k = 0; k < n; k++) {
+    const a0 = prev.sets?.[0]?.[k] ?? 0, b0 = prev.sets?.[1]?.[k] ?? 0, a1 = cur.sets[0][k] ?? 0, b1 = cur.sets[1]?.[k] ?? 0;
+    const da = a1 - a0, db = b1 - b0;
+    if (da < 0 || db < 0) { add({ k, g: [a1, b1], fix: true }); continue; }     // punteggio corretto da ESPN
+    if (da + db === 0) continue;
+    if (da && db) { add({ k, g: [a1, b1], w: null, n: da + db }); continue; }   // più game in un minuto, ordine ignoto
+    for (let i = 1; i <= da + db; i++) add({ k, g: da ? [a0 + i, b1] : [a1, b0 + i], w: da ? 0 : 1 });
+  }
+  return log.slice(-150);
+}
+
 /* ------------------------------------------------------------------ Durable Object */
 export class Push {
   constructor(ctx, env) {
@@ -145,6 +168,11 @@ export class Push {
     const url = new URL(request.url);
     const path = url.pathname.replace(/^\/api\/push\/?/, "");
     try {
+      if (url.pathname.startsWith("/api/live/")) {
+        const id = decodeURIComponent(url.pathname.slice("/api/live/".length));
+        const [log, st] = await Promise.all([this.store.get("log:" + id), this.store.get("st:" + id)]);
+        return json({ log: log || [], sets: st?.sets || null, st: st?.st || null, t: st?.t || null });
+      }
       if (path === "key") return json({ key: (await this.keys()).publicKey });
       if (path === "status") return json(await this.store.get("status") || {});
       if (path === "tick" && request.method === "POST") return json(await this.tick(await request.json()));
@@ -184,7 +212,6 @@ export class Push {
     const status = { tick: new Date().toISOString(), subs: 0, watched: 0, boards: 0, sent: 0, errors: [] };
     const subs = [...(await this.store.list({ prefix: "sub:" })).entries()];
     status.subs = subs.length;
-    if (!subs.length) { await this.store.put("status", status); return status; }
     const now = Date.now();
     // partite in finestra: da 5 minuti prima del via fino a 4 ore dopo (10 nel tennis, gli orari sono indicativi)
     const live = events.filter(e => e.espn && !e.final && (() => {
@@ -204,7 +231,8 @@ export class Push {
         }
       }
     }
-    const watched = live.filter(e => followers.has(e.id));
+    // il tennis si segue sempre (per la cronaca game per game); il resto solo se qualcuno lo segue
+    const watched = live.filter(e => followers.has(e.id) || e.sport === "tennis");
     status.watched = watched.length;
     if (!watched.length) { await this.store.put("status", status); return status; }
     // un tabellone per competizione
@@ -233,6 +261,7 @@ export class Push {
     const subMap = new Map(subs);
     const outbox = [];
     const byId = new Map(watched.map(e => [e.id, e]));
+    const logs = {};
     for (const id of ids) {
       const e = byId.get(id), cur = snaps[id], prev = prevMap.get("st:" + id);
       if (e.sport === "nba") {
@@ -240,6 +269,10 @@ export class Push {
         cur.qn = Math.max(prev?.qn ?? 0, cur.st === "post" ? cur.p - 1 : endish ? cur.p : cur.p - 1);
       }
       cur.t = now;
+      if (e.sport === "tennis") {
+        const changed = !prev || JSON.stringify(prev.sets) !== JSON.stringify(cur.sets);
+        if (changed) logs["log:" + id] = tennisLogStep((await this.store.get("log:" + id)) || [], prev, cur, now);
+      }
       for (const [k, [type, title, body]] of diff(e.sport, prev, cur, e).entries()) {
         for (const key of followers.get(id) || []) {
           const s = subMap.get(key);
@@ -249,7 +282,7 @@ export class Push {
         }
       }
     }
-    await this.store.put(Object.fromEntries(ids.map(id => ["st:" + id, snaps[id]])));
+    await this.store.put({ ...Object.fromEntries(ids.map(id => ["st:" + id, snaps[id]])), ...logs });
     // invio (al massimo 40 per minuto: il resto lo coprirebbe il minuto dopo, ma qui conta la diretta)
     const origin = await this.store.get("origin") || "https://pronostici.pages.dev";
     // in ordine (gol prima del fischio finale), un telefono alla volta in parallelo
@@ -268,7 +301,7 @@ export class Push {
     // pulizia: istantanee delle partite vecchie (una volta l'ora)
     if (new Date().getUTCMinutes() === 7) {
       const old = [...(await this.store.list({ prefix: "st:" })).entries()].filter(([, v]) => now - (v.t || 0) > 2 * 86400e3).map(([k]) => k);
-      if (old.length) await this.store.delete(old.slice(0, 128));
+      if (old.length) await this.store.delete([...old, ...old.map(k => "log:" + k.slice(3))].slice(0, 128));
     }
     status.ms = Date.now() - t0;
     status.errors = status.errors.slice(0, 10);

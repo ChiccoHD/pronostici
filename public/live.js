@@ -261,31 +261,66 @@ function tennisBoard(info, compact = false) {
   return `<div class="tboard ${compact ? "compact" : ""}" style="--n:${n}">${compact ? "" : head}${row(info.home, 0)}${row(info.away, 1)}</div>`;
 }
 
-/* cronaca del tennis: ESPN non la dà, quindi la scrive l'app confrontando il punteggio a ogni aggiornamento */
-function tennisLog(id, info) {
-  const key = "p_tl_" + id;
-  let st;
-  try { st = JSON.parse(localStorage.getItem(key) || "null"); } catch { st = null; }
-  const time = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  const names = [lastName(info.home.name), lastName(info.away.name)];
-  if (!st) st = { sets: info.sets, log: [{ t: time, txt: `Inizio della cronaca: ${info.sets[0].map((g, k) => `${g}-${info.sets[1][k] ?? 0}`).join(", ") || "0-0"}` }] };
-  const prev = st.sets;
-  const n = Math.max(info.sets[0].length, prev[0].length);
-  for (let k = 0; k < n; k++) {
-    const a0 = prev[0][k] ?? 0, b0 = prev[1][k] ?? 0, a1 = info.sets[0][k] ?? 0, b1 = info.sets[1][k] ?? 0;
-    if (a1 > a0) st.log.push({ t: time, txt: `Game ${names[0]}: ${a1}-${b1} nel ${k + 1}° set` });
-    if (b1 > b0) st.log.push({ t: time, txt: `Game ${names[1]}: ${a1}-${b1} nel ${k + 1}° set` });
-    const w = info.setWin?.[k];
-    if (w != null && (a1 !== a0 || b1 !== b0 || !st.done?.includes(k))) {
-      st.done = [...new Set([...(st.done || []), k])];
-      if (a1 !== a0 || b1 !== b0) st.log.push({ t: time, txt: `<b>${names[w]} vince il ${k + 1}° set ${w === 0 ? a1 : b1}-${w === 0 ? b1 : a1}${info.tb?.[w]?.[k] != null ? ` (tie-break ${info.tb[w][k]}-${info.tb[1 - w][k]})` : ""}</b>`, big: 1 });
-    }
+/* cronaca del tennis, game per game. La registra il Worker ogni minuto per tutti gli incontri in corso
+   (/api/live/<id>), così è completa anche se l'app era chiusa; qui si aggiungono i game visti nel frattempo. */
+const TL_CACHE = {};
+function tennisLogFetch(id) {
+  const c = TL_CACHE[id];
+  if (c && (c.busy || Date.now() - c.ts < 20000)) return;
+  TL_CACHE[id] = { ...(c || {}), busy: true, ts: Date.now() };
+  fetch(`/api/live/${encodeURIComponent(id)}`, { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => {
+    TL_CACHE[id] = { log: j?.log || c?.log || [], sets: j?.sets || null, ts: Date.now() };
+    const box = document.getElementById("tlog-" + id);
+    if (box && box.__info) box.innerHTML = tennisLogHtml(id, box.__info);
+  }).catch(() => { TL_CACHE[id] = { ...(c || {}), ts: Date.now() }; });
+}
+/* set per set: i game in ordine, ciascuno colorato per chi l'ha vinto */
+function tennisSets(log, info) {
+  const sets = [];
+  const at = k => (sets[k] ||= { games: [], pre: null, gap: 0 });
+  for (const e of log) {
+    const s = at(e.k);
+    if (e.pre) s.pre = e.g;
+    else if (e.fix) s.games = s.games.filter(x => x.g[0] <= e.g[0] && x.g[1] <= e.g[1]);
+    else s.games.push({ g: e.g, w: e.w, n: e.n });
   }
-  if (info.state === "post" && !st.end) { st.end = 1; st.log.push({ t: time, txt: `<b>Fine: vince ${info.winner != null ? info.winner === 0 ? info.home.name : info.away.name : ""}, set ${info.won[0]}-${info.won[1]}</b>`, big: 1 }); }
-  st.sets = info.sets; st.ts = Date.now();
-  st.log = st.log.slice(-80);
-  try { localStorage.setItem(key, JSON.stringify(st)); } catch { /* niente */ }
-  return st.log;
+  if (!log.length) {     // cronaca non (ancora) registrata: i game già giocati restano un blocco unico
+    info.sets[0].forEach((a1, k) => { const b1 = info.sets[1][k] ?? 0; if (a1 + b1) at(k).pre = [a1, b1]; });
+    return sets;
+  }
+  // game visti dal telefono dopo l'ultimo controllo del Worker
+  info.sets[0].forEach((a1, k) => {
+    const b1 = info.sets[1][k] ?? 0, s = at(k);
+    const last = s.games.length ? s.games[s.games.length - 1].g : s.pre || [0, 0];
+    const da = a1 - last[0], db = b1 - last[1];
+    if (da < 0 || db < 0 || da + db === 0) return;
+    if (da && db) s.games.push({ g: [a1, b1], w: null, n: da + db });
+    else for (let i = 1; i <= da + db; i++) s.games.push({ g: da ? [last[0] + i, b1] : [a1, last[1] + i], w: da ? 0 : 1 });
+  });
+  return sets;
+}
+function tennisLogHtml(id, info) {
+  const names = [lastName(info.home.name), lastName(info.away.name)];
+  const sets = tennisSets(TL_CACHE[id]?.log || [], info);
+  const n = Math.max(info.sets[0].length, sets.length);
+  if (!n) return `<p class="note" style="margin:0">La cronaca comincia con il primo game.</p>`;
+  const cur = info.state === "in" ? n - 1 : -1;
+  const blocks = [];
+  for (let k = n - 1; k >= 0; k--) {
+    const s = sets[k] || { games: [], pre: null };
+    const a = info.sets[0][k] ?? 0, b = info.sets[1][k] ?? 0, w = info.setWin?.[k];
+    const tb = w != null && info.tb?.[w]?.[k] != null ? ` (tie-break ${info.tb[w][k]}-${info.tb[1 - w][k]})` : "";
+    const head = k === cur ? `<b>${k + 1}° set</b><span class="tl-now">in corso · ${names[0]} ${a}-${b} ${names[1]}</span>`
+      : `<b>${k + 1}° set</b><span>${w != null ? `vinto da <b class="p${w}">${names[w]}</b> ${Math.max(a, b)}-${Math.min(a, b)}${tb}` : `${a}-${b}`}</span>`;
+    const pills = [
+      s.pre ? `<span class="tg pre" title="game giocati prima che partisse la cronaca">${s.pre[0]}-${s.pre[1]}<small>già giocati</small></span>` : "",
+      ...s.games.map(x => x.w == null
+        ? `<span class="tg gap" title="${x.n || 2} game nello stesso minuto: ordine non noto">${x.g[0]}-${x.g[1]}<small>${x.n || 2} game</small></span>`
+        : `<span class="tg p${x.w}" title="game a ${names[x.w]}">${x.g[0]}-${x.g[1]}<small>${names[x.w]}</small></span>`),
+    ].join("");
+    blocks.push(`<div class="tl-set ${k === cur ? "cur" : ""}"><div class="tl-h">${head}</div><div class="tl-games">${pills || `<span class="faint">nessun game registrato</span>`}</div></div>`);
+  }
+  return `<div class="tl-key"><span class="tg p0">${names[0]}</span><span class="tg p1">${names[1]}</span><span class="faint">punteggio del set dopo ogni game, colorato per chi l'ha vinto</span></div>${blocks.join("")}`;
 }
 /* pulizia delle cronache vecchie */
 try { for (const k of Object.keys(localStorage)) if (k.startsWith("p_tl_")) { const v = JSON.parse(localStorage.getItem(k)); if (!v?.ts || Date.now() - v.ts > 2 * 864e5) localStorage.removeItem(k); } } catch { /* niente */ }
@@ -583,9 +618,10 @@ function nbaPlays(info) {
 }
 function liveDetails(info, d) {
   if (info.sport === "tennis") {
-    const log = tennisLog(d.id, info).slice().reverse();
-    return sec("Cronaca", `<div class="rows tlog">${log.map(e => `<div class="r ${e.big ? "big" : ""}"><span class="l"><span class="faint">${esc(e.t)}</span> ${e.txt}</span></div>`).join("")}</div>
-      <p class="note">ESPN per il tennis dà solo i game di ogni set: niente punti del game (15-30-40), servizio o statistiche. Questa cronaca la scrive l'app da quando segue l'incontro, confrontando il punteggio a ogni aggiornamento; i game vinti da chi riceve non si distinguono da quelli al servizio.</p>`, "la più recente in alto", "Cronaca tennis");
+    tennisLogFetch(d.id);
+    setTimeout(() => { const box = document.getElementById("tlog-" + d.id); if (box) box.__info = info; }, 0);
+    return sec("Cronaca game per game", `<div class="tlog2" id="tlog-${esc(d.id)}">${tennisLogHtml(d.id, info)}</div>
+      <p class="note">Set più recente in alto. ESPN non dà i punti dentro il game (15-30-40) né chi serve, quindi la cronaca si ferma ai game.</p>`, "", "Cronaca tennis");
   }
   const [cH, cA] = teamColors(d.home, d.away);
   if (info.sport === "soccer") return soccerTimeline(info) + liveStats(info, cH, cA);

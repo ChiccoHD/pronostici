@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Tennis: cronaca game per game", items: [
+    "La cronaca è divisa set per set: ogni game mostra il punteggio e chi l'ha vinto, con i colori dei due giocatori.",
+    "La registra il server ogni minuto per tutti gli incontri, quindi è completa anche se l'app era chiusa." ] },
+  { d: "2026-11-11", t: "Notifiche più semplici", items: [
+    "In fondo a Tu: un interruttore per accenderle e la lista delle partite che segui.",
+    "Campanella gialla sulle partite seguite, ben visibile anche con il tema scuro." ] },
   { d: "2026-11-11", t: "Notifiche", items: [
     "In Tu → Notifiche scegli sport e avvisi: gol, espulsioni, fine primo tempo, fine di ogni quarto, set o game, inizio e fine partita.",
     "Arrivano solo per le partite che segui con la campanella (nell'elenco o in alto nella scheda) e per le squadre e i tennisti che segui.",

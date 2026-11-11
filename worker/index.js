@@ -44,7 +44,7 @@ export default {
   // Il sito resta fatto di soli file statici: qui arriva solo ciò che non esiste in public/.
   fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith("/api/push/") && !url.pathname.endsWith("/tick")) return pushObject(env).fetch(request);
+    if ((url.pathname.startsWith("/api/push/") && !url.pathname.endsWith("/tick")) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
     return env.ASSETS.fetch(request);
   },
   scheduled(event, env, ctx) {

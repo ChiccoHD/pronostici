@@ -12,8 +12,6 @@ function showMe() {
     <div class="me-tiles">${tile(teams.length, teams.length === 1 ? "squadra seguita" : "squadre seguite", "#/tu")}${tile(openSlips.length, "schedine aperte", "#/tu")}
       ${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte", "#/tu")}</div>`;
 
-  if (typeof notifSection === "function") html += notifSection();
-
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
   const evs = [], seen = new Set();
@@ -37,6 +35,7 @@ function showMe() {
   html += sec("I tuoi dati", `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Salvane una copia per non perderli se cambi telefono o cancelli i dati del browser.</p>
     <div class="me-acts"><button type="button" class="btn-main" id="me-export">Salva una copia</button>
     <label class="btn-main alt" style="cursor:pointer">Ripristina da una copia<input type="file" id="me-import" accept="application/json,.json" hidden></label></div>`, "", "Tu dati");
+  if (typeof notifSection === "function") html += notifSection();     // in fondo alla pagina
   $app.innerHTML = html;
   wireSlips();
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();

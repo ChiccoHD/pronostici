@@ -233,7 +233,9 @@ function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
   const navKey = ["info", "live", "migliori", "schedina", "tu"].includes(view) ? view : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  document.body.dataset.view = view || "home";
   window.scrollTo(0, 0);
+  if (typeof layoutRoute === "function" && layoutRoute(view, arg)) return;   // computer: elenco a sinistra (layout.js)
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
   if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
   if (view === "tu") return showMe();
@@ -280,6 +282,10 @@ function dayChips(items, getDate, what = "partite") {
 if (!state.day) state.day = "all";
 
 function showList() {
+  if (typeof listInSide === "function" && listInSide()) return;   // computer: l'elenco sta nella colonna a sinistra
+  renderList();
+}
+function renderList() {
   const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
   const byDay = bySport.filter(e => state.day === "all" || isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";

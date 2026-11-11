@@ -12,6 +12,10 @@ _DROP = {
 
 # Varianti note -> forma usata da football-data.co.uk (già normalizzata)
 ALIASES = {
+    # nomi ESPN che non somigliano a quelli di football-data
+    "deportivo": "la coruna", "deportivo la coruna": "la coruna", "hamarkameratene": "hamkam",
+    "tokyo verdy 1969": "verdy", "tokyo verdy": "verdy", "urawa red diamonds": "urawa reds",
+    "red bull new york": "new york red bulls", "new york red bulls": "new york red bulls",
     # Italia
     "internazionale": "inter", "inter milan": "inter", "milan": "milan", "hellas verona": "verona",
     "roma": "roma", "napoli": "napoli",

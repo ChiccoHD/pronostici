@@ -231,14 +231,15 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["affidabilita", "info", "live", "migliori", "schedina"].includes(view) ? view : view === "multipla" ? "schedina" : "home";
+  const navKey = ["info", "live", "migliori", "schedina", "tu"].includes(view) ? view : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   window.scrollTo(0, 0);
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
-  if (view === "affidabilita") return showReliability();
+  if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
+  if (view === "tu") return showMe();
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
-  if (view === "info") return showInfo();
+  if (view === "info") return showInfoHub(arg);
   if (view === "live") return showLive();
   if (view === "multipla") return showMultipla();
   if (view === "condividi" && arg) return showShared(arg);
@@ -284,9 +285,10 @@ function showList() {
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
-  let html = `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
-    <input id="q" type="search" placeholder="Cerca squadra, tennista o campionato" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
-    <div id="search-res"></div><div id="list-main"><a class="std-link" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Classifiche e squadre<span>›</span></a>${myTeamsBlock()}<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+  let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
+    <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
+    <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
@@ -500,7 +502,7 @@ function wire(id) {
 function reliabilityBlock(g) {
   if (!g) return `<p class="note">Non ancora calcolata.</p>`;
   return `<p style="margin:0"><span class="grade g${g.level}">${esc(g.label)}</span>${esc(g.text)}</p>
-    <p class="note">La verifica rifà le previsioni sulle partite già giocate. <a href="#/affidabilita" style="color:var(--rosa);font-weight:600">Vedi i dettagli</a></p>`;
+    <p class="note">La verifica rifà le previsioni sulle partite già giocate. <a href="#/info/affidabilita" style="color:var(--rosa);font-weight:600">Vedi i dettagli</a></p>`;
 }
 
 async function showEvent(id) {
@@ -1032,35 +1034,6 @@ function showSlip() {
 
 /* ------------------------------------------------------------------ affidabilità */
 
-async function showReliability() {
-  if (!REL) { try { REL = await getJSON("data/affidabilita.json"); } catch { REL = {}; } }
-  const names = { "1x2": "esito 1X2", ou25: "Over/Under 2,5", win: "vincente", total: "Over/Under punti" };
-  let html = sec("Quanto ci prende il modello", `<div class="prose">
-    <p>Per ogni partita già giocata il modello rifà la previsione usando solo i dati disponibili prima del fischio d'inizio, poi la confronta con il risultato e, dove ci sono, con le quote dei bookmaker senza il loro margine.</p>
-    <p>Nei grafici, se i punti stanno sulla diagonale le percentuali sono ben tarate: quando il modello dice 60%, l'evento accade circa 6 volte su 10. L'errore medio (Brier) più basso è il migliore.</p></div>`);
-  const entries = Object.entries(REL);
-  if (!entries.length) html += `<div class="empty"><b>Verifica non ancora disponibile</b>Compare dopo il primo aggiornamento dei dati.</div>`;
-  for (const [, comp] of entries) {
-    for (const [mk, s] of Object.entries(comp)) {
-      if (mk === "espn" && s && s.n) {
-        html += sec("NBA, incrocio con il modello ESPN", `<p style="margin:0 0 6px">Su ${s.n} partite di questa stagione: errore del nostro modello ${num(s.logloss_model, 3)}, del modello ESPN ${num(s.logloss_espn, 3)}, della combinazione ${num(s.logloss_mix, 3)} (più basso è meglio).</p>
-          <p class="note">Peso dato a ESPN nelle percentuali: ${Math.round((s.weight || 0) * 100)}%.</p>`);
-        continue;
-      }
-      if (mk === "name" || !s || !s.n || s.brier == null) continue;
-      html += sec(`${esc(comp.name)}, ${names[mk] || mk}`, `
-        <p style="margin:0 0 6px"><span class="grade g${s.grade?.level ?? 0}">${esc(s.grade?.label || "")}</span>${esc(s.grade?.text || "")}</p>
-        <div class="rows">
-          <div class="r"><span class="l">Partite verificate</span><span class="v">${s.n}</span></div>
-          <div class="r"><span class="l">Errore medio del modello</span><span class="v">${num(s.brier, 3)}</span></div>
-          ${s.brier_book != null ? `<div class="r"><span class="l">Errore medio delle quote</span><span class="v">${num(s.brier_book, 3)}</span></div>` : ""}
-          ${s.calib_error != null ? `<div class="r"><span class="l">Scarto di taratura</span><span class="v">${num(s.calib_error * 100, 1)} punti</span></div>` : ""}
-        </div>${calibChart(s.calibration || [])}`);
-    }
-  }
-  $app.innerHTML = html;
-}
-
 function calibChart(bins) {
   if (!bins.length) return "";
   const W = 320, H = 180, p = 30;
@@ -1071,30 +1044,6 @@ function calibChart(bins) {
     <line class="diag" x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}"/>${pts}
     <text x="${x(0)}" y="${H - 10}">0%</text><text x="${x(1) - 26}" y="${H - 10}">100%</text>
     <text x="${x(.5) - 22}" y="${H - 10}">previsto</text><text x="2" y="${y(1) + 4}">100%</text><text x="2" y="${y(.5)}">reale</text></svg>`;
-}
-
-/* ------------------------------------------------------------------ info */
-
-function showInfo() {
-  const st = META?.status || {};
-  const label = { calcio: "Calcio", nba: "NBA", tennis: "Tennis" };
-  const flat = (k, v) => Array.isArray(v) ? v.join(", ") : typeof v === "object" ? Object.entries(v).map(([a, b]) => `${a}: ${Array.isArray(b) ? b.join(", ") : b}`).join("; ") : v;
-  const status = Object.entries(st).map(([sport, s]) => `<h3>${esc(label[sport] || sport)}${s.aggiornato ? `, ${esc(ago(s.aggiornato))}` : ""}</h3>` +
-    Object.entries(s).filter(([k]) => k !== "aggiornato").map(([k, v]) => {
-      const txt = String(flat(k, v));
-      return `<div class="status-line"><span>${esc(k)}</span><span class="${/errore|non raggiungibile/i.test(txt) || k === "errore" ? "err" : ""}">${esc(txt)}</span></div>`;
-    }).join("")).join("");
-  $app.innerHTML = sec("Come funziona", `<div class="prose">
-    <p>I dati si aggiornano da soli sei volte al giorno, verso le ${UPDATE_TIMES}. A volte GitHub ritarda di qualche decina di minuti.</p>
-    <ul>
-      <li><b>Calcio</b>: forza d'attacco e di difesa di ogni squadra, ricavata dalle ultime tre stagioni con più peso alle partite recenti e mescolando gol reali e gol attesi (xG). Da lì si calcola la probabilità di ogni risultato e quindi tutti i mercati.</li>
-      <li><b>Coppe europee</b>: un unico modello su 11 campionati europei più le partite di coppa, che collegano i campionati tra loro e dicono quanto vale una squadra rispetto a quelle di altri paesi. La Champions femminile usa solo i risultati della competizione.</li>
-      <li><b>NBA</b>: valutazione di attacco e difesa in punti, fattore campo e stanchezza per le partite in due sere di fila, incrociata con il modello di previsione di ESPN con il peso che ha sbagliato meno sulle partite già giocate. Le soglie dei giocatori partono da minuti attesi e medie recenti.</li>
-      <li><b>Tennis</b>: punteggio Elo generale e per superficie, poi una simulazione punto per punto per game, set e tie-break.</li>
-    </ul>
-    <p>Fonti gratuite: calendari, tabellini, infortuni, quote e previsioni da ESPN; risultati, statistiche, gol attesi e quote medie del calcio da football-data.co.uk; gol attesi anche da Understat quando è online. Le quote dei bookmaker non entrano mai nel calcolo: servono solo per il confronto. Carattere Manrope con licenza SIL Open Font.</p>
-    <p>Sono stime statistiche, non certezze, e battere le quote con costanza è molto difficile. Se il gioco smette di essere un divertimento, il Telefono Verde nazionale dell'Istituto Superiore di Sanità risponde all'800 558 822, gratis e in forma anonima.</p></div>`)
-    + sec("Stato delle fonti", status || `<p class="note">Nessun aggiornamento ancora eseguito.</p>`, META?.updated ? esc(ago(META.updated)) : "");
 }
 
 boot();

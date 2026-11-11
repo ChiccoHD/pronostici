@@ -20,6 +20,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - `public/slip.js`: Costruisci la multipla (`#/multipla`, dalle giocate di `migliori.json`) e Condividi la schedina (`#/condividi/<dati>`: le giocate stanno nel link, niente server).
 - Tendenze (serie aperte) in `pipeline/trends.py`: nei file delle partite (`trends`), nelle pagine squadra e in `migliori.json` (`trends`).
 - Tennis: profili dei giocatori in `public/data/tennis/<atp|wta>.json` (`player_profile` in `models/tennis.py`), pagina `#/tennista/<circuito>/<nome>`. ESPN non ha Coppa Davis, BJK Cup, United Cup, Challenger né statistiche dei match (verificato con Verifica fonti, solo = ricerca).
+- `public/me.js`: area personale **Tu** (`#/tu`: squadre seguite, schedine, giocate, copia dei dati) e **Info** (`#/info/come|affidabilita|dati`, che ha assorbito la vecchia pagina Affidabilità; `#/affidabilita` rimanda lì).
 - Sul telefono (`localStorage`): squadre seguite (`p_myteams`, in `teams.js`), schedine salvate con esito controllato in automatico (`p_slips`, in `slip.js`; l'esito lo scrive `attachSlipStatus` in `live.js`).
 - Coppe: le percentuali dei giocatori usano i ritmi di stagione nel loro campionato (`data/cache/soccer/player_base.json`, scritto dal calcio prima delle coppe).
 - Foto dei calciatori: `pipeline/photos.py` (ESPN, poi Wikidata, poi TheSportsDB), esito in `data/cache/photos.json`.

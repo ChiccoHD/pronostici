@@ -117,7 +117,7 @@ const isMine = (lk, id) => myTeams().some(t => t.lk === lk && String(t.id) === S
 function toggleMine(item) {
   const list = myTeams(), had = list.some(t => t.lk === item.lk && String(t.id) === String(item.id));
   saveMyTeams(had ? list.filter(t => !(t.lk === item.lk && String(t.id) === String(item.id))) : [...list, item]);
-  toast(had ? "Tolta dalle tue squadre" : "Aggiunta alle tue squadre: le sue partite sono in cima all'elenco");
+  toast(had ? "Tolta dalle tue squadre" : "Aggiunta alle tue squadre: le sue partite le trovi in Tu");
   return !had;
 }
 function followBtn(item) {
@@ -132,23 +132,6 @@ document.addEventListener("click", e => {
   b.classList.toggle("on", on);
   b.lastChild.textContent = on ? "La segui" : "Segui";
 });
-
-/* in cima all'elenco: le prossime partite delle squadre seguite */
-function myTeamsBlock() {
-  const list = myTeams();
-  if (!list.length) return "";
-  const names = t => new Set([t.name, t.short].filter(Boolean));
-  const evs = [], seen = new Set();
-  for (const t of list) {
-    const ns = names(t);
-    const next = INDEX.events.filter(e => ns.has(e.home) || ns.has(e.away));
-    for (const e of next.slice(0, 2)) if (!seen.has(e.id)) { seen.add(e.id); evs.push(e); }
-  }
-  evs.sort((a, b) => a.date.localeCompare(b.date));
-  const chips = list.map(t => `<a class="my-chip" href="${t.kind === "player" ? `#/tennista/${encodeURIComponent(t.lk)}/${encodeURIComponent(t.id)}` : teamHref(t.lk, t.id)}">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : ""}${esc(t.short || t.name)}</a>`).join("");
-  return `<section class="sec my-teams"><h2>Le mie squadre<small>${list.length}</small></h2><div class="my-chips">${chips}</div>
-    ${evs.length ? `<div class="my-next">${evs.slice(0, 6).map(e => `<section class="group">${fixture(e)}</section>`).join("")}</div>` : `<p class="note">Nessuna loro partita nei prossimi giorni.</p>`}</section>`;
-}
 
 /* ------------------------------------------------------------------ tendenze */
 

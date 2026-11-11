@@ -676,3 +676,51 @@ a.board-t.linked { color: inherit; text-decoration: none; }
 .tlog .l { font-size: 13px; line-height: 1.35; }
 .tlog .r.big .l { color: var(--ink); }
 .tb-fl { display: grid; place-items: center; width: 20px; height: 14px; }
+
+/* ricerca e classifiche in una riga */
+.search-row { display: flex; gap: 8px; align-items: stretch; margin: 2px 0 10px; }
+.search-row .search { flex: 1; margin: 0; }
+.std-btn { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); text-decoration: none; font-size: 10.5px; font-weight: 700; }
+.std-btn svg { width: 20px; height: 20px; fill: none; stroke: var(--go); stroke-width: 2.4; stroke-linecap: round; }
+/* area personale */
+.me-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.me-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border-radius: 14px; background: var(--card); box-shadow: var(--shadow); border: 1px solid var(--rule); text-decoration: none; color: var(--ink); text-align: center; }
+.me-tile b { font-size: 24px; font-weight: 800; line-height: 1.1; }
+.me-tile b small { font-size: 14px; color: var(--ink-3); }
+.me-tile span { font-size: 11.5px; color: var(--ink-2); font-weight: 600; line-height: 1.2; }
+.me-teams { display: grid; gap: 6px; }
+.me-team { display: flex; align-items: center; gap: 8px; padding: 6px 4px 6px 10px; border-radius: 12px; background: var(--soft); }
+.me-team a { flex: 1; display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; min-width: 0; }
+.me-team b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-x { border: 0; background: transparent; color: var(--ink-3); font-size: 22px; line-height: 1; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; }
+.me-slip { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; }
+.me-slip:first-child { border-top: 0; }
+.me-slip small { grid-column: 1 / -1; color: var(--ink-2); font-size: 12.5px; }
+.me-acts { display: grid; gap: 4px; }
+a.btn-main, label.btn-main { box-sizing: border-box; text-align: center; }
+/* info */
+.info-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--soft-2); margin-bottom: 12px; }
+.info-tabs a { flex: 1; text-align: center; padding: 8px 4px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--ink-2); text-decoration: none; }
+.info-tabs a[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.how { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.how:first-child { border-top: 0; padding-top: 0; }
+.how-ic { font-size: 22px; line-height: 1.2; flex: none; width: 28px; text-align: center; }
+.how b { font-size: 15px; }
+.how p { margin: 3px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+.glossary .r { padding: 9px 0; }
+.glossary .l { line-height: 1.4; font-size: 13.5px; }
+.care { margin: 4px 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--draw-bg); font-size: 13.5px; line-height: 1.45; }
+.care p { margin: 4px 0 0; color: var(--ink-2); }
+.care a { color: var(--ink); font-weight: 800; }
+.rel-intro p { font-size: 13.5px; }
+.rel-row { border-top: 1px solid var(--rule); }
+.rel-row:first-of-type { border-top: 0; }
+.rel-row > summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 10px 0; cursor: pointer; }
+.rel-row > summary::-webkit-details-marker { display: none; }
+.rel-row > summary::after { content: "›"; color: var(--ink-3); font-size: 18px; transition: transform .15s; }
+.rel-row[open] > summary::after { transform: rotate(90deg); }
+.rel-n { flex: 1; font-weight: 700; font-size: 14px; min-width: 0; }
+.rel-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; align-items: center; }
+.rel-chips .grade { font-size: 10.5px; margin: 0; }
+.rel-m { padding: 4px 0 12px; }
+.rel-m p { margin: 4px 0 6px; font-size: 13px; color: var(--ink-2); line-height: 1.45; }

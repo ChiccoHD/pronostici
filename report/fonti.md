@@ -1,5 +1,5 @@
 ## Foto dei calciatori
-- ✅ **Wikidata: foto trovate** (7 su 8)
+- ✅ **Wikidata: foto trovate** (8 su 12)
   - Harry Kane: https://commons.wikimedia.org/wiki/Special:FilePath/Harry%20Kane%20England%20v%20Ghana%2023%20June%202026-219%20%28cropped%29.jpg?width=160
   - Michael Olise: https://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Olise%20France%20v%20Senegal%2016%20June%202026-307%20%28cropped%29.jpg?width=160
   - Dayot Upamecano: https://commons.wikimedia.org/wiki/Special:FilePath/Dayot%20Upamecano%20France%20v%20Senegal%2016%20June%202026-402%20%28cropped%29.jpg?width=160
@@ -7,5 +7,9 @@
   - Luis Díaz: https://commons.wikimedia.org/wiki/Special:FilePath/FC%20RB%20Salzburg%20gegen%20FC%20Bayern%20M%C3%BCnchen%20%282026-01-06%20Testspiel%29%2040%20%28Luiz%20D%C3%ADaz%29.jpg?width=160
   - Pedri: https://commons.wikimedia.org/wiki/Special:FilePath/Pedri%20France%20v%20Spain%207.24.26-245.jpg?width=160
   - Kylian Mbappé: https://commons.wikimedia.org/wiki/Special:FilePath/Kylian%20Mbappe%20France%20v%20Senegal%2016%20June%202026-391%20%28cropped%29.jpg?width=160
+  - Josip Stanisic: https://commons.wikimedia.org/wiki/Special:FilePath/Josip%20Stanisic%20Croatia%20v%20Portugal%202%20July%202026-022.jpg?width=160
+  - Kim Min-Jae: None
+  - Lennart Karl: None
+  - Tom Bischof: None
   - Nome Inventato Xyz: None
 - ✅ **TheSportsDB: risponde** (https://r2.thesportsdb.com/images/media/player/cutout/j4ouvd1756408895.png/small)

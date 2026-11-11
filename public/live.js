@@ -693,11 +693,59 @@ async function loadLive() {
   for (const t of ["atp", "wta"]) if (today.has(t)) jobs.push(espnBoard("tennis", t).then(evs => {
     const slug = t === "atp" ? "mens-singles" : "womens-singles", out = [];
     for (const ev of evs) for (const g of ev.groupings || []) if (g.grouping?.slug === slug)
-      for (const c of g.competitions || []) if (c.status?.type?.state === "in") out.push({ id: `tennis-${t}-${c.id}`, league: t, info: tennisInfo({ id: String(c.id) }, [ev]) });
+      for (const c of g.competitions || []) if (["in", "post"].includes(c.status?.type?.state)) out.push({ id: `tennis-${t}-${c.id}`, league: t, info: tennisInfo({ id: String(c.id) }, [ev]) });
     return out;
   }));
   const res = await Promise.allSettled(jobs);
   return { events: res.flatMap(r => r.status === "fulfilled" ? r.value.filter(x => x.info) : []), failed: res.filter(r => r.status === "rejected").length, total: jobs.length };
+}
+
+/* lettura in diretta condivisa (elenco, conteggio "In diretta", esiti): al massimo una ogni pochi secondi */
+let LIVE_CACHE = null;
+async function liveData(maxAge = 20000) {
+  if (LIVE_CACHE && Date.now() - LIVE_CACHE.ts < maxAge) return LIVE_CACHE.data;
+  const data = await loadLive();
+  LIVE_CACHE = { ts: Date.now(), data };
+  recordFinals(data);
+  return data;
+}
+/* partite in corso adesso secondo ESPN (null se non ancora lette) */
+function liveNow(sport = "all") {
+  if (!LIVE_CACHE) return null;
+  return LIVE_CACHE.data.events.filter(e => e.info.state === "in" && (sport === "all" || e.info.sport === sport)).length;
+}
+/* esiti visti dal telefono: le partite finite vanno subito in "Concluse", senza aspettare l'aggiornamento dei dati */
+function phoneFinals() { try { return JSON.parse(localStorage.getItem("p_finals") || "{}"); } catch { return {}; } }
+function recordFinals(data) {
+  const map = phoneFinals(), known = new Set(INDEX.events.map(e => e.id));
+  let added = 0;
+  for (const e of data.events) {
+    if (e.info.state !== "post" || !known.has(e.id) || map[e.id]) continue;
+    const i = e.info;
+    map[e.id] = i.sport === "tennis"
+      ? { h: i.won[0], a: i.won[1], w: i.winner ?? (i.won[0] > i.won[1] ? 0 : 1), sets: i.sets, games: i.games, st: i.detail || "Finita", t: Date.now() }
+      : { h: Number(i.H), a: Number(i.A), st: i.detail || "Finita", t: Date.now() };
+    added++;
+  }
+  const lim = Date.now() - 4 * 86400e3;
+  try { localStorage.setItem("p_finals", JSON.stringify(Object.fromEntries(Object.entries(map).filter(([, f]) => f.t > lim)))); } catch { /* niente */ }
+  if (applyFinals() && added && typeof showListKeepScroll === "function" && /^#?\/?$/.test(location.hash) && state.status !== "live") showListKeepScroll();
+}
+function applyFinals() {
+  if (!INDEX) return 0;
+  const map = phoneFinals();
+  let n = 0;
+  for (const e of INDEX.events) if (!e.final && map[e.id] && !Number.isNaN(map[e.id].h)) { e.final = map[e.id]; n++; }
+  return n;
+}
+
+/* aggiorna il numero sul filtro "In diretta" con quello vero di ESPN */
+function updateLiveCount() {
+  const b = document.querySelector('[data-status="live"]');
+  const n = liveNow(state.sport);
+  if (!b || n == null) return;
+  b.querySelector("small").textContent = n;
+  b.querySelector(".pulse-dot")?.classList.toggle("on", n > 0);
 }
 
 function postSeen() { try { return JSON.parse(localStorage.getItem("p_postseen") || "{}"); } catch { return {}; } }
@@ -713,8 +761,9 @@ async function showLive(opt = { embed: true }) {
   if (!host()) return;
   if (!host().querySelector(".live-page")) host().innerHTML = `<div class="live-page"><p class="muted" style="padding:20px 4px">Carico le partite in corso…</p></div>`;
   let data;
-  try { data = await loadLive(); } catch { data = { events: [], failed: 1, total: 1 }; }
+  try { data = await liveData(5000); } catch { data = { events: [], failed: 1, total: 1 }; }
   if (!still()) return;
+  updateLiveCount();
   const sp = e => state.sport === "all" || (e.info?.sport || e.sport) === state.sport;
   data = { ...data, events: data.events.filter(sp) };
   const byKey = Object.fromEntries(INDEX.events.map(e => [e.id, e]));

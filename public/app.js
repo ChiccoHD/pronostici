@@ -300,7 +300,8 @@ function renderList() {
   const now = Date.now();
   const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
   const ended = bySport.filter(e => isEnded(e)).sort((a, b) => b.date.localeCompare(a.date));
-  const liveIx = bySport.filter(e => !e.final && Date.parse(e.date) <= now && !isEnded(e));
+  if (typeof applyFinals === "function") applyFinals();      // esiti già visti dal telefono
+  const liveN = typeof liveNow === "function" ? liveNow(state.sport) : null;
   const nextIx = bySport.filter(e => Date.parse(e.date) > now);
   if (state.day === "done") { state.day = "all"; state.status = "done"; }
   if (!["all", "live", "next", "done"].includes(state.status)) state.status = "all";
@@ -316,9 +317,9 @@ function renderList() {
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
-  const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveIx.length], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
+  const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
-    `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
+    `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
   if (st === "all" || st === "next") html += dayChips(ahead, e => e.date, "partite");
   if (LEAGUES[state.sport] && st !== "live") {
     const n = {};
@@ -370,6 +371,8 @@ function renderList() {
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
   if (st === "live" && typeof showLive === "function") setTimeout(() => showLive({ embed: true }), 0);
+  // fuori dal filtro "In diretta": una lettura ogni tanto per il numero di partite in corso e gli esiti appena arrivati
+  else if (typeof liveData === "function") liveData(60000).then(updateLiveCount).catch(() => null);
   $app.querySelectorAll("[data-group]").forEach(b => b.onclick = () => {
     const g = b.dataset.group, list = closedGroups();
     saveClosedGroups(list.includes(g) ? list.filter(x => x !== g) : [...list, g]);

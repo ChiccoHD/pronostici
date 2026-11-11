@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Diretta e Concluse più precise", items: [
+    "Il numero su \"In diretta\" ora conta solo le partite davvero in corso secondo ESPN.",
+    "Una partita appena finita passa subito in Concluse, senza aspettare il prossimo aggiornamento dei dati." ] },
   { d: "2026-11-11", t: "Schedina sempre a portata di mano", items: [
     "Quando hai giocate in schedina, in basso compare una barra con quota e probabilità: toccala e la schedina si apre lì sotto, senza cambiare pagina.",
     "Costruisci la multipla: aggiungendo una proposta, la schedina si apre subito sotto.",

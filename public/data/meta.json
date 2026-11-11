@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T18:53+00:00",
+ "updated": "2026-11-11T19:25+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -222,6 +222,34 @@
     "partite_storico": 161
    },
    "aggiornato": "2026-11-11T18:52+00:00"
+  },
+  "nazionali": {
+   "storico": "12369 partite, fino al 2026-10-06",
+   "nations-league": "34 giorni controllati",
+   "mondiali": "fuori stagione",
+   "europei": "fuori stagione",
+   "qual-europei": "fuori stagione",
+   "qual-mondiali": "fuori stagione",
+   "qual-mondiali-sudamerica": "fuori stagione",
+   "qual-mondiali-concacaf": "fuori stagione",
+   "qual-mondiali-asia": "fuori stagione",
+   "qual-mondiali-africa": "fuori stagione",
+   "copa-america": "fuori stagione",
+   "coppa-africa": "fuori stagione",
+   "qual-coppa-africa": "34 giorni controllati",
+   "coppa-asia": "34 giorni controllati",
+   "gold-cup": "fuori stagione",
+   "concacaf-nations": "34 giorni controllati",
+   "amichevoli": "7 giorni controllati",
+   "risultati_recenti_da_espn": 1,
+   "in_arrivo_nations-league": 52,
+   "in_arrivo_qual-coppa-africa": 48,
+   "in_arrivo_concacaf-nations": 32,
+   "in_arrivo_amichevoli": 41,
+   "nazionali_senza_storico": [
+    "St. Martin"
+   ],
+   "aggiornato": "2026-11-11T19:25+00:00"
   }
  }
 }

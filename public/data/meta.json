@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T11:22+00:00",
+ "updated": "2026-11-11T12:09+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -53,6 +53,65 @@
     "partite_in_arrivo": 6,
     "foto_giocatori": "senza foto 6, TheSportsDB 7, Wikipedia 119, da controllare 67, ESPN 10"
    },
+   "serie-b": {
+    "football-data": "ok",
+    "xg": "football-data, 110 partite",
+    "xg_partite": 110,
+    "espn": "ok",
+    "espn_tabellini": "110 partite",
+    "partite_in_arrivo": 8,
+    "foto_giocatori": "da controllare 200, ESPN 4, Wikipedia 77"
+   },
+   "championship": {
+    "football-data": "ok",
+    "xg": "football-data, 180 partite",
+    "xg_partite": 180,
+    "espn": "ok",
+    "espn_tabellini": "120 partite",
+    "nomi_non_abbinati": [
+     "Queens Park Rangers"
+    ],
+    "partite_in_arrivo": 11
+   },
+   "eredivisie": {
+    "football-data": "ok",
+    "xg": "football-data, 108 partite",
+    "xg_partite": 108,
+    "espn": "ok",
+    "espn_tabellini": "108 partite",
+    "partite_in_arrivo": 5,
+    "foto_giocatori": "ESPN 124, Wikipedia 19, da controllare 27"
+   },
+   "super-lig": {
+    "football-data": "ok",
+    "xg": "football-data, 99 partite",
+    "xg_partite": 99,
+    "espn": "ok",
+    "espn_tabellini": "99 partite",
+    "nomi_non_abbinati": [
+     "Amed SFK"
+    ],
+    "partite_in_arrivo": 4,
+    "foto_giocatori": "da controllare 58, Wikipedia 47, ESPN 2"
+   },
+   "scozia": {
+    "football-data": "ok",
+    "xg": "football-data, 75 partite",
+    "xg_partite": 75,
+    "espn": "ok",
+    "espn_tabellini": "75 partite",
+    "partite_in_arrivo": 6,
+    "foto_giocatori": "da controllare 123, ESPN 8, Wikipedia 72"
+   },
+   "belgio": {
+    "football-data": "ok",
+    "xg": "football-data, 99 partite",
+    "xg_partite": 99,
+    "espn": "ok",
+    "espn_tabellini": "99 partite",
+    "partite_in_arrivo": 5,
+    "foto_giocatori": "da controllare 129, Wikipedia 44, ESPN 4"
+   },
    "primeira-liga": {
     "football-data": "ok",
     "xg": "football-data, 98 partite",
@@ -85,7 +144,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 108, Wikipedia 33, ESPN 1"
    },
-   "aggiornato": "2026-11-11T11:21+00:00"
+   "aggiornato": "2026-11-11T12:08+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -96,7 +155,7 @@
    },
    "partite_in_arrivo": 34,
    "partite_stagione": 160,
-   "aggiornato": "2026-11-11T10:58+00:00"
+   "aggiornato": "2026-11-11T12:09+00:00"
   },
   "tennis": {
    "atp": {
@@ -107,14 +166,14 @@
     "storico": "12389 incontri (+0)",
     "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-11T10:58+00:00"
+   "aggiornato": "2026-11-11T12:09+00:00"
   },
   "coppe": {
    "uomini": {
     "espn_uefa.champions": "261 giocate, 11 giorni controllati",
     "espn_uefa.europa": "261 giocate, 11 giorni controllati",
     "espn_uefa.europa.conf": "206 giocate, 11 giorni controllati",
-    "partite_modello": "16059 di campionato, 728 di coppa",
+    "partite_modello": "18213 di campionato, 728 di coppa",
     "in_arrivo_champions": 18,
     "in_arrivo_europa-league": 0,
     "in_arrivo_conference": 0,
@@ -167,7 +226,7 @@
     "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-11T11:22+00:00"
+   "aggiornato": "2026-11-11T12:09+00:00"
   }
  }
 }

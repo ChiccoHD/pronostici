@@ -12,7 +12,8 @@ from .config import CACHE, CUPS, EURO_LINK_FD, EURO_LINK_FDNEW, PUBLIC_DATA, SOC
 from .names import Matcher
 from .sources import espn, footballdata
 from .models import soccer as S
-from .build_soccer import _fd_history, espn_book
+from .build_soccer import _fd_history, espn_book, PLAYER_BASE
+from . import photos
 
 log = logging.getLogger("cups")
 
@@ -58,19 +59,40 @@ def _detail(key, name, e, home, away, matches, ratings, bt, share, kind):
     def team(side, nm):
         t = e[side]
         return {"name": t["name"], "short": t["short"], "abbr": t.get("abbr"), "color": t.get("color"),
+                "id": t.get("id"), "lk": (_player_base().get(str(t.get("id") or "")) or {}).get("league"),
                 "alt": t.get("alt"), "logo": t.get("logo"), "fd": nm, "rating": ratings.table().get(nm)}
     th, ta = S.team_summary(matches, home, sf), S.team_summary(matches, away, sf)
     known = lambda nm: sum(1 for m in matches if nm in (m["home"], m["away"]))
+    # giocatori: i ritmi di stagione nel loro campionato, con i gol attesi di questa partita di coppa
+    base = _player_base()
+    def players(side, lam):
+        b = base.get(str(e[side].get("id") or ""))
+        if not b or kind != "men":
+            return []
+        out = S.player_finalize(b["players"], lam, b["avg"])
+        for p in out:
+            u = photos.url_for(p["pid"])
+            if u is not None:
+                p["photo"] = u
+        return out
     return {
         "id": f"calcio-{key}-{e['id']}", "sport": "soccer", "league": key, "league_name": name, "cup": kind,
         "date": e["date"], "venue": e.get("venue"),
         "home": team("home", home), "away": team("away", away),
         "markets": mk, "corners": None, "cards": None, "book": espn_book(e) or None,
-        "form": {"home": th, "away": ta}, "h2h": S.h2h(matches, home, away), "players": {"home": [], "away": []},
+        "form": {"home": th, "away": ta}, "h2h": S.h2h(matches, home, away), "players": {"home": players("home", lh), "away": players("away", la)},
         "low_data": known(home) < 15 or known(away) < 15,
         "reliability": bt["1x2"].get("grade"),
         "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
     }
+
+
+_PB = None
+def _player_base():
+    global _PB
+    if _PB is None:
+        _PB = store.load(PLAYER_BASE, {}) or {}
+    return _PB
 
 
 def _index_entry(d):

@@ -126,6 +126,14 @@ def attach_many(details: list[dict], today_d: date, count: dict) -> None:
         count[k] = count.get(k, 0) + 1
 
 
+def url_for(pid) -> str | None:
+    """Foto già trovata per un calciatore (solo dalla memoria, senza richieste)."""
+    if not ENABLED:
+        return None
+    e = _load().get("soccer", {}).get(str(pid))
+    return e.get("u") if e else None
+
+
 def save() -> None:
     if ENABLED and _cache is not None:
         store.save(PATH, _cache)

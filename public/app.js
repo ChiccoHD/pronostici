@@ -214,7 +214,7 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["affidabilita", "info", "live", "migliori", "schedina"].includes(view) ? view : "home";
+  const navKey = ["affidabilita", "info", "live", "migliori", "schedina"].includes(view) ? view : view === "multipla" ? "schedina" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   window.scrollTo(0, 0);
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
@@ -223,6 +223,10 @@ function route() {
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfo();
   if (view === "live") return showLive();
+  if (view === "multipla") return showMultipla();
+  if (view === "condividi" && arg) return showShared(arg);
+  if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
+  if (view === "squadra" && arg) { const [, , lk, id] = location.hash.split("/"); return showTeam(decodeURIComponent(lk), decodeURIComponent(id || "")); }
   showList();
 }
 
@@ -264,7 +268,7 @@ function showList() {
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
   let html = `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra, tennista o campionato" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
-    <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+    <div id="search-res"></div><div id="list-main"><a class="std-link" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Classifiche e squadre<span>›</span></a><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
@@ -439,8 +443,9 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
   const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
   const crest = (t, c) => t.logo ? img(t.logo, "") : t.photo ? img(t.photo, "pphoto") + img(t.flag, "tflag") : t.flag ? img(t.flag, "tflag") :
     `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(t.name))}</span>`;
-  const team = (t, sub, c) => `<div class="board-t"><span class="crest">${crest(t, c)}</span>
-    <div class="board-name">${esc(t.name)}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</div>`;
+  const team = (t, sub, c) => { const href = d.sport !== "tennis" && t.lk && t.id ? teamHref(t.lk, t.id) : "";
+    return `<${href ? `a href="${href}"` : "div"} class="board-t ${href ? "linked" : ""}"><span class="crest">${crest(t, c)}</span>
+    <div class="board-name">${esc(t.name)}${href ? `<span class="tl-arrow">›</span>` : ""}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</${href ? "a" : "div"}>`; };
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
   return `<div class="board">
     <div class="board-meta"><span>${esc(d.league_name)}</span><span>${esc(when)}</span></div>
@@ -636,14 +641,14 @@ function soccerPlayers(d, cH, cA, lu = null, side = "home") {
   const order = { start: 0, bench: 1, out: 2 };
   const tbl = (side, c) => {
     let list = d.players[side];
-    if (!list.length) return `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
+    if (!list.length) return `<p class="note">${d.cup === "women" ? "Per la Champions femminile non ci sono dati sui singoli giocatori." : d.cup ? `Per ${esc(d[side].short || d[side].name)} non ci sono dati sui giocatori: gioca in un campionato che l'app non segue.` : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
     if (lu) list = list.map(p => withLineup(p, status(side, p))).sort((a, b) => order[a.lu] - order[b.lu] || b.p_goal - a.p_goal);
     return `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
     ${list.map(p => `<div class="sp-row ${p.lu === "out" ? "sp-out" : ""}">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${p.lu ? `<i class="lu lu-${p.lu}">${LU_LABEL[p.lu]}</i> ` : ""}${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
       <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`;
   };
   return `<div id="sp-wrap"><div data-segpane="pl:home" ${side !== "home" ? "hidden" : ""}>${tbl("home", cH)}</div><div data-segpane="pl:away" ${side !== "away" ? "hidden" : ""}>${tbl("away", cA)}</div>
-    <p class="note">${lu ? "Percentuali ricalcolate con le formazioni ufficiali: un titolare gioca tutta la partita, chi è in panchina entra circa una volta su due per uno spezzone." : "Stime da presenze, titolarità e gol attesi della squadra in questa partita. Quando escono le formazioni ufficiali (circa un'ora prima) vengono ricalcolate qui."}</p></div>`;
+    <p class="note">${lu ? "Percentuali ricalcolate con le formazioni ufficiali: un titolare gioca tutta la partita, chi è in panchina entra circa una volta su due per uno spezzone." : `${d.cup ? "Nelle coppe i numeri dei giocatori vengono dal loro campionato. " : ""}Stime da presenze, titolarità e gol attesi della squadra in questa partita. Quando escono le formazioni ufficiali (circa un'ora prima) vengono ricalcolate qui.`}</p></div>`;
 }
 
 /* formazioni ufficiali arrivate (da live.js): riquadro con titolari e panchina, e tabella giocatori ricalcolata */
@@ -924,10 +929,10 @@ function showSlip() {
       ${res}</a>${f.result ? "" : star(f.key)}</div>`;
   };
   if (!all.length) {
-    $app.innerHTML = `<div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui. Quando le partite finiscono, l'esito resta nello storico.</div>`;
+    $app.innerHTML = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a><div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui. Quando le partite finiscono, l'esito resta nello storico.</div>`;
     return;
   }
-  let html = "";
+  let html = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a>`;
   const open = [...next, ...doneNow];
   if (open.length) {
     const events = new Set(open.map(f => f.event));
@@ -937,7 +942,8 @@ function showSlip() {
       <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
       <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
       <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. Quando una partita inizia, sotto ogni giocata compare come sta andando: in verde se è già presa o per ora va bene, in rosso se è persa o per ora va male. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
-      ${next.length ? `<button type="button" class="link-btn" id="slip-clear">Togli le giocate non ancora iniziate</button>` : ""}</section>`;
+      ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
+        <button type="button" class="link-btn" id="slip-clear">Togli le giocate non ancora iniziate</button></div>` : ""}</section>`;
     html += `<section class="sec">${open.map(row).join("")}</section>`;
   }
   if (waiting.length) html += `<section class="sec past"><h2>In attesa dell'esito<small>${waiting.length}</small></h2>${waiting.map(row).join("")}</section>`;
@@ -963,6 +969,8 @@ function showSlip() {
   }
   html += `<p class="note">La schedina e lo storico sono salvati su questo telefono.</p>`;
   $app.innerHTML = html;
+  const sh = document.getElementById("slip-share");
+  if (sh) sh.onclick = () => shareSlip(next);
   const c = document.getElementById("slip-clear");
   if (c) c.onclick = () => { if (confirm("Togliere le giocate non ancora iniziate?")) { saveFavs(all.filter(f => !next.includes(f))); showSlip(); } };
   const ch = document.getElementById("slip-clear-hist");

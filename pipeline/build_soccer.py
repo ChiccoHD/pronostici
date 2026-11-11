@@ -229,6 +229,10 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
             for detail in details:
                 store.save(PUBLIC_DATA / "events" / f"{detail['id']}.json", detail)
                 index.append(_index_entry(detail))
+            try:  # classifica e schede squadra: un errore qui non tocca le partite
+                league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table)
+            except Exception:
+                log.exception("Pagina campionato %s", key)
             if unmatched:
                 status["nomi_non_abbinati"] = sorted(unmatched)
             status["partite_in_arrivo"] = len(upcoming)
@@ -275,6 +279,7 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
         t = e[side]
         p = pos.get(name, {})
         return {"name": t["name"], "short": t["short"], "abbr": t.get("abbr"), "color": t.get("color"), "alt": t.get("alt"), "logo": t.get("logo"), "fd": name,
+                "id": t.get("id"), "lk": key,
                 "pos": p.get("pos"), "pts": p.get("pts"), "played": p.get("p"),
                 "rating": ratings.table().get(name)}
     return {
@@ -304,3 +309,50 @@ def _index_entry(d):
             "book": (d.get("book") or {}).get("1x2"),
             "extra": {"Over 2,5": mk["ou"]["2.5"], "Goal": mk["btts"]},
             "xg": mk["xg"]}
+
+
+# ---------------------------------------------------------------- classifica e schede squadra
+
+PLAYER_BASE = CACHE / "soccer" / "player_base.json"
+
+
+def _public_player(p: dict) -> dict:
+    out = {k: v for k, v in p.items() if not k.startswith("_")}
+    u = photos.url_for(p["pid"])
+    if u:
+        out["photo"] = u
+    return out
+
+
+def league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table):
+    """Scrive public/data/leagues/<campionato>.json (classifica e squadre) e i ritmi dei giocatori per le coppe."""
+    sf = season_from.isoformat()
+    espn_of = {}                      # nome football-data -> dati ESPN della squadra
+    for e in events:
+        for side in ("home", "away"):
+            t = e[side]
+            fd = matcher.match(t["name"])
+            if fd and t.get("id"):
+                espn_of[fd] = {k: t.get(k) for k in ("id", "name", "short", "abbr", "color", "alt", "logo")}
+    base_cache = store.load(PLAYER_BASE, {})
+    rows, teams = [], {}
+    for row in table:
+        info = espn_of.get(row["team"], {})
+        summ = S.team_summary(matches, row["team"], sf)
+        tid = str(info.get("id") or "")
+        rows.append({**{k: row[k] for k in ("pos", "p", "w", "d", "l", "gf", "ga", "gd", "pts")}, "fd": row["team"],
+                     "id": tid, "name": info.get("name") or row["team"], "short": info.get("short") or row["team"],
+                     "logo": info.get("logo"), "color": info.get("color"), "form": summ["form5"].get("seq", [])})
+        if not tid:
+            continue
+        base = S.player_base(lines, tid, completed_by_team.get(tid, []))
+        base_cache[tid] = {"avg": summ["season"].get("gf") or 1.3, "players": base, "league": key}
+        players = sorted((_public_player(p) for p in base), key=lambda p: (-(p["tot"]["g"] + p["tot"]["a"]), -p["apps"]))
+        teams[tid] = {**info, "fd": row["team"], "pos": row["pos"], "pts": row["pts"],
+                      "last": summ["last"][:10], "form5": summ["form5"], "form10": summ["form10"],
+                      "season": summ["season"], "home_season": summ["home_season"], "away_season": summ["away_season"],
+                      "players": players}
+    store.save(PLAYER_BASE, base_cache)
+    store.save(PUBLIC_DATA / "leagues" / f"{key}.json", {
+        "key": key, "name": lg["name"], "sport": "soccer", "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
+        "table": rows, "teams": teams})

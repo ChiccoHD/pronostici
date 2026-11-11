@@ -286,6 +286,11 @@ def player_markets(lines: list[dict], team_id: str, lam_team: float, team_avg_go
                    last_event_ids: list[str]) -> list[dict]:
     """Probabilità per giocatore: segna, assist, almeno un tiro in porta, ammonizione.
     lines = righe ESPN della stagione per la squadra; last_event_ids = ultime partite della squadra."""
+    return player_finalize(player_base(lines, team_id, last_event_ids), lam_team, team_avg_goals)
+
+
+def player_base(lines: list[dict], team_id: str, last_event_ids: list[str]) -> list[dict]:
+    """Ritmi di stagione dei giocatori di una squadra, indipendenti dall'avversario (servono anche alle coppe)."""
     by_p = defaultdict(list)
     for x in lines:
         if x["team"] == team_id:
@@ -313,6 +318,12 @@ def player_markets(lines: list[dict], team_id: str, lam_team: float, team_avg_go
             "_sot": rate("sot", 0.3) * involvement, "_sh": rate("sh", 0.8) * involvement,
             "_yc": rate("yc", 0.12) * involvement,
         })
+    return out
+
+
+def player_finalize(base: list[dict], lam_team: float, team_avg_goals: float) -> list[dict]:
+    """Dai ritmi di stagione alle probabilità per questa partita (gol attesi della squadra)."""
+    out = [dict(p) for p in base]
     if not out:
         return []
     scale = lam_team / max(team_avg_goals, 0.3)

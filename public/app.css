@@ -535,3 +535,55 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 .plays .l { font-size: 12.5px; line-height: 1.35; }
 .plays .r.scoring .l { color: var(--ink); font-weight: 600; }
 .st-bar span { box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .35); }
+
+/* classifiche e squadre */
+.std-link { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--card); box-shadow: var(--shadow); border: 1px solid var(--rule); font-weight: 700; font-size: 14px; color: var(--ink); text-decoration: none; }
+.std-link svg { width: 18px; height: 18px; fill: none; stroke: var(--go); stroke-width: 2.4; stroke-linecap: round; }
+.std-link span { margin-left: auto; color: var(--ink-3); font-size: 18px; }
+.page-h { font-size: 22px; font-weight: 800; margin: 4px 2px 10px; letter-spacing: -.02em; }
+.chip-a { flex: none; border: 1px solid var(--rule-strong); background: var(--card); border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.chip-a[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); }
+.tbl-leagues { margin-bottom: 4px; }
+.std { font-size: 13.5px; }
+.std-r { display: grid; grid-template-columns: 24px minmax(0, 1fr) 28px 34px 32px 62px; align-items: center; gap: 6px; padding: 8px 0; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; font-variant-numeric: tabular-nums; }
+.std.nba .std-r { grid-template-columns: 24px minmax(0, 1fr) 26px 26px 30px 62px; }
+.std-r.head { border-top: 0; padding-top: 0; font-size: 11px; font-weight: 700; color: var(--ink-3); }
+.std-r > span:not(.std-t) { text-align: center; }
+.std-r > span:first-child { color: var(--ink-2); font-weight: 700; }
+.std-r.z-top > span:first-child { color: var(--go-ink); }
+.std-r.z-mid > span:first-child { color: var(--draw); }
+.std-t { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.std-t b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-form { display: inline-flex; gap: 3px; justify-content: flex-end; }
+.mini-form i { width: 9px; height: 9px; border-radius: 50%; background: var(--ring-mid); }
+.mini-form i.V { background: var(--win); }
+.mini-form i.N { background: var(--draw); }
+.mini-form i.P { background: var(--loss); }
+.team-head { text-align: center; }
+.team-head .th-logo { display: grid; place-items: center; height: 72px; }
+.team-head .th-logo img { max-width: 68px; max-height: 68px; object-fit: contain; }
+.team-head .th-logo .mono { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 20px; }
+.team-head h1 { font-size: 22px; margin: 8px 0 4px; letter-spacing: -.02em; }
+.th-sub { font-size: 13px; color: var(--ink-2); }
+.th-form { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 10px; }
+.th-form small { font-size: 11px; color: var(--ink-3); }
+.th-link { display: inline-block; margin-top: 12px; font-weight: 700; font-size: 13.5px; color: var(--go-ink); text-decoration: none; }
+.st3 th { text-align: right; }
+.sp-row.nba-pl { grid-template-columns: 32px minmax(0, 1fr) repeat(4, 42px); }
+a.board-t.linked { color: inherit; text-decoration: none; }
+.tl-arrow { color: var(--ink-3); margin-left: 4px; font-weight: 600; }
+
+/* multipla e condivisione */
+.mp-lab { font-size: 12px; font-weight: 700; color: var(--ink-2); margin: 10px 0 6px; }
+.mp-lab:first-child { margin-top: 0; }
+.mp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-chips button { border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.mp-chips button[aria-pressed="true"] { background: var(--go); border-color: var(--go); color: #fff; }
+.mp-tr { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.mp-tr.t10 { color: var(--go-ink); }
+.mp-tr.t8 { color: var(--go-ink); opacity: .8; }
+.mp-tr.t4, .mp-tr.t5 { color: var(--draw); }
+.btn-main { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 12px; background: var(--go); color: #fff; font: inherit; font-weight: 800; font-size: 14.5px; cursor: pointer; }
+.btn-main svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+.slip-acts { display: grid; gap: 4px; }
+.pk.faded { opacity: .5; }

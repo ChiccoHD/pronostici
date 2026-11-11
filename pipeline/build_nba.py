@@ -129,7 +129,7 @@ def build(today: date):
             def team(t, b2b, injd):
                 n = names.get(t, (t, None, None, None))
                 rr = rec.get(t, {"w": 0, "l": 0})
-                return {"name": n[0], "short": n[1], "color": n[2], "logo": n[3], "id": t, "record": rr,
+                return {"name": n[0], "short": n[1], "color": n[2], "logo": n[3], "id": t, "lk": "nba", "record": rr,
                         "b2b": b2b, "rating": mdl.ratings().get(t), "injuries": list(injd.values())}
             detail = {
                 "id": f"basket-nba-{g['id']}", "sport": "nba", "league": "nba", "league_name": "NBA",
@@ -156,6 +156,53 @@ def build(today: date):
             log.exception("NBA partita %s", g["id"])
             status.setdefault("errori_partite", []).append(f"{g['id']}: {ex}")
     store.save(bpi_path, bpi)
+    try:  # classifica e schede squadra: un errore qui non tocca le partite
+        league_page(games, lines, rec, names, season_from)
+    except Exception:
+        log.exception("Pagina NBA")
     status["partite_in_arrivo"] = len(upcoming)
     status["partite_stagione"] = len(cur_done)
     return index, reliability, status
+
+
+# ---------------------------------------------------------------- classifica e schede squadra
+
+EAST = {"ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DET", "IND", "MIA", "MIL", "NY", "ORL", "PHI", "TOR", "WSH"}
+
+
+def league_page(games, lines, rec, names, season_from):
+    from collections import defaultdict
+    by_team = defaultdict(lambda: defaultdict(list))
+    for x in lines:
+        by_team[x["team"]][x["pid"]].append(x)
+    rows, teams = [], {}
+    for t, n in names.items():
+        rr = rec.get(t)
+        if not rr:
+            continue
+        summ = N.team_summary(games, t, season_from)
+        gp = rr["w"] + rr["l"]
+        row = {"id": t, "name": n[0], "short": n[1], "color": n[2], "logo": n[3], "w": rr["w"], "l": rr["l"],
+               "pct": round(rr["w"] / gp, 3) if gp else 0, "group": "Est" if n[1] in EAST else "Ovest",
+               "pf": summ["season"].get("pf"), "pa": summ["season"].get("pa"), "form": summ["form5"].get("seq", [])}
+        rows.append(row)
+        players = []
+        for pid, rs in by_team[t].items():
+            rs = sorted(rs, key=lambda x: x["date"], reverse=True)
+            b = N.player_block(rs, 200)
+            if b and b["min"] >= 8:
+                players.append({"pid": pid, "name": rs[0]["name"], "pos": rs[0].get("pos"), "gp": len(rs), **b})
+        players.sort(key=lambda p: -p["pts"])
+        teams[t] = {"id": t, "name": n[0], "short": n[1], "color": n[2], "logo": n[3], "record": rr, "group": row["group"],
+                    "last": summ["last"][:10], "form5": summ["form5"], "form10": summ["form10"], "season": summ["season"],
+                    "home_season": summ["home_season"], "away_season": summ["away_season"], "players": players[:15]}
+    for g in ("Est", "Ovest"):
+        grp = sorted([x for x in rows if x["group"] == g], key=lambda x: (-x["pct"], -x["w"]))
+        for i, x in enumerate(grp, 1):
+            x["pos"] = i
+    rows.sort(key=lambda x: (x["group"], x["pos"]))
+    for t in teams.values():
+        t["pos"] = next(x["pos"] for x in rows if x["id"] == t["id"])
+    store.save(PUBLIC_DATA / "leagues" / "nba.json", {
+        "key": "nba", "name": "NBA", "sport": "nba", "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
+        "table": rows, "teams": teams, "names": {t: v[0] for t, v in names.items()}})

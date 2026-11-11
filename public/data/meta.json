@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T10:58+00:00",
+ "updated": "2026-11-11T11:22+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -11,7 +11,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 4,
-    "foto_giocatori": "ESPN 11, TheSportsDB 41, Wikipedia 63, senza foto 18, da controllare 8"
+    "foto_giocatori": "ESPN 11, TheSportsDB 47, Wikipedia 63, senza foto 20"
    },
    "premier-league": {
     "football-data": "ok",
@@ -30,11 +30,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "119 partite",
-    "nomi_non_abbinati": [
-     "Deportivo"
-    ],
     "partite_in_arrivo": 5,
-    "foto_giocatori": "TheSportsDB 24, senza foto 2, Wikipedia 63, da controllare 51, ESPN 4"
+    "foto_giocatori": "TheSportsDB 24, senza foto 2, Wikipedia 79, da controllare 69, ESPN 5"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -69,11 +66,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "340 partite",
-    "nomi_non_abbinati": [
-     "Urawa Red Diamonds"
-    ],
     "partite_in_arrivo": 10,
-    "foto_giocatori": "da controllare 242, Wikipedia 64, senza foto 12, TheSportsDB 1, ESPN 2"
+    "foto_giocatori": "da controllare 272, Wikipedia 70, senza foto 12, TheSportsDB 1, ESPN 2"
    },
    "mls": {
     "football-data": "ok",
@@ -88,13 +82,10 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "208 partite",
-    "nomi_non_abbinati": [
-     "Hamarkameratene"
-    ],
     "partite_in_arrivo": 4,
-    "foto_giocatori": "da controllare 73, Wikipedia 33, ESPN 1"
+    "foto_giocatori": "da controllare 108, Wikipedia 33, ESPN 1"
    },
-   "aggiornato": "2026-11-11T10:57+00:00"
+   "aggiornato": "2026-11-11T11:21+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -176,7 +167,7 @@
     "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-11T10:58+00:00"
+   "aggiornato": "2026-11-11T11:22+00:00"
   }
  }
 }

@@ -700,16 +700,22 @@ async function loadLive() {
   return { events: res.flatMap(r => r.status === "fulfilled" ? r.value.filter(x => x.info) : []), failed: res.filter(r => r.status === "rejected").length, total: jobs.length };
 }
 
-async function showLive() {
+/* partite in diretta: dentro l'elenco principale (filtro "In diretta"), nel riquadro #live-embed */
+async function showLive(opt = { embed: true }) {
   clearTimeout(liveTimer);
-  if (!$app.querySelector(".live-page")) $app.innerHTML = `<div class="live-page"><p class="muted" style="padding:20px 4px">Carico le partite in corso…</p></div>`;
+  const host = () => document.getElementById("live-embed");
+  const still = () => state.status === "live" && !!host();
+  if (!host()) return;
+  if (!host().querySelector(".live-page")) host().innerHTML = `<div class="live-page"><p class="muted" style="padding:20px 4px">Carico le partite in corso…</p></div>`;
   let data;
   try { data = await loadLive(); } catch { data = { events: [], failed: 1, total: 1 }; }
-  if (!location.hash.startsWith("#/live")) return;
+  if (!still()) return;
+  const sp = e => state.sport === "all" || (e.info?.sport || e.sport) === state.sport;
+  data = { ...data, events: data.events.filter(sp) };
   const byKey = Object.fromEntries(INDEX.events.map(e => [e.id, e]));
   const live = data.events.filter(e => e.info.state === "in");
   const done = data.events.filter(e => e.info.state === "post" && Date.now() - new Date(e.info.comp?.date || byKey[e.id]?.date || 0) < 6 * 3600e3);
-  const soon = INDEX.events.filter(e => { const t = new Date(e.date) - Date.now(); return t > 0 && t < 3 * 3600e3; });
+  const soon = INDEX.events.filter(sp).filter(e => { const t = new Date(e.date) - Date.now(); return t > 0 && t < 3 * 3600e3; });
 
   const card = e => {
     const ix = byKey[e.id], info = e.info;
@@ -747,8 +753,8 @@ async function showLive() {
   if (!live.length && !done.length && !soon.length) html += `<div class="empty"><b>Niente in diretta adesso</b>Le partite compaiono qui appena iniziano.</div>`;
   html += `<p class="note">Sotto ogni partita vedi come stanno andando le giocate che hai salvato nella schedina. Tocca una partita per il risultato aggiornato e i dettagli.</p>
     <p class="note">Durante le partite di calcio le percentuali ripartono dal risultato del momento e dai gol attesi del modello per il tempo che resta. Nell'NBA uso la probabilità in diretta di ESPN quando c'è. Sono stime: un gol o un canestro le cambia subito.</p></div>`;
-  $app.innerHTML = html;
-  liveTimer = later(() => { if (location.hash.startsWith("#/live")) showLive(); }, live.length ? LIVE_FAST : LIVE_SLOW);
+  host().innerHTML = html;
+  liveTimer = later(() => { if (still()) showLive(opt); }, live.length ? LIVE_FAST : LIVE_SLOW);
 }
 
 function leagueLabel(k) {
@@ -757,7 +763,7 @@ function leagueLabel(k) {
 }
 
 window.addEventListener("hashchange", () => {
-  if (!location.hash.startsWith("#/live")) clearTimeout(liveTimer);
+  if (!document.getElementById("live-embed")) clearTimeout(liveTimer);
   clearTimeout(boxTimer); clearTimeout(slipTimer); clearTimeout(lineupTimer);
 });
 /* tornando sull'app (o quando torna la rete) i risultati si aggiornano subito, senza aspettare il prossimo giro */
@@ -767,4 +773,4 @@ function resume() {
   fns.forEach(fn => fn());
 }
 document.addEventListener("visibilitychange", resume);
-window.addEventListener("online", () => { if (location.hash.startsWith("#/live")) showLive(); else resume(); });
+window.addEventListener("online", () => { if (document.getElementById("live-embed")) showLive(); else resume(); });

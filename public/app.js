@@ -240,7 +240,7 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["info", "live", "migliori", "schedina", "tu"].includes(view) ? view : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
+  const navKey = ["info", "migliori", "schedina", "tu"].includes(view) ? view : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.body.dataset.view = view || "home";
   window.scrollTo(0, 0);
@@ -251,7 +251,7 @@ function route() {
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfoHub(arg);
-  if (view === "live") return showLive();
+  if (view === "live") { state.status = "live"; location.replace("#/"); return; }   // il Live ora è un filtro dell'elenco
   if (view === "multipla") return showMultipla();
   if (view === "condividi" && arg) return showShared(arg);
   if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
@@ -295,10 +295,17 @@ function showList() {
   renderList();
 }
 function renderList() {
+  const now = Date.now();
   const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
   const ended = bySport.filter(e => isEnded(e)).sort((a, b) => b.date.localeCompare(a.date));
-  const ahead = bySport.filter(e => !isPastDay(e));
-  const byDay = state.day === "done" ? ended : bySport.filter(e => state.day === "all" ? !isPastDay(e) : isoDay(e.date) === state.day);
+  const liveIx = bySport.filter(e => !e.final && Date.parse(e.date) <= now && !isEnded(e));
+  const nextIx = bySport.filter(e => Date.parse(e.date) > now);
+  if (state.day === "done") { state.day = "all"; state.status = "done"; }
+  if (!["all", "live", "next", "done"].includes(state.status)) state.status = "all";
+  const st = state.status;
+  // Tutte = da oggi in avanti (anche quelle finite oggi); Da giocare = non ancora iniziate; Concluse = con esito, dalla più recente
+  const ahead = st === "next" ? nextIx : bySport.filter(e => !isPastDay(e));
+  const byDay = st === "done" ? ended : st === "live" ? [] : ahead.filter(e => state.day === "all" || isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
@@ -307,8 +314,11 @@ function renderList() {
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
-  html += dayChips(ahead, e => e.date, "partite", ended.length);
-  if (LEAGUES[state.sport]) {
+  const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveIx.length], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
+  html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
+    `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
+  if (st === "all" || st === "next") html += dayChips(ahead, e => e.date, "partite");
+  if (LEAGUES[state.sport] && st !== "live") {
     const n = {};
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
     const opts = LEAGUES[state.sport].filter(([k]) => n[k]);
@@ -316,11 +326,13 @@ function renderList() {
       `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k)}${l} <span>${c}</span></button>`).join("")}</div>`;
   }
   html += `</div>`;
-  if (state.day === "done" && evs.length) {
+  if (st === "live") html += `<div id="live-embed"></div>`;
+  if (st === "done" && evs.length) {
     const scored = evs.filter(e => outcomeIx(e) != null), hit = scored.filter(e => outcomeIx(e) === e.main.indexOf(Math.max(...e.main)));
     if (scored.length) html += `<div class="done-sum"><b>${hit.length} su ${scored.length}</b> pronostici più probabili presi negli ultimi giorni (${pct(hit.length / scored.length)}). Tocca una partita per il confronto completo con quote ed esito.</div>`;
   }
-  if (!evs.length) {
+  if (!evs.length && st === "done") html += `<div class="empty"><b>Nessuna partita conclusa</b>Le partite finite restano qui per tre giorni, con il risultato e il confronto con il pronostico.</div>`;
+  else if (!evs.length && st !== "live") {
     const why = state.sport === "soccer" ? "Nei prossimi giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
     html += `<div class="empty"><b>Nessuna partita in programma</b>${why}</div>`;
   }
@@ -354,6 +366,8 @@ function renderList() {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
+  $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
+  if (st === "live" && typeof showLive === "function") setTimeout(() => showLive({ embed: true }), 0);
   $app.querySelectorAll("[data-group]").forEach(b => b.onclick = () => {
     const g = b.dataset.group, list = closedGroups();
     saveClosedGroups(list.includes(g) ? list.filter(x => x !== g) : [...list, g]);

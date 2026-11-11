@@ -163,7 +163,11 @@ function notifSection() {
     };
     body = `${how}
       <h3 class="lb-h3">Partite che segui</h3><div class="nt-follow">${list}</div>
-      ${teams.length ? `<p class="note" style="margin:6px 0 0">Squadre e tennisti: ${teams.map(t => `<b>${esc(t.name)}</b>`).join(", ")}.</p>` : ""}
+      <h3 class="lb-h3">Squadre e tennisti che segui</h3>
+      <div class="nt-follow">${teams.length ? teams.map((t, i) => `<div class="nt-f"><span class="nt-ic">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : "★"}</span>
+          <span class="nt-f-t"><b>${esc(t.name)}</b><small>${t.kind === "player" ? "tennista" : "squadra"} · avvisi per tutte le sue partite</small></span>
+          <button type="button" class="me-x" data-unfollow="${i}" aria-label="Smetti di seguire ${esc(t.name)}">×</button></div>`).join("")
+        : `<p class="note" style="margin:4px 0">Nessuna: apri la pagina di una squadra o di un tennista e tocca <b>Segui</b>.</p>`}</div>
       <label class="nt-line"><span>Anche le partite delle schedine salvate</span><input type="checkbox" class="switch" id="nt-slips" ${s.slips ? "checked" : ""}></label>
       <h3 class="lb-h3">Cosa ti avviso</h3>${Object.keys(NT_SHORT).map(chips).join("")}
       ${on ? `<p class="note">Gli avvisi arrivano anche ad app chiusa, entro circa un minuto. <button type="button" class="linklike" id="nt-test">Manda una notifica di prova</button></p>` : ""}`;

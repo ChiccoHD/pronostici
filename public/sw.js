@@ -6,7 +6,7 @@ self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Pronostici", body: e.data?.text() }; }
   e.waitUntil(self.registration.showNotification(d.title || "Pronostici", {
-    body: d.body || "", tag: d.tag, renotify: !!d.tag, icon: "icon-192.png", badge: "icon-192.png",
+    body: d.body || "", tag: d.tag, renotify: !!d.tag, icon: "icon-192.png", badge: "badge-96.png",
     data: { url: d.url || "#/" }, lang: "it",
   }));
 });

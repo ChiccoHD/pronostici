@@ -895,3 +895,14 @@ b.p0, b.p1 { color: var(--pc); }
 .nt-chip[aria-pressed="true"] { background: var(--go); border-color: var(--go); color: #fff; }
 .nt-chip[aria-pressed="true"]::before { content: "✓ "; }
 .linklike { border: 0; background: none; padding: 0; font: inherit; color: var(--go); font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* Filtro per stato nell'elenco: Tutte · In diretta · Da giocare · Concluse */
+.status-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; background: var(--soft-2); padding: 3px; border-radius: 12px; margin: 8px 0; }
+.status-seg button { display: flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: transparent; padding: 6px 2px; border-radius: 9px; font: inherit; font-weight: 700; font-size: 12.5px; color: var(--ink-2); cursor: pointer; position: relative; }
+.status-seg button small { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+.status-seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.status-seg .st-live[aria-pressed="true"] { color: #e5484d; }
+.pulse-dot { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); }
+.pulse-dot.on { background: #e5484d; animation: pdot 1.4s infinite; }
+@keyframes pdot { 50% { opacity: .35; } }
+.nt-ic .tlogo, .nt-ic .tflag { width: 20px; height: 20px; object-fit: contain; }

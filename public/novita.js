@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Elenco per stato, Live integrato", items: [
+    "In Partite scegli Tutte, In diretta, Da giocare o Concluse.",
+    "La sezione Live non è più in basso: è il filtro \"In diretta\", con i risultati che si aggiornano ogni pochi secondi.",
+    "Notifiche con l'icona dell'app (%) nella barra del telefono; in Tu l'elenco chiaro di squadre e tennisti seguiti." ] },
   { d: "2026-11-11", t: "Tennis: cronaca game per game", items: [
     "La cronaca è divisa set per set: ogni game mostra il punteggio e chi l'ha vinto, con i colori dei due giocatori.",
     "La registra il server ogni minuto per tutti gli incontri, quindi è completa anche se l'app era chiusa." ] },

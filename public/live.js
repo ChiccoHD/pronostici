@@ -169,6 +169,25 @@ async function eventInfo(tg) {
     ts[side] = Object.fromEntries((t.statistics || []).map(x => [x.name, statNum(x.displayValue ?? x.value)]));
   }
   if (ts.home && ts.away) info.teamStats = ts;
+  // per la scheda in diretta: statistiche così come le dà ESPN, cronaca, punteggio per periodo
+  info.rawStats = {};
+  for (const t of s.boxscore?.teams || []) {
+    const side = t.homeAway || sideOf[String(t.team?.id)];
+    if (side) info.rawStats[side] = Object.fromEntries((t.statistics || []).map(x => [x.name, x.displayValue ?? x.value]));
+  }
+  const seen = new Set();
+  info.events = (s.keyEvents || []).filter(k => !seen.has(k.id) && seen.add(k.id)).map(k => ({
+    type: k.type?.type || "", clock: k.clock?.displayValue || "", period: k.period?.number || 0,
+    side: k.team ? sideOf[String(k.team.id)] : null, who: (k.participants || []).map(p => p.athlete?.displayName).filter(Boolean),
+  }));
+  info.periods = ["home", "away"].map(side => {
+    const c = s.header.competitions[0].competitors.find(x => x.homeAway === side);
+    return (c?.linescores || []).map(x => statNum(x.displayValue ?? x.value));
+  });
+  if (tg.sport === "nba") info.plays = (s.plays || []).slice(-15).reverse().map(p => ({
+    text: p.text || p.shortDescription || "", q: p.period?.number || 0, clock: p.clock?.displayValue || "",
+    score: `${p.homeScore ?? ""}-${p.awayScore ?? ""}`, scoring: !!p.scoringPlay,
+  }));
   if (tg.sport === "soccer") {
     for (const team of s.rosters || []) for (const p of team.roster || []) {
       const st = Object.fromEntries((p.stats || []).map(x => [x.name, statNum(x.value ?? x.displayValue)]));
@@ -413,7 +432,97 @@ function liveBox(info, d, flash = false) {
   const probs = lr ? `<div class="live-probs">${lr.rings ? `<div class="fx-rings">${lr.rings}</div>` : ""}${lr.sub ? `<div class="live-sub">${lr.sub}</div>` : ""}</div>` : "";
   const mine = favs().filter(f => f.event === d.id);
   const slip = mine.length ? `<h3 class="lb-h3">Le tue giocate su questa partita</h3>${statusChips(mine, info)}` : "";
-  return `<section class="sec live-box">${head}${score}${probs}${slip}</section>`;
+  return `<section class="sec live-box">${head}${score}${probs}${slip}</section>` + liveDetails(info, d);
+}
+
+/* ------------------------------------------------------------------ cronaca e statistiche in diretta */
+
+const EV_ICON = { goal: "⚽", own: "⚽", pen: "⚽", miss: "✕", yellow: "🟨", red: "🟥", sub: "🔁", var: "📺" };
+function evKind(t) {
+  if (/own-goal/.test(t)) return "own";
+  if (/penalty---missed|penalty---saved/.test(t)) return "miss";
+  if (/penalty/.test(t)) return "pen";
+  if (/goal/.test(t)) return "goal";
+  if (/red/.test(t)) return "red";
+  if (/yellow/.test(t)) return "yellow";
+  if (/substitution/.test(t)) return "sub";
+  if (/var/.test(t)) return "var";
+  if (/halftime/.test(t)) return "ht";
+  if (/end-regular-time|end-extra-time|full-time/.test(t)) return "end";
+  return null;
+}
+function soccerTimeline(info) {
+  const rows = (info.events || []).map(e => ({ ...e, k: evKind(e.type) })).filter(e => e.k).reverse();
+  if (!rows.length) return "";
+  const txt = e => {
+    const [a, b] = e.who;
+    if (e.k === "goal") return `<b>${esc(a || "Gol")}</b>${e.type.includes("header") ? " <i>di testa</i>" : ""}${b ? `<small>assist ${esc(b)}</small>` : ""}`;
+    if (e.k === "pen") return `<b>${esc(a || "Gol")}</b> <i>su rigore</i>`;
+    if (e.k === "own") return `<b>${esc(a || "Autogol")}</b> <i>autogol</i>`;
+    if (e.k === "miss") return `<b>${esc(a || "")}</b> <i>rigore sbagliato</i>`;
+    if (e.k === "yellow") return `<b>${esc(a || "")}</b> <i>ammonito</i>`;
+    if (e.k === "red") return `<b>${esc(a || "")}</b> <i>espulso</i>`;
+    if (e.k === "sub") return `<span class="in">↑ ${esc(a || "")}</span><span class="out">↓ ${esc(b || "")}</span>`;
+    if (e.k === "var") return `<i>controllo VAR</i>`;
+    return "";
+  };
+  const html = rows.map(e => {
+    if (e.k === "ht" || e.k === "end") return `<div class="tl-sep">${e.k === "ht" ? "Intervallo" : "Fine partita"}</div>`;
+    const cell = `<div class="tl-ev tl-${e.k}"><span class="tl-ic">${EV_ICON[e.k]}</span><span class="tl-tx">${txt(e)}</span></div>`;
+    return `<div class="tl-row"><div class="tl-h">${e.side === "home" ? cell : ""}</div><div class="tl-min">${esc(e.clock)}</div><div class="tl-a">${e.side === "away" ? cell : ""}</div></div>`;
+  }).join("");
+  return sec("Cronaca", `<div class="timeline">${html}</div>`, "la più recente in alto", "Cronaca live");
+}
+
+const SOCCER_STATS = [
+  ["possessionPct", "Possesso palla", v => `${Math.round(v)}%`],
+  ["totalShots", "Tiri"], ["shotsOnTarget", "Tiri in porta"], ["wonCorners", "Calci d'angolo"],
+  ["saves", "Parate"], ["foulsCommitted", "Falli"], ["yellowCards", "Ammonizioni"], ["redCards", "Espulsioni"],
+  ["offsides", "Fuorigioco"], ["totalPasses", "Passaggi"], ["accuratePasses", "Passaggi riusciti"],
+  ["totalTackles", "Contrasti"], ["interceptions", "Intercetti"], ["totalCrosses", "Cross"],
+];
+const NBA_STATS = [
+  ["fieldGoalsMade-fieldGoalsAttempted", "Tiri dal campo", null, "fieldGoalPct"],
+  ["threePointFieldGoalsMade-threePointFieldGoalsAttempted", "Triple", null, "threePointFieldGoalPct"],
+  ["freeThrowsMade-freeThrowsAttempted", "Tiri liberi", null, "freeThrowPct"],
+  ["totalRebounds", "Rimbalzi"], ["offensiveRebounds", "Rimbalzi offensivi"], ["assists", "Assist"],
+  ["turnovers", "Palle perse"], ["steals", "Recuperi"], ["blocks", "Stoppate"],
+  ["pointsInPaint", "Punti in area"], ["fastBreakPoints", "Punti in contropiede"], ["largestLead", "Vantaggio massimo"],
+];
+function liveStats(info, cH, cA) {
+  const S = info.rawStats || {};
+  if (!S.home || !S.away) return "";
+  const list = info.sport === "soccer" ? SOCCER_STATS : NBA_STATS;
+  const rows = list.filter(([k]) => S.home[k] != null && S.away[k] != null).map(([k, label, fmt, pctKey]) => {
+    const raw = [S.home[k], S.away[k]];
+    const val = raw.map(v => statNum(String(v).split("-")[0]));   // "37-84": conta i realizzati
+    const show = raw.map((v, i) => fmt ? fmt(statNum(v)) : pctKey ? `${v} <small>${Math.round(statNum(S[i ? "away" : "home"][pctKey]))}%</small>` : esc(String(v)));
+    const tot = val[0] + val[1], w = tot ? val[0] / tot * 100 : 50;
+    return `<div class="st-row"><div class="st-top"><b class="${val[0] > val[1] ? "lead" : ""}">${show[0]}</b><span>${esc(label)}</span><b class="${val[1] > val[0] ? "lead" : ""}">${show[1]}</b></div>
+      <div class="st-bar"><span style="width:${w}%;background:${cH}"></span><span style="width:${100 - w}%;background:${cA}"></span></div></div>`;
+  }).join("");
+  return rows ? sec("Statistiche", `<div class="st-head">${tpill(info.home.name, cH)}${tpill(info.away.name, cA)}</div>${rows}`, info.state === "in" ? "in diretta" : "finale", "Statistiche live") : "";
+}
+function nbaPeriods(info, cH, cA) {
+  const [h, a] = info.periods || [];
+  if (!h?.length || !a?.length) return "";
+  const lab = i => i < 4 ? `${i + 1}°` : `S${i - 3}`;
+  return sec("Punteggio per quarto", `<table class="vs-table q-table"><tr><th></th>${h.map((_, i) => `<th>${lab(i)}</th>`).join("")}<th>Tot</th></tr>
+    <tr><td>${tpill(info.home.name, cH)}</td>${h.map((v, i) => `<td class="${v > (a[i] ?? 0) ? "best" : ""}">${v}</td>`).join("")}<td><b>${info.H}</b></td></tr>
+    <tr><td>${tpill(info.away.name, cA)}</td>${a.map((v, i) => `<td class="${v > (h[i] ?? 0) ? "best" : ""}">${v}</td>`).join("")}<td><b>${info.A}</b></td></tr></table>`, "", "Quarti live");
+}
+function nbaPlays(info) {
+  if (!info.plays?.length) return "";
+  const row = p => `<div class="r ${p.scoring ? "scoring" : ""}"><span class="l"><span class="faint">${p.q ? `${p.q}° ` : ""}${esc(p.clock)}</span> ${esc(p.text)}</span><span class="v num">${esc(p.score)}</span></div>`;
+  const top = info.plays.slice(0, 8), rest = info.plays.slice(8);
+  return sec("Ultime azioni", `<div class="rows plays">${top.map(row).join("")}</div>${rest.length ? `<details class="more"><summary>Altre ${rest.length}</summary><div class="rows plays">${rest.map(row).join("")}</div></details>` : ""}
+    <p class="note">Descrizioni in inglese, come le scrive ESPN. Il punteggio è casa-ospite.</p>`, "le più recenti in alto", "Azioni live");
+}
+function liveDetails(info, d) {
+  if (info.sport === "tennis") return "";
+  const [cH, cA] = teamColors(d.home, d.away);
+  if (info.sport === "soccer") return soccerTimeline(info) + liveStats(info, cH, cA);
+  return nbaPeriods(info, cH, cA) + liveStats(info, cH, cA) + nbaPlays(info);
 }
 
 /* ------------------------------------------------------------------ esito delle giocate nella schedina */

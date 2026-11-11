@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T21:28+00:00",
+ "updated": "2026-11-11T22:23+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -21,7 +21,7 @@
     "espn": "ok",
     "espn_tabellini": "100 partite",
     "partite_in_arrivo": 7,
-    "foto_giocatori": "Wikipedia 200, senza foto 3, TheSportsDB 9, ESPN 20, da controllare 16"
+    "foto_giocatori": "Wikipedia 200, senza foto 4, TheSportsDB 18, ESPN 20, da controllare 6"
    },
    "la-liga": {
     "football-data": "ok",
@@ -139,7 +139,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 102, Wikipedia 38, ESPN 2"
    },
-   "aggiornato": "2026-11-11T21:27+00:00"
+   "aggiornato": "2026-11-11T22:21+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -150,18 +150,18 @@
    },
    "partite_in_arrivo": 34,
    "partite_stagione": 160,
-   "aggiornato": "2026-11-11T21:28+00:00"
+   "aggiornato": "2026-11-11T22:23+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7736 incontri (+1)",
+    "storico": "7736 incontri (+0)",
     "espn": "4 incontri in programma"
    },
    "wta": {
-    "storico": "12397 incontri (+1)",
-    "espn": "10 incontri in programma"
+    "storico": "12398 incontri (+1)",
+    "espn": "9 incontri in programma"
    },
-   "aggiornato": "2026-11-11T21:28+00:00"
+   "aggiornato": "2026-11-11T22:23+00:00"
   },
   "coppe": {
    "uomini": {
@@ -218,10 +218,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "162 giocate, 11 giorni controllati",
-    "partite_storico": 162
+    "espn_uefa.wchampions": "163 giocate, 11 giorni controllati",
+    "partite_storico": 163
    },
-   "aggiornato": "2026-11-11T21:28+00:00"
+   "aggiornato": "2026-11-11T22:22+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -246,11 +246,11 @@
    "in_arrivo_qual-coppa-africa": 48,
    "in_arrivo_concacaf-nations": 32,
    "in_arrivo_amichevoli": 41,
-   "aggiornato": "2026-11-11T21:28+00:00"
+   "aggiornato": "2026-11-11T22:22+00:00"
   },
   "risultati": {
    "esiti": "2 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-11T21:28+00:00"
+   "aggiornato": "2026-11-11T22:23+00:00"
   }
  }
 }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T08:23+00:00",
+ "updated": "2026-11-11T08:30+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -11,7 +11,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 4,
-    "foto_giocatori": "ESPN 11, TheSportsDB 11, Wikipedia 61, senza foto 7, da controllare 51"
+    "foto_giocatori": "ESPN 11, TheSportsDB 21, Wikipedia 61, senza foto 8, da controllare 40"
    },
    "premier-league": {
     "football-data": "ok",
@@ -34,7 +34,7 @@
      "Deportivo"
     ],
     "partite_in_arrivo": 5,
-    "foto_giocatori": "TheSportsDB 24, senza foto 3, Wikipedia 18, da controllare 95, ESPN 4"
+    "foto_giocatori": "TheSportsDB 24, senza foto 3, Wikipedia 58, da controllare 55, ESPN 4"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -44,7 +44,7 @@
     "espn": "ok",
     "espn_tabellini": "81 partite",
     "partite_in_arrivo": 7,
-    "foto_giocatori": "da controllare 219, TheSportsDB 12, ESPN 10"
+    "foto_giocatori": "Wikipedia 111, TheSportsDB 12, ESPN 10, da controllare 107, senza foto 1"
    },
    "ligue-1": {
     "football-data": "ok",
@@ -54,7 +54,7 @@
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 6,
-    "foto_giocatori": "da controllare 192, TheSportsDB 7, ESPN 10"
+    "foto_giocatori": "senza foto 6, TheSportsDB 7, Wikipedia 112, da controllare 74, ESPN 10"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -73,7 +73,7 @@
      "Urawa Red Diamonds"
     ],
     "partite_in_arrivo": 10,
-    "foto_giocatori": "da controllare 318, TheSportsDB 1, ESPN 2"
+    "foto_giocatori": "da controllare 249, Wikipedia 56, senza foto 13, TheSportsDB 1, ESPN 2"
    },
    "mls": {
     "football-data": "ok",
@@ -81,7 +81,7 @@
     "espn": "ok",
     "espn_tabellini": "511 partite",
     "partite_in_arrivo": 5,
-    "foto_giocatori": "da controllare 94, ESPN 78"
+    "foto_giocatori": "Wikipedia 68, ESPN 78, da controllare 26"
    },
    "eliteserien": {
     "football-data": "ok",
@@ -92,9 +92,9 @@
      "Hamarkameratene"
     ],
     "partite_in_arrivo": 4,
-    "foto_giocatori": "da controllare 107"
+    "foto_giocatori": "da controllare 76, Wikipedia 30, ESPN 1"
    },
-   "aggiornato": "2026-11-11T08:23+00:00"
+   "aggiornato": "2026-11-11T08:30+00:00"
   },
   "nba": {
    "espn": "ok",

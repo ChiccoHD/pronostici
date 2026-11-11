@@ -1,0 +1,10 @@
+{
+  // Configurazione del Worker di Cloudflare che pubblica il sito (cartella public/)
+  // e fa da timer per l'aggiornamento dei dati (worker/timer.js).
+  "name": "pronostici",
+  "main": "worker/timer.js",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  // Orari in UTC, gli stessi del workflow: in Italia d'inverno 7:17, 10:47, 13:47, 16:47, 19:47, 23:17
+  "triggers": { "crons": ["17 6,22 * * *", "47 9,12,15,18 * * *"] }
+}

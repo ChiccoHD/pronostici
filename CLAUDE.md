@@ -16,6 +16,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - `public/live.js`: sezione Live (risultati ESPN letti dal telefono ogni 30 secondi), link "Segui in diretta" e "Dove vederla". Solo servizi ufficiali o siti di risultati: niente streaming non autorizzati. I canali TV vanno ricontrollati a ogni stagione.
 - Le quote dei bookmaker non devono entrare nei modelli: servono solo come confronto.
 - `pipeline/names.py` abbina i nomi tra fonti diverse: se compare "nomi_non_abbinati" in `public/data/meta.json`, aggiungi l'alias qui.
+- `wrangler.jsonc` e `worker/timer.js`: il Worker di Cloudflare pubblica `public/` e, agli orari indicati (UTC), avvia il workflow **Aggiorna dati** con il segreto `GITHUB_TOKEN` impostato su Cloudflare. Gli orari nel workflow restano come riserva: GitHub li fa partire con ore di ritardo. Se cambi gli orari, cambiali in entrambi i file.
 - `data/cache/` storico già scaricato (scritto dal workflow, non modificarlo a mano).
 - `public/` il sito; `public/data/` è generato dal workflow.
 

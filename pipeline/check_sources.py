@@ -79,8 +79,62 @@ def logos_check():
         out(f"- {code}: id {lg.get('id')} · {lg.get('name')} · {logos}")
 
 
+def research_check():
+    """Prove per nuovi campionati e per il tennis (competizioni a squadre, statistiche)."""
+    import json
+    from datetime import timedelta, date as _date
+    from . import http
+    today = config.today()
+    sy = config.soccer_season_start_year(today)
+    out("## Nuovi campionati di calcio")
+    for code, fd in (("ita.2", "I2"), ("eng.2", "E1"), ("ned.1", "N1"), ("tur.1", "T1"), ("sco.1", "SC0"), ("bel.1", "B1")):
+        js = http.get_json(f"{espn.SITE}/soccer/{code}/scoreboard") or {}
+        lg = (js.get("leagues") or [{}])[0]
+        logos = {",".join(l.get("rel", [])): l.get("href") for l in lg.get("logos", [])}
+        evs = espn.scoreboard("soccer", code, today - timedelta(days=10), today + timedelta(days=10))
+        done = [p for p in (espn.parse_event(e) for e in evs) if p and p["completed"]]
+        pl = espn.soccer_player_lines(espn.summary("soccer", code, done[-1]["id"]) or {}) if done else []
+        rows = footballdata.season(fd, config.fd_season_code(sy))
+        out(f"- {code}/{fd}: {lg.get('name')} · logo {logos.get('full,default')} · ESPN ±10gg {len(evs)} partite, tabellino {len(pl)} giocatori · football-data {len(rows)} partite, quote {sum(1 for m in rows if m.get('o1x2'))}, xG {sum(1 for m in rows if m.get('hxg') is not None)}")
+    out("\n## Tennis: competizioni su ESPN")
+    core = http.get_json("https://sports.core.api.espn.com/v2/sports/tennis/leagues", {"limit": 50}) or {}
+    for it in (core.get("items") or [])[:30]:
+        ref = it.get("$ref", "")
+        lg = http.get_json(ref) or {}
+        out(f"- {lg.get('slug')} · {lg.get('name')} · {lg.get('abbreviation')}")
+    for slug in ("davis-cup", "billie-jean-king-cup", "united-cup", "itf", "atp-challenger", "challenger"):
+        js = http.get_json(f"{espn.SITE}/tennis/{slug}/scoreboard")
+        out(f"- prova /tennis/{slug}/scoreboard: {'risponde, ' + str(len((js or {}).get('events', []))) + ' eventi' if js else 'niente'}")
+    # nomi degli eventi ATP nelle settimane di Davis / United Cup
+    for d in (_date(today.year - 1 if today.month < 9 else today.year, 9, 12), _date(today.year, 1, 3), _date(today.year - 1, 11, 21)):
+        evs = espn.scoreboard_day("tennis", "atp", d) or []
+        out(f"- ATP {d}: {[e.get('name') for e in evs][:8]}")
+    out("\n## Tennis: riepilogo di un incontro concluso")
+    evs = espn.scoreboard("tennis", "atp", today - timedelta(days=3), today)
+    ms = [m for m in espn.tennis_matches(evs, "atp") if m["state"] == "post"]
+    if ms:
+        m = ms[-1]
+        ev_id = next((e.get("id") for e in evs if any(str(c.get("id")) == m["id"] for g in e.get("groupings", []) for c in g.get("competitions", []))), None)
+        for url in (f"{espn.SITE}/tennis/atp/summary?event={m['id']}", f"{espn.SITE}/tennis/atp/summary?event={ev_id}&competition={m['id']}"):
+            js = http.get_json(url)
+            out(f"- {url}: {'chiavi ' + ', '.join(sorted(js.keys())) if js else 'niente'}")
+            if js:
+                out("  " + json.dumps(js, ensure_ascii=False)[:1500])
+        for e in evs:
+            for g in e.get("groupings", []):
+                for c in g.get("competitions", []):
+                    if str(c.get("id")) == m["id"]:
+                        out("- competizione nel tabellone: chiavi " + ", ".join(sorted(c.keys())))
+                        out("  concorrente: " + json.dumps(c.get("competitors", [{}])[0], ensure_ascii=False)[:1200])
+
+
 def main():
     import sys
+    if "ricerca" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        research_check()
+        _write()
+        return
     if "loghi" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         logos_check()

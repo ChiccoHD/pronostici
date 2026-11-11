@@ -66,8 +66,26 @@ def live_check():
         out(f"- leaders: " + json.dumps(lead, ensure_ascii=False)[:700])
 
 
+def logos_check():
+    """Loghi dei campionati come li dà ESPN nel calendario (chiave leagues)."""
+    from . import http
+    out("## Loghi dei campionati")
+    codes = [("soccer", lg["espn"]) for lg in SOCCER_LEAGUES.values()] + [("soccer", c["espn"]) for c in config.CUPS.values()] \
+        + [("soccer", c["espn"]) for c in config.WOMEN_CUPS.values()] + [("basketball", "nba"), ("tennis", "atp"), ("tennis", "wta")]
+    for sport, code in codes:
+        js = http.get_json(f"{espn.SITE}/{sport}/{code}/scoreboard") or {}
+        lg = (js.get("leagues") or [{}])[0]
+        logos = {",".join(l.get("rel", [])): l.get("href") for l in lg.get("logos", [])}
+        out(f"- {code}: id {lg.get('id')} · {lg.get('name')} · {logos}")
+
+
 def main():
     import sys
+    if "loghi" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        logos_check()
+        _write()
+        return
     if "live" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         live_check()

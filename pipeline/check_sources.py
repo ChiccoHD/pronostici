@@ -128,8 +128,31 @@ def research_check():
                         out("  concorrente: " + json.dumps(c.get("competitors", [{}])[0], ensure_ascii=False)[:1200])
 
 
+def tennis_live_check():
+    """Com'è fatto un incontro di tennis in corso sul tabellone ESPN (punti, servizio, set)."""
+    import json
+    from . import http
+    for tour in ("atp", "wta"):
+        js = http.get_json(f"{espn.SITE}/tennis/{tour}/scoreboard") or {}
+        for ev in js.get("events", []):
+            for g in ev.get("groupings", []):
+                for c in g.get("competitions", []):
+                    if (c.get("status") or {}).get("type", {}).get("state") == "in":
+                        out(f"## {tour} in corso: {ev.get('name')}")
+                        out(json.dumps(c, ensure_ascii=False)[:6000])
+                        js2 = http.get_json(f"https://site.web.api.espn.com/apis/site/v2/sports/tennis/{tour}/summary", {"event": c.get("id")})
+                        out("summary web: " + (", ".join(sorted(js2.keys())) if js2 else "niente"))
+                        return
+    out("nessun incontro in corso")
+
+
 def main():
     import sys
+    if "tennislive" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        tennis_live_check()
+        _write()
+        return
     if "ricerca" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         research_check()

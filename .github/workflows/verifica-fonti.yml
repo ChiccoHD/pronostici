@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       solo:
-        description: "Lascia vuoto per tutto, oppure: foto, live, loghi, ricerca"
+        description: "Lascia vuoto per tutto, oppure: foto, live, loghi, ricerca, tennislive"
         required: false
         default: ""
 

@@ -336,6 +336,20 @@ def league_page(key, lg, matches, events, matcher, lines, completed_by_team, sea
                 espn_of[fd] = {k: t.get(k) for k in ("id", "name", "short", "abbr", "color", "alt", "logo")}
     base_cache = store.load(PLAYER_BASE, {})
     rows, teams = [], {}
+    # foto per tutte le rose, non solo per chi gioca nei prossimi giorni (es. durante le soste)
+    bases = {}
+    for row in table:
+        info = espn_of.get(row["team"], {})
+        tid = str(info.get("id") or "")
+        if tid:
+            bases[tid] = S.player_base(lines, tid, completed_by_team.get(tid, []))
+    try:
+        pseudo = [{"home": {**espn_of.get(row["team"], {}), "fd": row["team"]},
+                   "players": {"home": bases.get(str(espn_of.get(row["team"], {}).get("id") or ""), [])}} for row in table]
+        photos.attach_many(pseudo, config.today(), {})
+        photos.save()
+    except Exception:
+        log.exception("Foto delle rose %s", key)
     for row in table:
         info = espn_of.get(row["team"], {})
         summ = S.team_summary(matches, row["team"], sf)
@@ -345,7 +359,7 @@ def league_page(key, lg, matches, events, matcher, lines, completed_by_team, sea
                      "logo": info.get("logo"), "color": info.get("color"), "form": summ["form5"].get("seq", [])})
         if not tid:
             continue
-        base = S.player_base(lines, tid, completed_by_team.get(tid, []))
+        base = bases.get(tid) or []
         base_cache[tid] = {"avg": summ["season"].get("gf") or 1.3, "players": base, "league": key}
         players = sorted((_public_player(p) for p in base), key=lambda p: (-(p["tot"]["g"] + p["tot"]["a"]), -p["apps"]))
         teams[tid] = {**info, "fd": row["team"], "pos": row["pos"], "pts": row["pts"],

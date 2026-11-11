@@ -427,7 +427,7 @@ function fixture(e) {
     if (gap >= 0.07) sub.push(`<span class="gap">${Math.round(gap * 100)} punti dalle quote</span>`);
   }
   return `<a class="fx" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}</div>
+    <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid">
       <div class="fx-t ${pH >= pA ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span>${esc(e.home)}</span></div>
       <div class="fx-t ${pA > pH ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span>${esc(e.away)}</span></div>
@@ -529,6 +529,7 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
   return `<div class="board">
     <div class="board-meta"><span>${esc(d.league_name)}</span><span>${esc(when)}</span></div>
+    ${typeof bellBtn === "function" && !d.final ? `<div class="board-bell">${bellBtn({ id: d.id, sport: d.sport, date: d.date, home: d.home.name, away: d.away.name, league_name: d.league_name })}</div>` : ""}
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>

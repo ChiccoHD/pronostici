@@ -16,12 +16,56 @@ const NOTIF_OPTS = {
   tennis: ["Tennis", [["start", "Inizio incontro"], ["set", "Fine di ogni set"], ["game", "Fine di ogni game (tante notifiche)"], ["end", "Fine incontro"]]],
 };
 
+/* partite seguite con la campanella: solo per queste (e per squadre e tennisti seguiti) arrivano gli avvisi */
+const FOLLOW_KEY = "p_follow";
+function followed() {
+  let l = [];
+  try { l = JSON.parse(localStorage.getItem(FOLLOW_KEY) || "[]"); } catch { /* niente */ }
+  const lim = Date.now() - 2 * 86400e3;          // le partite di più di due giorni fa escono da sole
+  return l.filter(x => Date.parse(x.date) > lim);
+}
+const isFollowed = id => followed().some(x => x.id === id);
+function toggleFollow(ev) {
+  let l = followed();
+  const on = !l.some(x => x.id === ev.id);
+  l = on ? [...l, { id: ev.id, sport: ev.sport, date: ev.date, match: `${ev.home} – ${ev.away}`, league_name: ev.league_name || "" }] : l.filter(x => x.id !== ev.id);
+  try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(l.slice(-200))); } catch { /* niente */ }
+  document.querySelectorAll(`[data-bell="${CSS.escape(ev.id)}"]`).forEach(b => setBell(b, on));
+  const active = notifState().on;
+  toast(on ? (active ? "Partita seguita: riceverai gli avvisi" : "Partita seguita. Attiva le notifiche in Tu per ricevere gli avvisi") : "Non segui più questa partita");
+  notifySync();
+  return on;
+}
+const BELL_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>`;
+function setBell(b, on) {
+  b.classList.toggle("on", on);
+  b.setAttribute("aria-pressed", String(on));
+  const t = b.querySelector(".bell-t");
+  if (t) t.textContent = on ? "Segui la partita ✓" : "Segui la partita";
+}
+/* campanella: piccola nell'elenco, con scritta nella scheda della partita */
+function bellBtn(e, small = false) {
+  if (e.final || (e.date && Date.now() - Date.parse(e.date) > (e.sport === "tennis" ? 24 : 5) * 3600e3)) return "";
+  const on = isFollowed(e.id);
+  const data = esc(JSON.stringify({ id: e.id, sport: e.sport, date: e.date, home: e.home, away: e.away, league_name: e.league_name }));
+  return `<button type="button" class="bell ${small ? "sm" : ""} ${on ? "on" : ""}" data-bell="${esc(e.id)}" data-ev='${data}' aria-pressed="${on}" aria-label="Avvisami per questa partita">${BELL_SVG}${small ? "" : `<span class="bell-t">${on ? "Segui la partita ✓" : "Segui la partita"}</span>`}</button>`;
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-bell]");
+  if (!b) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  try { toggleFollow(JSON.parse(b.dataset.ev)); } catch { /* niente */ }
+  if (location.hash.startsWith("#/tu")) showMe();
+}, true);
+
 function notifState() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}"); } catch { /* niente */ }
   const prefs = {};
   for (const k of Object.keys(NOTIF_DEFAULT)) prefs[k] = { ...NOTIF_DEFAULT[k], ...(s.prefs?.[k] || {}) };
-  return { on: !!s.on, prefs };
+  for (const k of Object.keys(prefs)) prefs[k].mode = "mine";      // gli avvisi arrivano solo per ciò che scegli
+  return { on: !!s.on, prefs, slips: !!s.slips };
 }
 function saveNotif(s) { try { localStorage.setItem(NOTIF_KEY, JSON.stringify(s)); } catch { /* niente */ } }
 
@@ -34,11 +78,11 @@ function b64uToBytes(s) {
   return Uint8Array.from(t, c => c.charCodeAt(0));
 }
 
-/* partite "mie": stelline ancora aperte, schedine salvate, squadre e tennisti seguiti */
+/* partite per cui mandare avvisi: quelle seguite con la campanella, delle squadre e dei tennisti seguiti
+   e, solo se lo scegli, quelle delle schedine salvate */
 function notifMine() {
-  const ev = new Set();
-  for (const f of favs()) if (!f.result && f.event) ev.add(f.event);
-  if (typeof mySlips === "function") for (const s of mySlips()) for (const l of s.legs || []) if (!l.result && l.event) ev.add(l.event);
+  const ev = new Set(followed().map(x => x.id));
+  if (notifState().slips && typeof mySlips === "function") for (const s of mySlips()) for (const l of s.legs || []) if (!l.result && l.event) ev.add(l.event);
   const teams = typeof myTeams === "function" ? myTeams().flatMap(t => [t.name, t.short]).filter(Boolean) : [];
   return { events: [...ev].slice(-600), teams: [...new Set(teams)] };
 }
@@ -96,21 +140,30 @@ function notifSection() {
   } else if (Notification.permission === "denied") {
     inner = `<p class="note" style="margin-top:0">Le notifiche di questo sito sono bloccate. Sbloccale dalle impostazioni del browser (il lucchetto accanto all'indirizzo → Notifiche → Consenti), poi torna qui.</p>`;
   } else if (!s.on) {
-    inner = `<p class="note" style="margin-top:0">Gol, espulsioni, fine dei quarti e dei set, risultato finale: avvisi anche ad app chiusa, per le partite che scegli tu.</p>
+    inner = `<p class="note" style="margin-top:0">Gol, espulsioni, fine dei quarti e dei set, risultato finale: avvisi anche ad app chiusa, <b>solo per le partite che scegli tu</b> con la campanella ${BELL_SVG} e per le squadre e i tennisti che segui.</p>
       <button type="button" class="btn-main" id="nt-on">Attiva le notifiche</button>`;
   } else {
     const card = sp => {
       const [title, opts] = NOTIF_OPTS[sp], p = s.prefs[sp];
       return `<div class="nt-sport ${p.on ? "" : "off"}" data-nt-sport="${sp}">
         <label class="nt-head"><b>${title}</b><input type="checkbox" class="switch" data-nt="${sp}.on" ${p.on ? "checked" : ""} aria-label="Notifiche ${title}"></label>
-        <div class="nt-body">
-          <div class="nt-mode" role="group" aria-label="Quali partite"><button type="button" data-nt-mode="${sp}.mine" aria-pressed="${p.mode !== "all"}">Le mie partite</button><button type="button" data-nt-mode="${sp}.all" aria-pressed="${p.mode === "all"}">Tutte</button></div>
-          ${opts.map(([k, l]) => `<label class="nt-opt"><input type="checkbox" data-nt="${sp}.${k}" ${p[k] ? "checked" : ""}><span>${l}</span></label>`).join("")}
-        </div></div>`;
+        <div class="nt-body">${opts.map(([k, l]) => `<label class="nt-opt"><input type="checkbox" data-nt="${sp}.${k}" ${p[k] ? "checked" : ""}><span>${l}</span></label>`).join("")}</div></div>`;
     };
-    inner = `<p class="note" style="margin-top:0"><b>Le mie partite</b> = quelle con la stellina, nelle schedine salvate e delle squadre o dei tennisti che segui. <b>Tutte</b> = ogni partita in elenco di quello sport: possono essere tante.</p>
-      ${Object.keys(NOTIF_OPTS).map(card).join("")}
-      <p class="note">Gli avvisi arrivano entro un minuto circa da quello che succede in campo.</p>
+    const fl = followed().sort((a, b) => a.date.localeCompare(b.date));
+    const teams = typeof myTeams === "function" ? myTeams() : [];
+    const what = `<div class="nt-what">
+      <h3 class="lb-h3">Per quali partite</h3>
+      <p class="note" style="margin-top:0">Gli avvisi arrivano <b>solo</b> per:</p>
+      <ul class="nt-list"><li><b>le partite che segui</b>: tocca la campanella ${BELL_SVG} accanto a una partita nell'elenco o in alto nella sua scheda;</li>
+        <li><b>le squadre e i tennisti che segui</b> (tasto <b>Segui</b> nella loro pagina): tutte le loro partite.</li></ul>
+      ${fl.length ? `<div class="nt-follow">${fl.map(x => `<div class="nt-f"><span><b>${esc(x.match)}</b><small>${esc(fmtDay(x.date).label)} ${esc(fmtTime(x.date))}${x.league_name ? ` · ${esc(x.league_name)}` : ""}</small></span>
+          <button type="button" class="me-x" data-bell="${esc(x.id)}" data-ev='${esc(JSON.stringify({ id: x.id }))}' aria-label="Smetti di seguire ${esc(x.match)}">×</button></div>`).join("")}</div>`
+        : `<p class="note">Non segui ancora nessuna partita.</p>`}
+      ${teams.length ? `<p class="note">Squadre e tennisti seguiti: ${teams.map(t => esc(t.name)).join(", ")}.</p>` : ""}
+      <label class="nt-opt"><input type="checkbox" id="nt-slips" ${s.slips ? "checked" : ""}><span>Anche le partite delle mie schedine salvate</span></label>
+    </div>`;
+    inner = `${what}<h3 class="lb-h3">Quali avvisi</h3>${Object.keys(NOTIF_OPTS).map(card).join("")}
+      <p class="note">Arrivano anche ad app chiusa, entro circa un minuto da quello che succede in campo.</p>
       <div class="me-acts"><button type="button" class="btn-main" id="nt-test">Manda una prova</button><button type="button" class="btn-main alt" id="nt-off">Disattiva</button></div>`;
   }
   return sec("Notifiche", `<div class="nt">${inner}<p class="nt-msg" id="nt-msg" role="status"></p></div>`, s.on ? "attive" : "", "Tu notifiche");
@@ -138,13 +191,7 @@ function wireNotifs() {
     if (k === "on") el.closest(".nt-sport").classList.toggle("off", !el.checked);
     notifySync();
   }));
-  document.querySelectorAll("[data-nt-mode]").forEach(b => b.addEventListener("click", () => {
-    const [sp, mode] = b.dataset.ntMode.split("."), s = notifState();
-    s.prefs[sp].mode = mode;
-    saveNotif(s);
-    b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    notifySync();
-  }));
+  document.getElementById("nt-slips")?.addEventListener("change", ev => { saveNotif({ ...notifState(), slips: ev.target.checked }); notifySync(); });
 }
 
 // all'apertura dell'app: rinnova l'iscrizione con le partite "mie" aggiornate

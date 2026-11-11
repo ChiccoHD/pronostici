@@ -823,3 +823,21 @@ a.btn-main, label.btn-main { box-sizing: border-box; text-align: center; }
 .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
 .switch:checked { background: var(--go); }
 .switch:checked::after { transform: translateX(18px); }
+
+/* Campanella: seguire una partita per ricevere gli avvisi */
+.bell { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--rule); background: var(--card); color: var(--ink-2); border-radius: 999px; padding: 6px 12px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+.bell svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.bell.on { background: color-mix(in srgb, var(--go) 14%, transparent); border-color: var(--go); color: var(--go); }
+.bell.on svg { fill: currentColor; }
+.bell.sm { display: flex; margin: 5px auto 0; padding: 0; width: 28px; height: 28px; border-color: transparent; background: transparent; color: var(--ink-3); }
+.bell.sm.on { background: color-mix(in srgb, var(--go) 14%, transparent); }
+.board-bell { display: flex; justify-content: center; margin: 2px 0 6px; }
+.nt-list { margin: 4px 0 8px; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.nt-list li { margin: 4px 0; }
+.nt-list svg, .note svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; vertical-align: -2px; }
+.nt-follow { display: grid; gap: 4px; margin: 6px 0; }
+.nt-f { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--soft-2); border-radius: 10px; padding: 8px 10px; }
+.nt-f span { display: flex; flex-direction: column; min-width: 0; }
+.nt-f b { font-size: 14px; }
+.nt-f small { color: var(--ink-3); font-size: 12px; }
+.nt-what { margin-bottom: 6px; }

@@ -178,6 +178,46 @@ def _gen_cups(today, sy):
                             "away": {"id": a, "name": a, "short": a, "abbr": a[:3].upper(), "score": int(rng.poisson(la)) if played else None, "color": "#0f6e56", "alt": "#ffffff"}})
         d += timedelta(days=7)
     CUPS_FAKE["uefa.wchampions"] = evs
+    _gen_national(today)
+
+
+NATIONS = {"Italy": ("ITA", 1.5), "France": ("FRA", 1.8), "Belgium": ("BEL", 1.4), "Turkey": ("TUR", 1.2), "England": ("ENG", 1.7),
+           "Spain": ("ESP", 1.9), "Croatia": ("CRO", 1.3), "Czech Republic": ("CZE", 1.1), "Germany": ("GER", 1.6),
+           "Netherlands": ("NED", 1.5), "San Marino": ("SMR", 0.25), "Argentina": ("ARG", 1.9), "Brazil": ("BRA", 1.7),
+           "Japan": ("JPN", 1.2), "Uruguay": ("URU", 1.3), "Wales": ("WAL", 0.9)}
+NATIONAL_HIST = []
+
+
+def _gen_national(today):
+    """Storico e calendario inventati per le nazionali (nomi ESPN diversi per alcune, come nella realtà)."""
+    names = list(NATIONS)
+    espn_name = {"Czech Republic": "Czechia", "Turkey": "Türkiye"}
+    d = date(today.year - 10, 3, 20)
+    while d < today - timedelta(days=3):
+        random.shuffle(names)
+        for k in range(0, len(names), 2):
+            h, a = names[k], names[k + 1]
+            sh, sa = NATIONS[h][1], NATIONS[a][1]
+            NATIONAL_HIST.append({"date": d.isoformat(), "home": h, "away": a, "hg": float(rng.poisson(1.1 * sh / sa ** .5)),
+                                  "ag": float(rng.poisson(0.9 * sa / sh ** .5)), "neutral": False,
+                                  "tournament": random.choice(["Friendly", "UEFA Nations League", "FIFA World Cup qualification"])})
+        d += timedelta(days=45)
+    eid = 950000
+    fixtures = {"uefa.nations": [("Italy", "France"), ("England", "Croatia"), ("Czech Republic", "Spain"), ("Turkey", "Belgium"),
+                                 ("Belgium", "Italy"), ("Germany", "Netherlands")],
+                "fifa.friendly": [("Japan", "Brazil"), ("Argentina", "Uruguay"), ("Wales", "San Marino")]}
+    for code, pairs in fixtures.items():
+        evs = []
+        for i, (h, a) in enumerate(pairs):
+            eid += 1
+            day = today + timedelta(days=1 + (i // 4) * 3)
+            t = lambda n, side: {"id": f"{eid}{side}", "name": espn_name.get(n, n), "short": espn_name.get(n, n), "abbr": NATIONS[n][0],
+                                 "score": None, "color": "#1d3a8a" if side == "h" else "#8a1d2b", "alt": "#ffffff",
+                                 "logo": f"https://a.espncdn.com/i/teamlogos/countries/500/{NATIONS[n][0].lower()}.png"}
+            evs.append({"id": str(eid), "date": f"{day.isoformat()}T19:45Z", "state": "pre", "completed": False, "status": "",
+                        "season_type": 1, "venue": "", "neutral": False, "home": t(h, "h"), "away": t(a, "a"),
+                        "odds": {"provider": "Esempio", "p_home": .45, "p_draw": .28, "p_away": .27, "total": 2.5, "p_over": .5, "p_under": .5}})
+        CUPS_FAKE[code] = evs
 
 
 def _probs(lh, la):
@@ -439,6 +479,9 @@ def _install_fakes():
     espn.scoreboard_day = tennis_day
     espn.scoreboard = lambda sport, league, start, end=None: tennis_day(sport, league, start)
     espn.tennis_matches = lambda evs, tour: [e["_t"] for e in evs]
+    from .sources import intl_results
+    intl_results.matches = lambda since: [dict(m) for m in NATIONAL_HIST if m["date"] >= since]
+    espn.league_board = lambda sport, league: {"leagues": [{"season": {"endDate": "2099-01-01"}}], "events": []}
     footballdata.season = fd_season
     footballdata.fixtures = fd_fixtures
     understat.league_matches = lambda league, y: []

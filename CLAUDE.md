@@ -1,9 +1,9 @@
 # Istruzioni per Claude
 
-Web app personale "Pronostici": statistiche e probabilità per calcio (5 campionati principali, Portogallo, Norvegia, MLS, Giappone, coppe europee e Champions femminile), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
+Web app personale "Pronostici": statistiche e probabilità per calcio (campionati europei, MLS, Giappone, coppe europee, Champions femminile e nazionali), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
 
 ## Vincoli
-- **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, TheSportsDB per le foto, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.
+- **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, TheSportsDB per le foto, storico delle nazionali `martj42/international_results` su GitHub, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.
 - **Si lavora solo nel repository**: le modifiche vanno caricate su GitHub, Cloudflare Pages pubblica da solo la cartella `public/`. Niente artefatti o pubblicazioni separate.
 - **Interfaccia in italiano**, pensata per smartphone.
 - Il sito è statico (HTML/CSS/JS senza compilazione): niente framework o build step senza motivo.
@@ -23,6 +23,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - Schermi larghi: da 900 px (tablet) elenco e riquadri su due colonne, solo CSS in fondo a `app.css`; da 1180 px (computer) barra a sinistra ed elenco fisso accanto alla partita aperta (`public/layout.js`, che usa `renderList` e l'aggancio in `route()`). Sotto i 900 px il telefono non cambia.
 - `public/me.js`: area personale **Tu** (`#/tu`: squadre seguite, schedine salvate con esito, storico delle giocate, copia dei dati). La pagina **Schedina** serve solo a comporre e salvare: le schedine salvate e lo storico stanno solo in Tu e **Info** (`#/info/come|affidabilita|dati`, che ha assorbito la vecchia pagina Affidabilità; `#/affidabilita` rimanda lì).
 - Sul telefono (`localStorage`): squadre seguite (`p_myteams`, in `teams.js`), schedine salvate con esito controllato in automatico (`p_slips`, in `slip.js`; l'esito lo scrive `attachSlipStatus` in `live.js`).
+- Nazionali: `pipeline/build_national.py` (competizioni in `NATIONAL` di `config.py`), modello `models/national.py` (campo neutro, importanza della partita, emivita lunga; taratura in `report/taratura.md`), storico da `sources/intl_results.py` più i risultati ESPN recenti. Nomi ESPN → storico e in italiano in `pipeline/nations_it.py`: se compare "nazionali_senza_storico" in `meta.json`, aggiungi l'alias lì. Competizioni fuori stagione non vengono interrogate. Niente giocatori per le nazionali.
 - Coppe: le percentuali dei giocatori usano i ritmi di stagione nel loro campionato (`data/cache/soccer/player_base.json`, scritto dal calcio prima delle coppe).
 - Foto dei calciatori: `pipeline/photos.py` (ESPN, poi Wikidata, poi TheSportsDB), esito in `data/cache/photos.json`.
 - `pipeline/names.py` abbina i nomi tra fonti diverse: se compare "nomi_non_abbinati" in `public/data/meta.json`, aggiungi l'alias qui.

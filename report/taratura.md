@@ -39,3 +39,19 @@ Cosa è cambiato: l'Elo si muove di più nei primi incontri di un giocatore e si
 ## Da rifare
 
 Ogni tanto (per esempio a fine stagione) conviene ripetere la prova con i dati nuovi.
+
+## Nazionali (11 novembre 2026)
+
+Storico: partite internazionali dal 2012 (dataset pubblico `martj42/international_results`). Previsioni rifatte mese per
+mese con i soli dati precedenti; parametri scelti sul 2023-24, controllati sul 2025-26 (1.798 partite).
+
+| Scelta | Log loss 1X2 2023-24 | Log loss 1X2 2025-26 |
+|---|---|---|
+| Emivita 540 giorni, prior 3 (come i club, più lungo) | 0,892 | 0,856 |
+| **Emivita 1200 giorni, prior 0,3, amichevoli a peso pieno** | 0,861 | **0,830** |
+| Riferimento: frequenze fisse 1/X/2 | – | 1,046 |
+
+- Le amichevoli pesate meno (0,6) peggioravano le previsioni: tenute a peso pieno.
+- Campo neutro: niente vantaggio casa. Fasi finali pesano 1,2, qualificazioni e Nations League 1,0.
+- Per tipo (2025-26): qualificazioni 0,756, amichevoli 0,866, Nations League 0,923 (gironi equilibrati).
+- Calibrazione: errore medio 2,3 punti; i favoriti netti vincono un po' più spesso di quanto stimato.

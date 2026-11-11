@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Nazionali", items: [
+    "Nations League, qualificazioni a Mondiali ed Europei, fasi finali (Mondiali, Europei, Copa América, Coppa d'Africa, Coppa d'Asia, Gold Cup) e amichevoli.",
+    "Probabilità da tutte le partite tra nazionali degli ultimi anni, con campo neutro e importanza della partita; loghi, forma, testa a testa, quote e Live.",
+    "Sulle amichevoli un avviso: sono le partite più incerte." ] },
   { d: "2026-11-11", t: "Novità dell'app", items: [
     "In Info → Aggiornamenti trovi l'elenco delle novità; un pallino su Info avvisa quando ce n'è una nuova." ] },
   { d: "2026-11-11", t: "Tablet e computer", items: [

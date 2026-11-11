@@ -102,7 +102,7 @@ function infoHow() {
 async function infoReliability() {
   if (!REL) { try { REL = await getJSON("data/affidabilita.json"); } catch { REL = {}; } }
   const names = { "1x2": "Esito 1X2", ou25: "Over/Under 2,5", win: "Vincente", total: "Punti totali" };
-  const sportOf = k => k.startsWith("calcio") || k.startsWith("coppe") ? "Calcio" : k.startsWith("nba") ? "Basket" : k.startsWith("tennis") ? "Tennis" : "Altro";
+  const sportOf = k => k.startsWith("calcio") || k.startsWith("coppe") || k.startsWith("nazionali") ? "Calcio" : k.startsWith("nba") ? "Basket" : k.startsWith("tennis") ? "Tennis" : "Altro";
   const groups = {};
   for (const [k, comp] of Object.entries(REL)) (groups[sportOf(k)] ||= []).push([k, comp]);
   if (!Object.keys(groups).length) return `<div class="empty"><b>Verifica non ancora disponibile</b>Compare dopo il primo aggiornamento dei dati.</div>`;
@@ -131,7 +131,7 @@ async function infoReliability() {
 
 function infoStatus() {
   const st = META?.status || {};
-  const label = { calcio: "Calcio", nba: "NBA", tennis: "Tennis", coppe: "Coppe europee" };
+  const label = { calcio: "Calcio", nba: "NBA", tennis: "Tennis", coppe: "Coppe europee", nazionali: "Nazionali" };
   const flat = v => Array.isArray(v) ? v.join(", ") : v && typeof v === "object" ? Object.entries(v).map(([a, b]) => `${a}: ${Array.isArray(b) ? b.join(", ") : b}`).join("; ") : String(v);
   const rows = Object.entries(st).map(([sport, s]) => {
     const parts = Object.entries(s).filter(([k]) => k !== "aggiornato");

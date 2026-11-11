@@ -8,20 +8,21 @@ from datetime import datetime, timezone
 from . import config, store
 from .config import PUBLIC_DATA
 
-SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nba": "build_nba", "tennis": "build_tennis"}
+SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nazionali": "build_national", "nba": "build_nba", "tennis": "build_tennis"}
 CUP_KEYS = set(config.CUPS) | set(config.WOMEN_CUPS)
+NATIONAL_KEYS = set(config.NATIONAL)
 
 
 def owner(e: dict) -> str:
     """Quale modulo ha prodotto un evento (per sostituire solo i suoi)."""
     if e["sport"] == "soccer":
-        return "coppe" if e["league"] in CUP_KEYS else "calcio"
+        return "coppe" if e["league"] in CUP_KEYS else "nazionali" if e["league"] in NATIONAL_KEYS else "calcio"
     return e["sport"]
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--solo", default="calcio,coppe,nba,tennis")
+    ap.add_argument("--solo", default="calcio,coppe,nazionali,nba,tennis")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     today = config.today()

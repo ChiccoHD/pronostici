@@ -14,9 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       solo:
-        description: "Sport da aggiornare (calcio,coppe,nba,tennis)"
+        description: "Sport da aggiornare (calcio,coppe,nazionali,nba,tennis)"
         required: false
-        default: "calcio,coppe,nba,tennis"
+        default: "calcio,coppe,nazionali,nba,tennis"
 
 permissions:
   contents: write
@@ -41,7 +41,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Scarica dati e calcola le percentuali
-        run: python -m pipeline.run --solo "${{ github.event.inputs.solo || 'calcio,coppe,nba,tennis' }}"
+        run: python -m pipeline.run --solo "${{ github.event.inputs.solo || 'calcio,coppe,nazionali,nba,tennis' }}"
 
       - name: Riepilogo
         if: always()

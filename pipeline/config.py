@@ -40,8 +40,29 @@ EURO_LINK_FDNEW = [("AUT", "Bundesliga"), ("DNK", "Superliga"), ("POL", "Ekstrak
                    ("SWE", "Allsvenskan"), ("SWZ", "Super League"), ("NOR", "Eliteserien"), ("IRL", "Premier Division"),
                    ("FIN", "Veikkausliiga")]
 
+# Nazionali (maschili). espn: codice ESPN; tournament: nome della competizione nello storico internazionale
+# (serve a pesare le partite); logo: id del logo ESPN. Le competizioni fuori stagione non vengono interrogate.
+NATIONAL = {
+    "nations-league": {"name": "Nations League", "espn": "uefa.nations", "tournament": "UEFA Nations League", "logo": 2395},
+    "mondiali": {"name": "Mondiali", "espn": "fifa.world", "tournament": "FIFA World Cup", "logo": 4},
+    "europei": {"name": "Europei", "espn": "uefa.euro", "tournament": "UEFA Euro", "logo": 74},
+    "qual-europei": {"name": "Qualificazioni Europei", "espn": "uefa.euroq", "tournament": "UEFA Euro qualification", "logo": 56},
+    "qual-mondiali": {"name": "Qualificazioni Mondiali (Europa)", "espn": "fifa.worldq.uefa", "tournament": "FIFA World Cup qualification", "logo": 67},
+    "qual-mondiali-sudamerica": {"name": "Qualificazioni Mondiali (Sudamerica)", "espn": "fifa.worldq.conmebol", "tournament": "FIFA World Cup qualification", "logo": 65},
+    "qual-mondiali-concacaf": {"name": "Qualificazioni Mondiali (Nord e Centro America)", "espn": "fifa.worldq.concacaf", "tournament": "FIFA World Cup qualification", "logo": 64},
+    "qual-mondiali-asia": {"name": "Qualificazioni Mondiali (Asia)", "espn": "fifa.worldq.afc", "tournament": "FIFA World Cup qualification", "logo": 62},
+    "qual-mondiali-africa": {"name": "Qualificazioni Mondiali (Africa)", "espn": "fifa.worldq.caf", "tournament": "FIFA World Cup qualification", "logo": 63},
+    "copa-america": {"name": "Copa América", "espn": "conmebol.america", "tournament": "Copa América", "logo": 83},
+    "coppa-africa": {"name": "Coppa d'Africa", "espn": "caf.nations", "tournament": "African Cup of Nations", "logo": 76},
+    "qual-coppa-africa": {"name": "Qualificazioni Coppa d'Africa", "espn": "caf.nations_qual", "tournament": "African Cup of Nations qualification", "logo": 76},
+    "coppa-asia": {"name": "Coppa d'Asia", "espn": "afc.asian.cup", "tournament": "AFC Asian Cup", "logo": 2243},
+    "gold-cup": {"name": "Gold Cup", "espn": "concacaf.gold", "tournament": "Gold Cup", "logo": 59},
+    "concacaf-nations": {"name": "Nations League CONCACAF", "espn": "concacaf.nations.league", "tournament": "CONCACAF Nations League", "logo": 2406},
+    "amichevoli": {"name": "Amichevoli", "espn": "fifa.friendly", "tournament": "Friendly", "logo": 53},
+}
+
 # Quanti giorni in avanti mostrare le partite
-DAYS_AHEAD = {"soccer": 10, "cups": 14, "nba": 4, "tennis": 3}
+DAYS_AHEAD = {"soccer": 10, "cups": 14, "nba": 4, "tennis": 3, "national": 12}
 
 # Pausa tra una richiesta e l'altra verso la stessa fonte (secondi)
 POLITE_DELAY = 0.6

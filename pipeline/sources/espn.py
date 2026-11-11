@@ -41,6 +41,11 @@ def scoreboard_range(sport: str, league: str, start: date, end: date, chunk_days
     return out
 
 
+def league_board(sport: str, league: str) -> dict:
+    """Calendario di default di una competizione (con stagione e date in programma); {} se non risponde."""
+    return http.get_json(f"{SITE}/{sport}/{league}/scoreboard", delay=0.35) or {}
+
+
 def summary(sport: str, league: str, event_id: str) -> dict | None:
     return http.get_json(f"{SITE}/{sport}/{league}/summary", {"event": event_id})
 
@@ -94,6 +99,7 @@ def parse_event(ev: dict) -> dict | None:
             "away": teams["away"],
             "season_type": (ev.get("season") or {}).get("type"),
             "venue": (comp.get("venue") or {}).get("fullName"),
+            "neutral": bool(comp.get("neutralSite")),
         }
         odds = (comp.get("odds") or [None])[0]
         if odds:

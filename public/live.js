@@ -11,6 +11,11 @@ const ESPN_CODE = {
   "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1",
   "champions": "uefa.champions", "europa-league": "uefa.europa", "conference": "uefa.europa.conf",
   "champions-femminile": "uefa.wchampions",
+  "nations-league": "uefa.nations", "mondiali": "fifa.world", "europei": "uefa.euro", "qual-europei": "uefa.euroq",
+  "qual-mondiali": "fifa.worldq.uefa", "qual-mondiali-sudamerica": "fifa.worldq.conmebol", "qual-mondiali-concacaf": "fifa.worldq.concacaf",
+  "qual-mondiali-asia": "fifa.worldq.afc", "qual-mondiali-africa": "fifa.worldq.caf", "copa-america": "conmebol.america",
+  "coppa-africa": "caf.nations", "qual-coppa-africa": "caf.nations_qual", "coppa-asia": "afc.asian.cup", "gold-cup": "concacaf.gold",
+  "concacaf-nations": "concacaf.nations.league", "amichevoli": "fifa.friendly",
 };
 const LIVE_FAST = 8000;     // con una partita in corso: ESPN aggiorna i suoi dati ogni 10 secondi circa, più spesso non serve
 const LIVE_SLOW = 30000;    // nessuna partita in corso (o in attesa del fischio d'inizio)
@@ -43,8 +48,13 @@ const TV = {
   leaguepass: ["NBA League Pass", "https://www.nba.com/watch/league-pass-stream"],
   labchannel: ["LaB Channel", "https://www.primevideo.com/"],
   supertennis: ["SuperTennis, gratis con registrazione", "https://plus.supertennis.tv/benvenuto"],
+  rai: ["Rai 1 e RaiPlay, in chiaro", "https://www.raiplay.it/dirette/rai1"],
 };
 const WHERE = {
+  "nations-league": { tv: ["rai", "sky", "now"], note: "L'Italia in chiaro su Rai 1 e RaiPlay; le altre partite su Sky e NOW (stagione 2026/27)." },
+  "amichevoli": { tv: ["rai"], note: "Le amichevoli dell'Italia sono in chiaro su Rai 1 e RaiPlay; per le altre nazionali controlla il palinsesto." },
+  "qual-europei": { tv: ["rai", "sky", "now"], note: "L'Italia in chiaro sulla Rai; controlla il palinsesto per le altre partite." },
+  "qual-mondiali": { tv: ["rai", "sky", "now"], note: "L'Italia in chiaro sulla Rai; controlla il palinsesto per le altre partite." },
   "serie-a": { tv: ["dazn", "sky", "now"], note: "DAZN tutte le partite, Sky e NOW tre per giornata. Qualche partita all'anno è gratis su DAZN." },
   "champions": { tv: ["sky", "now", "prime", "tv8"], note: "Quasi tutte su Sky e NOW, la migliore del mercoledì su Prime Video. Alcune sfide tra club stranieri sono in chiaro su TV8." },
   "europa-league": { tv: ["sky", "now"] },

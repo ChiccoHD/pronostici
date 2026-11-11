@@ -10,6 +10,8 @@ const SPORTS = [
   { key: "nba", label: "Basket" },
   { key: "tennis", label: "Tennis" },
 ];
+/* pallino dello sport: gli stessi colori dei riquadri dell'elenco */
+const sportDot = k => k === "all" ? `<span class="sdots"><i class="g-soccer"></i><i class="g-nba"></i><i class="g-tennis"></i></span>` : `<span class="sdots"><i class="g-${k}"></i></span>`;
 const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
@@ -236,13 +238,21 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-function dayChips(items, getDate) {
+function dayChips(items, getDate, what = "partite") {
   const counts = {};
   for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
   const keys = Object.keys(counts).sort();
   if (state.day !== "all" && !counts[state.day]) state.day = "all";
-  return `<div class="days" role="group" aria-label="Giorno">${[["all", "Tutte", items.length], ...keys.map(k => [k, dayChipLabel(k), counts[k]])].map(([k, l, n]) =>
-    `<button data-day="${k}" aria-pressed="${state.day === k}">${esc(l)}<small>${n}</small></button>`).join("")}</div>`;
+  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5);
+  const cnt = n => what ? `<small>${n} ${what}</small>` : "";
+  const chip = k => {
+    const d = new Date(k + "T12:00:00");
+    const top = k === today ? "Oggi" : k === tom ? "Domani" : d.toLocaleDateString("it-IT", { weekday: "short" }).replace(".", "");
+    const month = d.toLocaleDateString("it-IT", { month: "short" }).replace(".", "");
+    return `<button data-day="${k}" class="${k === today ? "is-today" : ""}" aria-pressed="${state.day === k}" aria-label="${esc(dayChipLabel(k))}, ${counts[k]} ${what || ""}">
+      <span class="d-top">${esc(top)}</span><b>${d.getDate()}</b><span class="d-mon">${esc(month)}</span>${cnt(counts[k])}</button>`;
+  };
+  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.length}</b><span class="d-mon">${what || "giorni"}</span></button>${keys.map(chip).join("")}</div>`;
 }
 if (!state.day) state.day = "all";
 
@@ -255,7 +265,7 @@ function showList() {
   let html = `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra, tennista o campionato" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
-    `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} partite</small></button>`).join("")}</div>`;
+    `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
     const n = {};
@@ -395,8 +405,14 @@ function rows(obj, { label = k => k, book = null } = {}) {
 
 const formSeq = seq => `<span class="form">${(seq || []).map(r => `<span class="f ${r}" title="${{ V: "vittoria", N: "pareggio", P: "sconfitta" }[r]}">${r}</span>`).join("")}</span>`;
 
+const tpill = (name, c) => `<span class="tpill" style="background:${c};color:${onColor(c)}">${esc(name)}</span>`;
+/* ultimi risultati: una riga per squadra, così non si confondono */
+function formStrip(hName, aName, cH, cA, hSeq, aSeq) {
+  const row = (n, c, s) => `<div class="fs-row">${tpill(n, c)}<span class="fs-seq ${(s || []).length > 5 ? "many" : ""}">${formSeq(s)}</span></div>`;
+  return `<div class="fstrip">${row(hName, cH, hSeq)}${row(aName, cA, aSeq)}<div class="fs-note">ultime partite, la più recente a sinistra</div></div>`;
+}
 function vsTable(hName, aName, cH, cA, lines) {
-  return `<table class="vs-table"><tr><th></th><th><span class="thead-dot" style="background:${cH}"></span>${esc(hName)}</th><th><span class="thead-dot" style="background:${cA}"></span>${esc(aName)}</th></tr>
+  return `<table class="vs-table"><tr><th></th><th>${tpill(hName, cH)}</th><th>${tpill(aName, cA)}</th></tr>
     ${lines.map(([lab, h, a, better = "none", f = x => x ?? "–"]) => {
       const hb = better !== "none" && h != null && a != null && (better === "hi" ? h > a : h < a);
       const ab = better !== "none" && h != null && a != null && (better === "hi" ? a > h : a < h);
@@ -524,8 +540,7 @@ function soccerForm(d, cH, cA) {
   const pair = (h, a) => h != null ? `${num(h)} / ${num(a)}` : null;
   return [5, 10, 15].map(n => {
     const h = H["form" + n], a = A["form" + n];
-    return `<div data-segpane="form:${n}" ${n !== 5 ? "hidden" : ""}>${vsTable(d.home.short, d.away.short, cH, cA, [
-      ["Risultati", formSeq(h.seq?.slice(0, 5)), formSeq(a.seq?.slice(0, 5))],
+    return `<div data-segpane="form:${n}" ${n !== 5 ? "hidden" : ""}>${formStrip(d.home.short, d.away.short, cH, cA, h.seq?.slice(0, n), a.seq?.slice(0, n))}${vsTable(d.home.short, d.away.short, cH, cA, [
       ["Vinte, pari, perse", `${h.w}-${h.d}-${h.l}`, `${a.w}-${a.d}-${a.l}`],
       ["Punti", h.pts, a.pts, "hi"],
       ["Gol fatti a partita", h.gf, a.gf, "hi", x => num(x)],
@@ -655,8 +670,7 @@ function nbaForm(d, cH, cA) {
   const H = d.form.home, A = d.form.away;
   return [5, 10, 15].map(n => {
     const h = H["form" + n], a = A["form" + n];
-    return `<div data-segpane="form:${n}" ${n !== 5 ? "hidden" : ""}>${vsTable(d.home.short, d.away.short, cH, cA, [
-      ["Risultati", formSeq(h.seq?.slice(0, 5)), formSeq(a.seq?.slice(0, 5))],
+    return `<div data-segpane="form:${n}" ${n !== 5 ? "hidden" : ""}>${formStrip(d.home.short, d.away.short, cH, cA, h.seq?.slice(0, n), a.seq?.slice(0, n))}${vsTable(d.home.short, d.away.short, cH, cA, [
       ["Vinte, perse", `${h.w ?? 0}-${h.l ?? 0}`, `${a.w ?? 0}-${a.l ?? 0}`],
       ["Punti fatti", h.pf, a.pf, "hi", x => num(x)],
       ["Punti subiti", h.pa, a.pa, "lo", x => num(x)],
@@ -808,8 +822,8 @@ async function showBest() {
   const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
   const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3).length, 0);
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
-    `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} giocate</small></button>`).join("")}</div>
-    ${dayChips(oneEach, it => it.date).replace(/<small>\d+<\/small>/g, "")}</div>`;
+    `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} giocate</small></button>`).join("")}</div>
+    ${dayChips(oneEach, it => it.date, "partite")}</div>`;
   if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
   // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance
   if (cats.length) {

@@ -445,3 +445,39 @@ main { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
 /* distanza dalle quote nella scheda */
 .board-gap { margin: 12px 2px 0; padding: 9px 11px; border-radius: 10px; background: var(--draw-bg); color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
 .board-gap b { color: var(--draw); }
+
+/* sport: pallino con il colore dello sport, e una riga colorata sotto quello scelto */
+.sp-l { display: inline-flex; align-items: center; gap: 6px; }
+.sdots { display: inline-flex; gap: 2px; }
+.sdots i { width: 8px; height: 8px; border-radius: 50%; background: var(--go); }
+.sdots i.g-nba { background: #e07a1f; }
+.sdots i.g-tennis { background: #c9d42a; }
+.sports button { position: relative; }
+.sports button[aria-pressed="true"]::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: 3px; height: 3px; border-radius: 3px; background: var(--go); }
+.sports button.sp-nba[aria-pressed="true"]::after { background: #e07a1f; }
+.sports button.sp-tennis[aria-pressed="true"]::after { background: #c9d42a; }
+.sports button.sp-all[aria-pressed="true"]::after { background: linear-gradient(90deg, var(--go) 33%, #e07a1f 33% 66%, #c9d42a 66%); }
+
+/* giorni: piccoli calendari */
+.days { gap: 8px; padding-top: 2px; padding-bottom: 2px; }
+.days button { min-width: 60px; padding: 7px 8px 8px; gap: 1px; border-radius: 14px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.days button .d-top { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.days button b { font-size: 22px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.days button .d-mon { font-size: 11px; font-weight: 600; color: var(--ink-2); line-height: 1; }
+.days button small { margin-top: 4px; font-size: 10.5px; font-weight: 700; color: var(--ink-2); background: var(--soft); border-radius: 999px; padding: 2px 6px; line-height: 1.2; }
+.days button.is-today .d-top { color: var(--go-ink); }
+.days button[aria-pressed="true"] { background: var(--go); border-color: var(--go); color: #fff; box-shadow: 0 4px 12px rgba(10, 155, 90, .3); }
+.days button[aria-pressed="true"] .d-top, .days button[aria-pressed="true"] .d-mon { color: rgba(255, 255, 255, .85); }
+.days button[aria-pressed="true"] small { background: rgba(255, 255, 255, .2); color: #fff; }
+
+/* forma: nomi delle squadre con i loro colori e una riga di risultati per squadra */
+.tpill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 800; font-size: 12px; line-height: 1.4; box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .25); white-space: nowrap; }
+.fstrip { display: grid; gap: 8px; margin: 0 0 12px; padding: 10px; border-radius: 12px; background: var(--soft); }
+.fs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.fs-seq .f { width: 24px; height: 24px; font-size: 12px; }
+.fs-note { font-size: 11px; color: var(--ink-3); text-align: right; }
+.fs-seq .form { flex-wrap: wrap; justify-content: flex-end; }
+.fs-seq.many .f { width: 20px; height: 20px; font-size: 11px; }
+.sports button { padding-bottom: 11px; }
+.sports button[aria-pressed="true"]::after { bottom: 4px; }
+.fs-seq.many .form { justify-content: flex-start; }

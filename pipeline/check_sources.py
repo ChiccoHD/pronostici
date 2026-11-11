@@ -166,8 +166,67 @@ def cache_check():
             time.sleep(1)
 
 
+NATIONAL_CANDIDATES = ["uefa.nations", "fifa.friendly", "fifa.world", "uefa.euro", "uefa.euroq", "fifa.worldq.uefa",
+                       "fifa.worldq.conmebol", "fifa.worldq.concacaf", "fifa.worldq.afc", "fifa.worldq.caf", "fifa.worldq.ofc",
+                       "conmebol.america", "concacaf.nations.league", "concacaf.gold", "caf.nations", "caf.nations_qual",
+                       "afc.asian.cup", "afc.cupq", "fifa.confederations", "fifa.worldq", "uefa.nations.w", "fifa.friendly.w"]
+
+
+def national_check():
+    """Competizioni delle nazionali su ESPN: calendario, partite dei prossimi giorni, nomi, loghi, quote, statistiche."""
+    import json
+    from datetime import date
+    from . import http
+    today = config.today()
+    out("## Nazionali")
+    names, sample_done = {}, None
+    for code in NATIONAL_CANDIDATES:
+        js = http.get_json(f"{espn.SITE}/soccer/{code}/scoreboard")
+        if not js:
+            check(code, False, "nessuna risposta")
+            continue
+        lg = (js.get("leagues") or [{}])[0]
+        cal = lg.get("calendar") or []
+        cal_dates = sorted({str(c if isinstance(c, str) else (c.get("startDate") or c.get("value") or ""))[:10] for c in cal})
+        fut = [d for d in cal_dates if d >= today.isoformat()]
+        logos = [l.get("href") for l in lg.get("logos", [])][:2]
+        season = lg.get("season") or {}
+        check(code, True, f"· id {lg.get('id')} · {lg.get('name')} · stagione {season.get('year')} {season.get('startDate','')[:10]}→{season.get('endDate','')[:10]} · "
+              f"calendario {len(cal_dates)} date, prossime {fut[:8]} · loghi {logos} · eventi di default {len(js.get('events') or [])}")
+        days = [date.fromisoformat(d) for d in fut if d <= (today + timedelta(days=14)).isoformat()][:8]
+        evs = []
+        for d in days:
+            evs += espn.scoreboard_day("soccer", code, d) or []
+        if not days:
+            evs = js.get("events") or []
+        parsed = [p for p in (espn.parse_event(e) for e in evs) if p]
+        odds = sum(1 for e in evs if (e.get("competitions") or [{}])[0].get("odds"))
+        neutral = sum(1 for e in evs if (e.get("competitions") or [{}])[0].get("neutralSite"))
+        out(f"  - partite lette {len(parsed)} (con quote {odds}, campo neutro {neutral})")
+        for p in parsed[:40]:
+            out(f"    - {p['date']} {p['state']} {p['home']['name']} [{p['home'].get('abbr')}] – {p['away']['name']} [{p['away'].get('abbr')}] · logo {p['home'].get('logo')}")
+            names[p["home"]["name"]] = names[p["away"]["name"]] = 1
+        if sample_done is None:
+            done = [p for p in parsed if p["completed"]]
+            if done:
+                s = espn.summary("soccer", code, done[-1]["id"]) or {}
+                out(f"  - riepilogo {done[-1]['id']}: chiavi {sorted(s.keys())}; keyEvents {len(s.get('keyEvents') or [])}; "
+                    f"rosters {len(s.get('rosters') or [])}; statistiche {[len(t.get('statistics', [])) for t in (s.get('boxscore') or {}).get('teams', [])]}")
+                sample_done = code
+    # passato recente (per i risultati non ancora nello storico)
+    for code in ("uefa.nations", "fifa.friendly"):
+        evs = espn.scoreboard("soccer", code, today - timedelta(days=40), today - timedelta(days=34))
+        out(f"- {code} dal {today - timedelta(days=40)}: {len(evs)} partite, concluse {sum(1 for p in map(espn.parse_event, evs) if p and p['completed'])}")
+    out(f"- nomi delle nazionali visti: {', '.join(sorted(names))}")
+
+
 def main():
     import sys
+    if "nazionali" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        national_check()
+        _write()
+        return
     if "cache" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         cache_check()

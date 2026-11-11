@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T08:30+00:00",
+ "updated": "2026-11-11T08:37+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -11,7 +11,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 4,
-    "foto_giocatori": "ESPN 11, TheSportsDB 21, Wikipedia 61, senza foto 8, da controllare 40"
+    "foto_giocatori": "ESPN 11, TheSportsDB 26, Wikipedia 63, senza foto 12, da controllare 29"
    },
    "premier-league": {
     "football-data": "ok",
@@ -21,7 +21,7 @@
     "espn": "ok",
     "espn_tabellini": "100 partite",
     "partite_in_arrivo": 7,
-    "foto_giocatori": "Wikipedia 192, da controllare 36, ESPN 20"
+    "foto_giocatori": "Wikipedia 200, da controllare 28, ESPN 20"
    },
    "la-liga": {
     "football-data": "ok",
@@ -34,7 +34,7 @@
      "Deportivo"
     ],
     "partite_in_arrivo": 5,
-    "foto_giocatori": "TheSportsDB 24, senza foto 3, Wikipedia 58, da controllare 55, ESPN 4"
+    "foto_giocatori": "TheSportsDB 24, senza foto 2, Wikipedia 63, da controllare 51, ESPN 4"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -44,7 +44,7 @@
     "espn": "ok",
     "espn_tabellini": "81 partite",
     "partite_in_arrivo": 7,
-    "foto_giocatori": "Wikipedia 111, TheSportsDB 12, ESPN 10, da controllare 107, senza foto 1"
+    "foto_giocatori": "Wikipedia 122, TheSportsDB 12, ESPN 10, da controllare 96, senza foto 1"
    },
    "ligue-1": {
     "football-data": "ok",
@@ -54,7 +54,7 @@
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 6,
-    "foto_giocatori": "senza foto 6, TheSportsDB 7, Wikipedia 112, da controllare 74, ESPN 10"
+    "foto_giocatori": "senza foto 6, TheSportsDB 7, Wikipedia 119, da controllare 67, ESPN 10"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -73,7 +73,7 @@
      "Urawa Red Diamonds"
     ],
     "partite_in_arrivo": 10,
-    "foto_giocatori": "da controllare 249, Wikipedia 56, senza foto 13, TheSportsDB 1, ESPN 2"
+    "foto_giocatori": "da controllare 242, Wikipedia 64, senza foto 12, TheSportsDB 1, ESPN 2"
    },
    "mls": {
     "football-data": "ok",
@@ -81,7 +81,7 @@
     "espn": "ok",
     "espn_tabellini": "511 partite",
     "partite_in_arrivo": 5,
-    "foto_giocatori": "Wikipedia 68, ESPN 78, da controllare 26"
+    "foto_giocatori": "Wikipedia 72, ESPN 78, da controllare 22"
    },
    "eliteserien": {
     "football-data": "ok",
@@ -92,20 +92,20 @@
      "Hamarkameratene"
     ],
     "partite_in_arrivo": 4,
-    "foto_giocatori": "da controllare 76, Wikipedia 30, ESPN 1"
+    "foto_giocatori": "da controllare 73, Wikipedia 33, ESPN 1"
    },
-   "aggiornato": "2026-11-11T08:30+00:00"
+   "aggiornato": "2026-11-11T08:36+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "154 partite",
+   "tabellini": "160 partite",
    "incrocio_espn": {
-    "n": 0,
+    "n": 6,
     "weight": 0.0
    },
-   "partite_in_arrivo": 38,
-   "partite_stagione": 154,
-   "aggiornato": "2026-11-11T02:04+00:00"
+   "partite_in_arrivo": 34,
+   "partite_stagione": 160,
+   "aggiornato": "2026-11-11T08:37+00:00"
   },
   "tennis": {
    "atp": {
@@ -113,10 +113,10 @@
     "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12389 incontri (+1)",
+    "storico": "12389 incontri (+0)",
     "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-11T02:06+00:00"
+   "aggiornato": "2026-11-11T08:37+00:00"
   },
   "coppe": {
    "uomini": {
@@ -176,7 +176,7 @@
     "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-11T02:03+00:00"
+   "aggiornato": "2026-11-11T08:36+00:00"
   }
  }
 }

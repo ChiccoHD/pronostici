@@ -1,8 +1,144 @@
-- tennis atp: HTTP 200 {'cache-control': 'max-age=8', 'date': 'Wed, 11 Nov 2026 13:19:52 GMT'}
-- tennis atp (parametro anti-cache): HTTP 200 {'cache-control': 'max-age=7', 'date': 'Wed, 11 Nov 2026 13:19:53 GMT'}
-- tennis atp web: HTTP 200 {'cache-control': 'max-age=5', 'date': 'Wed, 11 Nov 2026 13:19:55 GMT'}
-- tennis atp web (parametro anti-cache): HTTP 200 {'cache-control': 'max-age=4', 'date': 'Wed, 11 Nov 2026 13:19:56 GMT'}
-- calcio ita.1: HTTP 200 {'cache-control': 'max-age=9', 'date': 'Wed, 11 Nov 2026 13:19:57 GMT'}
-- calcio ita.1 (parametro anti-cache): HTTP 200 {'cache-control': 'max-age=8', 'date': 'Wed, 11 Nov 2026 13:19:58 GMT'}
-- nba: HTTP 200 {'cache-control': 'max-age=1', 'date': 'Wed, 11 Nov 2026 13:19:59 GMT'}
-- nba (parametro anti-cache): HTTP 200 {'cache-control': 'max-age=1', 'date': 'Wed, 11 Nov 2026 13:20:00 GMT'}
+## Nazionali
+- ✅ **uefa.nations** · id 2395 · UEFA Nations League · stagione 2026 2026-06-01→2028-04-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/2395.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2395.png'] · eventi di default 8
+  - partite lette 8 (con quote 8, campo neutro 0)
+    - 2026-11-12T17:00Z pre Armenia [ARM] – Cyprus [CYP] · logo https://a.espncdn.com/i/teamlogos/countries/500/fifa.armenia.png
+    - 2026-11-12T17:00Z pre Türkiye [TUR] – Belgium [BEL] · logo https://a.espncdn.com/i/teamlogos/countries/500/tur.png
+    - 2026-11-12T19:45Z pre Albania [ALB] – Finland [FIN] · logo https://a.espncdn.com/i/teamlogos/countries/500/alb.png
+    - 2026-11-12T19:45Z pre Czechia [CZE] – Spain [ESP] · logo https://a.espncdn.com/i/teamlogos/countries/500/cze.png
+    - 2026-11-12T19:45Z pre England [ENG] – Croatia [CRO] · logo https://a.espncdn.com/i/teamlogos/countries/500/eng.png
+    - 2026-11-12T19:45Z pre Italy [ITA] – France [FRA] · logo https://a.espncdn.com/i/teamlogos/countries/500/ita.png
+    - 2026-11-12T19:45Z pre Montenegro [MNE] – Latvia [LVA] · logo https://a.espncdn.com/i/teamlogos/countries/500/mtg.png
+    - 2026-11-12T19:45Z pre San Marino [SMR] – Belarus [BLR] · logo https://a.espncdn.com/i/teamlogos/countries/500/smr.png
+- ✅ **fifa.friendly** · id 3922 · International Friendly · stagione 2026 2026-01-01→2027-01-01 · calendario 62 date, prossime ['2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16', '2026-11-17', '2026-11-28'] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/53.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/53.png'] · eventi di default 1
+  - partite lette 43 (con quote 43, campo neutro 0)
+    - 2026-11-11T12:00Z post Vietnam [VIE] – Chinese Taipei [TPE] · logo https://a.espncdn.com/i/teamlogos/countries/500/vie.png
+    - 2026-11-12T06:10Z pre New Zealand [NZL] – India [IND] · logo https://a.espncdn.com/i/teamlogos/countries/500/nzl.png
+    - 2026-11-12T15:00Z pre Uzbekistan [UZB] – Russia [RUS] · logo https://a.espncdn.com/i/teamlogos/countries/500/uzb.png
+    - 2026-11-12T17:00Z pre Lithuania [LTU] – Suriname [SUR] · logo https://a.espncdn.com/i/teamlogos/countries/500/ltu.png
+    - 2026-11-12T17:30Z pre Malta [MLT] – Eswatini [SWZ] · logo https://a.espncdn.com/i/teamlogos/countries/500/mlt.png
+    - 2026-11-13T12:00Z pre Singapore [SIN] – Paraguay [PAR] · logo https://a.espncdn.com/i/teamlogos/countries/500/sin.png
+    - 2026-11-13T14:00Z pre Kuwait [KUW] – Syria [SYR] · logo https://a.espncdn.com/i/teamlogos/countries/500/kuw.png
+    - 2026-11-13T14:15Z pre United Arab Emirates [UAE] – Honduras [HON] · logo https://a.espncdn.com/i/teamlogos/countries/500/uae.png
+    - 2026-11-13T14:30Z pre Saudi Arabia [KSA] – South Korea [KOR] · logo https://a.espncdn.com/i/teamlogos/countries/500/ksa.png
+    - 2026-11-13T14:45Z pre Qatar [QAT] – Australia [AUS] · logo https://a.espncdn.com/i/teamlogos/countries/500/qat.png
+    - 2026-11-13T15:00Z pre Iraq [IRQ] – Lebanon [LIB] · logo https://a.espncdn.com/i/teamlogos/countries/500/irq.png
+    - 2026-11-13T20:00Z post Jordan [JOR] – Indonesia [IDN] · logo https://a.espncdn.com/i/teamlogos/countries/500/jor.png
+    - 2026-11-13T23:00Z pre Argentina [ARG] – Uruguay [URU] · logo https://a.espncdn.com/i/teamlogos/countries/500/arg.png
+    - 2026-11-14T00:00Z pre Colombia [COL] – Chile [CHI] · logo https://a.espncdn.com/i/teamlogos/countries/500/col.png
+    - 2026-11-14T00:00Z pre Ecuador [ECU] – Costa Rica [CRC] · logo https://a.espncdn.com/i/teamlogos/countries/500/ecu.png
+    - 2026-11-14T01:00Z pre Peru [PER] – Bolivia [BOL] · logo https://a.espncdn.com/i/teamlogos/countries/500/per.png
+    - 2026-11-14T05:30Z pre Tahiti [TAH] – Cook Islands [COK] · logo https://a.espncdn.com/i/teamlogos/countries/500/tah.png
+    - 2026-11-14T06:00Z pre Bahrain [BHR] – Yemen [YEM] · logo https://a.espncdn.com/i/teamlogos/countries/500/bhr.png
+    - 2026-11-14T10:15Z pre Japan [JPN] – Brazil [BRA] · logo https://a.espncdn.com/i/teamlogos/countries/500/jpn.png
+    - 2026-11-14T12:00Z pre China [CHN] – Malaysia [MAS] · logo https://a.espncdn.com/i/teamlogos/countries/500/chn.png
+    - 2026-11-14T12:00Z pre Chinese Taipei [TPE] – Kyrgyz Republic [KGZ] · logo https://a.espncdn.com/i/teamlogos/soccer/500/14561.png
+    - 2026-11-14T15:00Z pre Palestine [PLE] – Iran [IRN] · logo https://a.espncdn.com/i/teamlogos/countries/500/pal.png
+    - 2026-11-15T03:10Z pre New Zealand [NZL] – India [IND] · logo https://a.espncdn.com/i/teamlogos/countries/500/nzl.png
+    - 2026-11-15T17:00Z pre Suriname [SUR] – Eswatini [SWZ] · logo https://a.espncdn.com/i/teamlogos/countries/500/sur.png
+    - 2026-11-16T18:00Z pre Andorra [AND] – Azerbaijan [AZE] · logo https://a.espncdn.com/i/teamlogos/countries/500/and.png
+    - 2026-11-17T05:30Z pre Tahiti [TAH] – Cook Islands [COK] · logo https://a.espncdn.com/i/teamlogos/countries/500/tah.png
+    - 2026-11-17T06:00Z pre Malaysia [MAS] – Yemen [YEM] · logo https://a.espncdn.com/i/teamlogos/countries/500/mas.png
+    - 2026-11-17T10:00Z pre Singapore [SIN] – Brazil [BRA] · logo https://a.espncdn.com/i/teamlogos/countries/500/sin.png
+    - 2026-11-17T12:00Z pre China [CHN] – Bahrain [BHR] · logo https://a.espncdn.com/i/teamlogos/countries/500/chn.png
+    - 2026-11-17T12:00Z pre Kyrgyz Republic [KGZ] – Vietnam [VIE] · logo https://a.espncdn.com/i/teamlogos/countries/500/kgz.png
+    - 2026-11-17T13:00Z pre Lebanon [LIB] – Palestine [PLE] · logo https://a.espncdn.com/i/teamlogos/countries/500/lib.png
+    - 2026-11-17T13:10Z pre Japan [JPN] – Paraguay [PAR] · logo https://a.espncdn.com/i/teamlogos/countries/500/jpn.png
+    - 2026-11-17T14:00Z pre Qatar [QAT] – South Korea [KOR] · logo https://a.espncdn.com/i/teamlogos/countries/500/qat.png
+    - 2026-11-17T14:10Z pre United Arab Emirates [UAE] – Syria [SYR] · logo https://a.espncdn.com/i/teamlogos/countries/500/uae.png
+    - 2026-11-17T15:30Z pre Saudi Arabia [KSA] – Uzbekistan [UZB] · logo https://a.espncdn.com/i/teamlogos/countries/500/ksa.png
+    - 2026-11-17T16:00Z pre Jordan [JOR] – Australia [AUS] · logo https://a.espncdn.com/i/teamlogos/countries/500/jor.png
+    - 2026-11-17T16:00Z pre Russia [RUS] – Venezuela [VEN] · logo https://a.espncdn.com/i/teamlogos/countries/500/rus.png
+    - 2026-11-17T16:15Z pre Iraq [IRQ] – Iran [IRN] · logo https://a.espncdn.com/i/teamlogos/countries/500/irq.png
+    - 2026-11-17T20:00Z pre Kuwait [KUW] – Honduras [HON] · logo https://a.espncdn.com/i/teamlogos/countries/500/kuw.png
+    - 2026-11-17T23:00Z pre Argentina [ARG] – Costa Rica [CRC] · logo https://a.espncdn.com/i/teamlogos/countries/500/arg.png
+  - riepilogo 401930244: chiavi ['boxscore', 'broadcasts', 'commentary', 'format', 'gameInfo', 'hasOdds', 'header', 'lastFiveGames', 'meta', 'news', 'odds', 'pickcenter', 'rosters', 'seasonseries', 'standings', 'videos', 'wallclockAvailable']; keyEvents 0; rosters 2; statistiche [0, 0]
+- ✅ **fifa.world** · id 606 · FIFA World Cup · stagione 2026 2026-06-11→2026-12-31 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/4.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/4.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2026-07-19T19:00Z post Spain [ESP] – Argentina [ARG] · logo https://a.espncdn.com/i/teamlogos/countries/500/esp.png
+- ✅ **uefa.euro** · id 781 · UEFA European Championship · stagione 2024 2024-06-01→2024-07-31 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/74.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/74.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2024-07-14T19:00Z post Spain [ESP] – England [ENG] · logo https://a.espncdn.com/i/teamlogos/countries/500/esp.png
+- ✅ **uefa.euroq** · id 3947 · UEFA European Championship Qualifying · stagione 2023 2023-03-01→2024-05-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/56.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/56.png'] · eventi di default 3
+  - partite lette 3 (con quote 3, campo neutro 0)
+    - 2024-03-26T17:00Z post Georgia [GEO] – Greece [GRE] · logo https://a.espncdn.com/i/teamlogos/countries/500/geo.png
+    - 2024-03-26T19:45Z post Ukraine [UKR] – Iceland [ISL] · logo https://a.espncdn.com/i/teamlogos/countries/500/ukr.png
+    - 2024-03-26T19:45Z post Wales [WAL] – Poland [POL] · logo https://a.espncdn.com/i/teamlogos/countries/500/wal.png
+- ✅ **fifa.worldq.uefa** · id 786 · FIFA World Cup Qualifying - UEFA · stagione 2025 2025-01-01→2026-04-02 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/67.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/67.png'] · eventi di default 4
+  - partite lette 4 (con quote 4, campo neutro 0)
+    - 2026-03-31T18:45Z post Bosnia-Herzegovina [BIH] – Italy [ITA] · logo https://a.espncdn.com/i/teamlogos/countries/500/bih.png
+    - 2026-03-31T18:45Z post Czechia [CZE] – Denmark [DEN] · logo https://a.espncdn.com/i/teamlogos/countries/500/cze.png
+    - 2026-03-31T18:45Z post Kosovo [KOS] – Türkiye [TUR] · logo https://a.espncdn.com/i/teamlogos/countries/500/kosovo.png
+    - 2026-03-31T18:45Z post Sweden [SWE] – Poland [POL] · logo https://a.espncdn.com/i/teamlogos/countries/500/swe.png
+- ✅ **fifa.worldq.conmebol** · id 787 · FIFA World Cup Qualifying - CONMEBOL · stagione 2023 2023-07-01→2025-11-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/65.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/65.png'] · eventi di default 5
+  - partite lette 5 (con quote 5, campo neutro 0)
+    - 2025-09-09T23:00Z post Ecuador [ECU] – Argentina [ARG] · logo https://a.espncdn.com/i/teamlogos/countries/500/ecu.png
+    - 2025-09-09T23:30Z post Bolivia [BOL] – Brazil [BRA] · logo https://a.espncdn.com/i/teamlogos/countries/500/bol.png
+    - 2025-09-09T23:30Z post Chile [CHI] – Uruguay [URU] · logo https://a.espncdn.com/i/teamlogos/countries/500/chi.png
+    - 2025-09-09T23:30Z post Peru [PER] – Paraguay [PAR] · logo https://a.espncdn.com/i/teamlogos/countries/500/per.png
+    - 2025-09-09T23:30Z post Venezuela [VEN] – Colombia [COL] · logo https://a.espncdn.com/i/teamlogos/countries/500/ven.png
+- ✅ **fifa.worldq.concacaf** · id 788 · FIFA World Cup Qualifying - Concacaf · stagione 2024 2024-01-01→2026-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/64.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/64.png'] · eventi di default 6
+  - partite lette 6 (con quote 6, campo neutro 0)
+    - 2025-11-19T01:00Z post Costa Rica [CRC] – Honduras [HON] · logo https://a.espncdn.com/i/teamlogos/countries/500/crc.png
+    - 2025-11-19T01:00Z post Guatemala [GUA] – Suriname [SUR] · logo https://a.espncdn.com/i/teamlogos/countries/500/gua.png
+    - 2025-11-19T01:00Z post Haiti [HAI] – Nicaragua [NCA] · logo https://a.espncdn.com/i/teamlogos/countries/500/hai.png
+    - 2025-11-19T01:00Z post Jamaica [JAM] – Curaçao [CUW] · logo https://a.espncdn.com/i/teamlogos/countries/500/jam.png
+    - 2025-11-19T01:00Z post Panama [PAN] – El Salvador [SLV] · logo https://a.espncdn.com/i/teamlogos/countries/500/pan.png
+    - 2025-11-19T01:00Z post Trinidad and Tobago [TRI] – Bermuda [BER] · logo https://a.espncdn.com/i/teamlogos/countries/500/tri.png
+- ✅ **fifa.worldq.afc** · id 789 · FIFA World Cup Qualifying - AFC · stagione 2023 2023-07-01→2026-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/62.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/62.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2025-11-18T16:00Z post Iraq [IRQ] – United Arab Emirates [UAE] · logo https://a.espncdn.com/i/teamlogos/countries/500/irq.png
+- ✅ **fifa.worldq.caf** · id 790 · FIFA World Cup Qualifying - CAF · stagione 2023 2023-07-01→2026-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/63.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/63.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2025-11-16T19:00Z post Nigeria [NGA] – Congo DR [COD] · logo https://a.espncdn.com/i/teamlogos/countries/500/nga.png
+- ✅ **fifa.worldq.ofc** · id 792 · FIFA World Cup Qualifying - OFC · stagione 2024 2024-07-18→2025-04-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/66.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/66.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2025-03-24T06:00Z post New Caledonia [NCD] – New Zealand [NZL] · logo https://a.espncdn.com/i/teamlogos/countries/500/ncd.png
+- ✅ **conmebol.america** · id 780 · Copa América · stagione 2024 2024-01-01→2024-12-31 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/83.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/83.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2024-07-15T01:15Z post Argentina [ARG] – Colombia [COL] · logo https://a.espncdn.com/i/teamlogos/countries/500/arg.png
+- ✅ **concacaf.nations.league** · id 19267 · Concacaf Nations League · stagione 2026 2026-07-01→2027-04-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/2406.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2406.png'] · eventi di default 6
+  - partite lette 6 (con quote 6, campo neutro 0)
+    - 2026-11-12T19:00Z pre Barbados [BRB] – Guadeloupe [GDL] · logo https://a.espncdn.com/i/teamlogos/countries/500/brb.png
+    - 2026-11-12T19:00Z pre Cayman Islands [CAY] – Guyana [GUY] · logo https://a.espncdn.com/i/teamlogos/countries/500/cay.png
+    - 2026-11-12T20:00Z pre Bonaire [BOE] – Cuba [CUB] · logo https://a.espncdn.com/i/teamlogos/countries/500/boe.png
+    - 2026-11-12T22:00Z pre Aruba [ARU] – Martinique [MTQ] · logo https://a.espncdn.com/i/teamlogos/countries/500/aru.png
+    - 2026-11-12T23:00Z pre Antigua and Barbuda [ATG] – Trinidad and Tobago [TRI] · logo https://a.espncdn.com/i/teamlogos/countries/500/atg.png
+    - 2026-11-13T00:30Z pre Curaçao [CUW] – Panama [PAN] · logo https://a.espncdn.com/i/teamlogos/soccer/500/11678.png
+- ✅ **concacaf.gold** · id 4004 · Concacaf Gold Cup · stagione 2025 2025-01-01→2026-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/59.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/59.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2025-07-06T23:00Z post United States [USA] – Mexico [MEX] · logo https://a.espncdn.com/i/teamlogos/countries/500/usa.png
+- ✅ **caf.nations** · id 3908 · Africa Cup of Nations · stagione 2025 2025-12-21→2026-12-31 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/76.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/76.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2026-01-18T19:00Z post Senegal [SEN] – Morocco [MAR] · logo https://a.espncdn.com/i/teamlogos/countries/500/sen.png
+- ✅ **caf.nations_qual** · id 8315 · Africa Cup of Nations Qualifying · stagione 2026 2026-01-01→2027-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/default-team-logo-500.png&w=100&h=100'] · eventi di default 9
+  - partite lette 9 (con quote 9, campo neutro 0)
+    - 2026-11-12T15:00Z pre Ghana [GHA] – Somalia [SOM] · logo https://a.espncdn.com/i/teamlogos/countries/500/gha.png
+    - 2026-11-12T16:00Z pre Congo DR [COD] – Sierra Leone [SLE] · logo https://a.espncdn.com/i/teamlogos/countries/500/rdc.png
+    - 2026-11-12T16:00Z pre Equatorial Guinea [EQG] – Zimbabwe [ZIM] · logo https://a.espncdn.com/i/teamlogos/countries/500/eqg.png
+    - 2026-11-12T16:00Z pre Madagascar [MAD] – Guinea-Bissau [GNB] · logo https://a.espncdn.com/i/teamlogos/countries/500/mad.png
+    - 2026-11-12T17:00Z pre Guinea [GUI] – Eritrea [ERI] · logo https://a.espncdn.com/i/teamlogos/countries/500/gui.png
+    - 2026-11-12T19:00Z pre Benin [BEN] – Central African Republic [CTA] · logo https://a.espncdn.com/i/teamlogos/countries/500/ben.png
+    - 2026-11-12T19:00Z pre Cameroon [CMR] – Namibia [NAM] · logo https://a.espncdn.com/i/teamlogos/countries/500/crm.png
+    - 2026-11-12T19:00Z pre Ivory Coast [CIV] – Gambia [GAM] · logo https://a.espncdn.com/i/teamlogos/countries/500/civ.png
+    - 2026-11-12T19:00Z pre Senegal [SEN] – Sudan [SUD] · logo https://a.espncdn.com/i/teamlogos/countries/500/sen.png
+- ✅ **afc.asian.cup** · id 20219 · AFC Asian Cup · stagione 2027 2027-01-01→2028-01-01 · calendario 1 date, prossime ['2027-01-01'] · loghi ['https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/2243.png', 'https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500-dark/2243.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2027-01-07T17:00Z post Saudi Arabia [KSA] – Palestine [PLE] · logo https://a.espncdn.com/i/teamlogos/countries/500/ksa.png
+- ✅ **afc.cupq** · id 5662 · AFC Asian Cup Qualifiers · stagione 2024 2024-06-01→2026-07-01 · calendario 1 date, prossime [] · loghi ['http://a.espncdn.com/i/leaguelogos/soccer/500/2246.png'] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2026-06-04T16:00Z post Lebanon [LIB] – Yemen [YEM] · logo https://a.espncdn.com/i/teamlogos/countries/500/lib.png
+- ✅ **fifa.confederations** · id 4006 · FIFA Confederations Cup · stagione 2017 2017-01-01→2018-01-01 · calendario 1 date, prossime [] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/57.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/57.png'] · eventi di default 2
+  - partite lette 2 (con quote 2, campo neutro 0)
+    - 2017-07-02T12:00Z post Portugal [POR] – Mexico [MEX] · logo https://a.espncdn.com/i/teamlogos/countries/500/por.png
+    - 2017-07-02T18:00Z post Chile [CHI] – Germany [GER] · logo https://a.espncdn.com/i/teamlogos/countries/500/chi.png
+- ✅ **fifa.worldq** · id None · World Cup Qualifying · stagione 2009 2009-09-01→2010-01-01 · calendario 1 date, prossime [] · loghi [] · eventi di default 1
+  - partite lette 1 (con quote 1, campo neutro 0)
+    - 2009-11-18T23:00Z post Uruguay [URU] – Costa Rica [CRC] · logo https://a.espncdn.com/i/teamlogos/countries/500/uru.png
+- ❌ **uefa.nations.w** nessuna risposta
+- ✅ **fifa.friendly.w** · id 3923 · Women's International Friendly · stagione 2026 2026-01-01→2027-01-01 · calendario 44 date, prossime ['2026-11-27', '2026-11-28', '2026-11-29', '2026-12-01', '2026-12-02', '2026-12-03', '2026-12-04', '2026-12-05'] · loghi ['https://a.espncdn.com/i/leaguelogos/soccer/500/70.png', 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/70.png'] · eventi di default 2
+  - partite lette 2 (con quote 2, campo neutro 0)
+    - 2026-11-10T12:15Z post Congo [CON] – Central African Republic [CTA] · logo 
+    - 2026-11-10T14:30Z post Gabon [GAB] – Chad [CHA] · logo 
+- uefa.nations dal 2026-10-02: 44 partite, concluse 44
+- fifa.friendly dal 2026-10-02: 33 partite, concluse 30
+- nomi delle nazionali visti: Albania, Andorra, Antigua and Barbuda, Argentina, Armenia, Aruba, Australia, Azerbaijan, Bahrain, Barbados, Belarus, Belgium, Benin, Bermuda, Bolivia, Bonaire, Bosnia-Herzegovina, Brazil, Cameroon, Cayman Islands, Central African Republic, Chad, Chile, China, Chinese Taipei, Colombia, Congo, Congo DR, Cook Islands, Costa Rica, Croatia, Cuba, Curaçao, Cyprus, Czechia, Denmark, Ecuador, El Salvador, England, Equatorial Guinea, Eritrea, Eswatini, Finland, France, Gabon, Gambia, Georgia, Germany, Ghana, Greece, Guadeloupe, Guatemala, Guinea, Guinea-Bissau, Guyana, Haiti, Honduras, Iceland, India, Indonesia, Iran, Iraq, Italy, Ivory Coast, Jamaica, Japan, Jordan, Kosovo, Kuwait, Kyrgyz Republic, Latvia, Lebanon, Lithuania, Madagascar, Malaysia, Malta, Martinique, Mexico, Montenegro, Morocco, Namibia, New Caledonia, New Zealand, Nicaragua, Nigeria, Palestine, Panama, Paraguay, Peru, Poland, Portugal, Qatar, Russia, San Marino, Saudi Arabia, Senegal, Sierra Leone, Singapore, Somalia, South Korea, Spain, Sudan, Suriname, Sweden, Syria, Tahiti, Trinidad and Tobago, Türkiye, Ukraine, United Arab Emirates, United States, Uruguay, Uzbekistan, Venezuela, Vietnam, Wales, Yemen, Zimbabwe

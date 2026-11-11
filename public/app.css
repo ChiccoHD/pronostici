@@ -767,3 +767,17 @@ a.btn-main, label.btn-main { box-sizing: border-box; text-align: center; }
   .split-links a { padding: 8px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-weight: 700; font-size: 13px; color: var(--go); }
 }
 @media (max-width: 1179px) { #side { display: none; } }
+
+/* Novità dell'app (Info → Aggiornamenti) */
+.news-item { padding: 10px 0; border-top: 1px solid var(--rule); }
+.news-item:first-of-type { border-top: 0; padding-top: 0; }
+.news-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.news-h b { font-size: 14.5px; }
+.news-h small { color: var(--ink-3); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.news-item.latest .news-h b::after { content: "nuovo"; margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: var(--go); color: #fff; font-size: 10.5px; font-weight: 800; vertical-align: 2px; }
+.news-item ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+.news-item li { margin: 3px 0; }
+.bottom a { position: relative; }
+.bottom a.has-news::after { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e5484d; }
+.bottom a.has-news::after { position: absolute; top: 2px; left: calc(50% + 8px); }
+.news-more summary { padding: 10px 0 2px; border-top: 1px solid var(--rule); color: var(--go); font-weight: 700; font-size: 13.5px; cursor: pointer; }

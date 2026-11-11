@@ -71,7 +71,7 @@ async function showInfoHub(tab) {
   let body = "";
   if (tab === "come") body = infoHow();
   if (tab === "affidabilita") body = await infoReliability();
-  if (tab === "dati") body = infoStatus();
+  if (tab === "dati") { body = newsSection() + infoStatus(); markNewsSeen(); }
   if (!location.hash.startsWith("#/info")) return;
   $app.innerHTML = `<h1 class="page-h">Info</h1>${tabs}${body}`;
 }

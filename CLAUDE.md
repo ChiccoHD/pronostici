@@ -31,6 +31,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - `public/` il sito; `public/data/` è generato dal workflow.
 
 ## Regole pratiche
+- **Novità**: ogni funzione nuova o cambiamento visibile va aggiunto in cima a `NOVITA` in `public/novita.js` (data e testo breve, per chi usa l'app), nello stesso commit. Compare in Info → Aggiornamenti, separato dallo stato dei dati; un pallino su Info segnala le novità non ancora viste (`p_news_seen`).
 - Ogni sport e ogni campionato deve poter fallire da solo senza bloccare gli altri: mantieni i try/except e lo stato in `meta.json`.
 - Se cambi il formato dei JSON in `public/data/`, aggiorna anche `public/app.js` nello stesso commit.
 - Richieste alle fonti sempre poche e lente (vedi `pipeline/http.py`); le fonti non ufficiali possono bloccare chi esagera.

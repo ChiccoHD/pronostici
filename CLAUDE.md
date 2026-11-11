@@ -18,6 +18,9 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (5 campion
 - Dal telefono, oltre al Live: formazioni ufficiali del calcio (`attachLineups` in `live.js`, da 90 minuti prima) che ricalcolano le percentuali dei giocatori (`withLineup` in `app.js`); lo storico della schedina vive nel `localStorage` del telefono (campo `result` delle giocate).
 - `public/teams.js`: Classifiche (`#/classifiche/<campionato>`) e pagina squadra (`#/squadra/<campionato>/<id ESPN>`), dai file `public/data/leagues/<campionato>.json` scritti da `league_page` in `build_soccer.py` e `build_nba.py`.
 - `public/slip.js`: Costruisci la multipla (`#/multipla`, dalle giocate di `migliori.json`) e Condividi la schedina (`#/condividi/<dati>`: le giocate stanno nel link, niente server).
+- Tendenze (serie aperte) in `pipeline/trends.py`: nei file delle partite (`trends`), nelle pagine squadra e in `migliori.json` (`trends`).
+- Tennis: profili dei giocatori in `public/data/tennis/<atp|wta>.json` (`player_profile` in `models/tennis.py`), pagina `#/tennista/<circuito>/<nome>`. ESPN non ha Coppa Davis, BJK Cup, United Cup, Challenger né statistiche dei match (verificato con Verifica fonti, solo = ricerca).
+- Sul telefono (`localStorage`): squadre seguite (`p_myteams`, in `teams.js`), schedine salvate con esito controllato in automatico (`p_slips`, in `slip.js`; l'esito lo scrive `attachSlipStatus` in `live.js`).
 - Coppe: le percentuali dei giocatori usano i ritmi di stagione nel loro campionato (`data/cache/soccer/player_base.json`, scritto dal calcio prima delle coppe).
 - Foto dei calciatori: `pipeline/photos.py` (ESPN, poi Wikidata, poi TheSportsDB), esito in `data/cache/photos.json`.
 - `pipeline/names.py` abbina i nomi tra fonti diverse: se compare "nomi_non_abbinati" in `public/data/meta.json`, aggiungi l'alias qui.

@@ -82,12 +82,20 @@ async function showMultipla() {
       <div class="slip-nums"><div>${ring(pr.prod, pr.prod >= .5)}<span>probabilità stimata che escano tutte</span></div>
       <div class="big-odd"><b>${odd(pr.prod)}</b><span>quota equa</span></div></div>
       ${legs}
-      <button type="button" class="btn-main" data-mp-add="${i}">Aggiungi tutte alla schedina</button></section>`;
+      <button type="button" class="btn-main" data-mp-save="${i}">Salva come schedina</button>
+      <button type="button" class="btn-main alt" data-mp-add="${i}">Aggiungi alla schedina in costruzione</button></section>`;
   });
   html += `<p class="note">A parità di quota la probabilità stimata è sempre la stessa (circa 1 diviso la quota), qualunque giocate contenga: per questo le proposte scelgono, tra le giocate della classifica Migliori su partite diverse, quelle su cui il modello è più solido, cioè d'accordo con i bookmaker e con abbastanza dati. Meno giocate vuol dire meno errori del modello che si sommano. Restano stime, non certezze, e il bookmaker paga meno della quota equa.</p>`;
   $app.innerHTML = html;
   $app.querySelectorAll("[data-mp]").forEach(b => b.onclick = () => {
     const g = b.dataset.mp; MP[g] = g === "target" ? Number(b.dataset.v) : b.dataset.v; save("mp_" + g, b.dataset.v); showMultipla();
+  });
+  $app.querySelectorAll("[data-mp-save]").forEach(b => b.onclick = () => {
+    const pr = props[Number(b.dataset.mpSave)];
+    const name = prompt("Nome della schedina:", `Multipla ${odd(pr.prod)} (${pr.legs.length} giocate)`);
+    if (name === null) return;
+    saveAsSlip(pr.legs, name.trim() || undefined);
+    toast("Schedina salvata: la trovi nella pagina Schedina");
   });
   $app.querySelectorAll("[data-mp-add]").forEach(b => b.onclick = () => {
     const pr = props[Number(b.dataset.mpAdd)];
@@ -156,4 +164,79 @@ function showShared(data) {
     toast(`${addable.length} ${addable.length === 1 ? "giocata aggiunta" : "giocate aggiunte"}`);
     location.hash = "#/schedina";
   };
+}
+
+/* ------------------------------------------------------------------ schedine salvate */
+/* Ogni schedina salvata tiene le sue giocate e, quando le partite finiscono, il loro esito.
+   Quota e puntata del sito dove la giochi sono facoltative: servono solo a vedere la vincita possibile. */
+
+function mySlips() { try { return JSON.parse(localStorage.getItem("p_slips") || "[]"); } catch { return []; } }
+function saveMySlips(list) { try { localStorage.setItem("p_slips", JSON.stringify(list.slice(-60))); } catch { /* niente */ } }
+
+function saveAsSlip(legs, name) {
+  const list = mySlips();
+  const n = list.length + 1;
+  const sl = { id: Date.now().toString(36), name: name || `Schedina ${n}`, created: new Date().toISOString(),
+    legs: legs.map(f => ({ key: f.key || `${f.event}|${f.label}`, event: f.event, match: f.match, date: f.date, time_valid: f.time_valid,
+      league_name: f.league_name, sport: f.sport, label: f.label, p: f.p, book: f.book ?? null })) };
+  list.push(sl);
+  saveMySlips(list);
+  return sl;
+}
+
+function slipState(sl) {
+  if (sl.legs.some(f => f.result === "lose")) return { cls: "lose", txt: "Persa" };
+  if (sl.legs.every(f => f.result === "win")) return { cls: "win", txt: "Vinta" };
+  const now = Date.now();
+  if (sl.legs.some(f => new Date(f.date).getTime() <= now)) return { cls: "on", txt: "In corso" };
+  return { cls: "", txt: "Da giocare" };
+}
+
+function slipCard(sl) {
+  const st = slipState(sl), prod = sl.legs.reduce((a, f) => a * f.p, 1), now = Date.now();
+  const won = sl.legs.filter(f => f.result === "win").length;
+  const quota = sl.odds ? Number(sl.odds) : null, stake = sl.stake ? Number(sl.stake) : null;
+  const leg = f => {
+    const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
+    const res = f.result ? `<span class="slip-live ${f.result}"><span class="ls-dot ${f.result}"></span>${esc(f.result_txt || (f.result === "win" ? "Vinta" : "Persa"))}</span>`
+      : new Date(f.date).getTime() <= now && now - new Date(f.date).getTime() < 4 * 864e5 ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>` : "";
+    return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b><span>${esc(f.match)}, ${esc(when)}</span>${res}</a></div>`;
+  };
+  return `<details class="sec saved-slip st-${st.cls}" data-slip-id="${esc(sl.id)}" ${st.cls === "on" ? "open" : ""}>
+    <summary><span class="ss-badge ${st.cls}">${st.txt}</span><b>${esc(sl.name)}</b>
+      <small>${sl.legs.length} giocate · ${won ? `${won} prese · ` : ""}quota equa ${odd(prod)}${quota ? ` · sul sito ${num(quota, 2)}` : ""}</small></summary>
+    ${sl.legs.map(leg).join("")}
+    <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
+      <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
+    ${quota && stake ? `<p class="note">${st.cls === "win" ? `Vincita: <b>${num(quota * stake, 2)} €</b>` : st.cls === "lose" ? `Persi ${num(stake, 2)} €` : `Vincita possibile: <b>${num(quota * stake, 2)} €</b>`}. ${quota && prod ? `Il modello la stima al ${pct(prod)}, quota equa ${odd(prod)}: ${quota > 1 / prod ? "il sito paga più della quota equa." : "il sito paga meno della quota equa."}` : ""}</p>` : ""}
+    <div class="ss-acts"><button type="button" class="link-btn" data-ss-share>Condividi</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
+  </details>`;
+}
+
+function slipsSection() {
+  const list = mySlips().slice().reverse();
+  if (!list.length) return `<section class="sec"><h2>Le mie schedine</h2><p class="note">Qui finiscono le schedine che salvi: componi una schedina con le stelle (o dal generatore di multiple), tocca "Salva come schedina" e la ritrovi qui. Quando le partite finiscono, l'app segna da sola se è vinta o persa.</p></section>`;
+  const open = list.filter(s => !["win", "lose"].includes(slipState(s).cls)), done = list.filter(s => ["win", "lose"].includes(slipState(s).cls));
+  const w = done.filter(s => slipState(s).cls === "win").length;
+  let money = "";
+  const withMoney = done.filter(s => s.odds && s.stake);
+  if (withMoney.length) {
+    const spent = withMoney.reduce((a, s) => a + Number(s.stake), 0), back = withMoney.filter(s => slipState(s).cls === "win").reduce((a, s) => a + Number(s.stake) * Number(s.odds), 0);
+    money = `<p class="note">Sulle ${withMoney.length} schedine chiuse con quota e puntata: giocati ${num(spent, 2)} €, vinti ${num(back, 2)} €, ${back - spent >= 0 ? "in attivo di" : "in passivo di"} <b>${num(Math.abs(back - spent), 2)} €</b>.</p>`;
+  }
+  return `<h2 class="day">Le mie schedine</h2>${open.map(slipCard).join("")}
+    ${done.length ? `<h2 class="day">Schedine chiuse<span>${w} vinte su ${done.length}</span></h2>${money}${done.map(slipCard).join("")}` : ""}`;
+}
+
+function wireSlips() {
+  document.querySelectorAll("[data-slip-id]").forEach(card => {
+    const id = card.dataset.slipId;
+    const upd = fn => { const list = mySlips(); const sl = list.find(s => s.id === id); if (sl) { fn(sl, list); saveMySlips(list); } };
+    const val = el => { const v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) && v > 0 ? v : null; };
+    card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); showSlip(); });
+    card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); showSlip(); });
+    card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
+    card.querySelector("[data-ss-rename]")?.addEventListener("click", () => { const n = prompt("Nome della schedina:", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); showSlip(); } });
+    card.querySelector("[data-ss-del]")?.addEventListener("click", () => { if (confirm("Eliminare questa schedina?")) { saveMySlips(mySlips().filter(s => s.id !== id)); showSlip(); } });
+  });
 }

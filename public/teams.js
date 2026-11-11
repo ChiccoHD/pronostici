@@ -3,7 +3,8 @@
    Dati in data/leagues/<campionato>.json (scritti dal workflow). Usa funzioni di app.js. */
 
 const TABLE_LEAGUES = [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"],
-  ["ligue-1", "Ligue 1"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["nba", "NBA"]];
+  ["ligue-1", "Ligue 1"], ["serie-b", "Serie B"], ["championship", "Championship"], ["eredivisie", "Eredivisie"], ["super-lig", "Süper Lig"],
+  ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["nba", "NBA"]];
 const LEAGUE_DATA = new Map();
 
 async function leagueData(key) {
@@ -67,6 +68,7 @@ async function showTeam(lk, id) {
   const head = `<div class="board team-head"><div class="th-logo">${T.logo ? img(T.logo, "") : `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(T.name))}</span>`}</div>
     ${lgName}<h1>${esc(T.name)}</h1><div class="th-sub">${esc(posTxt)}</div><div class="th-sub">${esc(rec)}</div>
     <div class="th-form">${formSeq((T.form5?.seq || []).slice(0, 5))}<small>ultime 5, la più recente a sinistra</small></div>
+    <div style="margin-top:10px">${followBtn({ kind: "team", lk, id: T.id, name: T.name, short: T.short, logo: T.logo })}</div>
     <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a></div>`;
 
   // prossime partite (anche di coppa): dall'elenco delle partite in programma
@@ -99,9 +101,115 @@ async function showTeam(lk, id) {
         <span class="v ${p.tot.g >= 5 ? "hot" : ""}">${p.tot.g}</span><span class="v">${p.tot.a}</span><span class="v">${p.apps}</span><span class="v">${p.tot.yc}</span></div>`).join("");
 
   $app.innerHTML = backBtn("Indietro") + head
+    + (T.trends?.length ? sec("Tendenze in corso", trendsList(T.trends, nba ? "nba" : "soccer") + `<p class="note">Serie aperte nelle ultime partite. Prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`, "", "Squadra tendenze") : "")
     + sec("Prossime partite", nextHtml, "", "Squadra prossime")
     + sec("Ultime partite", last, "", "Squadra ultime")
     + sec("In stagione", stats, "", "Squadra stagione")
     + sec(nba ? "Giocatori, medie a partita" : "Giocatori in stagione", plHtml, nba ? "" : "in campionato", "Squadra giocatori")
     + `<p class="note">Dati aggiornati ${esc(ago(L.updated))}.</p>`;
+}
+
+/* ------------------------------------------------------------------ squadre e giocatori preferiti */
+
+function myTeams() { try { return JSON.parse(localStorage.getItem("p_myteams") || "[]"); } catch { return []; } }
+function saveMyTeams(list) { try { localStorage.setItem("p_myteams", JSON.stringify(list)); } catch { /* niente */ } }
+const isMine = (lk, id) => myTeams().some(t => t.lk === lk && String(t.id) === String(id));
+function toggleMine(item) {
+  const list = myTeams(), had = list.some(t => t.lk === item.lk && String(t.id) === String(item.id));
+  saveMyTeams(had ? list.filter(t => !(t.lk === item.lk && String(t.id) === String(item.id))) : [...list, item]);
+  toast(had ? "Tolta dalle tue squadre" : "Aggiunta alle tue squadre: le sue partite sono in cima all'elenco");
+  return !had;
+}
+function followBtn(item) {
+  const on = isMine(item.lk, item.id);
+  return `<button type="button" class="follow ${on ? "on" : ""}" data-follow='${esc(JSON.stringify(item))}'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>${on ? "La segui" : "Segui"}</button>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-follow]");
+  if (!b) return;
+  e.preventDefault();
+  const on = toggleMine(JSON.parse(b.dataset.follow));
+  b.classList.toggle("on", on);
+  b.lastChild.textContent = on ? "La segui" : "Segui";
+});
+
+/* in cima all'elenco: le prossime partite delle squadre seguite */
+function myTeamsBlock() {
+  const list = myTeams();
+  if (!list.length) return "";
+  const names = t => new Set([t.name, t.short].filter(Boolean));
+  const evs = [], seen = new Set();
+  for (const t of list) {
+    const ns = names(t);
+    const next = INDEX.events.filter(e => ns.has(e.home) || ns.has(e.away));
+    for (const e of next.slice(0, 2)) if (!seen.has(e.id)) { seen.add(e.id); evs.push(e); }
+  }
+  evs.sort((a, b) => a.date.localeCompare(b.date));
+  const chips = list.map(t => `<a class="my-chip" href="${t.kind === "player" ? `#/tennista/${encodeURIComponent(t.lk)}/${encodeURIComponent(t.id)}` : teamHref(t.lk, t.id)}">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : ""}${esc(t.short || t.name)}</a>`).join("");
+  return `<section class="sec my-teams"><h2>Le mie squadre<small>${list.length}</small></h2><div class="my-chips">${chips}</div>
+    ${evs.length ? `<div class="my-next">${evs.slice(0, 6).map(e => `<section class="group">${fixture(e)}</section>`).join("")}</div>` : `<p class="note">Nessuna loro partita nei prossimi giorni.</p>`}</section>`;
+}
+
+/* ------------------------------------------------------------------ tendenze */
+
+const TREND_ICON = { pos: "▲", neg: "▼", gol: "⚽" };
+function trendsList(list, sport) {
+  return `<div class="trends">${list.map(t => `<div class="trend k-${t.k}"><span class="tr-ic">${sport === "nba" && t.k === "gol" ? "🏀" : TREND_ICON[t.k] || "•"}</span><span>${esc(t.t)}</span></div>`).join("")}</div>`;
+}
+function trendsSection(d, cH, cA) {
+  const T = d.trends || {};
+  if (!(T.home?.length || T.away?.length)) return "";
+  const block = (t, list, c) => list?.length ? `<div class="tr-team">${tpill(t.short || t.name, c)}${trendsList(list, d.sport)}</div>` : "";
+  return sec("Tendenze in corso", block(d.home, T.home, cH) + block(d.away, T.away, cA)
+    + `<p class="note">Serie aperte nelle ultime partite (le più recenti per prime) e frequenze alte nelle ultime 10. Le serie prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`, "", "Tendenze partita");
+}
+
+/* ------------------------------------------------------------------ pagina del tennista */
+
+const TENNIS_DATA = new Map();
+async function tennisData(tour) {
+  if (!TENNIS_DATA.has(tour)) TENNIS_DATA.set(tour, getJSON(`data/tennis/${encodeURIComponent(tour)}.json`).catch(() => null));
+  return TENNIS_DATA.get(tour);
+}
+const playerHref = (tour, name) => `#/tennista/${encodeURIComponent(tour)}/${encodeURIComponent(name)}`;
+
+async function showPlayer(tour, name) {
+  $app.innerHTML = backBtn("Indietro") + `<p class="muted" style="padding:16px 4px">Caricamento…</p>`;
+  const D = await tennisData(tour);
+  if (!location.hash.startsWith("#/tennista")) return;
+  const P = D?.players?.[name];
+  if (!P) { $app.innerHTML = backBtn("Indietro") + `<div class="empty"><b>Scheda non disponibile</b>Le schede dei giocatori ci sono per chi ha un incontro in programma nei prossimi giorni.</div>`; return; }
+  const SURF_IT = { Hard: "Cemento", Clay: "Terra rossa", Grass: "Erba" };
+  const pctW = r => r.w + r.l ? `${Math.round(100 * r.w / (r.w + r.l))}%` : "–";
+  const photo = headshot("tennis", P.pid);
+  const head = `<div class="board team-head"><span class="th-lg">${leagueMark(tour)}${tour.toUpperCase()}</span>
+    <div class="th-logo">${photo ? `<span class="pl-ph">${img(photo, "pphoto")}${img(P.flag, "tflag")}</span>` : img(P.flag, "tflag big")}</div>
+    <h1>${esc(P.name)}</h1><div class="th-sub">${[esc(P.country || ""), P.seed ? `testa di serie ${P.seed} nel torneo in corso` : ""].filter(Boolean).join(", ")}</div>
+    <div class="th-sub">${P.year.w} vinte e ${P.year.l} perse quest'anno · Elo ${P.elo}</div>
+    ${P.streak?.n >= 2 ? `<div class="th-sub"><b>${P.streak.res === "V" ? "Vince" : "Perde"} da ${P.streak.n} incontri</b></div>` : ""}
+    <div class="th-form">${formSeq(P.last.slice(0, 10).map(x => x.res))}<small>ultimi 10, il più recente a sinistra</small></div>
+    <div style="margin-top:10px">${followBtn({ kind: "player", lk: tour, id: P.name, name: P.name, short: lastName(P.name), logo: P.flag })}</div></div>`;
+  const surf = `<table class="vs-table st3"><tr><th></th><th>Elo</th><th>Ultimi 12 mesi</th><th>Nello storico</th></tr>
+    ${["Hard", "Clay", "Grass"].map(s => { const x = P.surfaces[s]; return `<tr><td>${SURF_IT[s]}</td><td>${x.elo}</td><td>${x.y.w}-${x.y.l} <small class="faint">${pctW(x.y)}</small></td><td>${x.all.w}-${x.all.l}</td></tr>`; }).join("")}</table>
+    <p class="note">L'Elo misura la forza stimata: 1500 è la media del circuito, sopra i 2000 i migliori.</p>`;
+  const ns = new Set([P.name]);
+  const next = INDEX.events.filter(e => ns.has(e.home) || ns.has(e.away));
+  const last = `<div class="rows games">${P.last.map(m => `<div class="r"><span class="l">${fmtShort(m.date)}, con ${esc(m.opp)}<br><span class="faint">${esc(m.tournament)}, ${esc(roundIt(m.round))}, ${esc(SURF_IT[m.surface] || m.surface)}</span></span>
+    <span class="v num" style="font-size:15px"><span class="f ${m.res}">${m.res}</span> ${esc(m.score)}</span></div>`).join("")}</div>`;
+  const tours = P.tournaments.length ? `<div class="rows games">${P.tournaments.map(t => `<div class="r"><span class="l">${esc(t.tournament)}<br><span class="faint">${esc(SURF_IT[t.surface] || t.surface)}, ${fmtShort(t.date)}</span></span>
+    <span class="v">${t.title ? `<b class="title-win">🏆 Vinto</b>` : esc(roundIt(t.last_round))}<br><small class="faint">${t.w}-${t.l}</small></span></div>`).join("")}</div>` : `<p class="note">Nessun torneo quest'anno nello storico.</p>`;
+  $app.innerHTML = backBtn("Indietro") + head
+    + sec("Prossimi incontri", next.length ? next.map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessun incontro nei prossimi giorni.</p>`, "", "Tennista prossimi")
+    + sec("Per superficie", surf, "", "Tennista superfici")
+    + sec("Ultimi incontri", last, `${P.last.length}`, "Tennista ultimi")
+    + sec(`Tornei del ${new Date().getFullYear()}`, tours, "", "Tennista tornei")
+    + `<p class="note">Dati da ESPN, solo singolare, circuito ${tour.toUpperCase()}. Aggiornati ${esc(ago(D.updated))}.</p>`;
+}
+function roundIt(r) {
+  const s = String(r || "");
+  const map = { "Final": "Finale", "Semifinal": "Semifinale", "Quarterfinal": "Quarti", "Round of 16": "Ottavi", "Round 1": "1° turno", "Round 2": "2° turno",
+    "Round 3": "3° turno", "Round 4": "4° turno", "Qualifying Final": "Qualificazioni", "Qualifying 1st Round": "Qualificazioni", "Qualifying 2nd Round": "Qualificazioni",
+    "Round Robin": "Girone", "1st Round": "1° turno", "2nd Round": "2° turno", "3rd Round": "3° turno", "4th Round": "4° turno",
+    "Semifinals": "Semifinale", "Quarterfinals": "Quarti", "Finals": "Finale" };
+  return map[s] || s.replace("Qualifying", "Qualificazioni");
 }

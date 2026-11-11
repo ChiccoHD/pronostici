@@ -2,7 +2,7 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from . import config, photos, store
+from . import config, photos, store, trends
 from .config import CACHE, SOCCER_LEAGUES, PUBLIC_DATA
 from .names import Matcher
 from .sources import espn, footballdata, understat
@@ -293,6 +293,7 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
         "form": {"home": th, "away": ta},
         "h2h": S.h2h(matches, home, away),
         "players": players,
+        "trends": {"home": trends.soccer(th["last"], "home"), "away": trends.soccer(ta["last"], "away")},
         "reliability": bt["1x2"].get("grade"),
         "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
     }
@@ -365,7 +366,7 @@ def league_page(key, lg, matches, events, matcher, lines, completed_by_team, sea
         teams[tid] = {**info, "fd": row["team"], "pos": row["pos"], "pts": row["pts"],
                       "last": summ["last"][:10], "form5": summ["form5"], "form10": summ["form10"],
                       "season": summ["season"], "home_season": summ["home_season"], "away_season": summ["away_season"],
-                      "players": players}
+                      "players": players, "trends": trends.soccer(summ["last"])}
     store.save(PLAYER_BASE, base_cache)
     store.save(PUBLIC_DATA / "leagues" / f"{key}.json", {
         "key": key, "name": lg["name"], "sport": "soccer", "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),

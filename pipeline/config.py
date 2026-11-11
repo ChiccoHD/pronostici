@@ -14,6 +14,12 @@ SOCCER_LEAGUES = {
     "la-liga": {"name": "LaLiga", "country": "Spagna", "espn": "esp.1", "kind": "fd", "fd": "SP1", "understat": "La_liga", "season": "aug"},
     "bundesliga": {"name": "Bundesliga", "country": "Germania", "espn": "ger.1", "kind": "fd", "fd": "D1", "understat": "Bundesliga", "season": "aug"},
     "ligue-1": {"name": "Ligue 1", "country": "Francia", "espn": "fra.1", "kind": "fd", "fd": "F1", "understat": "Ligue_1", "season": "aug"},
+    "serie-b": {"name": "Serie B", "country": "Italia", "espn": "ita.2", "kind": "fd", "fd": "I2", "season": "aug"},
+    "championship": {"name": "Championship", "country": "Inghilterra", "espn": "eng.2", "kind": "fd", "fd": "E1", "season": "aug"},
+    "eredivisie": {"name": "Eredivisie", "country": "Olanda", "espn": "ned.1", "kind": "fd", "fd": "N1", "season": "aug"},
+    "super-lig": {"name": "Süper Lig", "country": "Turchia", "espn": "tur.1", "kind": "fd", "fd": "T1", "season": "aug"},
+    "scozia": {"name": "Premiership scozzese", "country": "Scozia", "espn": "sco.1", "kind": "fd", "fd": "SC0", "season": "aug"},
+    "belgio": {"name": "Pro League belga", "country": "Belgio", "espn": "bel.1", "kind": "fd", "fd": "B1", "season": "aug"},
     "primeira-liga": {"name": "Primeira Liga", "country": "Portogallo", "espn": "por.1", "kind": "fd", "fd": "P1", "season": "aug"},
     "j1": {"name": "J1 League", "country": "Giappone", "espn": "jpn.1", "kind": "fdnew", "fdnew": ("JPN", "J1"), "season": "cal"},
     "mls": {"name": "MLS", "country": "Stati Uniti", "espn": "usa.1", "kind": "fdnew", "fdnew": ("USA", "MLS"), "season": "cal"},
@@ -28,7 +34,7 @@ CUPS = {
 }
 WOMEN_CUPS = {"champions-femminile": {"name": "Champions League femminile", "espn": "uefa.wchampions"}}
 # Campionati europei che servono solo a collegare le squadre delle coppe (oltre a quelli sopra di tipo "fd")
-EURO_LINK_FD = {"N1": "Olanda", "B1": "Belgio", "T1": "Turchia", "G1": "Grecia", "SC0": "Scozia"}
+EURO_LINK_FD = {"G1": "Grecia"}   # Olanda, Belgio, Turchia e Scozia ora sono campionati seguiti (SOCCER_LEAGUES)
 # ...e dai file per nazione di football-data (nome del campionato indicativo: se non coincide si usa l'unico del file)
 EURO_LINK_FDNEW = [("AUT", "Bundesliga"), ("DNK", "Superliga"), ("POL", "Ekstraklasa"), ("ROU", "Liga 1"),
                    ("SWE", "Allsvenskan"), ("SWZ", "Super League"), ("NOR", "Eliteserien"), ("IRL", "Premier Division"),

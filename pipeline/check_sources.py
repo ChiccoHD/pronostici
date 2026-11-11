@@ -164,7 +164,7 @@ def main():
         has_stats = sum(1 for m in rows if m.get("hc") is not None)
         check("football-data: risultati stagione", bool(rows),
               f"({len(rows)} partite, quote {has_odds}, angoli/tiri {has_stats})")
-        xg = understat.league_matches(lg["understat"], sy)
+        xg = understat.league_matches(lg["understat"], sy) if lg.get("understat") else []
         check("Understat: xG per partita", bool(xg), f"({len(xg)} partite)")
         evs = espn.scoreboard("soccer", lg["espn"], today - timedelta(days=10), today + timedelta(days=10))
         parsed = [p for p in (espn.parse_event(e) for e in evs) if p]

@@ -7,6 +7,7 @@
 const ESPN_SITE = "https://site.api.espn.com/apis/site/v2/sports";
 const ESPN_CODE = {
   "serie-a": "ita.1", "premier-league": "eng.1", "la-liga": "esp.1", "bundesliga": "ger.1", "ligue-1": "fra.1",
+  "serie-b": "ita.2", "championship": "eng.2", "eredivisie": "ned.1", "super-lig": "tur.1", "scozia": "sco.1", "belgio": "bel.1",
   "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1",
   "champions": "uefa.champions", "europa-league": "uefa.europa", "conference": "uefa.europa.conf",
   "champions-femminile": "uefa.wchampions",
@@ -40,6 +41,7 @@ const TV = {
   ligue1: ["Ligue 1+", "https://www.ligue1plus.fr/"],
   apple: ["Apple TV, MLS Season Pass", "https://tv.apple.com/channel/mls-season-pass"],
   leaguepass: ["NBA League Pass", "https://www.nba.com/watch/league-pass-stream"],
+  labchannel: ["LaB Channel", "https://www.primevideo.com/"],
   supertennis: ["SuperTennis, gratis con registrazione", "https://plus.supertennis.tv/benvenuto"],
 };
 const WHERE = {
@@ -50,6 +52,7 @@ const WHERE = {
   "premier-league": { tv: ["sky", "now"] },
   "bundesliga": { tv: ["sky", "now"] },
   "la-liga": { tv: ["dazn"] },
+  "serie-b": { tv: ["dazn", "labchannel"], note: "DAZN tutte le partite; tutte anche sul LaB Channel della Lega B (canale aggiuntivo su Prime Video o OneFootball)." },
   "ligue-1": { tv: ["ligue1"] },
   "mls": { tv: ["apple"] },
   "nba": { tv: ["sky", "now", "leaguepass"] },
@@ -531,8 +534,9 @@ let slipTimer = null;
 async function attachSlipStatus() {
   clearTimeout(slipTimer);
   const now = Date.now(), hash = location.hash;
-  const started = favs().filter(f => { const t = new Date(f.date).getTime(); return !f.result && t <= now && now - t < 4 * 864e5; });
-  const ids = [...new Set(started.map(f => f.event))].slice(0, 12);
+  const legs = [...favs(), ...mySlips().flatMap(s => s.legs)];   // giocate della schedina e delle schedine salvate
+  const started = legs.filter(f => { const t = new Date(f.date).getTime(); return !f.result && t <= now && now - t < 4 * 864e5; });
+  const ids = [...new Set(started.map(f => f.event))].slice(0, 20);
   if (!ids.length) return;
   const tennisBoards = {};
   const infos = {};
@@ -562,7 +566,15 @@ async function attachSlipStatus() {
       const s = closed.get(f.key);
       if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; f.closed = new Date().toISOString(); changed = true; }
     }
-    if (changed) { saveFavs(list); if (location.hash.startsWith("#/schedina")) { showSlip(); return; } }
+    if (changed) saveFavs(list);
+    const slips = mySlips();
+    let changedSlips = false;
+    for (const sl of slips) for (const f of sl.legs) {
+      const s = closed.get(f.key);
+      if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; changedSlips = true; }
+    }
+    if (changedSlips) saveMySlips(slips);
+    if ((changed || changedSlips) && location.hash.startsWith("#/schedina")) { showSlip(); return; }
   }
   if (anyLive) slipTimer = later(() => { if (location.hash === hash) attachSlipStatus(); }, LIVE_FAST);
 }

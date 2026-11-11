@@ -15,13 +15,15 @@ const sportDot = k => k === "all" ? `<span class="sdots"><i class="g-soccer"></i
 const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
-    ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"]],
+    ["primeira-liga", "Portogallo"], ["eredivisie", "Eredivisie"], ["serie-b", "Serie B"], ["championship", "Championship"],
+    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"]],
   tennis: [["atp", "ATP"], ["wta", "WTA"]],
 };
 /* logo di ogni campionato (da ESPN, con la versione per il tema scuro); bandiera dove ESPN non ce l'ha */
 const LG = "https://a.espncdn.com/i/leaguelogos/soccer/";
 const LEAGUE_LOGO = {
   "serie-a": 12, "premier-league": 23, "la-liga": 15, "bundesliga": 10, "ligue-1": 9, "primeira-liga": 14, "j1": 2199, "mls": 19,
+  "serie-b": 99, "championship": 24, "eredivisie": 11, "super-lig": 18, "scozia": 45, "belgio": 6,
   "champions": 2, "europa-league": 2310, "conference": 20296, "champions-femminile": 2408,
 };
 const LEAGUE_FLAG = { "eliteserien": "🇳🇴" };
@@ -240,6 +242,7 @@ function route() {
   if (view === "live") return showLive();
   if (view === "multipla") return showMultipla();
   if (view === "condividi" && arg) return showShared(arg);
+  if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
   if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
   if (view === "squadra" && arg) { const [, , lk, id] = location.hash.split("/"); return showTeam(decodeURIComponent(lk), decodeURIComponent(id || "")); }
   showList();
@@ -283,7 +286,7 @@ function showList() {
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
   let html = `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra, tennista o campionato" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
-    <div id="search-res"></div><div id="list-main"><a class="std-link" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Classifiche e squadre<span>›</span></a><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+    <div id="search-res"></div><div id="list-main"><a class="std-link" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Classifiche e squadre<span>›</span></a>${myTeamsBlock()}<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
@@ -458,7 +461,7 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
   const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
   const crest = (t, c) => t.logo ? img(t.logo, "") : t.photo ? img(t.photo, "pphoto") + img(t.flag, "tflag") : t.flag ? img(t.flag, "tflag") :
     `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(t.name))}</span>`;
-  const team = (t, sub, c) => { const href = d.sport !== "tennis" && t.lk && t.id ? teamHref(t.lk, t.id) : "";
+  const team = (t, sub, c) => { const href = t.href || (d.sport !== "tennis" && t.lk && t.id ? teamHref(t.lk, t.id) : "");
     return `<${href ? `a href="${href}"` : "div"} class="board-t ${href ? "linked" : ""}"><span class="crest">${crest(t, c)}</span>
     <div class="board-name">${esc(t.name)}${href ? `<span class="tl-arrow">›</span>` : ""}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</${href ? "a" : "div"}>`; };
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
@@ -543,7 +546,7 @@ function soccerView(d) {
     + (d.corners ? sec("Calci d'angolo", rows(d.corners.ou, { label: k => `Over ${line(k)} angoli` }), `attesi ${num(d.corners.exp[2])}`) : "")
     + (d.cards ? sec("Cartellini gialli", rows(d.cards.ou, { label: k => `Over ${line(k)} gialli` }), `attesi ${num(d.cards.exp[2])}`) : "");
 
-  const forma = sec("Forma recente", soccerForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
+  const forma = trendsSection(d, cH, cA) + sec("Forma recente", soccerForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("In stagione", soccerSplit(d, cH, cA))
     + sec("Ultime partite", lastSoccer(d));
 
@@ -709,7 +712,7 @@ function nbaView(d) {
     + sec("Punti totali", rows(m.totals, { label: k => `Over ${line(k)} punti` }), `attesi ${num(m.total)}, linea ${line(m.total_line)}`)
     + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `${H.short} over ${line(k)}` }), "", "Punti squadra di casa")
     + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `${A.short} over ${line(k)}` }), "", "Punti squadra ospite");
-  const forma = sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
+  const forma = trendsSection(d, cH, cA) + sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("Infortuni", injuries(d));
   const gioc = sec("Giocatori", nbaPlayers(d, cH, cA), seg("pl", [["home", H.short || "Casa"], ["away", A.short || "Ospite"]], "home"));
   s += tabsView("nba", [["esito", "Esito", esito], ["punti", "Punti", punti], ["gioc", "Giocatori", gioc], ["forma", "Forma", forma],
@@ -771,7 +774,8 @@ function tennisView(d) {
   const m = d.markets, P = d.players;
   const cH = "#8a6aa8", cA = "#a08a9e";
   const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
-  d = { ...d, home: { ...d.home, flag: P.home.flag, photo: headshot("tennis", P.home.pid) }, away: { ...d.away, flag: P.away.flag, photo: headshot("tennis", P.away.pid) } };
+  d = { ...d, home: { ...d.home, flag: P.home.flag, photo: headshot("tennis", P.home.pid), href: playerHref(d.league, d.home.name) },
+    away: { ...d.away, flag: P.away.flag, photo: headshot("tennis", P.away.pid), href: playerHref(d.league, d.away.name) } };
   let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)], favLabels: [`${d.home.name} vince`, `${d.away.name} vince`],
     foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;
@@ -881,6 +885,16 @@ async function showBest() {
       ${rest.length ? `<details class="more"><summary>Altre ${rest.length} in classifica</summary>${rest.map(it => pickRow(it, false, true)).join("")}</details>` : ""}
     </section>`;
   }
+  // tendenze in corso
+  const trs = (BEST.trends || []).filter(ok);
+  if (trs.length) {
+    const tRow = t => `<a class="pk tr-pk" href="#/e/${encodeURIComponent(t.event)}">${t.logo ? `<span class="pk-logo">${img(t.logo, "", "")}</span>` : `<span class="ava" style="background:${usable(t.color) ? t.color : "#6d5a6b"};color:#fff">${esc((t.team || "").slice(0, 3))}</span>`}
+      <span class="pk-txt"><b>${esc(t.team)}: ${esc(t.text.charAt(0).toLowerCase() + t.text.slice(1))}</b><span>${esc(SPORT_NAME[t.sport] || "")} · ${esc(t.match)}, ${esc(`${fmtDay(t.date).rel || fmtShort(t.date)}, ${fmtTime(t.date, t.time_valid)}`)}</span></span></a>`;
+    const top = trs.slice(0, 6), rest = trs.slice(6);
+    html += `<section class="sec best"><h2>Tendenze in corso<small>le serie più lunghe</small></h2>${top.map(tRow).join("")}
+      ${rest.length ? `<details class="more"><summary>Altre ${rest.length}</summary>${rest.map(tRow).join("")}</details>` : ""}
+      <p class="note">Serie aperte delle squadre che giocano a breve. Sono un'informazione, non un pronostico: le percentuali restano quelle del modello.</p></section>`;
+  }
   // dove il modello e i bookmaker non sono d'accordo
   const gaps = (BEST.disagree || []).filter(ok);
   if (gaps.length) {
@@ -944,7 +958,8 @@ function showSlip() {
       ${res}</a>${f.result ? "" : star(f.key)}</div>`;
   };
   if (!all.length) {
-    $app.innerHTML = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a><div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui. Quando le partite finiscono, l'esito resta nello storico.</div>`;
+    $app.innerHTML = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a><div class="empty"><b>${mySlips().length ? "Nessuna schedina in costruzione" : "La schedina è vuota"}</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per aggiungerla qui; poi salvala come schedina per tenerla da parte. Quando le partite finiscono, l'app segna da sola com'è andata.</div>` + slipsSection();
+    wireSlips(); attachSlipStatus();
     return;
   }
   let html = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a>`;
@@ -957,7 +972,8 @@ function showSlip() {
       <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
       <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
       <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. Quando una partita inizia, sotto ogni giocata compare come sta andando: in verde se è già presa o per ora va bene, in rosso se è persa o per ora va male. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
-      ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
+      ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Salva come schedina</button>
+        <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
         <button type="button" class="link-btn" id="slip-clear">Togli le giocate non ancora iniziate</button></div>` : ""}</section>`;
     html += `<section class="sec">${open.map(row).join("")}</section>`;
   }
@@ -982,8 +998,19 @@ function showSlip() {
       ${older.length ? `<details class="more"><summary>Le precedenti (${older.length})</summary>${older.map(row).join("")}</details>` : ""}
       <button type="button" class="link-btn" id="slip-clear-hist">Cancella lo storico</button></section>`;
   }
-  html += `<p class="note">La schedina e lo storico sono salvati su questo telefono.</p>`;
+  html += slipsSection();
+  html += `<p class="note">La schedina, le schedine salvate e lo storico restano su questo telefono.</p>`;
   $app.innerHTML = html;
+  const sv = document.getElementById("slip-save");
+  if (sv) sv.onclick = () => {
+    const name = prompt("Nome della schedina (puoi lasciarlo così):", `Schedina ${mySlips().length + 1}`);
+    if (name === null) return;
+    saveAsSlip(next, name.trim() || undefined);
+    saveFavs(all.filter(f => !next.includes(f)));   // la schedina in costruzione si svuota: le giocate sono in quella salvata
+    toast("Schedina salvata: la trovi in Le mie schedine");
+    showSlip();
+  };
+  wireSlips();
   const sh = document.getElementById("slip-share");
   if (sh) sh.onclick = () => shareSlip(next);
   const c = document.getElementById("slip-clear");

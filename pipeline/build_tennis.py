@@ -92,6 +92,7 @@ def build(today: date):
                         seen.add(m["id"])
                         todo.append(m)
             status["espn"] = f"{len(todo)} incontri in programma"
+            profiles = {}
             for m in todo:
                 a, b = m["players"]
                 surface = surface_of(m["tournament"], m["location"], (m["date"] or "")[:10])
@@ -109,6 +110,10 @@ def build(today: date):
                     s["pid"] = p.get("pid") or p.get("id") or None  # numero ESPN del giocatore: serve al sito per la foto
                     s["elo"] = round(elo.rating(p["name"], surface))
                     pls.append(s)
+                    if p["name"] not in profiles:
+                        pr = T.player_profile(results, p["name"], elo, today.isoformat())
+                        profiles[p["name"]] = {**pr, "country": p.get("country"), "flag": p.get("flag"), "pid": s.get("pid"),
+                                               "seed": p.get("rank")}
                 detail = {
                     "id": f"tennis-{tour}-{m['id']}", "sport": "tennis", "league": tour,
                     "league_name": f"{tour.upper()} · {m['tournament']}", "tournament": m["tournament"],
@@ -127,6 +132,8 @@ def build(today: date):
                               "home_short": a.get("cc"), "away_short": b.get("cc"),
                               "home_flag": a.get("flag"), "away_flag": b.get("flag"),
                               "book": None, "extra": {f"Over {k}": v for k, v in tot[3:4]}, "surface": surface})
+            store.save(PUBLIC_DATA / "tennis" / f"{tour}.json", {"tour": tour, "updated": now.isoformat(timespec="minutes"),
+                                                                 "players": profiles})
             status_all[tour] = status
         except Exception as ex:
             log.exception("Tennis %s", tour)

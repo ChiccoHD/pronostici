@@ -2,7 +2,7 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from . import config, store
+from . import config, store, trends
 from .config import CACHE, PUBLIC_DATA
 from .sources import espn
 from .models import nba as N
@@ -136,6 +136,7 @@ def build(today: date):
                 "date": g["date"], "home": team(g["home"], hb, inj_h), "away": team(g["away"], ab, inj_a),
                 "markets": mk, "book": book,
                 "form": {"home": th, "away": ta}, "h2h": N.h2h(games, g["home"], g["away"]),
+                "trends": {"home": trends.nba(th["last"], "home"), "away": trends.nba(ta["last"], "away")},
                 "players": {"home": N.player_props(lines, g["home"], team_ids.get(g["home"], []), fh, inj_h),
                             "away": N.player_props(lines, g["away"], team_ids.get(g["away"], []), fa, inj_a)},
                 "names": {t: v[0] for t, v in names.items()},
@@ -195,7 +196,8 @@ def league_page(games, lines, rec, names, season_from):
         players.sort(key=lambda p: -p["pts"])
         teams[t] = {"id": t, "name": n[0], "short": n[1], "color": n[2], "logo": n[3], "record": rr, "group": row["group"],
                     "last": summ["last"][:10], "form5": summ["form5"], "form10": summ["form10"], "season": summ["season"],
-                    "home_season": summ["home_season"], "away_season": summ["away_season"], "players": players[:15]}
+                    "home_season": summ["home_season"], "away_season": summ["away_season"], "players": players[:15],
+                    "trends": trends.nba(summ["last"])}
     for g in ("Est", "Ovest"):
         grp = sorted([x for x in rows if x["group"] == g], key=lambda x: (-x["pct"], -x["w"]))
         for i, x in enumerate(grp, 1):

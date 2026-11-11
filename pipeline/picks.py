@@ -103,11 +103,16 @@ ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Marcatori", "Angoli", "Vincente N
 
 
 def build(event_ids: list[str]) -> dict:
-    items = []
+    items, trend_items = [], []
     for eid in event_ids:
         d = store.load(PUBLIC_DATA / "events" / f"{eid}.json")
         if not d:
             continue
+        for side in ("home", "away"):
+            for t in ((d.get("trends") or {}).get(side) or [])[:2]:
+                T = d[side]
+                trend_items.append({**_base(d), "team": T.get("short") or T.get("name"), "logo": T.get("logo"), "color": T.get("color"),
+                                    "text": t["t"], "kind": t["k"], "score": t["s"]})
         try:
             items += {"soccer": soccer, "nba": nba, "tennis": tennis}[d["sport"]](d)
         except (KeyError, TypeError, ValueError):
@@ -128,7 +133,9 @@ def build(event_ids: list[str]) -> dict:
     # dove il modello è più ottimista dei bookmaker (l'altro lato dello stesso mercato sarebbe un doppione)
     gaps = sorted((it for it in items if it.get("edge") is not None and it["edge"] >= 0.03 and it.get("p") is not None),
                   key=lambda x: -x["edge"])[:60]
-    return {"updated": datetime.now(timezone.utc).isoformat(timespec="minutes"), "categories": out, "disagree": gaps}
+    trend_items.sort(key=lambda x: -x["score"])
+    return {"updated": datetime.now(timezone.utc).isoformat(timespec="minutes"), "categories": out, "disagree": gaps,
+            "trends": trend_items[:60]}
 
 
 def write(event_ids: list[str]) -> None:

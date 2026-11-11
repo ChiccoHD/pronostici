@@ -242,6 +242,42 @@ def player_summary(matches, name, surface, today_iso):
             "matches_known": len(ms)}
 
 
+def player_profile(matches, name, elo, today_iso):
+    """Scheda del giocatore: Elo e record per superficie, stagione, ultimi incontri, tornei dell'anno."""
+    ms = sorted([m for m in matches if name in (m["w"], m["l"]) and m["comment"] in ("Completed", "Retired")],
+                key=lambda m: m["date"], reverse=True)
+    y0, d365 = today_iso[:4] + "-01-01", _minus_days(today_iso, 365)
+    def rec(sel):
+        w = sum(1 for m in sel if m["w"] == name)
+        return {"w": w, "l": len(sel) - w}
+    surf = {}
+    for s in ("Hard", "Clay", "Grass"):
+        sel = [m for m in ms if SURF.get(m["surface"]) == s]
+        surf[s] = {"elo": round(elo.rating(name, s)), "y": rec([m for m in sel if m["date"] >= d365]), "all": rec(sel)}
+    last = []
+    for m in ms[:20]:
+        won = m["w"] == name
+        last.append({"date": m["date"], "opp": m["l"] if won else m["w"], "res": "V" if won else "P",
+                     "score": " ".join(f"{a}-{b}" if won else f"{b}-{a}" for a, b in m["sets"]),
+                     "tournament": m["tournament"], "surface": m["surface"], "round": m["round"]})
+    tours = {}
+    for m in sorted([m for m in ms if m["date"] >= y0], key=lambda m: m["date"]):
+        t = tours.setdefault(m["tournament"], {"tournament": m["tournament"], "surface": m["surface"], "date": m["date"], "w": 0, "l": 0})
+        won = m["w"] == name
+        t["w" if won else "l"] += 1
+        t["last_round"] = m["round"]
+        rd = str(m["round"]).lower()
+        t["title"] = won and rd in ("final", "finals", "championship")
+    streak, res0 = 0, (last[0]["res"] if last else None)
+    for x in last:
+        if x["res"] != res0:
+            break
+        streak += 1
+    return {"name": name, "elo": round(elo.rating(name, "Hard")), "surfaces": surf, "year": rec([m for m in ms if m["date"] >= y0]),
+            "y365": rec([m for m in ms if m["date"] >= d365]), "last": last, "streak": {"res": res0, "n": streak},
+            "tournaments": sorted(tours.values(), key=lambda t: t["date"], reverse=True), "matches_known": len(ms)}
+
+
 def _minus_days(iso, n):
     return (date.fromisoformat(iso) - timedelta(days=n)).isoformat()
 

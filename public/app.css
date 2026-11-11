@@ -607,3 +607,47 @@ a.board-t.linked { color: inherit; text-decoration: none; }
 .leagues .lgm.tour, .chip-a .lgm.tour { width: auto; height: auto; }
 .chip-a[aria-pressed="true"] .lgm .lg-l, .leagues button[aria-pressed="true"] .lgm .lg-l { filter: drop-shadow(0 0 1px rgba(255, 255, 255, .9)); }
 .th-lg { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin-top: 8px; }
+
+/* squadre seguite */
+.follow { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.follow svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.follow.on { border-color: #e8a317; color: #b07b10; }
+.follow.on svg { fill: #e8a317; stroke: #e8a317; }
+.my-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px 10px; padding: 0 14px; }
+.my-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--rule-strong); font-size: 13px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.my-next .group { margin-top: 8px; }
+/* tendenze */
+.tr-team { margin-bottom: 10px; }
+.tr-team .tpill { margin-bottom: 6px; }
+.trends { display: grid; gap: 4px; }
+.trend { display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 6px 8px; border-radius: 9px; background: var(--soft); }
+.tr-ic { width: 18px; text-align: center; font-size: 12px; flex: none; }
+.trend.k-pos .tr-ic { color: var(--win); }
+.trend.k-neg .tr-ic { color: var(--loss); }
+/* tennista */
+.pl-ph { position: relative; display: inline-block; }
+.pl-ph .pphoto { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: 50% 12%; background: var(--soft-2); }
+.pl-ph .tflag { position: absolute; right: -6px; bottom: 0; width: 24px; height: 16px; border-radius: 3px; }
+.tflag.big { width: 54px; height: 36px; border-radius: 5px; }
+.title-win { color: #b07b10; }
+
+/* schedine salvate */
+.btn-main.alt { background: var(--soft-2); color: var(--ink); }
+.saved-slip > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; }
+.saved-slip > summary::-webkit-details-marker { display: none; }
+.saved-slip > summary b { font-size: 15px; font-weight: 800; }
+.saved-slip > summary small { grid-column: 1 / -1; color: var(--ink-2); font-size: 12.5px; }
+.saved-slip[open] > summary { margin-bottom: 8px; }
+.ss-badge { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: var(--soft-2); color: var(--ink-2); }
+.ss-badge.on { background: #fde8e6; color: #e0352b; }
+.ss-badge.win { background: var(--win-bg); color: var(--win); }
+.ss-badge.lose { background: var(--loss-bg); color: var(--loss); }
+.saved-slip.st-win { box-shadow: inset 4px 0 0 var(--win), var(--shadow); }
+.saved-slip.st-lose { box-shadow: inset 4px 0 0 var(--loss), var(--shadow); }
+.ss-money { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.ss-money label { display: grid; gap: 3px; font-size: 11.5px; font-weight: 700; color: var(--ink-2); }
+.ss-money input { font: inherit; font-size: 16px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); width: 100%; box-sizing: border-box; }
+.ss-acts { display: flex; gap: 14px; margin-top: 8px; }
+.link-btn.danger { color: var(--loss); }
+.ss-acts .link-btn { color: var(--ink-2); margin-top: 4px; }
+.ss-acts .link-btn.danger { color: var(--loss); }

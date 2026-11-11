@@ -13,7 +13,7 @@ from .names import Matcher
 from .sources import espn, footballdata
 from .models import soccer as S
 from .build_soccer import _fd_history, espn_book, PLAYER_BASE
-from . import photos
+from . import photos, trends
 
 log = logging.getLogger("cups")
 
@@ -82,6 +82,7 @@ def _detail(key, name, e, home, away, matches, ratings, bt, share, kind):
         "markets": mk, "corners": None, "cards": None, "book": espn_book(e) or None,
         "form": {"home": th, "away": ta}, "h2h": S.h2h(matches, home, away), "players": {"home": players("home", lh), "away": players("away", la)},
         "low_data": known(home) < 15 or known(away) < 15,
+        "trends": {"home": trends.soccer(th["last"], "home"), "away": trends.soccer(ta["last"], "away")},
         "reliability": bt["1x2"].get("grade"),
         "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
     }

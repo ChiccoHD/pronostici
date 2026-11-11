@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T09:52+00:00",
+ "updated": "2026-11-11T10:58+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -11,7 +11,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 4,
-    "foto_giocatori": "ESPN 11, TheSportsDB 34, Wikipedia 63, senza foto 15, da controllare 18"
+    "foto_giocatori": "ESPN 11, TheSportsDB 41, Wikipedia 63, senza foto 18, da controllare 8"
    },
    "premier-league": {
     "football-data": "ok",
@@ -94,7 +94,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 73, Wikipedia 33, ESPN 1"
    },
-   "aggiornato": "2026-11-11T09:51+00:00"
+   "aggiornato": "2026-11-11T10:57+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -105,7 +105,7 @@
    },
    "partite_in_arrivo": 34,
    "partite_stagione": 160,
-   "aggiornato": "2026-11-11T09:52+00:00"
+   "aggiornato": "2026-11-11T10:58+00:00"
   },
   "tennis": {
    "atp": {
@@ -116,7 +116,7 @@
     "storico": "12389 incontri (+0)",
     "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-11T09:52+00:00"
+   "aggiornato": "2026-11-11T10:58+00:00"
   },
   "coppe": {
    "uomini": {
@@ -176,7 +176,7 @@
     "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-11T09:51+00:00"
+   "aggiornato": "2026-11-11T10:58+00:00"
   }
  }
 }

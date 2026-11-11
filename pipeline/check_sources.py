@@ -37,8 +37,42 @@ def photos_check():
     check("TheSportsDB: risponde", ok, f"({url})")
 
 
+def live_check():
+    """Com'è fatto il riepilogo ESPN di una partita appena giocata: cronaca (keyEvents) e statistiche."""
+    import json
+    from datetime import timedelta
+    today = config.today()
+    out("## Riepilogo partite (per la sezione Live)")
+    for sport, league, label in (("soccer", "eng.1", "Premier"), ("soccer", "ita.1", "Serie A"), ("basketball", "nba", "NBA")):
+        evs = espn.scoreboard(sport, league, today - timedelta(days=10), today)
+        done = [p for p in (espn.parse_event(e) for e in evs) if p and p["completed"]]
+        if not done:
+            out(f"- {label}: nessuna partita conclusa")
+            continue
+        s = espn.summary(sport, league, done[-1]["id"]) or {}
+        out(f"### {label} – partita {done[-1]['id']}")
+        out(f"- chiavi: {', '.join(sorted(s.keys()))}")
+        ke = s.get("keyEvents") or []
+        out(f"- keyEvents: {len(ke)}; tipi: {sorted({(k.get('type') or {}).get('type', '?') for k in ke})}")
+        for k in ke[:2] + [k for k in ke if k.get("scoringPlay")][:1] + [k for k in ke if "card" in str((k.get("type") or {}).get("type"))][:1] + [k for k in ke if "sub" in str((k.get("type") or {}).get("type"))][:1]:
+            out("  - " + json.dumps(k, ensure_ascii=False)[:900])
+        for t in (s.get("boxscore") or {}).get("teams", [])[:1]:
+            out("- statistiche squadra: " + json.dumps([{x.get("name"): x.get("displayValue"), "label": x.get("label")} for x in t.get("statistics", [])], ensure_ascii=False)[:1500])
+        pl = s.get("plays") or []
+        out(f"- plays: {len(pl)}" + (" esempio: " + json.dumps(pl[-1], ensure_ascii=False)[:600] if pl else ""))
+        cm = s.get("commentary") or []
+        out(f"- commentary: {len(cm)}" + (" esempio: " + json.dumps(cm[-1], ensure_ascii=False)[:500] if cm else ""))
+        lead = s.get("leaders") or []
+        out(f"- leaders: " + json.dumps(lead, ensure_ascii=False)[:700])
+
+
 def main():
     import sys
+    if "live" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        live_check()
+        _write()
+        return
     logging.basicConfig(level=logging.WARNING)
     if "foto" in sys.argv[1:]:
         photos_check()

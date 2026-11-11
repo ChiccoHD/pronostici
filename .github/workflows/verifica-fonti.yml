@@ -2,6 +2,11 @@ name: Verifica fonti
 
 on:
   workflow_dispatch:
+    inputs:
+      solo:
+        description: "Lascia vuoto per tutto, oppure: foto"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -21,10 +26,11 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Diagnostica di rete
+        if: github.event.inputs.solo == ''
         run: python -m pipeline.diagnose
 
       - name: Controlla cosa restituisce ogni fonte
-        run: python -m pipeline.check_sources
+        run: python -m pipeline.check_sources ${{ github.event.inputs.solo }}
 
       - name: Salva il resoconto
         run: |

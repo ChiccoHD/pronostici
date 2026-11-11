@@ -202,7 +202,7 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
                         and datetime.fromisoformat(e["date"].replace("Z", "+00:00")) >= now - timedelta(hours=2)
                         and date.fromisoformat(e["date"][:10]) <= today + timedelta(days=config.DAYS_AHEAD["soccer"])]
             unmatched = set()
-            foto = {}
+            foto, details = {}, []
             completed_by_team = {}
             for e in events:
                 if e["completed"]:
@@ -221,10 +221,12 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
                     continue
                 detail = _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines,
                                        completed_by_team, fixtures, matcher, today, season_from, bt)
-                try:  # le foto non devono mai bloccare una partita
-                    photos.attach(detail, today, foto)
-                except Exception:
-                    log.exception("Foto %s", key)
+                details.append(detail)
+            try:  # le foto non devono mai bloccare le partite
+                photos.attach_many(details, today, foto)
+            except Exception:
+                log.exception("Foto %s", key)
+            for detail in details:
                 store.save(PUBLIC_DATA / "events" / f"{detail['id']}.json", detail)
                 index.append(_index_entry(detail))
             if unmatched:

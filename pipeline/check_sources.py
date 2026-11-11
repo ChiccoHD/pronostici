@@ -21,8 +21,28 @@ def check(label, ok, detail=""):
     return ok
 
 
+def photos_check():
+    """Prova delle fonti delle foto su qualche calciatore noto (e uno inventato)."""
+    from .sources import thesportsdb, wikidata
+    out("## Foto dei calciatori")
+    test = [("Harry Kane", ["Bayern Munich"]), ("Michael Olise", ["Bayern Munich"]), ("Dayot Upamecano", ["Bayern Munich"]),
+            ("Lautaro Martínez", ["Inter Milan", "Inter"]), ("Luis Díaz", ["Bayern Munich"]), ("Pedri", ["Barcelona"]),
+            ("Kylian Mbappé", ["Real Madrid"]), ("Nome Inventato Xyz", ["Nessuna"])]
+    res = wikidata.footballer_photos(test)
+    check("Wikidata: foto trovate", bool(res), f"({sum(1 for v in (res or {}).values() if v)} su {len(test)})")
+    for n, _ in test:
+        out(f"  - {n}: {(res or {}).get(n)}")
+    url, ok = thesportsdb.player_photo("Harry Kane", ["Bayern Munich"])
+    check("TheSportsDB: risponde", ok, f"({url})")
+
+
 def main():
+    import sys
     logging.basicConfig(level=logging.WARNING)
+    if "foto" in sys.argv[1:]:
+        photos_check()
+        _write()
+        return
     today = config.today()
     sy = config.soccer_season_start_year(today)
     out(f"# Verifica fonti — {today.isoformat()}\n")
@@ -87,6 +107,12 @@ def main():
         rows = [r for r in (espn.tennis_result_row(m, tour, "Hard") for m in old) if r]
         check(f"ESPN {tour.upper()}: storico (200 giorni fa)", bool(rows), f"({len(rows)} incontri conclusi)")
 
+    out("")
+    photos_check()
+    _write()
+
+
+def _write():
     path = ROOT / "report" / "fonti.md"
     path.parent.mkdir(exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

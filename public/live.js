@@ -209,6 +209,44 @@ function tennisInfo(tg, evs) {
   return null;
 }
 
+/* ------------------------------------------------------------------ formazioni ufficiali (calcio) */
+
+/* ESPN pubblica le formazioni circa un'ora prima: le chiedo dal telefono da 90 minuti prima del via */
+const LINEUPS = new Map();      // id partita -> { home, away } con titolari e panchina
+let lineupTimer = null;
+
+async function fetchLineups(tg) {
+  const s = await espnJSON(`${ESPN_SITE}/${tg.path}/summary?event=${tg.id}`);
+  const out = {};
+  for (const team of s.rosters || []) {
+    const side = team.homeAway;
+    if (side !== "home" && side !== "away") continue;
+    const people = (team.roster || []).map(p => ({
+      pid: String(p.athlete?.id ?? ""), name: p.athlete?.displayName || p.athlete?.fullName || "",
+      jersey: p.jersey || "", pos: p.position?.abbreviation || "", starter: !!p.starter,
+    })).filter(p => p.name);
+    out[side] = { formation: team.formation || "", starters: people.filter(p => p.starter), bench: people.filter(p => !p.starter) };
+  }
+  return out.home?.starters.length >= 11 && out.away?.starters.length >= 11 ? out : null;
+}
+
+async function attachLineups(d) {
+  clearTimeout(lineupTimer);
+  const tg = espnTarget(d.id), hash = location.hash;
+  if (d.sport !== "soccer" || !tg) return;
+  const start = new Date(d.date).getTime(), now = Date.now();
+  if (now > start + 4 * 3600e3) return;
+  if (now < start - 90 * 60e3) {   // troppo presto: riprovo all'ora giusta se la scheda resta aperta
+    if (start - 90 * 60e3 - now < 3 * 3600e3) lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, start - 90 * 60e3 - now);
+    return;
+  }
+  let lu = LINEUPS.get(d.id);
+  if (!lu) { try { lu = await fetchLineups(tg); } catch { lu = null; } }
+  if (location.hash !== hash) return;
+  if (lu) { LINEUPS.set(d.id, lu); showLineups(d, lu); }
+  else lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, 3 * 60e3);
+}
+
 /* ------------------------------------------------------------------ come sta andando una giocata salvata */
 
 /* risultato: cls "win" vinta, "lose" persa, "ok" per ora va bene, "ko" per ora va male, "" da vedere */
@@ -384,7 +422,7 @@ let slipTimer = null;
 async function attachSlipStatus() {
   clearTimeout(slipTimer);
   const now = Date.now(), hash = location.hash;
-  const started = favs().filter(f => { const t = new Date(f.date).getTime(); return t <= now && now - t < 4 * 864e5; });
+  const started = favs().filter(f => { const t = new Date(f.date).getTime(); return !f.result && t <= now && now - t < 4 * 864e5; });
   const ids = [...new Set(started.map(f => f.event))].slice(0, 12);
   if (!ids.length) return;
   const tennisBoards = {};
@@ -398,6 +436,7 @@ async function attachSlipStatus() {
   }));
   if (location.hash !== hash) return;
   let anyLive = false;
+  const closed = new Map();   // giocate con esito ormai deciso: restano nello storico
   document.querySelectorAll("[data-slip-event]").forEach(el => {
     const info = infos[el.dataset.slipEvent];
     if (!info) return;
@@ -405,7 +444,17 @@ async function attachSlipStatus() {
     const s = pickStatus(el.dataset.slipLabel, info);
     el.innerHTML = s ? `<span class="ls-dot ${s.cls}"></span>${info.state === "in" ? "<b>Live</b> " : ""}${esc(s.txt)}` : "";
     el.className = `slip-live ${s?.cls || ""}`;
+    if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, s);
   });
+  if (closed.size) {
+    const list = favs();
+    let changed = false;
+    for (const f of list) {
+      const s = closed.get(f.key);
+      if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; f.closed = new Date().toISOString(); changed = true; }
+    }
+    if (changed) { saveFavs(list); if (location.hash.startsWith("#/schedina")) { showSlip(); return; } }
+  }
   if (anyLive) slipTimer = later(() => { if (location.hash === hash) attachSlipStatus(); }, LIVE_FAST);
 }
 
@@ -485,7 +534,7 @@ function leagueLabel(k) {
 
 window.addEventListener("hashchange", () => {
   if (!location.hash.startsWith("#/live")) clearTimeout(liveTimer);
-  clearTimeout(boxTimer); clearTimeout(slipTimer);
+  clearTimeout(boxTimer); clearTimeout(slipTimer); clearTimeout(lineupTimer);
 });
 /* tornando sull'app (o quando torna la rete) i risultati si aggiornano subito, senza aspettare il prossimo giro */
 function resume() {

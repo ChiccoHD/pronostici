@@ -56,7 +56,13 @@ function ago(iso) {
 let CUR = null;                 // partita aperta: contesto per le giocate salvate
 const FAVMETA = new Map();      // chiave -> dati della giocata mostrata
 function favs() { try { return JSON.parse(localStorage.getItem("p_favs") || "[]"); } catch { return []; } }
-function saveFavs(list) { try { localStorage.setItem("p_favs", JSON.stringify(list)); } catch { /* niente */ } updateFavBadge(); }
+function saveFavs(list) {
+  // lo storico tiene al massimo le ultime 500 giocate chiuse
+  const closed = list.filter(f => f.result).sort((a, b) => (b.closed || b.date).localeCompare(a.closed || a.date));
+  if (closed.length > 500) { const drop = new Set(closed.slice(500).map(f => f.key)); list = list.filter(f => !drop.has(f.key)); }
+  try { localStorage.setItem("p_favs", JSON.stringify(list)); } catch { /* niente */ }
+  updateFavBadge();
+}
 const isFav = key => favs().some(f => f.key === key);
 function favKey(label, p, book = null, ctx = CUR) {
   if (!ctx || p == null) return null;
@@ -230,7 +236,9 @@ function showList() {
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
-  let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+  let html = `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input id="q" type="search" placeholder="Cerca squadra, tennista o campionato" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
+    <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" aria-pressed="${state.sport === s.key}">${s.label}<small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   html += dayChips(bySport, e => e.date);
   if (LEAGUES[state.sport]) {
@@ -267,7 +275,10 @@ function showList() {
         <div class="group-body">${list.map(fixture).join("")}</div></section>`;
     }
   }
-  $app.innerHTML = html;
+  $app.innerHTML = html + `</div>`;
+  const q = document.getElementById("q");
+  q.oninput = () => { state.q = q.value; runSearch(); };
+  runSearch();
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
@@ -292,6 +303,25 @@ function teamMark(logo, flag, color, cls = "") {
 /* riquadri chiusi: ricordati su questo telefono */
 function closedGroups() { try { return JSON.parse(localStorage.getItem("p_closed") || "[]"); } catch { return []; } }
 function saveClosedGroups(list) { try { localStorage.setItem("p_closed", JSON.stringify(list.slice(-60))); } catch { /* niente */ } }
+/* ricerca: su tutte le partite in elenco, senza guardare i filtri */
+const fold = s => String(s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function runSearch() {
+  const box = document.getElementById("search-res"), main = document.getElementById("list-main");
+  if (!box || !main) return;
+  const words = fold(state.q).split(/\s+/).filter(Boolean);
+  if (!words.length) { box.innerHTML = ""; main.hidden = false; return; }
+  main.hidden = true;
+  const hay = e => fold(`${e.home} ${e.away} ${e.league_name} ${e.home_short || ""} ${e.away_short || ""}`);
+  const found = INDEX.events.filter(e => words.every(w => hay(e).includes(w)));
+  if (!found.length) { box.innerHTML = `<div class="empty"><b>Nessuna partita trovata</b>Controlla il nome o prova con una parte (per esempio "Inter" o "Sinner"). Si cercano solo le partite dei prossimi giorni.</div>`; return; }
+  let html = "", day = null;
+  for (const e of found) {
+    const k = isoDay(e.date);
+    if (k !== day) { const d = fmtDay(e.date); html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`; day = k; }
+    html += `<section class="group"><div class="group-h static"><span class="group-dot g-${e.sport}"></span><b>${esc(groupName(e))}</b></div>${fixture(e)}</section>`;
+  }
+  box.innerHTML = `<p class="note" style="margin:4px 2px 10px">${found.length} ${found.length === 1 ? "partita trovata" : "partite trovate"}</p>` + html;
+}
 function showListKeepScroll() { const y = window.scrollY; showList(); window.scrollTo(0, y); }
 
 function groupName(e) {
@@ -415,6 +445,7 @@ async function showEvent(id) {
   $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
   wire(d.sport);
   attachLive(d);
+  attachLineups(d);
 }
 
 /* ------------------------------------------------------------------ calcio */
@@ -506,13 +537,55 @@ function lastSoccer(d) {
   return list(d.form.home, d.home.name) + list(d.form.away, d.away.name);
 }
 
-function soccerPlayers(d, cH, cA) {
-  const tbl = (list, c) => list.length ? `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
-    ${list.map(p => `<div class="sp-row">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
-      <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`
-    : `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
-  return `<div data-segpane="pl:home">${tbl(d.players.home, cH)}</div><div data-segpane="pl:away" hidden>${tbl(d.players.away, cA)}</div>
-    <p class="note">Stime da presenze, titolarità e gol attesi della squadra in questa partita. Con le formazioni ufficiali possono cambiare parecchio.</p>`;
+/* con le formazioni ufficiali: un titolare gioca la partita intera, chi parte dalla panchina
+   entra circa una volta su due per uno spezzone, chi non è convocato non gioca */
+const LU_LABEL = { start: "Titolare", bench: "In panchina", out: "Non convocato" };
+function withLineup(p, st) {
+  if (!st) return p;
+  const inv = Math.max(p.involvement || 1, .2);
+  const e = Math.min(st === "start" ? 1 / inv : st === "bench" ? .2 / inv : 0, 3);
+  const f = q => q == null ? q : 1 - (1 - q) ** e;
+  return { ...p, lu: st, p_goal: f(p.p_goal), p_assist: f(p.p_assist), p_sot: f(p.p_sot), p_card: f(p.p_card) };
+}
+
+function soccerPlayers(d, cH, cA, lu = null, side = "home") {
+  const status = (side, p) => {
+    if (!lu) return null;
+    const t = lu[side], pid = String(p.pid), n = p.name;
+    const has = list => list.some(x => (x.pid && x.pid === pid) || x.name === n);
+    return has(t.starters) ? "start" : has(t.bench) ? "bench" : "out";
+  };
+  const order = { start: 0, bench: 1, out: 2 };
+  const tbl = (side, c) => {
+    let list = d.players[side];
+    if (!list.length) return `<p class="note">${d.cup ? "Per le coppe le probabilità dei singoli giocatori non sono disponibili: guarda la scheda della stessa squadra in campionato." : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
+    if (lu) list = list.map(p => withLineup(p, status(side, p))).sort((a, b) => order[a.lu] - order[b.lu] || b.p_goal - a.p_goal);
+    return `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
+    ${list.map(p => `<div class="sp-row ${p.lu === "out" ? "sp-out" : ""}">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${p.lu ? `<i class="lu lu-${p.lu}">${LU_LABEL[p.lu]}</i> ` : ""}${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
+      <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`;
+  };
+  return `<div id="sp-wrap"><div data-segpane="pl:home" ${side !== "home" ? "hidden" : ""}>${tbl("home", cH)}</div><div data-segpane="pl:away" ${side !== "away" ? "hidden" : ""}>${tbl("away", cA)}</div>
+    <p class="note">${lu ? "Percentuali ricalcolate con le formazioni ufficiali: un titolare gioca tutta la partita, chi è in panchina entra circa una volta su due per uno spezzone." : "Stime da presenze, titolarità e gol attesi della squadra in questa partita. Quando escono le formazioni ufficiali (circa un'ora prima) vengono ricalcolate qui."}</p></div>`;
+}
+
+/* formazioni ufficiali arrivate (da live.js): riquadro con titolari e panchina, e tabella giocatori ricalcolata */
+function showLineups(d, lu) {
+  const wrap = document.getElementById("sp-wrap");
+  if (!wrap) return;
+  const [cH, cA] = teamColors(d.home, d.away);
+  const side = $app.querySelector('[data-seg="pl"] [aria-pressed="true"]')?.dataset.v || "home";
+  wrap.outerHTML = soccerPlayers(d, cH, cA, lu, side);
+  let box = document.getElementById("lu-box");
+  if (!box) {
+    box = document.createElement("section"); box.id = "lu-box"; box.className = "sec";
+    document.getElementById("sp-wrap")?.closest(".sec")?.before(box);
+  }
+  const team = (t, name, c) => `<div class="lu-team"><h3><span class="tdot" style="background:${c}"></span>${esc(name)}${t.formation ? `<small>${esc(t.formation)}</small>` : ""}</h3>
+    <ol>${t.starters.map(p => `<li><b>${esc(p.jersey)}</b>${esc(p.name)}<small>${esc(p.pos)}</small></li>`).join("")}</ol>
+    ${t.bench.length ? `<details><summary>Panchina (${t.bench.length})</summary><p>${t.bench.map(p => esc(p.name)).join(", ")}</p></details>` : ""}</div>`;
+  box.innerHTML = `<h2>Formazioni ufficiali<small>da ESPN</small></h2><div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`;
+  const tab = document.querySelector('[data-tab="gioc"]');
+  if (tab && !tab.querySelector(".lu-dot")) tab.insertAdjacentHTML("beforeend", `<span class="lu-dot" title="Formazioni ufficiali"></span>`);
 }
 
 /* ------------------------------------------------------------------ NBA */
@@ -721,6 +794,18 @@ async function showBest() {
       ${rest.length ? `<details class="more"><summary>Altre ${rest.length} in classifica</summary>${rest.map(it => pickRow(it, false, true)).join("")}</details>` : ""}
     </section>`;
   }
+  // dove il modello e i bookmaker non sono d'accordo
+  const gaps = (BEST.disagree || []).filter(ok);
+  if (gaps.length) {
+    const gapRow = it => pickRow({ ...it, cat: it.cat }, false, true).replace(/<span class="edge[^"]*">bookmaker [^<]*<\/span>/,
+      `<span class="edge pos">modello ${pct(it.p)}, bookmaker ${pct(it.book)}: +${Math.round(it.edge * 100)} punti</span>`);
+    const top = gaps.slice(0, 8), rest = gaps.slice(8);
+    html += `<section class="sec best gaps"><h2>Modello contro bookmaker<small>dove il modello è più ottimista</small></h2>
+      ${top.map(gapRow).join("")}
+      ${rest.length ? `<details class="more"><summary>Altre ${rest.length}</summary>${rest.map(gapRow).join("")}</details>` : ""}
+      <p class="note">Le giocate a cui il modello dà più probabilità dei bookmaker (quote senza il loro margine). Una differenza grande non vuol dire che il modello abbia ragione: spesso i bookmaker sanno cose che il modello non vede (infortuni, formazioni, motivazioni). Quanto ci prende ciascuno lo vedi in Affidabilità.</p>
+    </section>`;
+  }
   for (const c of cats) {
     const top = c.items.slice(0, 3), rest = c.items.slice(3);
     html += `<section class="sec best"><h2>${esc(c.name)}<small>${c.items.length} giocate</small></h2>
@@ -736,44 +821,85 @@ async function showBest() {
 
 /* ------------------------------------------------------------------ schedina */
 
+/* tipo di giocata, per le statistiche dello storico */
+function kindOf(f) {
+  const l = f.label || "";
+  if (f.sport === "tennis") return /game/i.test(l) ? "Game nel tennis" : "Vincente tennis";
+  if (f.sport === "nba") return / almeno /.test(l) ? "Giocatori NBA" : /vince/.test(l) ? "Vincente NBA" : "Punti NBA";
+  if (/\+/.test(l)) return "Combo";
+  if (/primo tempo/i.test(l)) return "Primo tempo";
+  if (/^\d+-\d+$/.test(l)) return "Risultato esatto";
+  if (/angol/i.test(l)) return "Angoli";
+  if (/gialli/i.test(l)) return "Cartellini";
+  if (/ (segna|fa assist|assist|tiro in porta|ammonito)/i.test(l) && !/vince/.test(l)) return "Giocatori";
+  if (/vince|pareggio|Pareggio|Una delle due/.test(l)) return "Esito";
+  if (/Over|Under|Goal|Multigol|inviolata/.test(l)) return "Gol";
+  return "Altro";
+}
+
 function showSlip() {
   const now = Date.now();
   const all = favs().sort((a, b) => a.date.localeCompare(b.date));
-  const next = all.filter(f => new Date(f.date).getTime() > now - 3 * 3600e3);
-  const past = all.filter(f => new Date(f.date).getTime() <= now - 3 * 3600e3);
+  const started = f => new Date(f.date).getTime() <= now - 3 * 3600e3;
+  const next = all.filter(f => !started(f) && !f.result);
+  const waiting = all.filter(f => started(f) && !f.result);
+  const done = all.filter(f => f.result).sort((a, b) => b.date.localeCompare(a.date));
+  const doneNow = all.filter(f => !started(f) && f.result);   // già decise ma la partita è ancora in corso
   const row = f => {
     FAVMETA.set(f.key, f);
     const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
+    const res = f.result ? `<span class="slip-live ${f.result}"><span class="ls-dot ${f.result}"></span>${esc(f.result_txt || (f.result === "win" ? "Vinta" : "Persa"))}</span>`
+      : new Date(f.date).getTime() <= now ? (now - new Date(f.date).getTime() < 4 * 864e5
+        ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>`
+        : `<span class="slip-live">Esito non disponibile</span>`) : "";
     return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b>
       <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span>
-      ${new Date(f.date).getTime() <= now ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>` : ""}</a>${star(f.key)}</div>`;
+      ${res}</a>${f.result ? "" : star(f.key)}</div>`;
   };
   if (!all.length) {
-    $app.innerHTML = `<div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui.</div>`;
+    $app.innerHTML = `<div class="empty"><b>La schedina è vuota</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per salvarla qui. Quando le partite finiscono, l'esito resta nello storico.</div>`;
     return;
   }
   let html = "";
-  if (next.length) {
-    const events = new Set(next.map(f => f.event));
-    const prod = next.reduce((a, f) => a * f.p, 1);
-    const sameMatch = events.size < next.length;
-    html += `<section class="sec slip-sum"><h2>La tua schedina<small>${next.length} ${next.length === 1 ? "giocata" : "giocate"}</small></h2>
+  const open = [...next, ...doneNow];
+  if (open.length) {
+    const events = new Set(open.map(f => f.event));
+    const prod = open.reduce((a, f) => a * f.p, 1);
+    const sameMatch = events.size < open.length;
+    html += `<section class="sec slip-sum"><h2>La tua schedina<small>${open.length} ${open.length === 1 ? "giocata" : "giocate"}</small></h2>
       <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
       <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
       <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. Quando una partita inizia, sotto ogni giocata compare come sta andando: in verde se è già presa o per ora va bene, in rosso se è persa o per ora va male. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
-      <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></section>`;
-    html += `<section class="sec">${next.map(row).join("")}</section>`;
+      ${next.length ? `<button type="button" class="link-btn" id="slip-clear">Togli le giocate non ancora iniziate</button>` : ""}</section>`;
+    html += `<section class="sec">${open.map(row).join("")}</section>`;
   }
-  if (past.length) {
-    html += `<section class="sec past"><h2>Già iniziate<small>${past.length}</small></h2>${past.map(row).join("")}
-      <button type="button" class="link-btn" id="slip-clear-past">Togli quelle già iniziate</button></section>`;
+  if (waiting.length) html += `<section class="sec past"><h2>In attesa dell'esito<small>${waiting.length}</small></h2>${waiting.map(row).join("")}</section>`;
+  if (done.length) {
+    const w = done.filter(f => f.result === "win").length, exp = done.reduce((a, f) => a + f.p, 0);
+    const kinds = new Map();
+    for (const f of done) { const k = kindOf(f); const o = kinds.get(k) || { n: 0, w: 0, e: 0 }; o.n++; o.w += f.result === "win"; o.e += f.p; kinds.set(k, o); }
+    const kRows = [...kinds].sort((a, b) => b[1].n - a[1].n).map(([k, o]) =>
+      `<div class="r"><span class="l">${esc(k)} <span class="faint">${o.n} ${o.n === 1 ? "giocata" : "giocate"}</span></span><span class="v num">${o.w} ${o.w === 1 ? "vinta" : "vinte"} <span class="faint">su ${o.n}, ${Math.round(100 * o.w / o.n)}% · stima ${Math.round(100 * o.e / o.n)}%</span></span></div>`).join("");
+    const verdict = done.length < 15 ? "Sono ancora poche giocate per dire se ti va meglio o peggio del previsto."
+      : w >= exp + Math.sqrt(exp) ? "Ne hai prese più di quante ne prevedeva il modello."
+      : w <= exp - Math.sqrt(exp) ? "Ne hai prese meno di quante ne prevedeva il modello."
+      : "Sei in linea con quello che prevedeva il modello.";
+    const recent = done.slice(0, 20), older = done.slice(20);
+    html += `<section class="sec slip-hist"><h2>Storico<small>${done.length} ${done.length === 1 ? "giocata chiusa" : "giocate chiuse"}</small></h2>
+      <div class="slip-nums"><div>${ring(w / done.length, w / done.length >= .5)}<span>vinte: ${w} su ${done.length}</span></div>
+      <div class="big-odd"><b>${(exp).toFixed(1).replace(".", ",")}</b><span>quelle che il modello si aspettava</span></div></div>
+      <p class="note">${verdict} La stima di ogni giocata è quella del momento in cui l'hai salvata.</p>
+      <h3 class="lb-h3">Per tipo di giocata</h3><div class="rows">${kRows}</div>
+      <h3 class="lb-h3">Le ultime</h3>${recent.map(row).join("")}
+      ${older.length ? `<details class="more"><summary>Le precedenti (${older.length})</summary>${older.map(row).join("")}</details>` : ""}
+      <button type="button" class="link-btn" id="slip-clear-hist">Cancella lo storico</button></section>`;
   }
-  html += `<p class="note">La schedina è salvata su questo telefono.</p>`;
+  html += `<p class="note">La schedina e lo storico sono salvati su questo telefono.</p>`;
   $app.innerHTML = html;
   const c = document.getElementById("slip-clear");
-  if (c) c.onclick = () => { if (confirm("Svuotare la schedina?")) { saveFavs(past); showSlip(); } };
-  const cp = document.getElementById("slip-clear-past");
-  if (cp) cp.onclick = () => { saveFavs(next); showSlip(); };
+  if (c) c.onclick = () => { if (confirm("Togliere le giocate non ancora iniziate?")) { saveFavs(all.filter(f => !next.includes(f))); showSlip(); } };
+  const ch = document.getElementById("slip-clear-hist");
+  if (ch) ch.onclick = () => { if (confirm("Cancellare tutto lo storico? Non si può annullare.")) { saveFavs(all.filter(f => !f.result && !started(f))); showSlip(); } };
   attachSlipStatus();
 }
 

@@ -125,7 +125,10 @@ def build(event_ids: list[str]) -> dict:
     for c in sorted(cats, key=lambda c: ORDER.index(c) if c in ORDER else 99):
         lst = sorted(cats[c], key=lambda x: -x["p"])[:PER_CAT]
         out.append({"name": c, "items": lst})
-    return {"updated": datetime.now(timezone.utc).isoformat(timespec="minutes"), "categories": out}
+    # dove il modello è più ottimista dei bookmaker (l'altro lato dello stesso mercato sarebbe un doppione)
+    gaps = sorted((it for it in items if it.get("edge") is not None and it["edge"] >= 0.03 and it.get("p") is not None),
+                  key=lambda x: -x["edge"])[:60]
+    return {"updated": datetime.now(timezone.utc).isoformat(timespec="minutes"), "categories": out, "disagree": gaps}
 
 
 def write(event_ids: list[str]) -> None:

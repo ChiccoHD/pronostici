@@ -95,7 +95,7 @@ async function showMultipla() {
     const name = prompt("Nome della schedina:", `Multipla ${odd(pr.prod)} (${pr.legs.length} giocate)`);
     if (name === null) return;
     saveAsSlip(pr.legs, name.trim() || undefined);
-    toast("Schedina salvata: la trovi nella pagina Schedina");
+    toast("Schedina salvata: la trovi in Tu");
   });
   $app.querySelectorAll("[data-mp-add]").forEach(b => b.onclick = () => {
     const pr = props[Number(b.dataset.mpAdd)];
@@ -222,10 +222,10 @@ function slipsSection() {
   const withMoney = done.filter(s => s.odds && s.stake);
   if (withMoney.length) {
     const spent = withMoney.reduce((a, s) => a + Number(s.stake), 0), back = withMoney.filter(s => slipState(s).cls === "win").reduce((a, s) => a + Number(s.stake) * Number(s.odds), 0);
-    money = `<p class="note">Sulle ${withMoney.length} schedine chiuse con quota e puntata: giocati ${num(spent, 2)} €, vinti ${num(back, 2)} €, ${back - spent >= 0 ? "in attivo di" : "in passivo di"} <b>${num(Math.abs(back - spent), 2)} €</b>.</p>`;
+    money = `<p class="note">${withMoney.length === 1 ? "Sull'unica schedina chiusa" : `Sulle ${withMoney.length} schedine chiuse`} con quota e puntata: giocati ${num(spent, 2)} €, vinti ${num(back, 2)} €, ${back - spent >= 0 ? "in attivo di" : "in passivo di"} <b>${num(Math.abs(back - spent), 2)} €</b>.</p>`;
   }
   return `<h2 class="day">Le mie schedine</h2>${open.map(slipCard).join("")}
-    ${done.length ? `<h2 class="day">Schedine chiuse<span>${w} vinte su ${done.length}</span></h2>${money}${done.map(slipCard).join("")}` : ""}`;
+    ${done.length ? `<h2 class="day">Schedine chiuse<span>${w} ${w === 1 ? "vinta" : "vinte"} su ${done.length}</span></h2>${money}${done.map(slipCard).join("")}` : ""}`;
 }
 
 function wireSlips() {
@@ -233,10 +233,12 @@ function wireSlips() {
     const id = card.dataset.slipId;
     const upd = fn => { const list = mySlips(); const sl = list.find(s => s.id === id); if (sl) { fn(sl, list); saveMySlips(list); } };
     const val = el => { const v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) && v > 0 ? v : null; };
-    card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); showSlip(); });
-    card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); showSlip(); });
+    card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); refreshSlips(); });
+    card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
-    card.querySelector("[data-ss-rename]")?.addEventListener("click", () => { const n = prompt("Nome della schedina:", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); showSlip(); } });
-    card.querySelector("[data-ss-del]")?.addEventListener("click", () => { if (confirm("Eliminare questa schedina?")) { saveMySlips(mySlips().filter(s => s.id !== id)); showSlip(); } });
+    card.querySelector("[data-ss-rename]")?.addEventListener("click", () => { const n = prompt("Nome della schedina:", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); refreshSlips(); } });
+    card.querySelector("[data-ss-del]")?.addEventListener("click", () => { if (confirm("Eliminare questa schedina?")) { saveMySlips(mySlips().filter(s => s.id !== id)); refreshSlips(); } });
   });
 }
+
+function refreshSlips() { if (location.hash.startsWith("#/tu")) showMe(); else showSlip(); }

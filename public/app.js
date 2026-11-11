@@ -950,46 +950,73 @@ function kindOf(f) {
   return "Altro";
 }
 
+/* riga di una giocata salvata, con il suo esito (o come sta andando) */
+function slipRow(f, now = Date.now()) {
+  FAVMETA.set(f.key, f);
+  const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
+  const res = f.result ? `<span class="slip-live ${f.result}"><span class="ls-dot ${f.result}"></span>${esc(f.result_txt || (f.result === "win" ? "Vinta" : "Persa"))}</span>`
+    : new Date(f.date).getTime() <= now ? (now - new Date(f.date).getTime() < 4 * 864e5
+      ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>`
+      : `<span class="slip-live">Esito non disponibile</span>`) : "";
+  return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b>
+    <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span>
+    ${res}</a>${f.result ? "" : star(f.key)}</div>`;
+}
+const slipStarted = (f, now = Date.now()) => new Date(f.date).getTime() <= now - 3 * 3600e3;
+
+/* Schedina: solo per comporre la schedina e salvarla. Quelle salvate e lo storico stanno in Tu. */
 function showSlip() {
   const now = Date.now();
   const all = favs().sort((a, b) => a.date.localeCompare(b.date));
-  const started = f => new Date(f.date).getTime() <= now - 3 * 3600e3;
-  const next = all.filter(f => !started(f) && !f.result);
-  const waiting = all.filter(f => started(f) && !f.result);
-  const done = all.filter(f => f.result).sort((a, b) => b.date.localeCompare(a.date));
-  const doneNow = all.filter(f => !started(f) && f.result);   // già decise ma la partita è ancora in corso
-  const row = f => {
-    FAVMETA.set(f.key, f);
-    const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
-    const res = f.result ? `<span class="slip-live ${f.result}"><span class="ls-dot ${f.result}"></span>${esc(f.result_txt || (f.result === "win" ? "Vinta" : "Persa"))}</span>`
-      : new Date(f.date).getTime() <= now ? (now - new Date(f.date).getTime() < 4 * 864e5
-        ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>`
-        : `<span class="slip-live">Esito non disponibile</span>`) : "";
-    return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b>
-      <span>${esc(f.match)}</span><span>${esc(f.league_name)}, ${esc(when)}${f.book != null ? `, bookmaker ${pct(f.book)}` : ""}</span>
-      ${res}</a>${f.result ? "" : star(f.key)}</div>`;
-  };
-  if (!all.length) {
-    $app.innerHTML = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a><div class="empty"><b>${mySlips().length ? "Nessuna schedina in costruzione" : "La schedina è vuota"}</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per aggiungerla qui; poi salvala come schedina per tenerla da parte. Quando le partite finiscono, l'app segna da sola com'è andata.</div>` + slipsSection();
-    wireSlips(); attachSlipStatus();
+  const next = all.filter(f => !slipStarted(f, now) && !f.result);
+  const doneNow = all.filter(f => !slipStarted(f, now) && f.result);   // già decise ma la partita è ancora in corso
+  const open = [...next, ...doneNow];
+  const multi = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a>`;
+  const toMe = mySlips().length || all.some(f => f.result || slipStarted(f, now))
+    ? `<a class="std-link" href="#/tu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Schedine salvate e storico<span>›</span></a>` : "";
+  if (!open.length) {
+    $app.innerHTML = multi + `<div class="empty"><b>Nessuna schedina in costruzione</b>Tocca la stella accanto a una giocata, nelle schede delle partite o in Migliori, per aggiungerla qui. Poi tocca <b>Salva come schedina</b>: la ritrovi in Tu, dove l'app segna da sola com'è andata.</div>` + toMe;
     return;
   }
-  let html = `<a class="std-link" href="#/multipla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M4 12h16M4 17h7"/><circle cx="18" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>Costruisci una multipla<span>›</span></a>`;
-  const open = [...next, ...doneNow];
-  if (open.length) {
-    const events = new Set(open.map(f => f.event));
-    const prod = open.reduce((a, f) => a * f.p, 1);
-    const sameMatch = events.size < open.length;
-    html += `<section class="sec slip-sum"><h2>La tua schedina<small>${open.length} ${open.length === 1 ? "giocata" : "giocate"}</small></h2>
-      <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
-      <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
-      <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai salvato la giocata. Quando una partita inizia, sotto ogni giocata compare come sta andando: in verde se è già presa o per ora va bene, in rosso se è persa o per ora va male. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
-      ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Salva come schedina</button>
-        <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
-        <button type="button" class="link-btn" id="slip-clear">Togli le giocate non ancora iniziate</button></div>` : ""}</section>`;
-    html += `<section class="sec">${open.map(row).join("")}</section>`;
-  }
-  if (waiting.length) html += `<section class="sec past"><h2>In attesa dell'esito<small>${waiting.length}</small></h2>${waiting.map(row).join("")}</section>`;
+  const events = new Set(open.map(f => f.event));
+  const prod = open.reduce((a, f) => a * f.p, 1);
+  const sameMatch = events.size < open.length;
+  let html = multi + `<section class="sec slip-sum"><h2>La tua schedina<small>${open.length} ${open.length === 1 ? "giocata" : "giocate"}</small></h2>
+    <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità che escano tutte</span></div>
+    <div class="big-odd"><b>${odd(prod)}</b><span>quota equa della multipla</span></div></div>
+    <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai aggiunto la giocata. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
+    ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Salva come schedina</button>
+      <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
+      <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></div>` : ""}</section>
+    <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + toMe;
+  $app.innerHTML = html;
+  const sv = document.getElementById("slip-save");
+  if (sv) sv.onclick = () => {
+    const name = prompt("Nome della schedina (puoi lasciarlo così):", `Schedina ${mySlips().length + 1}`);
+    if (name === null) return;
+    saveAsSlip(next, name.trim() || undefined);
+    saveFavs(all.filter(f => !next.includes(f)));   // la schedina in costruzione si svuota: le giocate sono in quella salvata
+    toast("Schedina salvata: la trovi in Tu");
+    showSlip();
+  };
+  const sh = document.getElementById("slip-share");
+  if (sh) sh.onclick = () => shareSlip(next);
+  const c = document.getElementById("slip-clear");
+  if (c) c.onclick = () => { if (confirm("Togliere tutte le giocate dalla schedina in costruzione?")) { saveFavs(all.filter(f => !next.includes(f))); showSlip(); } };
+  attachSlipStatus();
+}
+
+/* giocate singole già iniziate o chiuse: in attesa dell'esito e storico (pagina Tu) */
+function playedHtml() {
+  const now = Date.now();
+  const all = favs();
+  const waiting = all.filter(f => slipStarted(f, now) && !f.result).sort((a, b) => b.date.localeCompare(a.date));
+  // storico: giocate singole chiuse più quelle delle schedine salvate, ognuna una volta sola
+  const seen = new Set();
+  const done = [...all, ...mySlips().flatMap(s => s.legs.map(f => ({ ...f, league_name: f.league_name || "" })))]
+    .filter(f => f.result && !seen.has(f.key) && seen.add(f.key)).sort((a, b) => b.date.localeCompare(a.date));
+  let html = "";
+  if (waiting.length) html += sec("Giocate in attesa dell'esito", waiting.map(f => slipRow(f, now)).join(""), `${waiting.length}`, "Tu attesa");
   if (done.length) {
     const w = done.filter(f => f.result === "win").length, exp = done.reduce((a, f) => a + f.p, 0);
     const kinds = new Map();
@@ -1000,36 +1027,19 @@ function showSlip() {
       : w >= exp + Math.sqrt(exp) ? "Ne hai prese più di quante ne prevedeva il modello."
       : w <= exp - Math.sqrt(exp) ? "Ne hai prese meno di quante ne prevedeva il modello."
       : "Sei in linea con quello che prevedeva il modello.";
-    const recent = done.slice(0, 20), older = done.slice(20);
-    html += `<section class="sec slip-hist"><h2>Storico<small>${done.length} ${done.length === 1 ? "giocata chiusa" : "giocate chiuse"}</small></h2>
-      <div class="slip-nums"><div>${ring(w / done.length, w / done.length >= .5)}<span>vinte: ${w} su ${done.length}</span></div>
-      <div class="big-odd"><b>${(exp).toFixed(1).replace(".", ",")}</b><span>quelle che il modello si aspettava</span></div></div>
-      <p class="note">${verdict} La stima di ogni giocata è quella del momento in cui l'hai salvata.</p>
+    const recent = done.slice(0, 15), older = done.slice(15);
+    html += sec("Storico delle giocate", `<div class="slip-nums"><div>${ring(w / done.length, w / done.length >= .5)}<span>prese: ${w} su ${done.length}</span></div>
+      <div class="big-odd"><b>${exp.toFixed(1).replace(".", ",")}</b><span>quelle che il modello si aspettava</span></div></div>
+      <p class="note">${verdict} Ogni giocata delle schedine conta una volta; la stima è quella del momento in cui l'hai aggiunta.</p>
       <h3 class="lb-h3">Per tipo di giocata</h3><div class="rows">${kRows}</div>
-      <h3 class="lb-h3">Le ultime</h3>${recent.map(row).join("")}
-      ${older.length ? `<details class="more"><summary>Le precedenti (${older.length})</summary>${older.map(row).join("")}</details>` : ""}
-      <button type="button" class="link-btn" id="slip-clear-hist">Cancella lo storico</button></section>`;
+      <details class="more"><summary>Le ultime ${recent.length}${older.length ? ` (più ${older.length} precedenti)` : ""}</summary>${recent.map(f => slipRow(f, now)).join("")}${older.map(f => slipRow(f, now)).join("")}</details>
+      <button type="button" class="link-btn" id="slip-clear-hist">Cancella lo storico</button>`, `${done.length} chiuse`, "Tu storico");
   }
-  html += slipsSection();
-  html += `<p class="note">La schedina, le schedine salvate e lo storico restano su questo telefono.</p>`;
-  $app.innerHTML = html;
-  const sv = document.getElementById("slip-save");
-  if (sv) sv.onclick = () => {
-    const name = prompt("Nome della schedina (puoi lasciarlo così):", `Schedina ${mySlips().length + 1}`);
-    if (name === null) return;
-    saveAsSlip(next, name.trim() || undefined);
-    saveFavs(all.filter(f => !next.includes(f)));   // la schedina in costruzione si svuota: le giocate sono in quella salvata
-    toast("Schedina salvata: la trovi in Le mie schedine");
-    showSlip();
-  };
-  wireSlips();
-  const sh = document.getElementById("slip-share");
-  if (sh) sh.onclick = () => shareSlip(next);
-  const c = document.getElementById("slip-clear");
-  if (c) c.onclick = () => { if (confirm("Togliere le giocate non ancora iniziate?")) { saveFavs(all.filter(f => !next.includes(f))); showSlip(); } };
+  return html;
+}
+function wirePlayed() {
   const ch = document.getElementById("slip-clear-hist");
-  if (ch) ch.onclick = () => { if (confirm("Cancellare tutto lo storico? Non si può annullare.")) { saveFavs(all.filter(f => !f.result && !started(f))); showSlip(); } };
-  attachSlipStatus();
+  if (ch) ch.onclick = () => { if (confirm("Cancellare lo storico delle giocate singole? Le schedine salvate restano finché non le elimini.")) { saveFavs(favs().filter(f => !f.result && !slipStarted(f))); showMe(); } };
 }
 
 /* ------------------------------------------------------------------ affidabilità */

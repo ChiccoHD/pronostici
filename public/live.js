@@ -627,7 +627,10 @@ async function attachSlipStatus() {
       if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; changedSlips = true; }
     }
     if (changedSlips) saveMySlips(slips);
-    if ((changed || changedSlips) && location.hash.startsWith("#/schedina")) { showSlip(); return; }
+    if (changed || changedSlips) {
+      if (location.hash.startsWith("#/schedina")) { showSlip(); return; }
+      if (location.hash.startsWith("#/tu")) { showMe(); return; }
+    }
   }
   if (anyLive) slipTimer = later(() => { if (location.hash === hash) attachSlipStatus(); }, LIVE_FAST);
 }

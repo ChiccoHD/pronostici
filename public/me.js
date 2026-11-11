@@ -9,8 +9,8 @@ function showMe() {
   const openSlips = slips.filter(s => !["win", "lose"].includes(st(s))), won = slips.filter(s => st(s) === "win"), lost = slips.filter(s => st(s) === "lose");
   const tile = (n, l, href) => `<a class="me-tile" href="${href}"><b>${n}</b><span>${l}</span></a>`;
   let html = `<h1 class="page-h">La tua area</h1>
-    <div class="me-tiles">${tile(teams.length, teams.length === 1 ? "squadra seguita" : "squadre seguite", "#/tu")}${tile(openSlips.length, "schedine aperte", "#/schedina")}
-      ${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte", "#/schedina")}</div>`;
+    <div class="me-tiles">${tile(teams.length, teams.length === 1 ? "squadra seguita" : "squadre seguite", "#/tu")}${tile(openSlips.length, "schedine aperte", "#/tu")}
+      ${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte", "#/tu")}</div>`;
 
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
@@ -26,34 +26,17 @@ function showMe() {
     : `<p class="note">Non segui ancora nessuna squadra. Apri la pagina di una squadra (dalle <a href="#/classifiche">Classifiche</a> o toccandone il nome in una partita) o di un tennista e tocca <b>Segui</b>: qui troverai le loro prossime partite.</p>`,
     "", "Tu squadre");
 
-  // schedine
-  const slipRow = s => { const x = slipState(s), prod = s.legs.reduce((a, f) => a * f.p, 1);
-    return `<a class="me-slip" href="#/schedina"><span class="ss-badge ${x.cls}">${x.txt}</span><b>${esc(s.name)}</b><small>${s.legs.length} giocate · quota equa ${odd(prod)}${s.odds ? ` · sul sito ${num(Number(s.odds), 2)}` : ""}</small></a>`; };
-  const withMoney = [...won, ...lost].filter(s => s.odds && s.stake);
-  const spent = withMoney.reduce((a, s) => a + Number(s.stake), 0), back = withMoney.filter(s => st(s) === "win").reduce((a, s) => a + Number(s.stake) * Number(s.odds), 0);
-  html += sec("Le mie schedine", slips.length
-    ? `${openSlips.length ? openSlips.slice().reverse().map(slipRow).join("") : `<p class="note">Nessuna schedina aperta.</p>`}
-      ${won.length + lost.length ? `<div class="rows" style="margin-top:8px">
-        <div class="r"><span class="l">Schedine chiuse</span><span class="v">${won.length} ${won.length === 1 ? "vinta" : "vinte"}, ${lost.length} ${lost.length === 1 ? "persa" : "perse"}</span></div>
-        ${withMoney.length ? `<div class="r"><span class="l">Giocati / vinti</span><span class="v">${num(spent, 2)} € / ${num(back, 2)} €</span></div>
-        <div class="r"><span class="l">Bilancio</span><span class="v" style="color:var(${back - spent >= 0 ? "--win" : "--loss"})">${back - spent >= 0 ? "+" : "−"}${num(Math.abs(back - spent), 2)} €</span></div>` : ""}</div>` : ""}
-      <a class="btn-main" href="#/schedina" style="text-decoration:none">Vai alla schedina</a>`
-    : `<p class="note">Componi una schedina con le stelle e salvala: qui vedi quelle aperte e il bilancio di quelle chiuse.</p><a class="btn-main" href="#/multipla" style="text-decoration:none">Costruisci una multipla</a>`,
-    "", "Tu schedine");
-
-  // giocate singole
-  if (hist.length) {
-    const w = hist.filter(f => f.result === "win").length, exp = hist.reduce((a, f) => a + f.p, 0);
-    html += sec("Le tue giocate", `<div class="slip-nums"><div>${ring(w / hist.length, w / hist.length >= .5)}<span>prese: ${w} su ${hist.length}</span></div>
-      <div class="big-odd"><b>${exp.toFixed(1).replace(".", ",")}</b><span>quelle che il modello si aspettava</span></div></div>
-      <p class="note">Le giocate salvate con la stella, una volta chiuse. Il dettaglio per tipo di giocata è in fondo alla pagina Schedina.</p>`, "", "Tu giocate");
-  }
+  // schedine salvate (complete, con quota, puntata ed esito) e storico delle giocate
+  html += slips.length ? slipsSection() : sec("Le mie schedine", `<p class="note">Componi una schedina nella pagina Schedina e tocca <b>Salva come schedina</b>: la ritrovi qui, e l'app segna da sola se è vinta o persa.</p>
+    <a class="btn-main" href="#/schedina" style="text-decoration:none">Vai alla schedina</a>`, "", "Tu schedine");
+  html += playedHtml();
 
   // dati sul telefono
   html += sec("I tuoi dati", `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Salvane una copia per non perderli se cambi telefono o cancelli i dati del browser.</p>
     <div class="me-acts"><button type="button" class="btn-main" id="me-export">Salva una copia</button>
     <label class="btn-main alt" style="cursor:pointer">Ripristina da una copia<input type="file" id="me-import" accept="application/json,.json" hidden></label></div>`, "", "Tu dati");
   $app.innerHTML = html;
+  wireSlips(); wirePlayed(); attachSlipStatus();
 
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
   document.getElementById("me-export").onclick = () => {

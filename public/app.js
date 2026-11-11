@@ -111,12 +111,14 @@ function toggleFav(key) {
   saveFavs(list);
   document.querySelectorAll(`[data-fav="${CSS.escape(key)}"]`).forEach(b => { b.classList.toggle("on", !had); b.setAttribute("aria-pressed", String(!had)); });
   toast(had ? "Tolta dalla schedina" : "Aggiunta alla schedina");
+  if (!had && typeof bumpSlipBar === "function") bumpSlipBar();
   if (location.hash.startsWith("#/schedina")) showSlip();
 }
 function updateFavBadge() {
   const n = favs().filter(f => new Date(f.date).getTime() > Date.now() - 3 * 3600e3).length;
   const el = document.getElementById("slip-count");
   if (el) { el.textContent = n; el.hidden = !n; }
+  if (typeof updateSlipBar === "function") updateSlipBar();
 }
 let toastTimer = null;
 function toast(msg) {
@@ -1125,8 +1127,8 @@ function showSlip() {
     <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + toMe;
   $app.innerHTML = html;
   const sv = document.getElementById("slip-save");
-  if (sv) sv.onclick = () => {
-    const name = prompt("Nome della schedina (puoi lasciarlo così):", `Schedina ${mySlips().length + 1}`);
+  if (sv) sv.onclick = async () => {
+    const name = await askText("Nome della schedina", `Schedina ${mySlips().length + 1}`, { hint: "La ritrovi in Tu, dove l'app segna da sola com'è andata." });
     if (name === null) return;
     saveAsSlip(next, name.trim() || undefined);
     saveFavs(all.filter(f => !next.includes(f)));   // la schedina in costruzione si svuota: le giocate sono in quella salvata
@@ -1136,7 +1138,11 @@ function showSlip() {
   const sh = document.getElementById("slip-share");
   if (sh) sh.onclick = () => shareSlip(next);
   const c = document.getElementById("slip-clear");
-  if (c) c.onclick = () => { if (confirm("Togliere tutte le giocate dalla schedina in costruzione?")) { saveFavs(all.filter(f => !next.includes(f))); showSlip(); } };
+  if (c) c.onclick = async () => {
+    if (await askConfirm("Togliere tutte le giocate dalla schedina in costruzione?", { title: "Svuotare la schedina?", ok: "Sì, svuota", danger: true })) {
+      saveFavs(all.filter(f => !next.includes(f))); toast("Schedina svuotata"); showSlip();
+    }
+  };
   attachSlipStatus();
 }
 
@@ -1173,7 +1179,7 @@ function playedHtml() {
 }
 function wirePlayed() {
   const ch = document.getElementById("slip-clear-hist");
-  if (ch) ch.onclick = () => { if (confirm("Cancellare lo storico delle giocate singole? Le schedine salvate restano finché non le elimini.")) { saveFavs(favs().filter(f => !f.result && !slipStarted(f))); showMe(); } };
+  if (ch) ch.onclick = async () => { if (await askConfirm("Le schedine salvate restano finché non le elimini.", { title: "Cancellare lo storico delle giocate singole?", ok: "Sì, cancella", danger: true })) { saveFavs(favs().filter(f => !f.result && !slipStarted(f))); showMe(); } };
 }
 
 /* ------------------------------------------------------------------ affidabilità */

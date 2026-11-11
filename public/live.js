@@ -700,6 +700,11 @@ async function loadLive() {
   return { events: res.flatMap(r => r.status === "fulfilled" ? r.value.filter(x => x.info) : []), failed: res.filter(r => r.status === "rejected").length, total: jobs.length };
 }
 
+function postSeen() { try { return JSON.parse(localStorage.getItem("p_postseen") || "{}"); } catch { return {}; } }
+function savePostSeen(o) {
+  const lim = Date.now() - 86400e3;
+  try { localStorage.setItem("p_postseen", JSON.stringify(Object.fromEntries(Object.entries(o).filter(([, t]) => t > lim)))); } catch { /* niente */ }
+}
 /* partite in diretta: dentro l'elenco principale (filtro "In diretta"), nel riquadro #live-embed */
 async function showLive(opt = { embed: true }) {
   clearTimeout(liveTimer);
@@ -714,7 +719,19 @@ async function showLive(opt = { embed: true }) {
   data = { ...data, events: data.events.filter(sp) };
   const byKey = Object.fromEntries(INDEX.events.map(e => [e.id, e]));
   const live = data.events.filter(e => e.info.state === "in");
-  const done = data.events.filter(e => e.info.state === "post" && Date.now() - new Date(e.info.comp?.date || byKey[e.id]?.date || 0) < 6 * 3600e3);
+  // finite da poco: restano un'ora dalla fine. ESPN non dà l'ora del fischio finale: vale la prima volta che
+  // il telefono la vede finita, oppure (se l'app era chiusa) una durata tipica dall'inizio
+  const ends = postSeen();
+  const DUR = { soccer: 1.9, nba: 2.4, tennis: 2 };
+  const done = data.events.filter(e => {
+    if (e.info.state !== "post") return false;
+    const start = new Date(e.info.comp?.date || byKey[e.id]?.date || 0).getTime();
+    const est = start + (DUR[e.info.sport] || 2) * 3600e3;
+    if (!ends[e.id] && Date.now() < est + 3600e3) ends[e.id] = Date.now();
+    const end = ends[e.id] || est;
+    return Date.now() - end < 3600e3;
+  });
+  savePostSeen(ends);
   const soon = INDEX.events.filter(sp).filter(e => { const t = new Date(e.date) - Date.now(); return t > 0 && t < 3 * 3600e3; });
 
   const card = e => {

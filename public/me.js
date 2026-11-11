@@ -55,7 +55,7 @@ function showMe() {
     try {
       const js = JSON.parse(await f.text());
       if (js.app !== "pronostici" || !js.data) throw new Error();
-      if (!confirm("Sostituire i dati di questo telefono con quelli della copia?")) return;
+      if (!(await askConfirm("I dati attuali di questo telefono verranno sostituiti.", { title: "Ripristinare la copia?", ok: "Sì, ripristina" }))) return;
       for (const [k, v] of Object.entries(js.data)) if (k.startsWith("p_")) localStorage.setItem(k, v);
       toast("Dati ripristinati"); updateFavBadge(); showMe();
     } catch { toast("Questo file non è una copia di Pronostici"); }

@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-11", t: "Schedina sempre a portata di mano", items: [
+    "Quando hai giocate in schedina, in basso compare una barra con quota e probabilità: toccala e la schedina si apre lì sotto, senza cambiare pagina.",
+    "Costruisci la multipla: aggiungendo una proposta, la schedina si apre subito sotto.",
+    "Svuotare, eliminare o dare un nome a una schedina ora si fa con una finestra dell'app, non più con quelle del browser.",
+    "In diretta, le partite finite restano un'ora dalla fine." ] },
   { d: "2026-11-11", t: "Elenco per stato, Live integrato", items: [
     "In Partite scegli Tutte, In diretta, Da giocare o Concluse.",
     "La sezione Live non è più in basso: è il filtro \"In diretta\", con i risultati che si aggiornano ogni pochi secondi.",

@@ -90,9 +90,9 @@ async function showMultipla() {
   $app.querySelectorAll("[data-mp]").forEach(b => b.onclick = () => {
     const g = b.dataset.mp; MP[g] = g === "target" ? Number(b.dataset.v) : b.dataset.v; save("mp_" + g, b.dataset.v); showMultipla();
   });
-  $app.querySelectorAll("[data-mp-save]").forEach(b => b.onclick = () => {
+  $app.querySelectorAll("[data-mp-save]").forEach(b => b.onclick = async () => {
     const pr = props[Number(b.dataset.mpSave)];
-    const name = prompt("Nome della schedina:", `Multipla ${odd(pr.prod)} (${pr.legs.length} giocate)`);
+    const name = await askText("Nome della schedina", `Multipla ${odd(pr.prod)} (${pr.legs.length} giocate)`, { hint: "La ritrovi in Tu, dove l'app segna da sola com'è andata." });
     if (name === null) return;
     saveAsSlip(pr.legs, name.trim() || undefined);
     toast("Schedina salvata: la trovi in Tu");
@@ -107,8 +107,9 @@ async function showMultipla() {
       n++;
     }
     saveFavs(list);
-    toast(n ? `${n} ${n === 1 ? "giocata aggiunta" : "giocate aggiunte"} alla schedina` : "Erano già tutte nella schedina");
     showMultipla();
+    if (!n) toast("Erano già tutte nella schedina");
+    if (typeof showSlipSheet === "function") showSlipSheet();     // la schedina si apre qui sotto, senza cambiare pagina
   });
 }
 
@@ -133,7 +134,7 @@ async function shareSlip(list) {
     if (navigator.share) { await navigator.share({ title: "Schedina", text, url }); return; }
   } catch (e) { if (e && e.name === "AbortError") return; }
   try { await navigator.clipboard.writeText(url); toast("Link copiato: incollalo in un messaggio"); }
-  catch { prompt("Copia questo link:", url); }
+  catch { askText("Copia questo link", url, { readonly: true, hint: "Tienilo premuto per copiarlo e incollalo in un messaggio." }); }
 }
 
 function showShared(data) {
@@ -239,8 +240,8 @@ function wireSlips() {
     card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
-    card.querySelector("[data-ss-rename]")?.addEventListener("click", () => { const n = prompt("Nome della schedina:", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); refreshSlips(); } });
-    card.querySelector("[data-ss-del]")?.addEventListener("click", () => { if (confirm("Eliminare questa schedina?")) { saveMySlips(mySlips().filter(s => s.id !== id)); refreshSlips(); } });
+    card.querySelector("[data-ss-rename]")?.addEventListener("click", async () => { const n = await askText("Nome della schedina", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); refreshSlips(); } });
+    card.querySelector("[data-ss-del]")?.addEventListener("click", async () => { if (await askConfirm("Non si potrà recuperare.", { title: "Eliminare questa schedina?", ok: "Sì, elimina", danger: true })) { saveMySlips(mySlips().filter(s => s.id !== id)); refreshSlips(); } });
   });
 }
 

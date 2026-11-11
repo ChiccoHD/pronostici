@@ -25,6 +25,11 @@ def _load() -> dict:
     global _cache
     if _cache is None:
         _cache = store.load(PATH, {}) or {}
+        if _cache.get("v", 1) < 2:   # la ricerca su Wikidata ora prova anche i nomi alternativi: si ripete per chi non ha foto
+            for v in _cache.get("soccer", {}).values():
+                if not v.get("u") and "wd" in v.get("chk", []):
+                    v["chk"] = [x for x in v["chk"] if x != "wd"]
+            _cache["v"] = 2
     return _cache
 
 

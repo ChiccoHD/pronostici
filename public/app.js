@@ -525,12 +525,11 @@ function soccerView(d) {
 
   const forma = sec("Forma recente", soccerForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
     + sec("In stagione", soccerSplit(d, cH, cA))
-    + sec("Testa a testa", h2hSoccer(d), d.h2h.n ? `ultime ${d.h2h.n}` : "")
     + sec("Ultime partite", lastSoccer(d));
 
   const gioc = sec("Giocatori", soccerPlayers(d, cH, cA), seg("pl", [["home", H.short], ["away", A.short]], "home"));
 
-  s += tabsView("soccer", [["esito", "Esito", esito], ["gol", "Gol e angoli", gol], ["forma", "Forma", forma], ["gioc", "Giocatori", gioc],
+  s += tabsView("soccer", [["esito", "Esito", esito], ["gol", "Gol e angoli", gol], ["forma", "Forma", forma], ["h2h", "Testa a testa", h2hView(d, cH, cA)], ["gioc", "Giocatori", gioc],
     ["mod", "Affidabilità", sec("Quanto fidarsi", reliabilityBlock(d.reliability))]]);
   return s;
 }
@@ -569,12 +568,45 @@ function soccerSplit(d, cH, cA) {
   ]) + (r ? `<p class="note">Forza stimata dal modello (100 è la media del campionato): attacco ${Math.round(r.att * 100)} contro ${ra ? Math.round(ra.att * 100) : "–"}, difesa ${Math.round(r.def * 100)} contro ${ra ? Math.round(ra.def * 100) : "–"}. In difesa, meno è meglio.</p>` : "");
 }
 
-function h2hSoccer(d) {
-  const h = d.h2h;
-  if (!h.n) return `<p class="note">Nessun precedente nelle ultime tre stagioni.</p>`;
-  return picks([[d.home.short, h.a / h.n], ["Pareggi", h.d / h.n], [d.away.short, h.b / h.n]], null, { fav: false }).replace(/quota equa [^<]*/g, "")
-    + `<div class="rows games">${h.games.map(g => `<div class="r"><span class="l">${fmtShort(g.date)}, ${esc(g.home)} – ${esc(g.away)}</span><span class="v num">${g.hg}-${g.ag}</span></div>`).join("")}</div>
-    <p class="note">Over 2,5 nel ${pct(h.over25)} dei precedenti, Goal nel ${pct(h.btts)}.</p>`;
+/* testa a testa: solo gli scontri diretti tra le due squadre */
+function h2hView(d, cH, cA) {
+  const h = d.h2h, soccer = d.sport === "soccer";
+  if (!h || !h.n) return sec("Testa a testa", `<p class="note">Nessuno scontro diretto ${soccer ? "nelle ultime tre stagioni" : "nelle ultime due stagioni"} tra queste due squadre.</p>`);
+  const H = d.home, A = d.away;
+  const isH = g => soccer ? g.home === H.fd : String(g.home) === String(H.id);
+  // punti di vista della squadra di casa di oggi
+  const rows = h.games.map(g => {
+    const hs = soccer ? g.hg : g.hs, as = soccer ? g.ag : g.as;
+    const mine = isH(g) ? hs : as, theirs = isH(g) ? as : hs;
+    return { g, home: isH(g), mine, theirs, res: mine > theirs ? "V" : mine < theirs ? "P" : "N", hs, as };
+  });
+  const n = rows.length, wH = h.a, wA = h.b, dr = soccer ? h.d : 0;
+  const avg = f => rows.reduce((s, r) => s + f(r), 0) / n;
+  const bar = `<div class="h2h-bar">${wH ? `<span style="flex:${wH};background:${cH}"></span>` : ""}${dr ? `<span class="dr" style="flex:${dr}"></span>` : ""}${wA ? `<span style="flex:${wA};background:${cA}"></span>` : ""}</div>`;
+  const head = `<div class="h2h-head">
+      <div>${tpill(H.short || H.name, cH)}<b>${wH}</b><small>${wH === 1 ? "vittoria" : "vittorie"}</small></div>
+      ${soccer ? `<div><span class="tpill neutral">Pari</span><b>${dr}</b><small>${dr === 1 ? "pareggio" : "pareggi"}</small></div>` : ""}
+      <div>${tpill(A.short || A.name, cA)}<b>${wA}</b><small>${wA === 1 ? "vittoria" : "vittorie"}</small></div>
+    </div>${bar}`;
+  const unit = soccer ? "Gol" : "Punti";
+  const stats = vsTable(H.short || H.name, A.short || A.name, cH, cA, [
+    [`${unit} fatti a partita`, avg(r => r.mine), avg(r => r.theirs), "hi", x => num(x)],
+    [`Vittorie in casa propria`, `${rows.filter(r => r.home && r.res === "V").length} su ${rows.filter(r => r.home).length}`, `${rows.filter(r => !r.home && r.res === "P").length} su ${rows.filter(r => !r.home).length}`],
+    ...(soccer ? [["Partite senza subire gol", rows.filter(r => r.theirs === 0).length, rows.filter(r => r.mine === 0).length, "hi"]] : []),
+  ]);
+  const both = soccer
+    ? `<div class="rows"><div class="r"><span class="l">Gol a partita, in totale</span><span class="v num">${num(avg(r => r.hs + r.as))}</span></div>
+       <div class="r"><span class="l">Over 2,5</span><span class="v num">${pct(h.over25)}</span></div>
+       <div class="r"><span class="l">Goal, segnano entrambe</span><span class="v num">${pct(h.btts)}</span></div></div>`
+    : `<div class="rows"><div class="r"><span class="l">Punti totali a partita</span><span class="v num">${num(h.avg_total ?? avg(r => r.hs + r.as))}</span></div>
+       <div class="r"><span class="l">Scarto medio</span><span class="v num">${num(avg(r => Math.abs(r.mine - r.theirs)))}</span></div></div>`;
+  const nm = id => soccer ? id : ((d.names || {})[id] || id);
+  const list = `<div class="rows games h2h-games">${rows.map(r => `<div class="r"><span class="l">${fmtShort(r.g.date)}<br><span class="faint">${esc(nm(r.g.home))} – ${esc(nm(r.g.away))}</span></span>
+      <span class="v num"><span class="f ${r.res}">${r.res}</span> ${r.hs}-${r.as}</span></div>`).join("")}</div>
+    <p class="note">V, N e P sono dal punto di vista di ${esc(H.short || H.name)}. Il punteggio è scritto come casa – ospite di quella partita.</p>`;
+  return sec("Chi ha vinto", head, `${n} ${n === 1 ? "scontro diretto" : "scontri diretti"}`)
+    + sec("Numeri degli scontri diretti", stats + `<h3>Nelle partite tra loro</h3>` + both)
+    + sec("Tutti gli scontri diretti", list, soccer ? "ultime tre stagioni" : "ultime due stagioni");
 }
 
 function lastSoccer(d) {
@@ -658,11 +690,10 @@ function nbaView(d) {
     + sec(`Punti di ${esc(H.name)}`, rows(m.team_totals.home, { label: k => `${H.short} over ${line(k)}` }), "", "Punti squadra di casa")
     + sec(`Punti di ${esc(A.name)}`, rows(m.team_totals.away, { label: k => `${A.short} over ${line(k)}` }), "", "Punti squadra ospite");
   const forma = sec("Forma recente", nbaForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5))
-    + sec("Testa a testa", nbaH2h(d), d.h2h.n ? `ultime ${d.h2h.n}` : "")
     + sec("Infortuni", injuries(d));
   const gioc = sec("Giocatori", nbaPlayers(d, cH, cA), seg("pl", [["home", H.short || "Casa"], ["away", A.short || "Ospite"]], "home"));
   s += tabsView("nba", [["esito", "Esito", esito], ["punti", "Punti", punti], ["gioc", "Giocatori", gioc], ["forma", "Forma", forma],
-    ["mod", "Affidabilità", sec("Quanto fidarsi", reliabilityBlock(d.reliability))]]);
+    ["h2h", "Testa a testa", h2hView(d, cH, cA)], ["mod", "Affidabilità", sec("Quanto fidarsi", reliabilityBlock(d.reliability))]]);
   return s;
 }
 
@@ -681,15 +712,6 @@ function nbaForm(d, cH, cA) {
     ["Punti fatti", d.form.home.home_season.pf, d.form.away.away_season.pf, "hi", x => num(x)],
     ["Punti subiti", d.form.home.home_season.pa, d.form.away.away_season.pa, "lo", x => num(x)],
   ]);
-}
-
-function nbaH2h(d) {
-  const h = d.h2h;
-  if (!h.n) return `<p class="note">Nessun precedente nelle ultime due stagioni.</p>`;
-  const nm = id => (d.names || {})[id] || id;
-  return `<div class="rows"><div class="r"><span class="l">Vittorie ${esc(d.home.short)} – ${esc(d.away.short)}</span><span class="v">${h.a}–${h.b}</span></div>
-    <div class="r"><span class="l">Punti totali in media</span><span class="v">${num(h.avg_total)}</span></div></div>
-    <div class="rows games">${h.games.map(g => `<div class="r"><span class="l">${fmtShort(g.date)}, ${esc(nm(g.home))} – ${esc(nm(g.away))}</span><span class="v num">${g.hs}-${g.as}</span></div>`).join("")}</div>`;
 }
 
 function injuries(d) {

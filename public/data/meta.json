@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T19:25+00:00",
+ "updated": "2026-11-11T19:34+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -139,7 +139,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 102, Wikipedia 38, ESPN 2"
    },
-   "aggiornato": "2026-11-11T18:52+00:00"
+   "aggiornato": "2026-11-11T19:33+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -150,18 +150,18 @@
    },
    "partite_in_arrivo": 34,
    "partite_stagione": 160,
-   "aggiornato": "2026-11-11T18:53+00:00"
+   "aggiornato": "2026-11-11T19:34+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7734 incontri (+0)",
+    "storico": "7735 incontri (+1)",
     "espn": "4 incontri in programma"
    },
    "wta": {
-    "storico": "12394 incontri (+2)",
-    "espn": "11 incontri in programma"
+    "storico": "12395 incontri (+1)",
+    "espn": "10 incontri in programma"
    },
-   "aggiornato": "2026-11-11T18:53+00:00"
+   "aggiornato": "2026-11-11T19:34+00:00"
   },
   "coppe": {
    "uomini": {
@@ -221,11 +221,11 @@
     "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-11T18:52+00:00"
+   "aggiornato": "2026-11-11T19:33+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
-   "nations-league": "34 giorni controllati",
+   "nations-league": "5 giorni controllati",
    "mondiali": "fuori stagione",
    "europei": "fuori stagione",
    "qual-europei": "fuori stagione",
@@ -236,20 +236,21 @@
    "qual-mondiali-africa": "fuori stagione",
    "copa-america": "fuori stagione",
    "coppa-africa": "fuori stagione",
-   "qual-coppa-africa": "34 giorni controllati",
-   "coppa-asia": "34 giorni controllati",
+   "qual-coppa-africa": "5 giorni controllati",
+   "coppa-asia": "5 giorni controllati",
    "gold-cup": "fuori stagione",
-   "concacaf-nations": "34 giorni controllati",
-   "amichevoli": "7 giorni controllati",
+   "concacaf-nations": "5 giorni controllati",
+   "amichevoli": "3 giorni controllati",
    "risultati_recenti_da_espn": 1,
    "in_arrivo_nations-league": 52,
    "in_arrivo_qual-coppa-africa": 48,
    "in_arrivo_concacaf-nations": 32,
    "in_arrivo_amichevoli": 41,
-   "nazionali_senza_storico": [
-    "St. Martin"
-   ],
-   "aggiornato": "2026-11-11T19:25+00:00"
+   "aggiornato": "2026-11-11T19:34+00:00"
+  },
+  "risultati": {
+   "esiti": "3 nuovi esiti, 3 calendari letti",
+   "aggiornato": "2026-11-11T19:34+00:00"
   }
  }
 }

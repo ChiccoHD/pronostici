@@ -11,6 +11,7 @@ from .config import PUBLIC_DATA
 SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nazionali": "build_national", "nba": "build_nba", "tennis": "build_tennis"}
 CUP_KEYS = set(config.CUPS) | set(config.WOMEN_CUPS)
 NATIONAL_KEYS = set(config.NATIONAL)
+KEEP_DAYS = 3      # giorni in cui una partita iniziata resta in elenco
 
 
 def owner(e: dict) -> str:
@@ -48,20 +49,30 @@ def main():
             status[s] = {"errore": f"{type(ex).__name__}: {ex}"}
             continue
         # Sostituisce gli eventi di questo sport solo se la raccolta ha prodotto qualcosa
+        # (le partite già iniziate che la raccolta non ripropone restano: servono per l'esito e il confronto)
         if idx or not any(owner(e) == s for e in events.values()):
-            events = {k: v for k, v in events.items() if owner(v) != s}
-            events.update({e["id"]: e for e in idx})
+            new_ids = {e["id"] for e in idx}
+            started = lambda e: e["date"] <= datetime.now(timezone.utc).isoformat()[:16]
+            events = {k: v for k, v in events.items() if owner(v) != s or (started(v) and k not in new_ids)}
+            for e in idx:     # se una partita viene riproposta, l'esito già trovato resta
+                old = events.get(e["id"]) or {}
+                events[e["id"]] = {**e, **({"final": old["final"]} if old.get("final") else {})}
         reliability.update({f"{s}:{k}": v for k, v in rel.items()})
         status[s] = {**st, "aggiornato": datetime.now(timezone.utc).isoformat(timespec="minutes")}
 
     now = datetime.now(timezone.utc)
     keep = sorted(events.values(), key=lambda e: e["date"])
-    # le partite restano fino a 4 ore dopo l'inizio; nel tennis l'orario è spesso indicativo
-    # (incontri "a seguire"), quindi restano fino a 24 ore
+    # le partite restano in elenco per qualche giorno dopo l'inizio, con il risultato finale (results.py)
     def alive(e):
-        hours = 24 if e["sport"] == "tennis" or e.get("time_valid") is False else 4
-        return datetime.fromisoformat(e["date"].replace("Z", "+00:00")).timestamp() > now.timestamp() - hours * 3600
+        return datetime.fromisoformat(e["date"].replace("Z", "+00:00")).timestamp() > now.timestamp() - KEEP_DAYS * 86400
     keep = [e for e in keep if alive(e)]
+    try:
+        from . import results
+        rs = {}
+        results.attach(keep, rs)
+        status["risultati"] = {"esiti": rs.get("risultati"), "aggiornato": now.isoformat(timespec="minutes")}
+    except Exception:
+        logging.exception("Risultati finali non letti")
     store.save(PUBLIC_DATA / "index.json", {"updated": now.isoformat(timespec="minutes"), "events": keep})
     store.save(PUBLIC_DATA / "affidabilita.json", reliability)
     store.save(PUBLIC_DATA / "meta.json", {"updated": now.isoformat(timespec="minutes"), "sample": False,
@@ -75,7 +86,8 @@ def main():
                 f.unlink()
     try:
         from . import picks
-        picks.write([e["id"] for e in keep])
+        # nella classifica solo le partite non ancora iniziate
+        picks.write([e["id"] for e in keep if e["date"] > now.isoformat()[:16]])
     except Exception:
         logging.exception("Classifica delle giocate non creata")
     logging.info("Fatto: %d eventi", len(keep))

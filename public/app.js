@@ -271,11 +271,11 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-function dayChips(items, getDate, what = "partite") {
+function dayChips(items, getDate, what = "partite", done = 0) {
   const counts = {};
   for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
   const keys = Object.keys(counts).sort();
-  if (state.day !== "all" && !counts[state.day]) state.day = "all";
+  if (state.day !== "all" && !counts[state.day] && !(state.day === "done" && done)) state.day = "all";
   const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5);
   const cnt = n => what ? `<small>${n} ${what}</small>` : "";
   const chip = k => {
@@ -285,7 +285,7 @@ function dayChips(items, getDate, what = "partite") {
     return `<button data-day="${k}" class="${k === today ? "is-today" : ""}" aria-pressed="${state.day === k}" aria-label="${esc(dayChipLabel(k))}, ${counts[k]} ${what || ""}">
       <span class="d-top">${esc(top)}</span><b>${d.getDate()}</b><span class="d-mon">${esc(month)}</span>${cnt(counts[k])}</button>`;
   };
-  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.length}</b><span class="d-mon">${what || "giorni"}</span></button>${keys.map(chip).join("")}</div>`;
+  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
 }
 if (!state.day) state.day = "all";
 
@@ -295,7 +295,9 @@ function showList() {
 }
 function renderList() {
   const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
-  const byDay = bySport.filter(e => state.day === "all" || isoDay(e.date) === state.day);
+  const ended = bySport.filter(e => isEnded(e)).sort((a, b) => b.date.localeCompare(a.date));
+  const ahead = bySport.filter(e => !isPastDay(e));
+  const byDay = state.day === "done" ? ended : bySport.filter(e => state.day === "all" ? !isPastDay(e) : isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
@@ -304,7 +306,7 @@ function renderList() {
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
-  html += dayChips(bySport, e => e.date);
+  html += dayChips(ahead, e => e.date, "partite", ended.length);
   if (LEAGUES[state.sport]) {
     const n = {};
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
@@ -313,6 +315,10 @@ function renderList() {
       `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k)}${l} <span>${c}</span></button>`).join("")}</div>`;
   }
   html += `</div>`;
+  if (state.day === "done" && evs.length) {
+    const scored = evs.filter(e => outcomeIx(e) != null), hit = scored.filter(e => outcomeIx(e) === e.main.indexOf(Math.max(...e.main)));
+    if (scored.length) html += `<div class="done-sum"><b>${hit.length} su ${scored.length}</b> pronostici più probabili presi negli ultimi giorni (${pct(hit.length / scored.length)}). Tocca una partita per il confronto completo con quote ed esito.</div>`;
+  }
   if (!evs.length) {
     const why = state.sport === "soccer" ? "Nei prossimi giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
     html += `<div class="empty"><b>Nessuna partita in programma</b>${why}</div>`;
@@ -393,7 +399,19 @@ function groupName(e) {
   return e.league_name;
 }
 
+/* ------------------------------------------------------------------ partite concluse */
+/* indice dell'esito uscito (0 = 1, 1 = X oppure 2 nelle sfide a due, 2 = 2); null se non c'è */
+function outcomeIx(e, f = e.final) {
+  if (!f || f.void || f.h == null) return null;
+  if (e.sport === "tennis") return f.w ?? (f.h > f.a ? 0 : 1);
+  if (e.main.length === 3) return f.h > f.a ? 0 : f.h === f.a ? 1 : 2;
+  return f.h > f.a ? 0 : 1;
+}
+const isEnded = e => !!e.final || Date.now() - new Date(e.date).getTime() > (e.sport === "tennis" ? 30 : 4) * 3600e3;
+const isPastDay = e => isoDay(e.date) < isoDay(Date.now());
+
 function fixture(e) {
+  if (e.final) return fixtureDone(e);
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
   const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
@@ -415,6 +433,33 @@ function fixture(e) {
       ${sub.length ? `<div class="fx-sub">${sub.map(x => `<span>${x}</span>`).join("")}</div>` : ""}
     </div>
     <div class="fx-rings">${e.main.map((p, i) => `<span class="fx-ring">${ring(p, p === max)}<small>${labels[i]}</small></span>`).join("")}</div>
+  </a>`;
+}
+
+/* partita conclusa: risultato al posto dell'orario, e quale percentuale ha preso */
+function fixtureDone(e) {
+  const f = e.final, three = e.main.length === 3;
+  const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
+  const labels = three ? ["1", "X", "2"] : ["1", "2"];
+  const oi = outcomeIx(e), max = Math.max(...e.main), top = e.main.indexOf(max);
+  const sc = side => f.void ? "" : `<b class="fx-sc">${side === "h" ? f.h : f.a}</b>`;
+  const wH = oi === 0, wA = oi === (three ? 2 : 1);
+  let verdict = "";
+  if (f.void) verdict = `<span class="res void">${esc(f.void)}</span>`;
+  else if (oi != null) verdict = oi === top ? `<span class="res ok">✓ Pronostico preso (${pct(max)})</span>` : `<span class="res ko">✗ Uscito ${labels[oi]} al ${pct(e.main[oi])}</span>`;
+  if (!f.void && e.sport === "soccer" && e.extra?.["Over 2,5"] != null) {
+    const over = f.h + f.a > 2.5, p = e.extra["Over 2,5"];
+    verdict += `<span>${over ? "Over" : "Under"} 2,5 <b>${pct(over ? p : 1 - p)}</b></span>`;
+  }
+  if (!f.void && e.sport === "tennis" && f.sets) verdict += `<span>${f.sets[0].map((g, i) => `${g}-${f.sets[1][i]}`).join(" ")}</span>`;
+  return `<a class="fx done" href="#/e/${encodeURIComponent(e.id)}">
+    <div class="fx-time">${f.void ? "–" : "Finale"}<small>${fmtTime(e.date, e.time_valid)}</small></div>
+    <div class="fx-mid">
+      <div class="fx-t ${wH ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span>${sc("h")}</div>
+      <div class="fx-t ${wA ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span class="fx-n">${esc(e.away)}</span>${sc("a")}</div>
+      <div class="fx-sub">${verdict}</div>
+    </div>
+    <div class="fx-rings">${e.main.map((p, i) => `<span class="fx-ring ${i === oi ? "hit" : "dim"}">${ring(p, i === oi)}<small>${labels[i]}</small></span>`).join("")}</div>
   </a>`;
 }
 
@@ -538,10 +583,63 @@ async function showEvent(id) {
   CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
   const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));
-  $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
+  $app.innerHTML = back + reviewBox(d) + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
   wire(d.sport);
   attachLive(d);
   attachLineups(d);
+}
+
+/* ------------------------------------------------------------------ com'è andata: pronostico, quote ed esito */
+const rvHead = (h, score, a) => `<span>${esc(h)}</span><b>${esc(score)}</b><span>${esc(a)}</span>`;
+function reviewBox(d) {
+  const f = d.final;
+  if (!f) return "";
+  if (f.void) return sec("Com'è andata", `<p class="note" style="margin:0">Partita ${esc(f.void.toLowerCase())}: nessun esito da confrontare.</p>`, "", "review");
+  const m = d.markets, b = d.book || {}, H = d.home.short || d.home.name, A = d.away.short || d.away.name;
+  const rows = [];   // [giocata, modello, quote, è successo]
+  const add = (lab, p, bk, yes) => p != null && rows.push([lab, p, bk, yes]);
+  let head = "", foot = "";
+  if (d.sport === "soccer") {
+    const r = f.h > f.a ? 0 : f.h === f.a ? 1 : 2, tot = f.h + f.a;
+    head = rvHead(d.home.name, `${f.h}-${f.a}`, d.away.name);
+    [`1 · ${H}`, "X · pareggio", `2 · ${A}`].forEach((l, i) => add(l, m["1x2"][i], b["1x2"]?.[i], r === i));
+    if (m.ou?.["2.5"] != null) { add("Over 2,5", m.ou["2.5"], b.ou25?.[0], tot > 2.5); add("Under 2,5", 1 - m.ou["2.5"], b.ou25?.[1], tot < 2.5); }
+    if (m.ou?.["1.5"] != null) add("Over 1,5", m.ou["1.5"], null, tot > 1.5);
+    if (m.btts != null) { add("Goal", m.btts, null, f.h > 0 && f.a > 0); add("No Goal", 1 - m.btts, null, !(f.h > 0 && f.a > 0)); }
+    if (f.periods?.[0]?.length && m.ht?.["1x2"]) {
+      const hh = f.periods[0][0], ha = f.periods[1][0], hr = hh > ha ? 0 : hh === ha ? 1 : 2;
+      add(`Primo tempo ${["1", "X", "2"][hr]} (${hh}-${ha})`, m.ht["1x2"][hr], null, true);
+    }
+    const ex = (m.exact || []).find(x => x.score === `${f.h}-${f.a}`);
+    foot = `Gol attesi dal modello <b>${num(m.xg[0], 2)}–${num(m.xg[1], 2)}</b>, finita <b>${f.h}-${f.a}</b>. ` +
+      (ex ? `Il ${f.h}-${f.a} era dato al <b>${pct(ex.p)}</b>.` : `Il ${f.h}-${f.a} non era tra i 10 risultati più probabili.`);
+  } else if (d.sport === "nba") {
+    const r = f.h > f.a ? 0 : 1, tot = f.h + f.a;
+    head = rvHead(d.home.name, `${f.h}-${f.a}`, d.away.name);
+    add(`Vince ${H}`, m.win[0], b.p_home, r === 0); add(`Vince ${A}`, m.win[1], b.p_away, r === 1);
+    const tl = m.total_line, pt = m.totals?.[String(tl)];
+    if (tl && pt != null) { add(`Over ${line(tl)} punti`, pt, null, tot > tl); add(`Under ${line(tl)} punti`, 1 - pt, null, tot < tl); }
+    foot = `Punteggio atteso <b>${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b> (totale ${num(m.total, 1)}), finita <b>${f.h}-${f.a}</b> (totale ${tot}).`;
+  } else {
+    const w = f.w ?? (f.h > f.a ? 0 : 1);
+    head = rvHead(d.home.name, f.sets ? f.sets[0].map((g, i) => `${g}-${f.sets[1][i]}`).join(" ") : `${f.h}-${f.a}`, d.away.name);
+    add(`Vince ${lastName(d.home.name)}`, m.win[0], null, w === 0); add(`Vince ${lastName(d.away.name)}`, m.win[1], null, w === 1);
+    const sk = `${f.h}-${f.a}`;
+    if (m.sets?.[sk] != null) add(`Set ${sk}`, m.sets[sk], null, true);
+    if (f.games != null && m.totals) {
+      const ln = Object.keys(m.totals).map(Number).sort((a, c) => Math.abs(a - m.exp_games) - Math.abs(c - m.exp_games))[0];
+      add(`Over ${line(ln)} game`, m.totals[String(ln)], null, f.games > ln); add(`Under ${line(ln)} game`, 1 - m.totals[String(ln)], null, f.games < ln);
+    }
+    if (f.sets && m.tiebreak != null) add("Almeno un tie-break", m.tiebreak, null, f.sets[0].some((g, i) => Math.max(g, f.sets[1][i]) === 7 && Math.min(g, f.sets[1][i]) === 6));
+    foot = `Game attesi <b>${num(m.exp_games, 1)}</b>, giocati <b>${f.games ?? "–"}</b>${f.ret ? " (partita interrotta per ritiro)" : ""}.`;
+  }
+  const hasBook = rows.some(x => x[2] != null);
+  const mine = favs().filter(x => x.event === d.id);
+  const table = `<div class="rv">${rows.map(([lab, p, bk, yes]) => `<div class="rv-row ${yes ? "yes" : "no"}"><span class="rv-l">${yes ? "✓" : "✗"} ${esc(lab)}</span>
+    <span class="rv-p"><b>${pct(p)}</b>${hasBook ? `<small>${bk != null ? `quote ${pct(bk)}` : ""}</small>` : ""}</span></div>`).join("")}</div>`;
+  return sec("Com'è andata", `<div class="rv-head">${head}</div>${table}
+    <p class="note">${foot} ✓ = è successo. Un 60% che non esce non è per forza un errore: succede circa 4 volte su 10.</p>
+    ${mine.length ? `<p class="note">Avevi in schedina: ${mine.map(x => esc(x.label)).join(", ")}.</p>` : ""}`, esc(f.st || "finita"), "review");
 }
 
 /* ------------------------------------------------------------------ calcio */

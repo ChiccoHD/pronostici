@@ -12,7 +12,7 @@ ALIAS = {
     "Korea DPR": "North Korea", "IR Iran": "Iran", "Macedonia": "North Macedonia", "FYR Macedonia": "North Macedonia",
     "The Gambia": "Gambia", "Côte d'Ivoire": "Ivory Coast", "Cote d'Ivoire": "Ivory Coast", "Swaziland": "Eswatini",
     "US Virgin Islands": "United States Virgin Islands", "East Timor": "Timor-Leste", "Curacao": "Curaçao",
-    "Brunei Darussalam": "Brunei", "Hong Kong, China": "Hong Kong", "Congo Republic": "Congo",
+    "Brunei Darussalam": "Brunei", "St. Martin": "Saint Martin", "St Martin": "Saint Martin", "Hong Kong, China": "Hong Kong", "Congo Republic": "Congo",
 }
 
 IT = {

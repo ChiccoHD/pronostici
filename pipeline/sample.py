@@ -494,6 +494,30 @@ def _install_fakes():
     build_nba._games = games
 
 
+def _fake_finished():
+    """Qualche partita già giocata (ieri e stamattina) con esito, per provare elenco e confronto."""
+    idx = store.load(PUBLIC_DATA / "index.json")
+    evs = idx["events"]
+    now = datetime.now(timezone.utc)
+    picks = [e for e in evs if e["sport"] == "soccer"][:4] + [e for e in evs if e["sport"] == "nba"][:2] + [e for e in evs if e["sport"] == "tennis"][:2]
+    for k, e in enumerate(picks):
+        e["date"] = (now - timedelta(days=1 if k % 2 else 0, hours=5)).isoformat(timespec="minutes").replace("+00:00", "Z")
+        if e["sport"] == "soccer":
+            f = {"h": int(rng.poisson(1.4)), "a": int(rng.poisson(1.1)), "st": "Finale"}
+            f["periods"] = [[min(f["h"], 1)], [0]]
+            if k == 3:
+                f = {"void": "Rinviata"}
+        elif e["sport"] == "nba":
+            f = {"h": int(rng.normal(115, 10)), "a": int(rng.normal(112, 10)), "st": "Finale"}
+        else:
+            f = {"h": 2, "a": 1, "w": 0, "sets": [[6, 4, 7], [3, 6, 6]], "games": 32, "st": "Finale"}
+        e["final"] = f
+        d = store.load(PUBLIC_DATA / "events" / f"{e['id']}.json")
+        d["date"], d["final"] = e["date"], f
+        store.save(PUBLIC_DATA / "events" / f"{e['id']}.json", d)
+    store.save(PUBLIC_DATA / "index.json", idx)
+
+
 def main():
     import logging
     logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")
@@ -506,6 +530,7 @@ def main():
     from . import run
     sys.argv = ["run"]
     run.main()
+    _fake_finished()
     meta = store.load(PUBLIC_DATA / "meta.json")
     meta["sample"] = True
     store.save(PUBLIC_DATA / "meta.json", meta, pretty=True)

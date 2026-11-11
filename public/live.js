@@ -472,10 +472,11 @@ async function attachLive(d) {
   if (location.hash !== hash) return;
   box = document.getElementById("live-box");
   if (!box) return;
-  if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
+  if (failed && d.final) box.innerHTML = "";     // l'esito c'è già nella scheda: niente avviso
+  else if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
   else if (info && info.state !== "pre") box.innerHTML = liveBox(info, d, scoreChanged(d.id, info));
   else box.innerHTML = "";
-  if (failed || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
+  if ((failed && !d.final) || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
     boxTimer = later(() => { if (location.hash === hash) attachLive(d); }, info?.state === "in" ? LIVE_FAST : LIVE_SLOW);
 }
 

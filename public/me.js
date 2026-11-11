@@ -131,7 +131,7 @@ async function infoReliability() {
 
 function infoStatus() {
   const st = META?.status || {};
-  const label = { calcio: "Calcio", nba: "NBA", tennis: "Tennis", coppe: "Coppe europee", nazionali: "Nazionali" };
+  const label = { calcio: "Calcio", nba: "NBA", tennis: "Tennis", coppe: "Coppe europee", nazionali: "Nazionali", risultati: "Risultati finali" };
   const flat = v => Array.isArray(v) ? v.join(", ") : v && typeof v === "object" ? Object.entries(v).map(([a, b]) => `${a}: ${Array.isArray(b) ? b.join(", ") : b}`).join("; ") : String(v);
   const rows = Object.entries(st).map(([sport, s]) => {
     const parts = Object.entries(s).filter(([k]) => k !== "aggiornato");

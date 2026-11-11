@@ -590,6 +590,7 @@ async function showEvent(id) {
 }
 
 /* ------------------------------------------------------------------ com'è andata: pronostico, quote ed esito */
+const stIt = s => ({ FT: "finita", Final: "finita", "Final/OT": "finita ai supplementari", AET: "dopo i supplementari", "FT-Pens": "ai rigori", "Final/2OT": "finita dopo 2 supplementari" }[s] || (/pen/i.test(s || "") ? "ai rigori" : /ret/i.test(s || "") ? "ritiro" : "finita"));
 const rvHead = (h, score, a) => `<span>${esc(h)}</span><b>${esc(score)}</b><span>${esc(a)}</span>`;
 function reviewBox(d) {
   const f = d.final;
@@ -639,7 +640,7 @@ function reviewBox(d) {
     <span class="rv-p"><b>${pct(p)}</b>${hasBook ? `<small>${bk != null ? `quote ${pct(bk)}` : ""}</small>` : ""}</span></div>`).join("")}</div>`;
   return sec("Com'è andata", `<div class="rv-head">${head}</div>${table}
     <p class="note">${foot} ✓ = è successo. Un 60% che non esce non è per forza un errore: succede circa 4 volte su 10.</p>
-    ${mine.length ? `<p class="note">Avevi in schedina: ${mine.map(x => esc(x.label)).join(", ")}.</p>` : ""}`, esc(f.st || "finita"), "review");
+    ${mine.length ? `<p class="note">Avevi in schedina: ${mine.map(x => esc(x.label)).join(", ")}.</p>` : ""}`, esc(stIt(f.st)), "review");
 }
 
 /* ------------------------------------------------------------------ calcio */

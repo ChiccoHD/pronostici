@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T23:36+00:00",
+ "updated": "2026-11-11T02:06+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -10,7 +10,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "110 partite",
-    "partite_in_arrivo": 0
+    "partite_in_arrivo": 4,
+    "foto_giocatori": "ESPN 11, TheSportsDB 5, senza foto 5, da controllare 120"
    },
    "premier-league": {
     "football-data": "ok",
@@ -19,7 +20,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "100 partite",
-    "partite_in_arrivo": 0
+    "partite_in_arrivo": 7,
+    "foto_giocatori": "da controllare 228, ESPN 20"
    },
    "la-liga": {
     "football-data": "ok",
@@ -28,8 +30,11 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "119 partite",
-    "partite_in_arrivo": 1,
-    "foto_giocatori": "TheSportsDB 24, senza foto 3, da controllare 8, ESPN 1"
+    "nomi_non_abbinati": [
+     "Deportivo"
+    ],
+    "partite_in_arrivo": 5,
+    "foto_giocatori": "TheSportsDB 24, senza foto 3, da controllare 113, ESPN 4"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -38,8 +43,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "81 partite",
-    "partite_in_arrivo": 1,
-    "foto_giocatori": "senza foto 3, TheSportsDB 12, ESPN 2, da controllare 18"
+    "partite_in_arrivo": 7,
+    "foto_giocatori": "senza foto 3, TheSportsDB 12, ESPN 7, da controllare 219"
    },
    "ligue-1": {
     "football-data": "ok",
@@ -48,8 +53,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "90 partite",
-    "partite_in_arrivo": 1,
-    "foto_giocatori": "senza foto 6, TheSportsDB 7, da controllare 21, ESPN 1"
+    "partite_in_arrivo": 6,
+    "foto_giocatori": "senza foto 6, TheSportsDB 7, da controllare 195, ESPN 1"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -64,26 +69,32 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "340 partite",
-    "partite_in_arrivo": 3,
-    "foto_giocatori": "da controllare 92, senza foto 15, TheSportsDB 1"
+    "nomi_non_abbinati": [
+     "Urawa Red Diamonds"
+    ],
+    "partite_in_arrivo": 10,
+    "foto_giocatori": "da controllare 305, senza foto 15, TheSportsDB 1"
    },
    "mls": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "511 partite",
-    "partite_in_arrivo": 2,
-    "foto_giocatori": "da controllare 35, ESPN 35"
+    "partite_in_arrivo": 5,
+    "foto_giocatori": "da controllare 137, ESPN 35"
    },
    "eliteserien": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "208 partite",
-    "partite_in_arrivo": 1,
-    "foto_giocatori": "da controllare 35"
+    "nomi_non_abbinati": [
+     "Hamarkameratene"
+    ],
+    "partite_in_arrivo": 4,
+    "foto_giocatori": "da controllare 107"
    },
-   "aggiornato": "2026-11-10T23:36+00:00"
+   "aggiornato": "2026-11-11T02:03+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -92,9 +103,9 @@
     "n": 0,
     "weight": 0.0
    },
-   "partite_in_arrivo": 29,
+   "partite_in_arrivo": 38,
    "partite_stagione": 154,
-   "aggiornato": "2026-11-10T23:10+00:00"
+   "aggiornato": "2026-11-11T02:04+00:00"
   },
   "tennis": {
    "atp": {
@@ -102,18 +113,18 @@
     "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12388 incontri (+3)",
+    "storico": "12389 incontri (+1)",
     "espn": "14 incontri in programma"
    },
-   "aggiornato": "2026-11-10T23:10+00:00"
+   "aggiornato": "2026-11-11T02:06+00:00"
   },
   "coppe": {
    "uomini": {
-    "espn_uefa.champions": "261 giocate, 10 giorni controllati",
-    "espn_uefa.europa": "261 giocate, 10 giorni controllati",
-    "espn_uefa.europa.conf": "206 giocate, 10 giorni controllati",
+    "espn_uefa.champions": "261 giocate, 11 giorni controllati",
+    "espn_uefa.europa": "261 giocate, 11 giorni controllati",
+    "espn_uefa.europa.conf": "206 giocate, 11 giorni controllati",
     "partite_modello": "16059 di campionato, 728 di coppa",
-    "in_arrivo_champions": 9,
+    "in_arrivo_champions": 18,
     "in_arrivo_europa-league": 0,
     "in_arrivo_conference": 0,
     "squadre_senza_campionato": [
@@ -162,10 +173,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "161 giocate, 10 giorni controllati",
+    "espn_uefa.wchampions": "161 giocate, 11 giorni controllati",
     "partite_storico": 161
    },
-   "aggiornato": "2026-11-10T23:10+00:00"
+   "aggiornato": "2026-11-11T02:03+00:00"
   }
  }
 }

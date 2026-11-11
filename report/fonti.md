@@ -1,52 +1,11 @@
-# Verifica fonti — 2026-11-10
-
-## Calcio
-- ✅ **football-data: prossime partite con quote** (160 righe)
-
-### Serie A
-- ✅ **football-data: risultati stagione** (110 partite, quote 110, angoli/tiri 110)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (20 partite)
-- ✅ **ESPN: tabellino giocatori** (31 giocatori; es. David de Gea: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Premier League
-- ✅ **football-data: risultati stagione** (100 partite, quote 100, angoli/tiri 100)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (20 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Senne Lammens: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### LaLiga
-- ✅ **football-data: risultati stagione** (119 partite, quote 119, angoli/tiri 119)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (20 partite)
-- ✅ **ESPN: tabellino giocatori** (31 giocatori; es. Jan Oblak: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Bundesliga
-- ✅ **football-data: risultati stagione** (81 partite, quote 81, angoli/tiri 81)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-- ✅ **ESPN: tabellino giocatori** (31 giocatori; es. Oliver Baumann: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Ligue 1
-- ✅ **football-data: risultati stagione** (90 partite, quote 90, angoli/tiri 90)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (16 partite)
-- ✅ **ESPN: tabellino giocatori** (30 giocatori; es. Robin Risser: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-## NBA
-- ✅ **ESPN: calendario ±3 giorni** (51 partite)
-- ✅ **ESPN: quote nel calendario** (6 con quote)
-- ✅ **ESPN: tabellino giocatori** (24 giocatori; es. Herbert Jones: 10.0 pt, 6.0 rimb, 1.0 ast, 24.0 min)
-- ✅ **ESPN: infortuni partita in arrivo** (2 giocatori)
-- ✅ **ESPN: quote partita in arrivo** ({'provider': 'DraftKings', 'details': 'NY -15.5', 'total': 220.5, 'spread': -15.5, 'p_home': 0.8800000000000001, 'p_away': 0.12000000000000002})
-
-## Tennis
-- ✅ **ESPN ATP: incontri** (29 incontri, 9 in programma; tornei: Bybit Stockholm Open)
-- ✅ **ESPN ATP: storico (200 giorni fa)** (130 incontri conclusi)
-- ✅ **ESPN WTA: incontri** (32 incontri, 16 in programma; tornei: DIRECTV Open Presentado por Compesar, FAGE WTA Finals Indian Wells)
-- ✅ **ESPN WTA: storico (200 giorni fa)** (172 incontri conclusi)
+## Foto dei calciatori
+- ✅ **Wikidata: foto trovate** (7 su 8)
+  - Harry Kane: https://commons.wikimedia.org/wiki/Special:FilePath/Harry%20Kane%20England%20v%20Ghana%2023%20June%202026-219%20%28cropped%29.jpg?width=160
+  - Michael Olise: https://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Olise%20France%20v%20Senegal%2016%20June%202026-307%20%28cropped%29.jpg?width=160
+  - Dayot Upamecano: https://commons.wikimedia.org/wiki/Special:FilePath/Dayot%20Upamecano%20France%20v%20Senegal%2016%20June%202026-402%20%28cropped%29.jpg?width=160
+  - Lautaro Martínez: https://commons.wikimedia.org/wiki/Special:FilePath/Lautaro%20Martinez%20Argentina%20v%20Spain%2019%20July%202026-049%20%28cropped%29.jpg?width=160
+  - Luis Díaz: https://commons.wikimedia.org/wiki/Special:FilePath/FC%20RB%20Salzburg%20gegen%20FC%20Bayern%20M%C3%BCnchen%20%282026-01-06%20Testspiel%29%2040%20%28Luiz%20D%C3%ADaz%29.jpg?width=160
+  - Pedri: https://commons.wikimedia.org/wiki/Special:FilePath/Pedri%20France%20v%20Spain%207.24.26-245.jpg?width=160
+  - Kylian Mbappé: https://commons.wikimedia.org/wiki/Special:FilePath/Kylian%20Mbappe%20France%20v%20Senegal%2016%20June%202026-391%20%28cropped%29.jpg?width=160
+  - Nome Inventato Xyz: None
+- ✅ **TheSportsDB: risponde** (https://r2.thesportsdb.com/images/media/player/cutout/j4ouvd1756408895.png/small)

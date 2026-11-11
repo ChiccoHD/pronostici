@@ -27,7 +27,8 @@ def photos_check():
     out("## Foto dei calciatori")
     test = [("Harry Kane", ["Bayern Munich"]), ("Michael Olise", ["Bayern Munich"]), ("Dayot Upamecano", ["Bayern Munich"]),
             ("Lautaro Martínez", ["Inter Milan", "Inter"]), ("Luis Díaz", ["Bayern Munich"]), ("Pedri", ["Barcelona"]),
-            ("Kylian Mbappé", ["Real Madrid"]), ("Nome Inventato Xyz", ["Nessuna"])]
+            ("Kylian Mbappé", ["Real Madrid"]), ("Josip Stanisic", ["Bayern Munich"]), ("Kim Min-Jae", ["Bayern Munich"]),
+            ("Lennart Karl", ["Bayern Munich"]), ("Tom Bischof", ["Bayern Munich"]), ("Nome Inventato Xyz", ["Nessuna"])]
     res = wikidata.footballer_photos(test)
     check("Wikidata: foto trovate", bool(res), f"({sum(1 for v in (res or {}).values() if v)} su {len(test)})")
     for n, _ in test:

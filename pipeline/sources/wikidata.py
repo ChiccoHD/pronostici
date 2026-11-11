@@ -22,7 +22,8 @@ def _query(names: list[str]) -> str:
     values = " ".join(f"{_lit(n)}@{lang}" for n in names for lang in ("en", "mul"))
     return f"""SELECT ?p ?name ?img (GROUP_CONCAT(DISTINCT ?tl; separator="|") AS ?teams) WHERE {{
   VALUES ?name {{ {values} }}
-  ?p rdfs:label ?name ; wdt:P106 wd:{FOOTBALLER} ; wdt:P18 ?img .
+  ?p rdfs:label|skos:altLabel ?name .
+  ?p wdt:P106 wd:{FOOTBALLER} ; wdt:P18 ?img .
   OPTIONAL {{ ?p p:P54 ?st . ?st ps:P54 ?team . FILTER NOT EXISTS {{ ?st pq:P582 [] }}
              ?team rdfs:label ?tl . FILTER(LANG(?tl) IN ("en", "mul")) }}
 }} GROUP BY ?p ?name ?img"""

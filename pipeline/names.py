@@ -16,6 +16,7 @@ ALIASES = {
     "deportivo": "la coruna", "deportivo la coruna": "la coruna", "hamarkameratene": "hamkam",
     "tokyo verdy 1969": "verdy", "tokyo verdy": "verdy", "urawa red diamonds": "urawa reds",
     "red bull new york": "new york red bulls", "new york red bulls": "new york red bulls",
+    "queens park rangers": "qpr", "amed sfk": "amedspor", "erzurum bb": "erzurumspor", "oh leuven": "oud heverlee leuven",
     # Italia
     "internazionale": "inter", "inter milan": "inter", "milan": "milan", "hellas verona": "verona",
     "roma": "roma", "napoli": "napoli",

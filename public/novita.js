@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-12", t: "Schedine in diretta e notifiche più complete", items: [
+    "Nelle schedine salvate, durante la partita: minuto e risultato, esito di ogni parte delle combinate (es. 1 + Over 2,5) e un contatore che si riempie (gol, punti, rimbalzi, assist…).",
+    "Notifiche: aggiunte ammonizioni, calci d'angolo, inizio del secondo tempo, inizio di ogni quarto e di ogni set.",
+    "La fine del primo tempo ora arriva subito: prima dipendeva dal tabellone ESPN, che a volte la segna con minuti di ritardo.",
+    "Nella scheda della partita il tasto Segui è in alto accanto alla competizione e la diretta sta sotto le squadre; campanella anche sulle partite in diretta." ] },
   { d: "2026-11-11", t: "Diretta e Concluse più precise", items: [
     "Il numero su \"In diretta\" ora conta solo le partite davvero in corso secondo ESPN.",
     "Una partita appena finita passa subito in Concluse, senza aspettare il prossimo aggiornamento dei dati." ] },

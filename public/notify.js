@@ -6,9 +6,9 @@
 
 const NOTIF_KEY = "p_notif";
 const NOTIF_DEFAULT = {
-  soccer: { on: true, mode: "mine", start: false, goal: true, red: true, ht: true, end: true },
-  nba: { on: true, mode: "mine", start: false, quarter: true, end: true },
-  tennis: { on: true, mode: "mine", start: false, game: false, set: true, end: true },
+  soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
+  nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
+  tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
 };
 const NOTIF_OPTS = {
   soccer: ["Calcio", [["start", "Inizio partita"], ["goal", "Gol"], ["red", "Espulsioni"], ["ht", "Fine primo tempo"], ["end", "Fine partita"]]],
@@ -41,14 +41,14 @@ function setBell(b, on) {
   b.classList.toggle("on", on);
   b.setAttribute("aria-pressed", String(on));
   const t = b.querySelector(".bell-t");
-  if (t) t.textContent = on ? "Segui la partita ✓" : "Segui la partita";
+  if (t) t.textContent = on ? "Seguita" : "Segui";
 }
 /* campanella: piccola nell'elenco, con scritta nella scheda della partita */
 function bellBtn(e, small = false) {
   if (e.final || (e.date && Date.now() - Date.parse(e.date) > (e.sport === "tennis" ? 24 : 5) * 3600e3)) return "";
   const on = isFollowed(e.id);
   const data = esc(JSON.stringify({ id: e.id, sport: e.sport, date: e.date, home: e.home, away: e.away, league_name: e.league_name }));
-  return `<button type="button" class="bell ${small ? "sm" : ""} ${on ? "on" : ""}" data-bell="${esc(e.id)}" data-ev='${data}' aria-pressed="${on}" aria-label="Avvisami per questa partita">${BELL_SVG}${small ? "" : `<span class="bell-t">${on ? "Segui la partita ✓" : "Segui la partita"}</span>`}</button>`;
+  return `<button type="button" class="bell ${small ? "sm" : ""} ${on ? "on" : ""}" data-bell="${esc(e.id)}" data-ev='${data}' aria-pressed="${on}" aria-label="Avvisami per questa partita">${BELL_SVG}${small ? "" : `<span class="bell-t">${on ? "Seguita" : "Segui"}</span>`}</button>`;
 }
 document.addEventListener("click", ev => {
   const b = ev.target.closest("[data-bell]");
@@ -130,9 +130,9 @@ async function disableNotifs() {
 
 /* riquadro nella pagina Tu (in fondo) */
 const NT_SHORT = {
-  soccer: ["Calcio", [["goal", "Gol"], ["red", "Espulsioni"], ["ht", "Fine 1° tempo"], ["end", "Risultato finale"], ["start", "Inizio"]]],
-  nba: ["Basket", [["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"], ["start", "Inizio"]]],
-  tennis: ["Tennis", [["set", "Fine di ogni set"], ["end", "Risultato finale"], ["game", "Ogni game"], ["start", "Inizio"]]],
+  soccer: ["Calcio", [["start", "Inizio"], ["goal", "Gol"], ["yellow", "Ammonizioni"], ["red", "Espulsioni"], ["corner", "Calci d'angolo"], ["ht", "Fine 1° tempo"], ["second", "Inizio 2° tempo"], ["end", "Risultato finale"]]],
+  nba: ["Basket", [["start", "Inizio"], ["qstart", "Inizio di ogni quarto"], ["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"]]],
+  tennis: ["Tennis", [["start", "Inizio"], ["setstart", "Inizio di ogni set"], ["set", "Fine di ogni set"], ["game", "Ogni game"], ["end", "Risultato finale"]]],
 };
 function notifSection() {
   const s = notifState();

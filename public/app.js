@@ -547,8 +547,8 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     <div class="board-name">${esc(t.name)}${href ? `<span class="tl-arrow">›</span>` : ""}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</${href ? "a" : "div"}>`; };
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
   return `<div class="board">
-    <div class="board-meta"><span>${esc(d.league_name)}</span><span>${esc(when)}</span></div>
-    ${typeof bellBtn === "function" && !d.final ? `<div class="board-bell">${bellBtn({ id: d.id, sport: d.sport, date: d.date, home: d.home.name, away: d.away.name, league_name: d.league_name })}</div>` : ""}
+    <div class="board-meta"><span class="bm-txt"><b>${esc(d.league_name)}</b><span>${esc(when)}</span></span>
+      ${typeof bellBtn === "function" && !d.final ? bellBtn({ id: d.id, sport: d.sport, date: d.date, home: d.home.name, away: d.away.name, league_name: d.league_name }) : ""}</div>
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
@@ -604,7 +604,10 @@ async function showEvent(id) {
   CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
   const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));
-  $app.innerHTML = back + reviewBox(d) + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
+  $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
+  // in alto la partita (squadre e campanella), poi diretta e "com'è andata"
+  const rv = reviewBox(d), brd = $app.querySelector(".board");
+  if (rv) brd ? brd.insertAdjacentHTML("afterend", rv) : $app.querySelector(".back")?.insertAdjacentHTML("afterend", rv);
   wire(d.sport);
   attachLive(d);
   attachLineups(d);

@@ -8,9 +8,9 @@ const MAX_BOARDS = 30;              // tabelloni letti al massimo per minuto
 const MAX_SUBS = 200;
 
 export const DEFAULT_PREFS = {
-  soccer: { on: true, mode: "mine", start: false, goal: true, red: true, ht: true, end: true },
-  nba: { on: true, mode: "mine", start: false, quarter: true, end: true },
-  tennis: { on: true, mode: "mine", start: false, game: false, set: true, end: true },
+  soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
+  nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
+  tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
 };
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
@@ -33,10 +33,15 @@ function teamSnap(ev) {
   const det = c.details || [];
   const goals = det.filter(d => d.scoringPlay).map(d => ({ m: d.clock?.displayValue || "", s: ids[d.team?.id] || "", who: d.athletesInvolved?.[0]?.displayName || d.athletesInvolved?.[0]?.shortName || "", og: !!d.ownGoal, pen: !!d.penaltyKick }));
   const reds = det.filter(d => d.redCard).map(d => ({ m: d.clock?.displayValue || "", s: ids[d.team?.id] || "", who: d.athletesInvolved?.[0]?.displayName || "" }));
+  const yellows = det.filter(d => d.yellowCard && !d.redCard).map(d => ({ m: d.clock?.displayValue || "", s: ids[d.team?.id] || "", who: d.athletesInvolved?.[0]?.displayName || "" }));
+  const stat = (x, name) => { const v = (x.statistics || []).find(s => s.name === name); return v ? num(v.displayValue ?? v.value) : null; };
+  const ch = stat(side.home, "wonCorners"), ca = stat(side.away, "wonCorners");
   return {
     st: ty.state || "pre", nm: ty.name || "", p: st.period || 0, det: ty.shortDetail || "",
+    min: parseInt(String(st.displayClock || "").replace(/[^0-9].*$/, ""), 10) || 0,
     h: num(side.home.score), a: num(side.away.score), hn: tn(side.home), an: tn(side.away),
-    ls: [side.home, side.away].map(x => (x.linescores || []).map(l => num(l.value))), goals, reds,
+    ls: [side.home, side.away].map(x => (x.linescores || []).map(l => num(l.value))), goals, reds, yellows,
+    corners: ch == null || ca == null ? null : [ch, ca],
   };
 }
 
@@ -93,7 +98,19 @@ export function diff(sport, prev, cur, ev) {
       const team = r.s === "h" ? cur.hn : r.s === "a" ? cur.an : "";
       out.push(["red", `🟥 Espulsione${team ? ` (${team})` : ""}`, [r.who, r.m, score].filter(Boolean).join(" · ")]);
     }
-    if (cur.nm === "STATUS_HALFTIME" && prev.nm !== "STATUS_HALFTIME") out.push(["ht", `Fine primo tempo: ${score}`, `Intervallo${where}`]);
+    // l'intervallo: il tabellone ESPN a volte lo segna con minuti di ritardo, il commento della partita no (cur.htFlag)
+    for (const y of (cur.yellows || []).slice(prev.yellows?.length || 0)) {
+      const team = y.s === "h" ? cur.hn : y.s === "a" ? cur.an : "";
+      out.push(["yellow", `🟨 Ammonizione${team ? ` (${team})` : ""}`, [y.who, y.m, score].filter(Boolean).join(" · ")]);
+    }
+    if (cur.corners && prev.corners) {
+      for (const [k, nm] of [[0, cur.hn], [1, cur.an]]) if (cur.corners[k] > prev.corners[k])
+        out.push(["corner", `⛳ Calcio d'angolo ${nm}`, `Angoli ${cur.corners[0]}-${cur.corners[1]} · ${score}`]);
+    }
+    if (cur.p >= 2 && (prev.p || 0) <= 1 && prev.st === "in" && cur.st === "in" && !/HALFTIME/.test(cur.nm))
+      out.push(["second", `Inizia il secondo tempo: ${score}`, `Si riparte${where}`]);
+    if ((cur.nm === "STATUS_HALFTIME" || cur.htFlag) && !prev.htDone && prev.nm !== "STATUS_HALFTIME" && (prev.p || 1) <= 1)
+      out.push(["ht", `Fine primo tempo: ${score}`, `Intervallo${where}`]);
   }
   if (sport === "nba") {
     const endish = /END_PERIOD|HALFTIME/.test(cur.nm);
@@ -102,6 +119,9 @@ export function diff(sport, prev, cur, ev) {
       const hq = cur.ls[0].slice(0, q).reduce((x, y) => x + y, 0), aq = cur.ls[1].slice(0, q).reduce((x, y) => x + y, 0);
       out.push(["quarter", `Fine ${qName(q, "nba")}: ${cur.hn} ${hq}-${aq} ${cur.an}`, `Parziale del quarto ${cur.ls[0][q - 1] ?? "–"}-${cur.ls[1][q - 1] ?? "–"}${where}`]);
     }
+    // inizio di un quarto (dal 2° in poi): era fermo a fine periodo, ora si gioca
+    if (cur.st === "in" && prev.st === "in" && cur.p >= 2 && !/END_PERIOD|HALFTIME/.test(cur.nm) && (cur.p > prev.p || /END_PERIOD|HALFTIME/.test(prev.nm)))
+      out.push(["qstart", `Inizia il ${qName(cur.p, "nba")}: ${score}`, `Si riparte${where}`]);
   }
   if (sport === "tennis") {
     const n = cur.sets[0].length, doneNow = cur.st === "post" ? n : Math.max(0, n - 1);
@@ -112,11 +132,13 @@ export function diff(sport, prev, cur, ev) {
       out.push(["set", `Set a ${last(a > b ? cur.hn : cur.an)} ${Math.max(a, b)}-${Math.min(a, b)}`, `${last(cur.hn)} – ${last(cur.an)}: ${setsTxt(cur, k)}${cur.comp ? ` · ${cur.comp}` : ""}`]);
       setEnded = true;
     }
+    if (cur.st === "in" && prev.st === "in" && n > pn && n >= 2)
+      out.push(["setstart", `Inizia il ${n}° set: ${last(cur.hn)} – ${last(cur.an)}`, `${setsTxt(cur, n - 1)}${cur.comp ? ` · ${cur.comp}` : ""}`]);
     if (!setEnded && cur.st === "in" && cur.gt > (prev.gt || 0) && prev.st === "in") {
       out.push(["game", `${last(cur.hn)} – ${last(cur.an)}: ${setsTxt(cur)}`, `Game concluso${cur.comp ? ` · ${cur.comp}` : ""}`]);
     }
   }
-  if (cur.st === "post" && prev.st !== "post") {
+  if ((cur.st === "post" || cur.ftFlag) && prev.st !== "post" && !prev.ftDone) {
     if (sport === "tennis") {
       const w = cur.w ?? 0;
       out.push(["end", `${last(w === 0 ? cur.hn : cur.an)} batte ${last(w === 0 ? cur.an : cur.hn)}`, `${setsTxt(cur)}${/RET/i.test(cur.nm + cur.det) ? " (ritiro)" : ""}${cur.comp ? ` · ${cur.comp}` : ""}`]);
@@ -206,6 +228,16 @@ export class Push {
     }
   }
 
+  /* commento della partita (summary ESPN): "First Half ends" / "Match ends" arrivano subito */
+  async periodEnds(e, base) {
+    const r = await fetch(`${base}/${e.espn}/summary?event=${e.id.split("-").pop()}`, { cf: { cacheTtl: 0 } });
+    if (!r.ok) return {};
+    const s = await r.json();
+    const ke = (s.keyEvents || []).map(k => String(k.type?.type || ""));
+    const txt = (s.commentary || []).slice(-6).map(c => String(c.text || "")).join(" | ");
+    return { ht: ke.includes("halftime") || /First Half ends/i.test(txt), ft: ke.some(t => /full-time|end-regular-time|match-end/.test(t)) || /Match ends/i.test(txt) };
+  }
+
   /* chiamato ogni minuto dal timer, con l'elenco delle partite (index.json del sito) */
   async tick({ events = [] }) {
     const t0 = Date.now();
@@ -269,6 +301,18 @@ export class Push {
         cur.qn = Math.max(prev?.qn ?? 0, cur.st === "post" ? cur.p - 1 : endish ? cur.p : cur.p - 1);
       }
       cur.t = now;
+      if (e.sport === "soccer") {
+        // vicino alla fine di un tempo, per le partite seguite si legge anche il commento (arriva prima del tabellone)
+        const nearHT = cur.st === "in" && cur.p === 1 && cur.min >= 44 && !prev?.htDone && cur.nm !== "STATUS_HALFTIME";
+        const nearFT = cur.st === "in" && cur.p >= 2 && cur.min >= 88 && !prev?.ftDone;
+        if ((nearHT || nearFT) && (followers.get(id) || []).length) {
+          const flags = await this.periodEnds(e, base).catch(() => ({}));
+          if (nearHT && flags.ht) cur.htFlag = true;
+          if (nearFT && flags.ft) cur.ftFlag = true;
+        }
+        cur.htDone = !!(prev?.htDone || cur.htFlag || cur.nm === "STATUS_HALFTIME" || cur.p >= 2);
+        cur.ftDone = !!(prev?.ftDone || cur.ftFlag || cur.st === "post");
+      }
       if (e.sport === "tennis") {
         const changed = !prev || JSON.stringify(prev.sets) !== JSON.stringify(cur.sets);
         if (changed) logs["log:" + id] = tennisLogStep((await this.store.get("log:" + id)) || [], prev, cur, now);

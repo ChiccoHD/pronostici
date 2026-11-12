@@ -943,3 +943,35 @@ body.sheet-open { overflow: hidden; }
 body.has-slipbar main { padding-bottom: 150px; }
 body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 @media (min-width: 1180px) { #slipbar { bottom: 20px; left: auto; right: 24px; transform: none; width: 380px; } #slipbar.bump { animation: none; } }
+
+/* Testata della partita: competizione e data a sinistra, campanella a destra */
+.board-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.board-meta .bm-txt { display: flex; flex-direction: column; min-width: 0; }
+.board-meta .bm-txt b { color: var(--ink); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-meta .bm-txt span { font-size: 12.5px; }
+.board-meta .bell { flex: none; padding: 7px 14px; }
+.live-min .bell.sm { margin-top: 6px; }
+
+/* Contatore delle giocate in diretta */
+.prog { display: flex; align-items: center; gap: 8px; margin-top: 5px; width: 100%; }
+.prog-bar { flex: 1; height: 7px; border-radius: 7px; background: var(--soft-2); overflow: hidden; }
+.prog-bar i { display: block; height: 100%; border-radius: 7px; background: var(--ink-3); transition: width .4s; }
+.prog.win .prog-bar i { background: var(--go); }
+.prog.lose .prog-bar i { background: #e5484d; }
+.prog:not(.win):not(.lose) .prog-bar i { background: #f5b301; }
+.prog-n { flex: none; font-size: 12px; color: var(--ink-2); }
+.prog-n b { color: var(--ink); font-size: 13px; }
+.slip-live { flex-wrap: wrap; }
+
+/* Giocata in diretta nelle schedine: minuto, risultato, parti della combinata */
+.slip-live { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.sl-live { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.sl-live b { color: #e5484d; }
+.sl-live .sl-sc { color: var(--ink); font-size: 16px; font-weight: 800; padding: 1px 8px; border-radius: 8px; background: var(--soft-2); }
+.ls-dot.live { background: #e5484d; animation: pdot 1.4s infinite; }
+.sl-txt { display: flex; align-items: center; gap: 6px; }
+.sl-parts { display: flex; flex-wrap: wrap; gap: 5px; }
+.sl-part { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--soft-2); color: var(--ink-2); }
+.sl-part.win, .sl-part.ok { background: color-mix(in srgb, var(--go) 16%, transparent); color: var(--go); }
+.sl-part.lose, .sl-part.ko { background: color-mix(in srgb, #e5484d 14%, transparent); color: #e5484d; }
+.prog-n { white-space: nowrap; }

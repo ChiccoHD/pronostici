@@ -379,9 +379,10 @@ function pickStatus(label, info) {
   };
   const sideName = side => info[side].name;
   /* conteggi "over": quanti ne servono */
-  const over = (c, n, what) => c > n ? R("win", `${end ? "Vinta" : "Già vinta"}: ${c} ${what}`)
+  const P = (r, cur, need, what) => ({ ...r, prog: { cur, need, what } });     // contatore: a che punto è
+  const over = (c, n, what) => P(c > n ? R("win", `${end ? "Vinta" : "Già vinta"}: ${c} ${what}`)
     : end ? R("lose", `Persa: finita con ${c} ${what}`)
-    : R("", `${n + 1 - c === 1 ? "Manca" : "Mancano"} ${n + 1 - c} ${what}, ora ${c}`);
+    : R("", `${n + 1 - c === 1 ? "Manca" : "Mancano"} ${n + 1 - c} ${what}, ora ${c}`), c, n + 1, what);
   const under = (c, n, what) => c > n ? R("lose", `Persa: già ${c} ${what}`)
     : end ? R("win", `Vinta: finita con ${c} ${what}`)
     : R("ok", `Per ora va bene: ${c} ${what}, il massimo è ${n}`);
@@ -403,6 +404,26 @@ function pickStatus(label, info) {
     return R("", end ? `Finita, ${score}` : `In corso, ${score}`);
   }
 
+  // esito secco e doppia chance scritti come sul sito (1, X, 2, 1X, X2, 12)
+  const SIGN = { "1": (h, a) => h > a, "X": (h, a) => h === a, "2": (h, a) => a > h, "1X": (h, a) => h >= a, "X2": (h, a) => a >= h, "12": (h, a) => h !== a };
+  if (SIGN[L]) {
+    if (!end && L !== "X" && L !== "12" && H === A && L.length === 1) return R("", `Per ora in parità, ${score}`);
+    return outcome(SIGN[L]);
+  }
+  // combinate ("1 + Over 2,5"): vince solo se escono tutte le parti
+  if (L.includes(" + ")) {
+    const parts = L.split(" + ").map(x => x.trim()).map(x => x === "Goal" ? "Goal, segnano entrambe" : x);
+    const st = parts.map(x => ({ label: x === "Goal, segnano entrambe" ? "Goal" : x, s: pickStatus(x, info) }));
+    if (st.some(x => !x.s)) return R("", end ? `Finita, ${score}` : `In corso, ${score}`);
+    const prog = st.find(x => x.s.prog && x.s.cls !== "win")?.s.prog || st.find(x => x.s.prog)?.s.prog;
+    const lost = st.find(x => x.s.cls === "lose");
+    const base = lost ? R("lose", `Persa: ${lost.label} non presa`)
+      : st.every(x => x.s.cls === "win") ? R("win", end ? `Vinta, ${score}` : `Già vinta, ${score}`)
+      : end ? R("lose", `Persa, ${score}`)
+      : st.every(x => ["ok", "win"].includes(x.s.cls)) ? R("ok", `Per ora la stai vincendo, ${score}`)
+      : R(st.some(x => x.s.cls === "ko") ? "ko" : "", `In corso, ${score}`);
+    return { ...base, parts: st, ...(prog ? { prog } : {}) };
+  }
   if ((m = L.match(/^Over (\d+),5 angoli$/))) return info.teamStats ? over((info.teamStats.home.wonCorners || 0) + (info.teamStats.away.wonCorners || 0), +m[1], "angoli") : null;
   if ((m = L.match(/^Under (\d+),5 angoli$/))) return info.teamStats ? under((info.teamStats.home.wonCorners || 0) + (info.teamStats.away.wonCorners || 0), +m[1], "angoli") : null;
   if ((m = L.match(/^Over (\d+),5 gialli$/))) return info.teamStats ? over((info.teamStats.home.yellowCards || 0) + (info.teamStats.away.yellowCards || 0), +m[1], "gialli") : null;
@@ -410,7 +431,7 @@ function pickStatus(label, info) {
     const firstDone = end || info.period >= 2;
     const c = info.half && firstDone ? info.half[0] + info.half[1] : H + A;
     if (firstDone) return (m[1] === "Over") === (c > +m[2]) ? R("win", `Vinta: ${c} gol nel primo tempo`) : R("lose", `Persa: ${c} gol nel primo tempo`);
-    return m[1] === "Over" ? (c > +m[2] ? R("win", `Già vinta: ${c} gol`) : R("", `${+m[2] + 1 - c === 1 ? "Manca" : "Mancano"} ${+m[2] + 1 - c} gol prima dell'intervallo`)) : under(c, +m[2], "gol");
+    return m[1] === "Over" ? P(c > +m[2] ? R("win", `Già vinta: ${c} gol`) : R("", `${+m[2] + 1 - c === 1 ? "Manca" : "Mancano"} ${+m[2] + 1 - c} gol prima dell'intervallo`), c, +m[2] + 1, "gol") : under(c, +m[2], "gol");
   }
   if ((m = L.match(/^Over (\d+),5( punti)?$/))) return over(H + A, +m[1], unit);
   if ((m = L.match(/^Under (\d+),5( punti)?$/))) return under(H + A, +m[1], unit);
@@ -424,7 +445,7 @@ function pickStatus(label, info) {
     const c = H + A, lo = +m[1], hi = +m[2];
     if (c > hi) return R("lose", `Persa: già ${c} gol`);
     if (end) return c >= lo ? R("win", `Vinta: ${c} gol`) : R("lose", `Persa: solo ${c} gol`);
-    return c >= lo ? R("ok", `Per ora va bene: ${c} gol, il massimo è ${hi}`) : R("", `${lo - c === 1 ? "Manca" : "Mancano"} ${lo - c} gol, ora ${c}`);
+    return c >= lo ? R("ok", `Per ora va bene: ${c} gol, il massimo è ${hi}`) : P(R("", `${lo - c === 1 ? "Manca" : "Mancano"} ${lo - c} gol, ora ${c}`), c, lo, "gol");
   }
   if (L === "Pareggio") return outcome((h, a) => h === a);
   if (L === "Una delle due vince") return outcome((h, a) => h !== a);
@@ -450,7 +471,7 @@ function pickStatus(label, info) {
     const p = info.players.get(normName(m[1]));
     if (!p) return info.players.size ? R(end ? "lose" : "", end ? "Persa: non ha giocato" : "Non è ancora entrato") : null;
     const v = p[key], need = +m[2];
-    return v >= need ? R("win", `${end ? "Vinta" : "Già vinta"}: ${v} ${m[3]}`) : end ? R("lose", `Persa: ${v} ${m[3]}`) : R("", `${need - v === 1 ? "Manca" : "Ne mancano"} ${need - v}, ora ${v}`);
+    return P(v >= need ? R("win", `${end ? "Vinta" : "Già vinta"}: ${v} ${m[3]}`) : end ? R("lose", `Persa: ${v} ${m[3]}`) : R("", `${need - v === 1 ? "Manca" : "Ne mancano"} ${need - v}, ora ${v}`), v, need, m[3]);
   }
   if ((m = L.match(/^(.+) over (\d+),5$/))) { const side = sideOfText(m[1]); if (!side) return null; return over(side === "home" ? H : A, +m[2], "punti"); }
   if ((m = L.match(/^(.+) ([+-]\d+(?:,\d)?)$/))) {
@@ -461,11 +482,29 @@ function pickStatus(label, info) {
   return R("", end ? `Finita, ${score}` : `In corso, ${score}`);
 }
 
+/* riga della giocata in diretta: minuto e risultato, esito di ogni parte, contatore */
+function slipLiveHtml(s, info) {
+  const live = info.state === "in";
+  const when = info.sport === "tennis" ? `set ${info.won?.[0] ?? info.H}-${info.won?.[1] ?? info.A}`
+    : `${info.sport === "soccer" ? (info.clock || info.detail || "") : (info.detail || "")}`;
+  const sc = info.sport === "tennis" ? "" : `<b class="sl-sc">${info.H}-${info.A}</b>`;
+  const head = live ? `<span class="sl-live"><span class="ls-dot live"></span><b>${esc(when)}</b>${sc}</span>` : "";
+  const parts = s.parts ? `<span class="sl-parts">${s.parts.map(p => `<span class="sl-part ${p.s.cls}">${p.s.cls === "win" || p.s.cls === "ok" ? "✓" : p.s.cls === "lose" || p.s.cls === "ko" ? "✗" : "…"} ${esc(p.label)}</span>`).join("")}</span>` : "";
+  return `${head}<span class="sl-txt"><span class="ls-dot ${s.cls}"></span>${esc(s.txt)}</span>${parts}${progBar(s)}`;
+}
+
+/* contatore della giocata: 7 su 10 rimbalzi, con la barra che si riempie */
+function progBar(s) {
+  if (!s?.prog || !s.prog.need) return "";
+  const { cur, need, what } = s.prog, w = Math.min(100, Math.round(cur / need * 100));
+  return `<span class="prog ${s.cls}"><span class="prog-bar"><i style="width:${w}%"></i></span><span class="prog-n"><b>${cur}</b> su ${need} ${esc(what)}</span></span>`;
+}
+
 function statusChips(list, info) {
   if (!list.length) return "";
   return `<div class="live-slip">${list.map(f => {
     const s = pickStatus(f.label, info);
-    return `<div class="ls ${s?.cls || ""}"><b>★ ${esc(f.label)}</b>${s ? `<span>${esc(s.txt)}</span>` : `<span>Si vede a fine partita</span>`}</div>`;
+    return `<div class="ls ${s?.cls || ""}"><b>★ ${esc(f.label)}</b>${s ? `<span>${esc(s.txt)}</span>${s.parts ? `<span class="sl-parts">${s.parts.map(p => `<span class="sl-part ${p.s.cls}">${esc(p.label)}</span>`).join("")}</span>` : ""}${progBar(s)}` : `<span>Si vede a fine partita</span>`}</div>`;
   }).join("")}</div>`;
 }
 
@@ -501,7 +540,7 @@ async function attachLive(d) {
   const start = new Date(d.date).getTime();
   if (Date.now() < start - 15 * 60e3) return;           // non ancora iniziata
   let box = document.getElementById("live-box");
-  if (!box) { box = document.createElement("div"); box.id = "live-box"; $app.querySelector(".back")?.after(box); }
+  if (!box) { box = document.createElement("div"); box.id = "live-box"; ($app.querySelector(".board") || $app.querySelector(".back"))?.after(box); }
   let info = null, failed = false;
   try { info = await eventInfo(tg); } catch { failed = true; }
   if (location.hash !== hash) return;
@@ -655,7 +694,7 @@ async function attachSlipStatus() {
     if (!info) return;
     if (info.state === "in") anyLive = true;
     const s = pickStatus(el.dataset.slipLabel, info);
-    el.innerHTML = s ? `<span class="ls-dot ${s.cls}"></span>${info.state === "in" ? "<b>Live</b> " : ""}${esc(s.txt)}` : "";
+    el.innerHTML = s ? slipLiveHtml(s, info) : "";
     el.className = `slip-live ${s?.cls || ""}`;
     if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, s);
   });
@@ -788,14 +827,15 @@ async function showLive(opt = { embed: true }) {
     const fl = info.state === "in" && scoreChanged(e.id, info) ? "flash" : "";
     const href = `#/e/${encodeURIComponent(ix?.id || e.id)}`;
     const mine = statusChips(favs().filter(f => f.event === e.id), info);
+    const bell = info.state === "in" && ix && typeof bellBtn === "function" ? bellBtn({ ...ix, final: null, date: new Date().toISOString() }, true) : "";
     if (info.sport === "tennis") {
       const setTxt = info.state === "in" ? `${Math.min(info.period || 1, Math.max(info.sets[0].length, 1))}° set` : "Finale";
-      return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(setTxt)}</div>
+      return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(setTxt)}${bell}</div>
         <div class="${fl}">${tennisBoard(info, true)}</div></div>${mine}</a>`;
     }
     const lr = liveRings(info, ix);
     const min = info.state === "in" ? (info.sport === "soccer" ? (info.clock || info.detail) : info.detail) : "Finale";
-    return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(min)}</div>
+    return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(min)}${bell}</div>
       <div class="live-teams ${fl}"><div>${teamMark(ix?.home_logo || info.home.logo, null, ix?.home_color)}<span>${esc(info.home.name)}</span><b>${info.H}</b></div>
       <div>${teamMark(ix?.away_logo || info.away.logo, null, ix?.away_color)}<span>${esc(info.away.name)}</span><b>${info.A}</b></div></div></div>
       ${lr ? `<div class="live-probs">${lr.rings ? `<div class="fx-rings">${lr.rings}</div>` : ""}${lr.sub ? `<div class="live-sub">${lr.sub}</div>` : ""}</div>` : ""}${mine}</a>`;

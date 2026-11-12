@@ -220,8 +220,34 @@ def national_check():
     out(f"- nomi delle nazionali visti: {', '.join(sorted(names))}")
 
 
+def ht_check(ids):
+    """Fine primo tempo: cosa dice ESPN (stato del tabellone, keyEvents, commento) e a che ora."""
+    from . import http
+    out("## Fine primo tempo")
+    sb = http.get_json(f"{espn.SITE}/soccer/uefa.nations/scoreboard") or {}
+    for ev in sb.get("events", []):
+        st = (ev.get("status") or {})
+        out(f"- tabellone {ev.get('id')} {ev.get('name')}: {st.get('type', {}).get('name')} · {st.get('type', {}).get('shortDetail')} · periodo {st.get('period')} · orologio {st.get('displayClock')}")
+    for i in ids:
+        s = http.get_json(f"{espn.SITE}/soccer/uefa.nations/summary?event={i}") or {}
+        out(f"### {i}: chiavi {sorted(s.keys())}")
+        for k in (s.get("keyEvents") or []):
+            out(f"  - key {k.get('type', {}).get('type')} · {k.get('type', {}).get('text')} · {k.get('clock', {}).get('displayValue')} · periodo {k.get('period', {}).get('number')} · wallclock {k.get('wallclock')} · {str(k.get('text'))[:80]}")
+        com = s.get("commentary") or []
+        out(f"  - commento: {len(com)} righe")
+        for c in com:
+            t = str(c.get("text", ""))
+            if any(w in t.lower() for w in ("half", "kick", "end", "ends", "begins")):
+                out(f"    - {c.get('time', {}).get('displayValue')} · {t[:100]} · {c.get('play', {}).get('wallclock')}")
+
+
 def main():
     import sys
+    if "ht" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        ht_check(["401861146", "401861145"])
+        _write()
+        return
     if "nazionali" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         national_check()

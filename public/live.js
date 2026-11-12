@@ -482,45 +482,33 @@ function pickStatus(label, info) {
   return R("", end ? `Finita, ${score}` : `In corso, ${score}`);
 }
 
-/* giocata in diretta: in alto minuto e risultato, poi una riga per ogni parte della giocata
-   (nome chiaro, a che punto è, e per i conteggi una barra "1 di 3 gol") */
-function slipPartName(label, info) {
-  const H = info.home?.name || "casa", A = info.away?.name || "ospiti";
-  return { "1": `Vittoria ${H}`, "X": "Pareggio", "2": `Vittoria ${A}`, "1X": `${H} o pareggio`, "X2": `${A} o pareggio`, "12": "Non finisce in pareggio",
-    "Goal, segnano entrambe": "Segnano entrambe", "Goal": "Segnano entrambe" }[label] || label;
+/* giocata in diretta, compatta: una riga con minuto, risultato e i conteggi (●●○), una frase con cosa manca */
+function slipNeed(label, s, info) {
+  const H = info.home?.name || "casa", A = info.away?.name || "ospiti", pr = s?.prog;
+  if (pr && pr.cur < pr.need) { const k = pr.need - pr.cur; return `${k === 1 ? "un altro" : `altri ${k}`} ${k === 1 ? pr.what.replace(/i$/, "o").replace(/^gol$/, "gol").replace(/^punto$/, "punto") : pr.what}`; }
+  return { "1": `la vittoria di ${H}`, "X": "il pareggio", "2": `la vittoria di ${A}`, "1X": `che ${H} non perda`, "X2": `che ${A} non perda`,
+    "12": "che non finisca pari", "Goal": "che segnino entrambe", "Goal, segnano entrambe": "che segnino entrambe", "No Goal": "che non segnino entrambe" }[label] || label;
 }
-function slipPartState(s) {
-  if (!s) return ["wait", "…", "si vede a fine partita"];
-  if (s.cls === "win") return ["win", "✓", "presa"];
-  if (s.cls === "lose") return ["lose", "✗", "persa"];
-  if (s.prog) return [s.cls === "ok" ? "ok" : "wait", "", ""];
-  if (s.cls === "ok") return ["ok", "✓", "per ora sì"];
-  if (s.cls === "ko") return ["ko", "✗", "per ora no"];
-  return ["wait", "…", "in attesa"];
+function slipDots(pr) {
+  if (!pr) return "";
+  const need = pr.need, cur = Math.min(pr.cur, need);
+  if (need > 8) return `<span class="lv-c"><b>${pr.cur}</b>/${need}</span>`;
+  return `<span class="lv-c" title="${pr.cur} di ${need} ${esc(pr.what)}">${"<i class=on></i>".repeat(cur)}${"<i></i>".repeat(need - cur)}</span>`;
 }
 function slipLiveHtml(s, info, label = "") {
   const live = info.state === "in";
   const clock = info.sport === "tennis" ? `${Math.max(1, info.sets?.[0]?.length || 1)}° set` : (info.sport === "soccer" ? (info.clock || info.detail || "") : (info.detail || ""));
-  const score = info.sport === "tennis" ? `${info.won?.[0] ?? 0}-${info.won?.[1] ?? 0} set` : `${info.H}-${info.A}`;
-  const top = `<div class="lv-top">${live ? `<span class="lv-min"><i class="ls-dot live"></i>${esc(clock)}</span>` : `<span class="lv-min done">Finita</span>`}<span class="lv-score">${esc(score)}</span></div>`;
-  const parts = s.parts ? s.parts.map(p => ({ label: p.label, s: p.s })) : [{ label, s }];
-  const rows = parts.map(p => {
-    const [cls, ic, word] = slipPartState(p.s);
-    const pr = p.s?.prog;
-    const right = pr ? `<span class="lv-cnt"><b>${pr.cur}</b> di ${pr.need} ${esc(pr.what)}</span>` : `<span class="lv-word">${word}</span>`;
-    const bar = pr ? `<span class="lv-bar"><i style="width:${Math.min(100, Math.round(pr.cur / pr.need * 100))}%"></i></span>` : "";
-    return `<div class="lv-row ${cls}"><span class="lv-ic">${ic || (pr && pr.cur >= pr.need ? "✓" : "⏳")}</span><span class="lv-name">${esc(slipPartName(p.label, info))}</span>${right}${bar}</div>`;
-  }).join("");
-  let verdict = "";
-  if (s.parts) {
-    const ko = s.parts.filter(p => ["ko", "lose"].includes(p.s?.cls)).map(p => slipPartName(p.label, info));
-    const wait = s.parts.filter(p => !["ok", "win", "ko", "lose"].includes(p.s?.cls)).map(p => slipPartName(p.label, info));
-    const txt = s.cls === "win" ? "Combinata presa ✓" : s.cls === "lose" ? "Combinata persa"
-      : s.cls === "ok" ? "Per ora la combinata è presa"
-      : ko.length ? `Per ora no: manca ${ko.join(" e ")}` : `Manca ancora: ${wait.join(" e ")}`;
-    verdict = `<div class="lv-verdict ${s.cls}">${esc(txt)}</div>`;
-  }
-  return `<div class="lv">${top}${rows}${verdict}</div>`;
+  const score = info.sport === "tennis" ? `${info.won?.[0] ?? 0}-${info.won?.[1] ?? 0}` : `${info.H}-${info.A}`;
+  const parts = s.parts || [{ label, s }];
+  const dots = parts.map(p => slipDots(p.s?.prog)).join("");
+  const missing = parts.filter(p => !["ok", "win"].includes(p.s?.cls)).map(p => slipNeed(p.label, p.s, info));
+  const lost = parts.find(p => p.s?.cls === "lose");
+  const [cls, txt] = s.cls === "win" ? ["win", "✓ Presa"]
+    : lost || s.cls === "lose" ? ["lose", "✗ Persa"]
+    : !missing.length ? ["ok", "✓ Per ora presa"]
+    : [s.cls === "ko" || parts.some(p => p.s?.cls === "ko") ? "ko" : "wait", `${live ? "Ti serve" : "Serviva"}: ${missing.join(" e ")}`];
+  return `<div class="lv2"><span class="lv-min ${live ? "" : "done"}">${live ? `<i class="ls-dot live"></i>${esc(clock)}` : "Finita"}</span><b class="lv-score">${esc(score)}</b>${dots}</div>
+    <div class="lv-say ${cls}">${esc(txt)}</div>`;
 }
 
 /* contatore della giocata: 7 su 10 rimbalzi, con la barra che si riempie */

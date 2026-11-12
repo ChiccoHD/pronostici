@@ -1004,3 +1004,18 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .pk-txt .lv b { display: inline; color: inherit; }
 .pk-txt .lv .lv-score { color: var(--ink); }
 .pk-txt .lv .lv-cnt b { color: var(--ink); }
+
+/* Giocata in diretta compatta (sostituisce il riquadro) */
+.pk.slip .pk-txt > .slip-live.lvw { margin-top: 6px; }
+.lv2 { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.lv2 .lv-min { display: inline-flex; align-items: center; gap: 5px; color: #e5484d; font-weight: 800; }
+.lv2 .lv-min.done { color: var(--ink-3); }
+.pk-txt .lv2 .lv-score { display: inline; font-size: 15px; font-weight: 800; color: var(--ink); padding: 1px 8px; border-radius: 7px; background: var(--soft-2); }
+.lv-c { display: inline-flex; align-items: center; gap: 3px; margin-left: 2px; font-size: 12px; color: var(--ink-2); }
+.lv-c i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #f5b301; box-sizing: border-box; }
+.lv-c i.on { background: #f5b301; }
+.pk-txt .lv-c b { display: inline; color: var(--ink); }
+.lv-say { margin-top: 3px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); white-space: normal; }
+.lv-say.ok, .lv-say.win { color: var(--go); }
+.lv-say.lose { color: #e5484d; }
+.lv-say.ko { color: #e8833a; }

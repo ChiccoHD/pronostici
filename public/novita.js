@@ -4,7 +4,7 @@ const NOVITA = [
   { d: "2026-11-12", t: "Pallino anche su Aggiornamenti", items: [
     "Quando ci sono novità, oltre al pallino su Info ne compare uno anche sulla scheda Aggiornamenti, così sai dove toccare." ] },
   { d: "2026-11-12", t: "Schedine in diretta e notifiche più complete", items: [
-    "Nelle schedine salvate, durante la partita: minuto e risultato, esito di ogni parte delle combinate (es. 1 + Over 2,5) e un contatore che si riempie (gol, punti, rimbalzi, assist…).",
+    "Nelle schedine salvate, durante la partita, un riquadro con minuto e risultato e una riga per ogni parte della giocata: \"Vittoria Como – per ora no\", \"Over 2,5 – 1 di 3 gol\" con la barra che si riempie.",
     "Notifiche: aggiunte ammonizioni, calci d'angolo, inizio del secondo tempo, inizio di ogni quarto e di ogni set.",
     "La fine del primo tempo ora arriva subito: prima dipendeva dal tabellone ESPN, che a volte la segna con minuti di ritardo.",
     "Nella scheda della partita il tasto Segui è in alto accanto alla competizione e la diretta sta sotto le squadre; campanella anche sulle partite in diretta." ] },

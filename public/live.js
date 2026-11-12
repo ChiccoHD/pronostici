@@ -482,15 +482,45 @@ function pickStatus(label, info) {
   return R("", end ? `Finita, ${score}` : `In corso, ${score}`);
 }
 
-/* riga della giocata in diretta: minuto e risultato, esito di ogni parte, contatore */
-function slipLiveHtml(s, info) {
+/* giocata in diretta: in alto minuto e risultato, poi una riga per ogni parte della giocata
+   (nome chiaro, a che punto è, e per i conteggi una barra "1 di 3 gol") */
+function slipPartName(label, info) {
+  const H = info.home?.name || "casa", A = info.away?.name || "ospiti";
+  return { "1": `Vittoria ${H}`, "X": "Pareggio", "2": `Vittoria ${A}`, "1X": `${H} o pareggio`, "X2": `${A} o pareggio`, "12": "Non finisce in pareggio",
+    "Goal, segnano entrambe": "Segnano entrambe", "Goal": "Segnano entrambe" }[label] || label;
+}
+function slipPartState(s) {
+  if (!s) return ["wait", "…", "si vede a fine partita"];
+  if (s.cls === "win") return ["win", "✓", "presa"];
+  if (s.cls === "lose") return ["lose", "✗", "persa"];
+  if (s.prog) return [s.cls === "ok" ? "ok" : "wait", "", ""];
+  if (s.cls === "ok") return ["ok", "✓", "per ora sì"];
+  if (s.cls === "ko") return ["ko", "✗", "per ora no"];
+  return ["wait", "…", "in attesa"];
+}
+function slipLiveHtml(s, info, label = "") {
   const live = info.state === "in";
-  const when = info.sport === "tennis" ? `set ${info.won?.[0] ?? info.H}-${info.won?.[1] ?? info.A}`
-    : `${info.sport === "soccer" ? (info.clock || info.detail || "") : (info.detail || "")}`;
-  const sc = info.sport === "tennis" ? "" : `<b class="sl-sc">${info.H}-${info.A}</b>`;
-  const head = live ? `<span class="sl-live"><span class="ls-dot live"></span><b>${esc(when)}</b>${sc}</span>` : "";
-  const parts = s.parts ? `<span class="sl-parts">${s.parts.map(p => `<span class="sl-part ${p.s.cls}">${p.s.cls === "win" || p.s.cls === "ok" ? "✓" : p.s.cls === "lose" || p.s.cls === "ko" ? "✗" : "…"} ${esc(p.label)}</span>`).join("")}</span>` : "";
-  return `${head}<span class="sl-txt"><span class="ls-dot ${s.cls}"></span>${esc(s.txt)}</span>${parts}${progBar(s)}`;
+  const clock = info.sport === "tennis" ? `${Math.max(1, info.sets?.[0]?.length || 1)}° set` : (info.sport === "soccer" ? (info.clock || info.detail || "") : (info.detail || ""));
+  const score = info.sport === "tennis" ? `${info.won?.[0] ?? 0}-${info.won?.[1] ?? 0} set` : `${info.H}-${info.A}`;
+  const top = `<div class="lv-top">${live ? `<span class="lv-min"><i class="ls-dot live"></i>${esc(clock)}</span>` : `<span class="lv-min done">Finita</span>`}<span class="lv-score">${esc(score)}</span></div>`;
+  const parts = s.parts ? s.parts.map(p => ({ label: p.label, s: p.s })) : [{ label, s }];
+  const rows = parts.map(p => {
+    const [cls, ic, word] = slipPartState(p.s);
+    const pr = p.s?.prog;
+    const right = pr ? `<span class="lv-cnt"><b>${pr.cur}</b> di ${pr.need} ${esc(pr.what)}</span>` : `<span class="lv-word">${word}</span>`;
+    const bar = pr ? `<span class="lv-bar"><i style="width:${Math.min(100, Math.round(pr.cur / pr.need * 100))}%"></i></span>` : "";
+    return `<div class="lv-row ${cls}"><span class="lv-ic">${ic || (pr && pr.cur >= pr.need ? "✓" : "⏳")}</span><span class="lv-name">${esc(slipPartName(p.label, info))}</span>${right}${bar}</div>`;
+  }).join("");
+  let verdict = "";
+  if (s.parts) {
+    const ko = s.parts.filter(p => ["ko", "lose"].includes(p.s?.cls)).map(p => slipPartName(p.label, info));
+    const wait = s.parts.filter(p => !["ok", "win", "ko", "lose"].includes(p.s?.cls)).map(p => slipPartName(p.label, info));
+    const txt = s.cls === "win" ? "Combinata presa ✓" : s.cls === "lose" ? "Combinata persa"
+      : s.cls === "ok" ? "Per ora la combinata è presa"
+      : ko.length ? `Per ora no: manca ${ko.join(" e ")}` : `Manca ancora: ${wait.join(" e ")}`;
+    verdict = `<div class="lv-verdict ${s.cls}">${esc(txt)}</div>`;
+  }
+  return `<div class="lv">${top}${rows}${verdict}</div>`;
 }
 
 /* contatore della giocata: 7 su 10 rimbalzi, con la barra che si riempie */
@@ -694,8 +724,8 @@ async function attachSlipStatus() {
     if (!info) return;
     if (info.state === "in") anyLive = true;
     const s = pickStatus(el.dataset.slipLabel, info);
-    el.innerHTML = s ? slipLiveHtml(s, info) : "";
-    el.className = `slip-live ${s?.cls || ""}`;
+    el.innerHTML = s ? slipLiveHtml(s, info, el.dataset.slipLabel) : "";
+    el.className = `slip-live lvw ${s?.cls || ""}`;
     if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, s);
   });
   if (closed.size) {

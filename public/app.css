@@ -978,3 +978,29 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .info-tabs a { position: relative; }
 .info-tabs a.has-news::after { content: ""; position: absolute; top: 5px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 0 2px var(--soft-2); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Giocata in diretta: riquadro leggibile (sostituisce le vecchie righe) */
+.pk.slip .pk-txt > .slip-live.lvw { display: block; margin-top: 8px; color: var(--ink); font-size: 13px; }
+.lv { border-radius: 12px; background: var(--soft-2); padding: 8px 10px; }
+.lv-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px solid var(--rule); }
+.lv-min { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; color: #e5484d; }
+.lv-min.done { color: var(--ink-2); }
+.lv-score { font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: .5px; }
+.lv-row { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; column-gap: 6px; padding: 5px 0; }
+.lv-ic { font-weight: 800; text-align: center; }
+.lv-name { font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-word, .lv-cnt { font-size: 12.5px; font-weight: 700; white-space: nowrap; color: var(--ink-2); }
+.lv-cnt b { font-size: 14px; color: var(--ink); }
+.lv-bar { grid-column: 2 / 4; height: 6px; border-radius: 6px; background: var(--rule); overflow: hidden; margin-top: 4px; }
+.lv-bar i { display: block; height: 100%; background: #f5b301; border-radius: 6px; transition: width .4s; }
+.lv-row.win .lv-ic, .lv-row.win .lv-word, .lv-row.ok .lv-ic, .lv-row.ok .lv-word { color: var(--go); }
+.lv-row.win .lv-bar i { background: var(--go); }
+.lv-row.lose .lv-ic, .lv-row.lose .lv-word, .lv-row.ko .lv-ic, .lv-row.ko .lv-word { color: #e5484d; }
+.lv-row.lose .lv-bar i { background: #e5484d; }
+.lv-row.wait .lv-ic { color: var(--ink-3); }
+.lv-verdict { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--rule); font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.lv-verdict.win, .lv-verdict.ok { color: var(--go); }
+.lv-verdict.lose { color: #e5484d; }
+.pk-txt .lv b { display: inline; color: inherit; }
+.pk-txt .lv .lv-score { color: var(--ink); }
+.pk-txt .lv .lv-cnt b { color: var(--ink); }

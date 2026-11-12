@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-12", t: "Pallino anche su Aggiornamenti", items: [
+    "Quando ci sono novità, oltre al pallino su Info ne compare uno anche sulla scheda Aggiornamenti, così sai dove toccare." ] },
   { d: "2026-11-12", t: "Schedine in diretta e notifiche più complete", items: [
     "Nelle schedine salvate, durante la partita: minuto e risultato, esito di ogni parte delle combinate (es. 1 + Over 2,5) e un contatore che si riempie (gol, punti, rimbalzi, assist…).",
     "Notifiche: aggiunte ammonizioni, calci d'angolo, inizio del secondo tempo, inizio di ogni quarto e di ogni set.",

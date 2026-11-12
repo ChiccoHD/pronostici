@@ -975,3 +975,6 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .sl-part.win, .sl-part.ok { background: color-mix(in srgb, var(--go) 16%, transparent); color: var(--go); }
 .sl-part.lose, .sl-part.ko { background: color-mix(in srgb, #e5484d 14%, transparent); color: #e5484d; }
 .prog-n { white-space: nowrap; }
+.info-tabs a { position: relative; }
+.info-tabs a.has-news::after { content: ""; position: absolute; top: 5px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 0 2px var(--soft-2); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

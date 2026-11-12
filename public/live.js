@@ -511,6 +511,19 @@ function slipLiveHtml(s, info, label = "") {
     <div class="lv-say ${cls}">${esc(txt)}</div>`;
 }
 
+/* esito da salvare quando una giocata si chiude: risultato finale e, se persa, cosa è mancato */
+function closedFields(s, f) {
+  const info = s._info || {};
+  const score = info.sport === "tennis" ? (info.sets ? info.sets[0].map((g, i) => `${g}-${info.sets[1][i]}`).join(" ") : "") : (info.H != null ? `${info.H}-${info.A}` : "");
+  let why = "";
+  if (s.cls === "lose") {
+    const parts = s.parts || [{ label: f.label, s }];
+    const miss = parts.filter(p => p.s?.cls === "lose" || p.s?.cls === "ko" || (p.s?.prog && p.s.prog.cur < p.s.prog.need)).map(p => slipNeed(p.label, p.s, info).replace(/^(un altro|altri \d+) /, m => m));
+    if (miss.length) why = `serviva ${miss.join(" e ")}`;
+  }
+  return { result: s.cls, result_txt: s.txt, final_score: score, result_why: why };
+}
+
 /* contatore della giocata: 7 su 10 rimbalzi, con la barra che si riempie */
 function progBar(s) {
   if (!s?.prog || !s.prog.need) return "";
@@ -714,21 +727,21 @@ async function attachSlipStatus() {
     const s = pickStatus(el.dataset.slipLabel, info);
     el.innerHTML = s ? slipLiveHtml(s, info, el.dataset.slipLabel) : "";
     el.className = `slip-live lvw ${s?.cls || ""}`;
-    if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, s);
+    if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, { ...s, _info: info });
   });
   if (closed.size) {
     const list = favs();
     let changed = false;
     for (const f of list) {
       const s = closed.get(f.key);
-      if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; f.closed = new Date().toISOString(); changed = true; }
+      if (s && !f.result) { Object.assign(f, closedFields(s, f)); f.closed = new Date().toISOString(); changed = true; }
     }
     if (changed) saveFavs(list);
     const slips = mySlips();
     let changedSlips = false;
     for (const sl of slips) for (const f of sl.legs) {
       const s = closed.get(f.key);
-      if (s && !f.result) { f.result = s.cls; f.result_txt = s.txt; changedSlips = true; }
+      if (s && !f.result) { Object.assign(f, closedFields(s, f)); changedSlips = true; }
     }
     if (changedSlips) saveMySlips(slips);
     if (changed || changedSlips) {

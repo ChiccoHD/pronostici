@@ -196,13 +196,36 @@ function slipState(sl) {
   return { cls: "", txt: "Da giocare" };
 }
 
+/* giocata chiusa: risultato finale e una frase chiara (presa / persa e perché) */
+function closedLegHtml(f) {
+  let score = f.final_score;
+  if (!score) {     // giocate chiuse prima di questa versione: il risultato si prende dall'elenco o dagli esiti già visti
+    const e = INDEX?.events.find(x => x.id === f.event), fin = e?.final || (typeof phoneFinals === "function" ? phoneFinals()[f.event] : null);
+    if (fin && !fin.void) score = fin.sets ? fin.sets[0].map((g, i) => `${g}-${fin.sets[1][i]}`).join(" ") : `${fin.h}-${fin.a}`;
+  }
+  let why = f.result_why;
+  if (why == null && f.result === "lose") {     // ricostruisce il perché per le giocate vecchie, quando si può
+    try {
+      const e = INDEX?.events.find(x => x.id === f.event), fin = e?.final || phoneFinals()[f.event];
+      if (e && fin && !fin.sets && e.sport !== "tennis") {
+        const info = { sport: e.sport, state: "post", H: fin.h, A: fin.a, home: { name: e.home }, away: { name: e.away }, players: {}, stats: {} };
+        const s = pickStatus(f.label, info);
+        if (s) why = closedFields({ ...s, _info: info }, f).result_why;
+      }
+    } catch { /* niente */ }
+  }
+  const win = f.result === "win";
+  const say = win ? "✓ Presa" : `✗ Persa${why ? `: ${why}` : ""}`;
+  return `<span class="slip-live lvw ${f.result}"><span class="lv2"><span class="lv-min done">Finita</span>${score ? `<b class="lv-score">${esc(score)}</b>` : ""}</span><span class="lv-say ${f.result}">${esc(say)}</span></span>`;
+}
+
 function slipCard(sl) {
   const st = slipState(sl), prod = sl.legs.reduce((a, f) => a * f.p, 1), now = Date.now();
   const won = sl.legs.filter(f => f.result === "win").length;
   const quota = sl.odds ? Number(sl.odds) : null, stake = sl.stake ? Number(sl.stake) : null;
   const leg = f => {
     const when = `${fmtDay(f.date).rel || fmtShort(f.date)}, ${fmtTime(f.date, f.time_valid)}`;
-    const res = f.result ? `<span class="slip-live ${f.result}"><span class="ls-dot ${f.result}"></span>${esc(f.result_txt || (f.result === "win" ? "Vinta" : "Persa"))}</span>`
+    const res = f.result ? closedLegHtml(f)
       : new Date(f.date).getTime() <= now && now - new Date(f.date).getTime() < 4 * 864e5 ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>` : "";
     return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b><span>${esc(f.match)}, ${esc(when)}</span>${res}</a></div>`;
   };

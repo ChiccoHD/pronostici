@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12T17:49+00:00",
+ "updated": "2026-11-12T18:53+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -31,7 +31,7 @@
     "espn": "ok",
     "espn_tabellini": "119 partite",
     "partite_in_arrivo": 9,
-    "foto_giocatori": "TheSportsDB 67, senza foto 18, Wikipedia 153, ESPN 11, da controllare 73"
+    "foto_giocatori": "TheSportsDB 75, senza foto 20, Wikipedia 153, ESPN 11, da controllare 63"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -142,7 +142,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-12T17:48+00:00"
+   "aggiornato": "2026-11-12T18:52+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -153,18 +153,18 @@
    },
    "partite_in_arrivo": 27,
    "partite_stagione": 170,
-   "aggiornato": "2026-11-12T17:49+00:00"
+   "aggiornato": "2026-11-12T18:53+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7738 incontri (+1)",
+    "storico": "7738 incontri (+0)",
     "espn": "14 incontri in programma"
    },
    "wta": {
-    "storico": "12401 incontri (+2)",
-    "espn": "7 incontri in programma"
+    "storico": "12402 incontri (+1)",
+    "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-12T17:49+00:00"
+   "aggiornato": "2026-11-12T18:53+00:00"
   },
   "coppe": {
    "uomini": {
@@ -224,7 +224,7 @@
     "espn_uefa.wchampions": "163 giocate, 12 giorni controllati",
     "partite_storico": 163
    },
-   "aggiornato": "2026-11-12T17:49+00:00"
+   "aggiornato": "2026-11-12T18:52+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -244,16 +244,16 @@
    "gold-cup": "fuori stagione",
    "concacaf-nations": "5 giorni controllati",
    "amichevoli": "4 giorni controllati",
-   "risultati_recenti_da_espn": 4,
-   "in_arrivo_nations-league": 52,
-   "in_arrivo_qual-coppa-africa": 47,
+   "risultati_recenti_da_espn": 8,
+   "in_arrivo_nations-league": 51,
+   "in_arrivo_qual-coppa-africa": 44,
    "in_arrivo_concacaf-nations": 32,
    "in_arrivo_amichevoli": 39,
-   "aggiornato": "2026-11-12T17:49+00:00"
+   "aggiornato": "2026-11-12T18:53+00:00"
   },
   "risultati": {
-   "esiti": "5 nuovi esiti, 4 calendari letti",
-   "aggiornato": "2026-11-12T17:49+00:00"
+   "esiti": "7 nuovi esiti, 5 calendari letti",
+   "aggiornato": "2026-11-12T18:53+00:00"
   }
  }
 }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12T23:59+00:00",
+ "updated": "2026-11-13T02:47+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -10,8 +10,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "110 partite",
-    "partite_in_arrivo": 9,
-    "foto_giocatori": "ESPN 20, TheSportsDB 98, Wikipedia 157, senza foto 41"
+    "partite_in_arrivo": 10,
+    "foto_giocatori": "ESPN 21, TheSportsDB 109, Wikipedia 177, senza foto 44"
    },
    "premier-league": {
     "football-data": "ok",
@@ -20,8 +20,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "100 partite",
-    "partite_in_arrivo": 9,
-    "foto_giocatori": "Wikipedia 253, senza foto 9, TheSportsDB 31, ESPN 25"
+    "partite_in_arrivo": 10,
+    "foto_giocatori": "Wikipedia 282, senza foto 10, TheSportsDB 36, ESPN 26"
    },
    "la-liga": {
     "football-data": "ok",
@@ -30,8 +30,8 @@
     "xg_partite": 0,
     "espn": "ok",
     "espn_tabellini": "119 partite",
-    "partite_in_arrivo": 9,
-    "foto_giocatori": "TheSportsDB 101, senza foto 24, Wikipedia 153, ESPN 11, da controllare 33"
+    "partite_in_arrivo": 10,
+    "foto_giocatori": "TheSportsDB 110, senza foto 26, Wikipedia 166, ESPN 12, da controllare 44"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -86,8 +86,8 @@
     "xg_partite": 99,
     "espn": "ok",
     "espn_tabellini": "99 partite",
-    "partite_in_arrivo": 8,
-    "foto_giocatori": "da controllare 159, Wikipedia 110, ESPN 11"
+    "partite_in_arrivo": 9,
+    "foto_giocatori": "da controllare 180, Wikipedia 123, ESPN 11"
    },
    "scozia": {
     "football-data": "ok",
@@ -131,7 +131,7 @@
     "nomi_non_abbinati": [
      "TBD Away"
     ],
-    "partite_in_arrivo": 7,
+    "partite_in_arrivo": 8,
     "foto_giocatori": "Wikipedia 88, ESPN 90, da controllare 28"
    },
    "eliteserien": {
@@ -142,18 +142,18 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-12T23:57+00:00"
+   "aggiornato": "2026-11-13T02:43+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "170 partite",
+   "tabellini": "171 partite",
    "incrocio_espn": {
-    "n": 16,
+    "n": 17,
     "weight": 0.0
    },
-   "partite_in_arrivo": 27,
-   "partite_stagione": 170,
-   "aggiornato": "2026-11-12T23:58+00:00"
+   "partite_in_arrivo": 34,
+   "partite_stagione": 171,
+   "aggiornato": "2026-11-13T02:45+00:00"
   },
   "tennis": {
    "atp": {
@@ -161,10 +161,10 @@
     "espn": "14 incontri in programma"
    },
    "wta": {
-    "storico": "12404 incontri (+0)",
-    "espn": "5 incontri in programma"
+    "storico": "12405 incontri (+1)",
+    "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-12T23:59+00:00"
+   "aggiornato": "2026-11-13T02:47+00:00"
   },
   "coppe": {
    "uomini": {
@@ -224,11 +224,11 @@
     "espn_uefa.wchampions": "165 giocate, 12 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-12T23:58+00:00"
+   "aggiornato": "2026-11-13T02:44+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
-   "nations-league": "5 giorni controllati",
+   "nations-league": "15 giorni controllati",
    "mondiali": "fuori stagione",
    "europei": "fuori stagione",
    "qual-europei": "fuori stagione",
@@ -239,21 +239,21 @@
    "qual-mondiali-africa": "fuori stagione",
    "copa-america": "fuori stagione",
    "coppa-africa": "fuori stagione",
-   "qual-coppa-africa": "5 giorni controllati",
-   "coppa-asia": "5 giorni controllati",
+   "qual-coppa-africa": "15 giorni controllati",
+   "coppa-asia": "15 giorni controllati",
    "gold-cup": "fuori stagione",
-   "concacaf-nations": "5 giorni controllati",
-   "amichevoli": "4 giorni controllati",
-   "risultati_recenti_da_espn": 26,
+   "concacaf-nations": "15 giorni controllati",
+   "amichevoli": "7 giorni controllati",
+   "risultati_recenti_da_espn": 28,
    "in_arrivo_nations-league": 44,
    "in_arrivo_qual-coppa-africa": 39,
-   "in_arrivo_concacaf-nations": 28,
+   "in_arrivo_concacaf-nations": 26,
    "in_arrivo_amichevoli": 37,
-   "aggiornato": "2026-11-12T23:58+00:00"
+   "aggiornato": "2026-11-13T02:44+00:00"
   },
   "risultati": {
-   "esiti": "1 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-12T23:59+00:00"
+   "esiti": "4 nuovi esiti, 5 calendari letti",
+   "aggiornato": "2026-11-13T02:47+00:00"
   }
  }
 }

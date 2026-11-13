@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-13", t: "Computer: selezione più pulita", items: [
+    "La partita aperta nell'elenco a sinistra ora è evidenziata con lo sfondo e una barretta verde, senza i riquadri intorno ai singoli pezzi." ] },
   { d: "2026-11-13", t: "Schedine chiuse più chiare", items: [
     "Le giocate finite mostrano il risultato finale e una frase chiara: \"✓ Presa\" oppure \"✗ Persa: serviva la vittoria di Barcelona e un altro gol\"." ] },
   { d: "2026-11-12", t: "Pallino anche su Aggiornamenti", items: [

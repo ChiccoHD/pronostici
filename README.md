@@ -2,6 +2,8 @@
 
 Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1, Primeira Liga, Eliteserien, MLS, J1 League, Champions, Europa League, Conference League e Champions femminile), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
 
+**Indirizzo del sito: https://pronostici.dimariafnc.workers.dev/**
+
 > Le percentuali sono stime statistiche, non certezze. Nella pagina *Affidabilità* dell'app vedi quanto il modello ha azzeccato sulle partite passate rispetto alle quote dei bookmaker.
 
 ## Cosa mostra
@@ -60,7 +62,7 @@ Nel repository su GitHub: **Settings → Actions → General → Workflow permis
 4. **Save and Deploy**. Ogni aggiornamento dei dati viene pubblicato da solo.
 
 ### 5. Sul telefono
-Apri l'indirizzo `*.pages.dev` e aggiungi la pagina alla schermata Home (Safari: Condividi → Aggiungi alla schermata Home; Chrome: menu → Aggiungi a schermata Home).
+Apri https://pronostici.dimariafnc.workers.dev/ e aggiungi la pagina alla schermata Home (Safari: Condividi → Aggiungi alla schermata Home; Chrome: menu → Aggiungi a schermata Home).
 
 ## Comandi utili (in locale)
 

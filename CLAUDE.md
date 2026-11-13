@@ -1,6 +1,6 @@
 # Istruzioni per Claude
 
-Web app personale "Pronostici": statistiche e probabilità per calcio (campionati europei, MLS, Giappone, coppe europee, Champions femminile e nazionali), NBA e tennis (ATP, WTA). Leggi anche `README.md`.
+Web app personale "Pronostici": statistiche e probabilità per calcio (campionati europei, MLS, Giappone, coppe europee, Champions femminile e nazionali), NBA e tennis (ATP, WTA). Leggi anche `README.md`. Indirizzo del sito: https://pronostici.dimariafnc.workers.dev/ (Worker di Cloudflare; stato delle notifiche in `/api/push/status`).
 
 ## Vincoli
 - **Costo zero**: solo fonti e servizi gratuiti (ESPN, football-data.co.uk, Understat, TheSportsDB per le foto, storico delle nazionali `martj42/international_results` su GitHub, GitHub Actions, Cloudflare Pages). Non aggiungere servizi a pagamento senza chiederlo.

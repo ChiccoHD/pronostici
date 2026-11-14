@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T02:34+00:00",
+ "updated": "2026-11-14T06:23+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -41,7 +41,7 @@
     "espn": "ok",
     "espn_tabellini": "81 partite",
     "partite_in_arrivo": 9,
-    "foto_giocatori": "Wikipedia 164, TheSportsDB 95, ESPN 12, senza foto 20, da controllare 21"
+    "foto_giocatori": "Wikipedia 164, TheSportsDB 103, ESPN 12, senza foto 22, da controllare 11"
    },
    "ligue-1": {
     "football-data": "ok",
@@ -142,18 +142,18 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-14T02:32+00:00"
+   "aggiornato": "2026-11-14T06:22+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "175 partite",
+   "tabellini": "183 partite",
    "incrocio_espn": {
-    "n": 21,
+    "n": 29,
     "weight": 0.0
    },
-   "partite_in_arrivo": 35,
-   "partite_stagione": 175,
-   "aggiornato": "2026-11-14T02:34+00:00"
+   "partite_in_arrivo": 27,
+   "partite_stagione": 183,
+   "aggiornato": "2026-11-14T06:23+00:00"
   },
   "tennis": {
    "atp": {
@@ -164,7 +164,7 @@
     "storico": "12409 incontri (+0)",
     "espn": "3 incontri in programma"
    },
-   "aggiornato": "2026-11-14T02:34+00:00"
+   "aggiornato": "2026-11-14T06:23+00:00"
   },
   "coppe": {
    "uomini": {
@@ -224,11 +224,11 @@
     "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-14T02:33+00:00"
+   "aggiornato": "2026-11-14T06:22+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
-   "nations-league": "15 giorni controllati",
+   "nations-league": "5 giorni controllati",
    "mondiali": "fuori stagione",
    "europei": "fuori stagione",
    "qual-europei": "fuori stagione",
@@ -239,21 +239,21 @@
    "qual-mondiali-africa": "fuori stagione",
    "copa-america": "fuori stagione",
    "coppa-africa": "fuori stagione",
-   "qual-coppa-africa": "15 giorni controllati",
-   "coppa-asia": "15 giorni controllati",
+   "qual-coppa-africa": "5 giorni controllati",
+   "coppa-asia": "5 giorni controllati",
    "gold-cup": "fuori stagione",
-   "concacaf-nations": "15 giorni controllati",
-   "amichevoli": "6 giorni controllati",
-   "risultati_recenti_da_espn": 64,
+   "concacaf-nations": "5 giorni controllati",
+   "amichevoli": "5 giorni controllati",
+   "risultati_recenti_da_espn": 66,
    "in_arrivo_nations-league": 34,
    "in_arrivo_qual-coppa-africa": 27,
-   "in_arrivo_concacaf-nations": 21,
-   "in_arrivo_amichevoli": 28,
-   "aggiornato": "2026-11-14T02:33+00:00"
+   "in_arrivo_concacaf-nations": 20,
+   "in_arrivo_amichevoli": 27,
+   "aggiornato": "2026-11-14T06:23+00:00"
   },
   "risultati": {
-   "esiti": "6 nuovi esiti, 6 calendari letti",
-   "aggiornato": "2026-11-14T02:34+00:00"
+   "esiti": "10 nuovi esiti, 6 calendari letti",
+   "aggiornato": "2026-11-14T06:23+00:00"
   }
  }
 }

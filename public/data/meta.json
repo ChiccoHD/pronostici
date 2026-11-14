@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T15:53+00:00",
+ "updated": "2026-11-14T16:12+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -51,7 +51,7 @@
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 9,
-    "foto_giocatori": "senza foto 20, TheSportsDB 25, Wikipedia 169, ESPN 17, da controllare 84"
+    "foto_giocatori": "senza foto 26, TheSportsDB 29, Wikipedia 169, ESPN 17, da controllare 74"
    },
    "serie-b": {
     "football-data": "ok",
@@ -142,7 +142,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-14T15:52+00:00"
+   "aggiornato": "2026-11-14T16:10+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -153,18 +153,18 @@
    },
    "partite_in_arrivo": 27,
    "partite_stagione": 183,
-   "aggiornato": "2026-11-14T15:53+00:00"
+   "aggiornato": "2026-11-14T16:12+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7742 incontri (+1)",
+    "storico": "7742 incontri (+0)",
     "espn": "12 incontri in programma"
    },
    "wta": {
     "storico": "12409 incontri (+0)",
     "espn": "3 incontri in programma"
    },
-   "aggiornato": "2026-11-14T15:53+00:00"
+   "aggiornato": "2026-11-14T16:12+00:00"
   },
   "coppe": {
    "uomini": {
@@ -224,7 +224,7 @@
     "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-14T15:52+00:00"
+   "aggiornato": "2026-11-14T16:11+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -249,11 +249,11 @@
    "in_arrivo_qual-coppa-africa": 27,
    "in_arrivo_concacaf-nations": 20,
    "in_arrivo_amichevoli": 22,
-   "aggiornato": "2026-11-14T15:53+00:00"
+   "aggiornato": "2026-11-14T16:11+00:00"
   },
   "risultati": {
-   "esiti": "4 nuovi esiti, 3 calendari letti",
-   "aggiornato": "2026-11-14T15:53+00:00"
+   "esiti": "0 nuovi esiti, 0 calendari letti",
+   "aggiornato": "2026-11-14T16:12+00:00"
   }
  }
 }

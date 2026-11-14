@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T18:53+00:00",
+ "updated": "2026-11-14T20:13+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -51,7 +51,7 @@
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 9,
-    "foto_giocatori": "senza foto 33, TheSportsDB 44, Wikipedia 169, ESPN 17, da controllare 52"
+    "foto_giocatori": "senza foto 34, TheSportsDB 54, Wikipedia 169, ESPN 17, da controllare 41"
    },
    "serie-b": {
     "football-data": "ok",
@@ -142,7 +142,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-14T18:52+00:00"
+   "aggiornato": "2026-11-14T20:12+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -153,7 +153,7 @@
    },
    "partite_in_arrivo": 27,
    "partite_stagione": 183,
-   "aggiornato": "2026-11-14T18:53+00:00"
+   "aggiornato": "2026-11-14T20:13+00:00"
   },
   "tennis": {
    "atp": {
@@ -164,7 +164,7 @@
     "storico": "12410 incontri (+0)",
     "espn": "2 incontri in programma"
    },
-   "aggiornato": "2026-11-14T18:53+00:00"
+   "aggiornato": "2026-11-14T20:13+00:00"
   },
   "coppe": {
    "uomini": {
@@ -224,7 +224,7 @@
     "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-14T18:52+00:00"
+   "aggiornato": "2026-11-14T20:12+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -244,16 +244,16 @@
    "gold-cup": "fuori stagione",
    "concacaf-nations": "5 giorni controllati",
    "amichevoli": "5 giorni controllati",
-   "risultati_recenti_da_espn": 74,
-   "in_arrivo_nations-league": 33,
+   "risultati_recenti_da_espn": 76,
+   "in_arrivo_nations-league": 31,
    "in_arrivo_qual-coppa-africa": 26,
    "in_arrivo_concacaf-nations": 20,
    "in_arrivo_amichevoli": 21,
-   "aggiornato": "2026-11-14T18:53+00:00"
+   "aggiornato": "2026-11-14T20:12+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-14T18:53+00:00"
+   "esiti": "2 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-14T20:13+00:00"
   }
  }
 }

@@ -241,8 +241,38 @@ def ht_check(ids):
                 out(f"    - {c.get('time', {}).get('displayValue')} · {t[:100]} · {c.get('play', {}).get('wallclock')}")
 
 
+def injuries_check():
+    """Infortuni: endpoint ESPN per NBA e calcio, e cosa c'è nel summary delle partite."""
+    import json
+    from . import http
+    out("## Infortuni")
+    for path in ("basketball/nba", "soccer/eng.1", "soccer/ita.1", "soccer/esp.1"):
+        js = http.get_json(f"{espn.SITE}/{path}/injuries")
+        if not js:
+            check(f"{path}/injuries", False, "nessuna risposta"); continue
+        teams = js.get("injuries") or []
+        n = sum(len(t.get("injuries") or []) for t in teams)
+        check(f"{path}/injuries", bool(teams), f"{len(teams)} squadre, {n} giocatori")
+        if teams and teams[0].get("injuries"):
+            out(f"  - esempio: {json.dumps(teams[0]['injuries'][0], ensure_ascii=False)[:700]}")
+            out(f"  - squadra: {json.dumps({k: v for k, v in teams[0].items() if k != 'injuries'}, ensure_ascii=False)[:300]}")
+    for path in ("basketball/nba", "soccer/eng.1", "soccer/ita.1"):
+        sb = http.get_json(f"{espn.SITE}/{path}/scoreboard") or {}
+        evs = [e for e in sb.get("events", []) if e.get("status", {}).get("type", {}).get("state") == "pre"] or sb.get("events", [])
+        if not evs:
+            out(f"- {path}: nessuna partita nel tabellone"); continue
+        s = http.get_json(f"{espn.SITE}/{path}/summary?event={evs[0]['id']}") or {}
+        inj = s.get("injuries")
+        out(f"- summary {path} {evs[0]['id']}: chiavi {sorted(s.keys())}; injuries: {json.dumps(inj, ensure_ascii=False)[:600] if inj else 'nessuno'}")
+
+
 def main():
     import sys
+    if "infortuni" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        injuries_check()
+        _write()
+        return
     if "ht" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         ht_check(["401861146", "401861145"])

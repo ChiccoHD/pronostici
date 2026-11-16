@@ -167,7 +167,7 @@ async function showPlayer(tour, name) {
   if (!P) { $app.innerHTML = backBtn("Indietro") + `<div class="empty"><b>Scheda non disponibile</b>Le schede dei giocatori ci sono per chi ha un incontro in programma nei prossimi giorni.</div>`; return; }
   const SURF_IT = { Hard: "Cemento", Clay: "Terra rossa", Grass: "Erba" };
   const pctW = r => r.w + r.l ? `${Math.round(100 * r.w / (r.w + r.l))}%` : "–";
-  const photo = headshot("tennis", P.pid);
+  const photo = P.photo !== undefined ? P.photo : headshot("tennis", P.pid);
   const head = `<div class="board team-head"><span class="th-lg">${leagueMark(tour)}${tour.toUpperCase()}</span>
     <div class="th-logo">${photo ? `<span class="pl-ph">${img(photo, "pphoto")}${img(P.flag, "tflag")}</span>` : img(P.flag, "tflag big")}</div>
     <h1>${esc(P.name)}</h1><div class="th-sub">${[esc(P.country || ""), P.seed ? `testa di serie ${P.seed} nel torneo in corso` : ""].filter(Boolean).join(", ")}</div>

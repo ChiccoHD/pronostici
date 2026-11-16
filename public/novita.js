@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Ritocchi grafici", items: [
+    "Nell'elenco la striscia dei colori è staccata tra una partita e l'altra.",
+    "Tennis: sfumatura e barra con i colori della bandiera di ogni giocatore; senza foto si vede la bandiera intera, senza cerchio.",
+    "Foto dei tennisti anche da Wikipedia quando ESPN non ce l'ha." ] },
   { d: "2026-11-16", t: "Colori delle squadre", items: [
     "Nella scheda della partita lo sfondo richiama i colori delle due squadre e c'è una barra 1 / X / 2 colorata per vedere subito chi è favorito.",
     "Nell'elenco ogni partita ha una striscia con i colori di casa e ospiti." ] },

@@ -158,6 +158,29 @@ function lum(hex) {
   return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
 }
 function usable(hex) { const l = lum(hex); return l != null && l < .62 && l > .01; }
+/* colori delle bandiere (codici ESPN a 3 lettere): per dare ai tennisti i colori del loro paese */
+const FLAG_COLOR = {
+  ita: ["#009246", "#ce2b37"], esp: ["#c60b1e", "#ffc400"], usa: ["#3c3b6e", "#b22234"], rus: ["#0039a6", "#d52b1e"], fra: ["#0055a4", "#ef4135"],
+  ger: ["#dd0000", "#ffce00"], gbr: ["#012169", "#c8102e"], arg: ["#74acdf", "#f6b40e"], chi: ["#d52b1e", "#0039a6"], ukr: ["#0057b7", "#ffd700"],
+  cze: ["#11457e", "#d7141a"], slo: ["#005ce6", "#ed1c24"], svk: ["#0b4ea2", "#ee1c25"], can: ["#d80621", "#8a0f1e"], aus: ["#00843d", "#ffcd00"],
+  blr: ["#c8313e", "#4aa657"], kaz: ["#00afca", "#fec50c"], sui: ["#d52b1e", "#9e1b14"], bel: ["#fdda24", "#ef3340"], ned: ["#ff6c00", "#21468b"],
+  pol: ["#dc143c", "#9d0f2b"], cro: ["#ff0000", "#171796"], srb: ["#c6363c", "#0c4076"], bra: ["#009c3b", "#ffdf00"], jpn: ["#bc002d", "#8a0021"],
+  chn: ["#ee1c25", "#ffde00"], kor: ["#cd2e3a", "#0047a0"], gre: ["#0d5eaf", "#2a7ad1"], tur: ["#e30a17", "#9e0710"], den: ["#c8102e", "#8e0b20"],
+  nor: ["#ba0c2f", "#00205b"], swe: ["#006aa7", "#fecc00"], fin: ["#002f6c", "#3b6fb6"], aut: ["#ed2939", "#a51d29"], hun: ["#ce2939", "#477050"],
+  rom: ["#002b7f", "#fcd116"], bul: ["#00966e", "#d62612"], por: ["#006600", "#ff0000"], col: ["#fcd116", "#003893"], mex: ["#006847", "#ce1126"],
+  lat: ["#9e3039", "#6e1f27"], est: ["#0072ce", "#1d1d1b"], ltu: ["#fdb913", "#006a44"], geo: ["#ff0000", "#a30000"], and: ["#10069f", "#fedf00"],
+  tun: ["#e70013", "#a1000d"], egy: ["#ce1126", "#c09300"], ind: ["#ff9933", "#138808"], nzl: ["#00247d", "#cc142b"], rsa: ["#007a4d", "#ffb612"],
+  bol: ["#d52b1e", "#007934"], per: ["#d91023", "#9c0b19"], ecu: ["#ffdd00", "#034ea2"], uru: ["#0038a8", "#fcd116"], par: ["#d52b1e", "#0038a8"],
+  bih: ["#002395", "#fecb00"], mon: ["#ce1126", "#8f0c1a"], isr: ["#0038b8", "#4b74d6"], hkg: ["#de2910", "#9c1d0b"], tpe: ["#fe0000", "#000095"],
+};
+function flagColors(ccA, ccB) {
+  const a = FLAG_COLOR[String(ccA || "").toLowerCase()], b = FLAG_COLOR[String(ccB || "").toLowerCase()];
+  const ca = a ? a[0] : "#8a6aa8";
+  let cb = b ? b[0] : "#a08a9e";
+  if (cb.toLowerCase() === ca.toLowerCase()) cb = b ? b[1] : "#a08a9e";     // stesso paese: l'altro colore della bandiera
+  return [ca, cb];
+}
+
 function teamColors(a, b) {
   const pick = (c, alt) => usable(c) ? c : usable(alt) ? alt : null;
   let ca = pick(a?.color, a?.alt) || "#6d5a6b", cb = pick(b?.color, b?.alt) || "#a08a9e";
@@ -500,7 +523,7 @@ function fixture(e) {
   if (e.final) return fixtureDone(e);
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
-  const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
   const max = Math.max(...e.main);
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
   const sub = [];
@@ -527,7 +550,7 @@ function fixture(e) {
 /* partita conclusa: risultato al posto dell'orario, e quale percentuale ha preso */
 function fixtureDone(e) {
   const f = e.final, three = e.main.length === 3;
-  const [cH, cA] = teamColors({ color: e.home_color }, { color: e.away_color });
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
   const oi = outcomeIx(e), max = Math.max(...e.main), top = e.main.indexOf(max);
   const sc = side => f.void ? "" : `<b class="fx-sc">${side === "h" ? f.h : f.a}</b>`;
@@ -607,7 +630,7 @@ function bookGap(probs, book, labels) {
 
 function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, book = null, foot = [] }) {
   const max = Math.max(...probs);
-  const [cH, cA] = d.sport === "tennis" ? ["#5b6575", "#8d96a3"] : teamColors(d.home, d.away);
+  const [cH, cA] = d.sport === "tennis" ? flagColors(d.home.cc, d.away.cc) : teamColors(d.home, d.away);
   const crest = (t, c) => t.logo ? img(t.logo, "") : t.photo ? img(t.photo, "pphoto") + img(t.flag, "tflag") : t.flag ? img(t.flag, "tflag") :
     `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(t.name))}</span>`;
   const team = (t, sub, c) => { const href = t.href || (d.sport !== "tennis" && t.lk && t.id ? teamHref(t.lk, t.id) : "");
@@ -1000,10 +1023,12 @@ function nbaPlayers(d, cH, cA) {
 
 function tennisView(d) {
   const m = d.markets, P = d.players;
-  const cH = "#8a6aa8", cA = "#a08a9e";
+  const [cH, cA] = flagColors(P.home.cc, P.away.cc);
   const sub = p => [p.country || (p.cc ? p.cc.toUpperCase() : ""), p.rank ? `testa di serie ${p.rank}` : "", p.elo ? `Elo ${p.elo}` : ""].filter(Boolean).join(", ");
-  d = { ...d, home: { ...d.home, flag: P.home.flag, photo: headshot("tennis", P.home.pid), href: playerHref(d.league, d.home.name) },
-    away: { ...d.away, flag: P.away.flag, photo: headshot("tennis", P.away.pid), href: playerHref(d.league, d.away.name) } };
+  // foto: quella trovata dalla raccolta dati (ESPN o Wikipedia); "" = nessuna foto, resta la bandiera
+  const ph = p => p.photo !== undefined ? p.photo : headshot("tennis", p.pid);
+  d = { ...d, home: { ...d.home, cc: P.home.cc, flag: P.home.flag, photo: ph(P.home), href: playerHref(d.league, d.home.name) },
+    away: { ...d.away, cc: P.away.cc, flag: P.away.flag, photo: ph(P.away), href: playerHref(d.league, d.away.name) } };
   let s = board(d, { subH: sub(P.home), subA: sub(P.away), probs: m.win, labels: [lastName(d.home.name), lastName(d.away.name)], favLabels: [`${d.home.name} vince`, `${d.away.name} vince`],
     foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;

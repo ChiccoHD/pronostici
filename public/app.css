@@ -1061,3 +1061,9 @@ b.good { color: var(--go); } b.bad { color: #e8833a; }
 .pbar { display: flex; gap: 2px; height: 22px; border-radius: 11px; overflow: hidden; margin: 14px 0 4px; }
 .pbar span { display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; white-space: nowrap; overflow: hidden; min-width: 0; }
 .board.tc .board-t .crest { border-radius: 50%; }
+
+/* striscia dei colori: staccata dai bordi, così una partita non si confonde con la successiva */
+.fx.tc::before { top: 12px; bottom: 12px; left: 5px; width: 4px; border-radius: 4px; }
+/* tennista senza foto: la bandiera da sola, grande, senza cerchio intorno */
+.board.tc .board-t .crest:not(:has(.pphoto)):has(.tflag) { box-shadow: none; border-radius: 0; }
+.board-t .crest:not(:has(.pphoto)) .tflag { position: static; width: 56px; height: 38px; border-radius: 6px; box-shadow: 0 0 0 1px var(--rule); }

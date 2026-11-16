@@ -2,7 +2,7 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from . import config, store
+from . import config, photos, store
 from .config import CACHE, PUBLIC_DATA
 from .sources import espn
 from .models import tennis as T
@@ -108,12 +108,18 @@ def build(today: date):
                     s["cc"] = p.get("cc")
                     s["flag"] = p.get("flag")
                     s["pid"] = p.get("pid") or p.get("id") or None  # numero ESPN del giocatore: serve al sito per la foto
+                    try:
+                        ph = photos.tennis_photo(p["name"], s["pid"], today)
+                        if ph is not None:
+                            s["photo"] = ph
+                    except Exception:
+                        log.exception("Foto tennista %s", p["name"])
                     s["elo"] = round(elo.rating(p["name"], surface))
                     pls.append(s)
                     if p["name"] not in profiles:
                         pr = T.player_profile(results, p["name"], elo, today.isoformat())
                         profiles[p["name"]] = {**pr, "country": p.get("country"), "flag": p.get("flag"), "pid": s.get("pid"),
-                                               "seed": p.get("rank")}
+                                               "seed": p.get("rank"), **({"photo": s["photo"]} if "photo" in s else {})}
                 detail = {
                     "id": f"tennis-{tour}-{m['id']}", "sport": "tennis", "league": tour,
                     "league_name": f"{tour.upper()} · {m['tournament']}", "tournament": m["tournament"],
@@ -138,4 +144,8 @@ def build(today: date):
         except Exception as ex:
             log.exception("Tennis %s", tour)
             status_all[tour] = {**status, "errore": f"{type(ex).__name__}: {ex}"}
+    try:
+        photos.save()
+    except Exception:
+        log.exception("Foto tennisti non salvate")
     return index, reliability, status_all

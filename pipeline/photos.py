@@ -126,6 +126,39 @@ def attach_many(details: list[dict], today_d: date, count: dict) -> None:
         count[k] = count.get(k, 0) + 1
 
 
+TENNIS_ESPN = "https://a.espncdn.com/i/headshots/tennis/players/full/{pid}.png"
+TENNIS_BUDGET = {"n": 30}      # tennisti nuovi da controllare per aggiornamento
+
+
+def tennis_photo(name: str, pid, today_d: date) -> str | None:
+    """Foto di un tennista: ESPN se c'è, altrimenti Wikipedia. "" = nessuna foto; None = non ancora controllato
+    (il sito prova la foto ESPN da sé)."""
+    if not ENABLED or not name:
+        return None
+    today = today_d.isoformat()
+    c = _load().setdefault("tennis", {})
+    e = c.get(name)
+    if e and (e.get("u") or (date.fromisoformat(today) - date.fromisoformat(e["d"])).days < RETRY_DAYS):
+        return e.get("u") or ""
+    if TENNIS_BUDGET["n"] <= 0:
+        return None
+    TENNIS_BUDGET["n"] -= 1
+    url = None
+    if str(pid or "").isdigit():
+        u = TENNIS_ESPN.format(pid=pid)
+        ok = http.exists(u)
+        if ok is None:
+            return None
+        url = u if ok else None
+    if not url and not _wd_down:
+        r = wikidata.person_photo(name)
+        if r is False:
+            return None
+        url = r
+    c[name] = {"u": url, "d": today}
+    return url or ""
+
+
 def url_for(pid) -> str | None:
     """Foto già trovata per un calciatore (solo dalla memoria, senza richieste)."""
     if not ENABLED:

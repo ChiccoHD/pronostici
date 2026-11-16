@@ -42,6 +42,21 @@ def _same_team(a: str, b: str) -> bool:
     return a == b or a in b or b in a or difflib.SequenceMatcher(None, a, b).ratio() >= 0.8
 
 
+TENNIS = "Q10833314"     # tennista
+
+
+def person_photo(name: str, occupation: str = TENNIS) -> str | None | bool:
+    """Foto di una persona con quel nome e quel mestiere (es. tennista). Restituisce l'indirizzo, None se non c'è
+    (o se ci sono più persone con lo stesso nome e foto diverse), False se Wikidata non risponde."""
+    q = f"""SELECT ?p ?img WHERE {{ VALUES ?name {{ {_lit(name)}@en {_lit(name)}@mul }}
+  ?p rdfs:label|skos:altLabel ?name . ?p wdt:P106 wd:{occupation} ; wdt:P18 ?img . }}"""
+    data = http.get_json(SPARQL, {"query": q, "format": "json"}, delay=DELAY, tries=2, timeout=60, headers=UA)
+    if data is None:
+        return False
+    imgs = {b["img"]["value"] for b in data.get("results", {}).get("bindings", [])}
+    return thumb(next(iter(imgs))) if len(imgs) == 1 else None
+
+
 def footballer_photos(players: list[tuple[str, list[str]]]) -> dict[str, str | None] | None:
     """players: [(nome, [nomi possibili della squadra])]. Restituisce {nome: foto o None},
     oppure None se Wikidata non risponde. Con due calciatori omonimi vince quello della squadra giusta;

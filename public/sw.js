@@ -5,24 +5,33 @@
         (se cambiano, l'app mostra "Aggiornamento disponibile");
       - dati (data/*.json): prima la rete, con 4 secondi di pazienza; senza rete l'ultima copia salvata;
       - loghi e foto ESPN: dalla copia sul telefono, scaricati una volta sola. */
-const APP = "pronostici-app-v2", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
-const SHELL = ["./", "index.html", "app.css", "app.js", "teams.js", "slip.js", "me.js", "live.js", "sheet.js", "notify.js", "novita.js", "layout.js",
+const APP = "pronostici-app-v3", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
+const SHELL = ["./", "app.css", "app.js", "teams.js", "slip.js", "me.js", "live.js", "sheet.js", "notify.js", "novita.js", "layout.js",
   "manifest.webmanifest", "icon-192.png", "badge-96.png"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(APP).then(c => c.addAll(SHELL).catch(() => null)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(APP).then(async c => {
+    for (const u of SHELL) { try { const r = await fetch(u, { cache: "no-cache" }); if (r.ok) await c.put(u, await clean(r)); } catch { /* niente */ } }
+  }).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (![APP, DATA, IMG].includes(k)) await caches.delete(k);
   await self.clients.claim();
 })()));
 
+/* Cloudflare rimanda /index.html a / : una risposta "rediretta" non si può usare per aprire la pagina
+   (il telefono mostra "Impossibile raggiungere il sito"), quindi se ne fa una copia pulita */
+async function clean(res) {
+  if (!res.redirected) return res;
+  return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
 const tell = msg => self.clients.matchAll({ type: "window" }).then(ws => ws.forEach(w => w.postMessage(msg)));
 
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(APP);
   const hit = await cache.match(req, { ignoreSearch: true });
-  const net = fetch(req, { cache: "no-cache" }).then(async res => {
+  const net = fetch(req, { cache: "no-cache" }).then(clean).then(async res => {
     if (res.ok) {
       if (hit) {
         const [a, b] = await Promise.all([hit.clone().text(), res.clone().text()]);
@@ -72,7 +81,11 @@ self.addEventListener("fetch", e => {
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith("/api/")) return;                         // notifiche e cronaca: sempre dal server
     if (url.pathname.includes("/data/")) return e.respondWith(networkFirst(req));
-    if (req.mode === "navigate") return e.respondWith(staleWhileRevalidate(new Request("index.html")));
+    if (req.mode === "navigate") {
+      // apertura della pagina: copia salvata della home ("./"); se qualcosa va storto, direttamente dalla rete
+      return e.respondWith(staleWhileRevalidate(new Request(new URL("./", self.registration.scope).href))
+        .then(r => r.ok ? r : fetch(req)).catch(() => fetch(req)));
+    }
     return e.respondWith(staleWhileRevalidate(req));
   }
   if (/espncdn\.com|wikimedia\.org|thesportsdb\.com/.test(url.hostname) && req.destination === "image") return e.respondWith(imageCacheFirst(req));

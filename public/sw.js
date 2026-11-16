@@ -5,7 +5,7 @@
         (se cambiano, l'app mostra "Aggiornamento disponibile");
       - dati (data/*.json): prima la rete, con 4 secondi di pazienza; senza rete l'ultima copia salvata;
       - loghi e foto ESPN: dalla copia sul telefono, scaricati una volta sola. */
-const APP = "pronostici-app-v3", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
+const APP = "pronostici-app-v4", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
 const SHELL = ["./", "app.css", "app.js", "teams.js", "slip.js", "me.js", "live.js", "sheet.js", "notify.js", "novita.js", "layout.js",
   "manifest.webmanifest", "icon-192.png", "badge-96.png"];
 
@@ -25,6 +25,24 @@ async function clean(res) {
   if (!res.redirected) return res;
   return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
 }
+
+/* controllo completo dei file dell'app: lo chiede la pagina all'apertura e ogni volta che torna in primo piano
+   (un'app sulla schermata Home spesso non ricarica nulla da sola, quindi non si accorgerebbe delle novità) */
+async function checkShell() {
+  const cache = await caches.open(APP);
+  let changed = false;
+  for (const u of SHELL) {
+    try {
+      const res = await clean(await fetch(u, { cache: "no-cache" }));
+      if (!res.ok) continue;
+      const hit = await cache.match(u, { ignoreSearch: true });
+      if (hit && (await hit.clone().text()) !== (await res.clone().text())) changed = true;
+      await cache.put(u, res);
+    } catch { /* senza rete: si riprova la prossima volta */ }
+  }
+  if (changed) await tell({ type: "update" });
+}
+self.addEventListener("message", e => { if (e.data?.type === "check") e.waitUntil(checkShell()); });
 
 const tell = msg => self.clients.matchAll({ type: "window" }).then(ws => ws.forEach(w => w.postMessage(msg)));
 

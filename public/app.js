@@ -229,9 +229,23 @@ function offlineNotice() {
 }
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => null);
+  const hadSW = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadSW) appBanner("upd-banner", `<b>Nuova versione dell'app</b><span>tocca per aggiornare</span>`, () => location.reload());
+  });
   navigator.serviceWorker.addEventListener("message", ev => {
     if (ev.data?.type === "update") appBanner("upd-banner", `<b>Nuova versione dell'app</b><span>tocca per aggiornare</span>`, () => location.reload());
   });
+  /* cerca le novità all'apertura e quando l'app torna in primo piano (al massimo una volta al minuto) */
+  let lastCheck = 0;
+  const checkApp = () => {
+    if (Date.now() - lastCheck < 60000 || !navigator.onLine) return;
+    lastCheck = Date.now();
+    navigator.serviceWorker.getRegistration().then(r => r?.update()).catch(() => null);
+    navigator.serviceWorker.ready.then(r => r.active?.postMessage({ type: "check" })).catch(() => null);
+  };
+  setTimeout(checkApp, 2500);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkApp(); });
 }
 window.addEventListener("online", () => document.getElementById("off-banner")?.remove());
 

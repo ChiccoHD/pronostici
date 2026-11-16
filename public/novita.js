@@ -6,7 +6,8 @@ const NOVITA = [
     "Barre più leggibili: lo sport scelto ha il suo colore, lo stato (Tutte, In diretta…) una pastiglia piena.",
     "Info: le quattro sezioni sono riquadri separati, con icona, colore e una riga che dice cosa contengono.",
     "L'app non si ingrandisce più con due dita o con il doppio tocco.",
-    "Tolto il riquadro grigio intorno alla bandierina dei tennisti." ] },
+    "Tolto il riquadro grigio intorno alla bandierina dei tennisti.",
+    "L'app controlla le nuove versioni ogni volta che la riapri, anche dalla schermata Home." ] },
   { d: "2026-11-16", t: "Ritocchi grafici", items: [
     "Nell'elenco la striscia dei colori è staccata tra una partita e l'altra.",
     "Tennis: sfumatura e barra con i colori della bandiera di ogni giocatore; senza foto si vede la bandiera intera, senza cerchio.",

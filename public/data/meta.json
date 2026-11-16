@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:17+00:00",
+ "updated": "2026-11-16T02:17+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -60,7 +60,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 20,
-    "foto_giocatori": "senza foto 128, ESPN 8, TheSportsDB 79, Wikipedia 178, da controllare 313"
+    "foto_giocatori": "senza foto 142, ESPN 8, TheSportsDB 85, Wikipedia 178, da controllare 293"
    },
    "championship": {
     "football-data": "ok",
@@ -96,7 +96,7 @@
     "espn": "ok",
     "espn_tabellini": "75 partite",
     "partite_in_arrivo": 8,
-    "foto_giocatori": "da controllare 153, ESPN 12, Wikipedia 103"
+    "foto_giocatori": "da controllare 152, ESPN 12, Wikipedia 103, TheSportsDB 1"
    },
    "belgio": {
     "football-data": "ok",
@@ -142,18 +142,21 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-15T23:16+00:00"
+   "aggiornato": "2026-11-16T02:15+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "189 partite",
+   "tabellini": "194 partite",
    "incrocio_espn": {
-    "n": 35,
-    "weight": 0.0
+    "n": 40,
+    "weight": 0.5,
+    "logloss_model": 0.6229,
+    "logloss_espn": 0.5591,
+    "logloss_mix": 0.5868
    },
-   "partite_in_arrivo": 33,
-   "partite_stagione": 189,
-   "aggiornato": "2026-11-15T23:17+00:00"
+   "partite_in_arrivo": 32,
+   "partite_stagione": 194,
+   "aggiornato": "2026-11-16T02:17+00:00"
   },
   "tennis": {
    "atp": {
@@ -164,13 +167,13 @@
     "storico": "12417 incontri (+0)",
     "espn": "16 incontri in programma"
    },
-   "aggiornato": "2026-11-15T23:17+00:00"
+   "aggiornato": "2026-11-16T02:17+00:00"
   },
   "coppe": {
    "uomini": {
-    "espn_uefa.champions": "261 giocate, 10 giorni controllati",
-    "espn_uefa.europa": "261 giocate, 10 giorni controllati",
-    "espn_uefa.europa.conf": "206 giocate, 10 giorni controllati",
+    "espn_uefa.champions": "261 giocate, 9 giorni controllati",
+    "espn_uefa.europa": "261 giocate, 9 giorni controllati",
+    "espn_uefa.europa.conf": "206 giocate, 9 giorni controllati",
     "partite_modello": "18213 di campionato, 728 di coppa",
     "in_arrivo_champions": 18,
     "in_arrivo_europa-league": 18,
@@ -221,14 +224,14 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "165 giocate, 10 giorni controllati",
+    "espn_uefa.wchampions": "165 giocate, 9 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-15T23:17+00:00"
+   "aggiornato": "2026-11-16T02:16+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
-   "nations-league": "5 giorni controllati",
+   "nations-league": "15 giorni controllati",
    "mondiali": "fuori stagione",
    "europei": "fuori stagione",
    "qual-europei": "fuori stagione",
@@ -239,21 +242,21 @@
    "qual-mondiali-africa": "fuori stagione",
    "copa-america": "fuori stagione",
    "coppa-africa": "fuori stagione",
-   "qual-coppa-africa": "5 giorni controllati",
-   "coppa-asia": "5 giorni controllati",
+   "qual-coppa-africa": "15 giorni controllati",
+   "coppa-asia": "15 giorni controllati",
    "gold-cup": "fuori stagione",
-   "concacaf-nations": "5 giorni controllati",
+   "concacaf-nations": "15 giorni controllati",
    "amichevoli": "5 giorni controllati",
-   "risultati_recenti_da_espn": 97,
+   "risultati_recenti_da_espn": 98,
    "in_arrivo_nations-league": 18,
    "in_arrivo_qual-coppa-africa": 24,
-   "in_arrivo_concacaf-nations": 16,
-   "in_arrivo_amichevoli": 19,
-   "aggiornato": "2026-11-15T23:17+00:00"
+   "in_arrivo_concacaf-nations": 15,
+   "in_arrivo_amichevoli": 20,
+   "aggiornato": "2026-11-16T02:16+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-15T23:17+00:00"
+   "esiti": "6 nuovi esiti, 3 calendari letti",
+   "aggiornato": "2026-11-16T02:17+00:00"
   }
  }
 }

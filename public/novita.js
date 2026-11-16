@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Più ordine e niente zoom", items: [
+    "All'apertura l'elenco mostra già la giornata di oggi.",
+    "Barre più leggibili: lo sport scelto ha il suo colore, lo stato (Tutte, In diretta…) una pastiglia piena, le schede di Info sono tutte visibili.",
+    "L'app non si ingrandisce più con due dita o con il doppio tocco.",
+    "Tolto il riquadro grigio intorno alla bandierina dei tennisti." ] },
   { d: "2026-11-16", t: "Ritocchi grafici", items: [
     "Nell'elenco la striscia dei colori è staccata tra una partita e l'altra.",
     "Tennis: sfumatura e barra con i colori della bandiera di ogni giocatore; senza foto si vede la bandiera intera, senza cerchio.",

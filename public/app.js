@@ -43,7 +43,8 @@ function leagueMark(key, sport) {
   if (key === "atp" || key === "wta") return `<span class="lgm tour ${key}">${key.toUpperCase()}</span>`;
   return `<span class="group-dot g-${sport || "soccer"}"></span>`;
 }
-const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home" };
+// all'apertura si vede la giornata di oggi (se non ci sono partite oggi, renderList torna a "Tutti")
+const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home", day: new Date().toLocaleDateString("en-CA") };
 let INDEX = null, META = null, REL = null, BEST = null;
 
 /* ------------------------------------------------------------------ utilità */

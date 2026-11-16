@@ -1067,3 +1067,29 @@ b.good { color: var(--go); } b.bad { color: #e8833a; }
 /* tennista senza foto: la bandiera da sola, grande, senza cerchio intorno */
 .board.tc .board-t .crest:not(:has(.pphoto)):has(.tflag) { box-shadow: none; border-radius: 0; }
 .board-t .crest:not(:has(.pphoto)) .tflag { position: static; width: 56px; height: 38px; border-radius: 6px; box-shadow: 0 0 0 1px var(--rule); }
+
+/* bandierina sopra la foto del tennista: piena, senza riquadro intorno */
+.board-t .crest .pphoto + .tflag, .pl-ph .tflag { object-fit: cover; box-shadow: none; border: 0; background: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+
+/* niente zoom con due dita o doppio tocco */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+
+/* barre delle sezioni (Info, ecc.): una riga sola, quella scelta ben evidente */
+.info-tabs { overflow-x: auto; scrollbar-width: none; gap: 6px; padding: 5px; }
+.info-tabs::-webkit-scrollbar { display: none; }
+.info-tabs a { flex: 1 0 auto; white-space: nowrap; padding: 9px 14px; font-size: 13.5px; }
+.info-tabs a[aria-selected="true"] { background: var(--go); color: #fff; box-shadow: none; }
+.status-seg button[aria-pressed="true"] { background: var(--go); color: #fff; box-shadow: none; }
+.status-seg button[aria-pressed="true"] small { color: rgba(255,255,255,.85); }
+.status-seg .st-live[aria-pressed="true"] { background: #e5484d; color: #fff; }
+.tabs [role="tab"][aria-selected="true"] { background: var(--go); color: #fff; }
+.info-tabs { display: grid; grid-template-columns: repeat(2, 1fr); overflow: visible; }
+@media (min-width: 600px) { .info-tabs { grid-template-columns: repeat(4, 1fr); } }
+/* tre barre diverse, tre stili diversi: sport (colore dello sport), stato (pastiglia piena), giorni (verde) */
+.sports button[aria-pressed="true"] { --spc: var(--go); background: color-mix(in srgb, var(--spc) 18%, var(--card)); box-shadow: inset 0 0 0 2px var(--spc); }
+.sports button.sp-nba[aria-pressed="true"] { --spc: #e07a1f; }
+.sports button.sp-tennis[aria-pressed="true"] { --spc: #c9d42a; }
+.sports button.sp-all[aria-pressed="true"] { --spc: var(--ink-2); }
+.sports button[aria-pressed="true"]::after { display: none; }
+.status-seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.status-seg button[aria-pressed="true"] small { color: var(--card); opacity: .8; }

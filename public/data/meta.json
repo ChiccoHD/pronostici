@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T22:23+00:00",
+ "updated": "2026-11-16T22:36+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -60,7 +60,7 @@
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 20,
-    "foto_giocatori": "senza foto 284, ESPN 8, TheSportsDB 135, Wikipedia 178, da controllare 101"
+    "foto_giocatori": "senza foto 302, ESPN 8, TheSportsDB 139, Wikipedia 178, da controllare 79"
    },
    "championship": {
     "football-data": "ok",
@@ -142,7 +142,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-16T22:22+00:00"
+   "aggiornato": "2026-11-16T22:35+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -156,18 +156,18 @@
    },
    "partite_in_arrivo": 29,
    "partite_stagione": 197,
-   "aggiornato": "2026-11-16T22:23+00:00"
+   "aggiornato": "2026-11-16T22:36+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7746 incontri (+1)",
+    "storico": "7746 incontri (+0)",
     "espn": "8 incontri in programma"
    },
    "wta": {
-    "storico": "12423 incontri (+1)",
+    "storico": "12423 incontri (+0)",
     "espn": "11 incontri in programma"
    },
-   "aggiornato": "2026-11-16T22:23+00:00"
+   "aggiornato": "2026-11-16T22:36+00:00"
   },
   "coppe": {
    "uomini": {
@@ -227,7 +227,7 @@
     "espn_uefa.wchampions": "165 giocate, 9 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-16T22:23+00:00"
+   "aggiornato": "2026-11-16T22:35+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -252,15 +252,15 @@
    "in_arrivo_qual-coppa-africa": 18,
    "in_arrivo_concacaf-nations": 12,
    "in_arrivo_amichevoli": 19,
-   "aggiornato": "2026-11-16T22:23+00:00"
+   "aggiornato": "2026-11-16T22:36+00:00"
   },
   "risultati": {
-   "esiti": "10 nuovi esiti, 4 calendari letti",
-   "aggiornato": "2026-11-16T22:23+00:00"
+   "esiti": "0 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-16T22:36+00:00"
   },
   "archivio": {
    "partite": 199,
-   "nuove": 10
+   "nuove": 0
   }
  }
 }

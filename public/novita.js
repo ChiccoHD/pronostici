@@ -3,7 +3,8 @@
 const NOVITA = [
   { d: "2026-11-16", t: "Più ordine e niente zoom", items: [
     "All'apertura l'elenco mostra già la giornata di oggi.",
-    "Barre più leggibili: lo sport scelto ha il suo colore, lo stato (Tutte, In diretta…) una pastiglia piena, le schede di Info sono tutte visibili.",
+    "Barre più leggibili: lo sport scelto ha il suo colore, lo stato (Tutte, In diretta…) una pastiglia piena.",
+    "Info: le quattro sezioni sono riquadri separati, con icona, colore e una riga che dice cosa contengono.",
     "L'app non si ingrandisce più con due dita o con il doppio tocco.",
     "Tolto il riquadro grigio intorno alla bandierina dei tennisti." ] },
   { d: "2026-11-16", t: "Ritocchi grafici", items: [

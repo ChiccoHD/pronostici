@@ -64,13 +64,17 @@ function showMe() {
 
 /* ------------------------------------------------------------------ info: come funziona, affidabilità, stato */
 
-const INFO_TABS = [["come", "Come funziona"], ["affidabilita", "Affidabilità"], ["archivio", "Archivio"], ["dati", "Aggiornamenti"]];
+const INFO_TABS = [
+  ["come", "Come funziona", "📖", "Le stime spiegate"],
+  ["affidabilita", "Affidabilità", "🎯", "Quanto ci prende"],
+  ["archivio", "Archivio", "🗂️", "Partite passate"],
+  ["dati", "Aggiornamenti", "🔔", "Dati e novità"]];
 
 async function showInfoHub(tab) {
   tab = INFO_TABS.some(([k]) => k === tab) ? tab : "come";
-  const tabs = `<div class="info-tabs" role="tablist">${INFO_TABS.map(([k, l]) => {
+  const tabs = `<div class="info-tabs" role="tablist">${INFO_TABS.map(([k, l, ic, sub]) => {
     const dot = k === "dati" && tab !== "dati" && typeof newsUnseen === "function" && newsUnseen();     // pallino: novità da vedere
-    return `<a href="#/info/${k}" role="tab" aria-selected="${k === tab}" class="${dot ? "has-news" : ""}">${l}${dot ? `<span class="sr-only"> (novità)</span>` : ""}</a>`;
+    return `<a href="#/info/${k}" role="tab" aria-selected="${k === tab}" class="it-${k}${dot ? " has-news" : ""}"><span class="it-ic" aria-hidden="true">${ic}</span><span class="it-tx"><b>${l}</b><small>${sub}</small></span>${dot ? `<span class="sr-only"> (novità)</span>` : ""}</a>`;
   }).join("")}</div>`;
   $app.innerHTML = `<h1 class="page-h">Info</h1>${tabs}<p class="muted" style="padding:12px 4px">Caricamento…</p>`;
   let body = "";

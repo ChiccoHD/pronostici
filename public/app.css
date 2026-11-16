@@ -1093,3 +1093,18 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 .sports button[aria-pressed="true"]::after { display: none; }
 .status-seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
 .status-seg button[aria-pressed="true"] small { color: var(--card); opacity: .8; }
+/* Info: quattro riquadri separati, ognuno con il suo colore */
+.info-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0; background: none; border-radius: 0; overflow: visible; }
+.info-tabs a { --ic: var(--go); display: flex; align-items: center; gap: 10px; text-align: left; padding: 11px 12px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line, rgba(127,127,127,.22)); color: var(--ink); white-space: normal; box-shadow: none; }
+.info-tabs a.it-affidabilita { --ic: #3b82f6; }
+.info-tabs a.it-archivio { --ic: #a855f7; }
+.info-tabs a.it-dati { --ic: #f59e0b; }
+.info-tabs .it-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; background: color-mix(in srgb, var(--ic) 18%, transparent); }
+.info-tabs .it-tx { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.info-tabs .it-tx b { font-size: 14px; }
+.info-tabs .it-tx small { font-size: 11.5px; font-weight: 500; color: var(--ink-2); margin-top: 2px; }
+.info-tabs a[aria-selected="true"] { background: color-mix(in srgb, var(--ic) 16%, var(--card)); border-color: var(--ic); color: var(--ink); box-shadow: 0 0 0 1px var(--ic); }
+.info-tabs a[aria-selected="true"] .it-ic { background: var(--ic); }
+.info-tabs a.has-news::after { top: 8px; right: 8px; box-shadow: 0 0 0 2px var(--card); }
+@media (min-width: 600px) { .info-tabs { grid-template-columns: repeat(4, 1fr); } }
+.info-tabs a.has-news { padding-right: 18px; }

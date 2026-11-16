@@ -1,49 +1,10 @@
-## Fine primo tempo
-- tabellone 401861146 Cyprus at Armenia: STATUS_SECOND_HALF · 47' · periodo 2 · orologio 47'
-- tabellone 401861145 Belgium at Türkiye: STATUS_SECOND_HALF · 46' · periodo 2 · orologio 46'
-- tabellone 401861147 Finland at Albania: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-- tabellone 401861148 Spain at Czechia: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-- tabellone 401861150 Croatia at England: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-- tabellone 401861151 France at Italy: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-- tabellone 401861152 Latvia at Montenegro: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-- tabellone 401861149 Belarus at San Marino: STATUS_SCHEDULED · Scheduled · periodo None · orologio 0'
-### 401861146: chiavi ['boxscore', 'broadcasts', 'commentary', 'format', 'gameInfo', 'hasOdds', 'header', 'keyEvents', 'lastFiveGames', 'leaders', 'meta', 'news', 'odds', 'pickcenter', 'rosters', 'seasonseries', 'standings', 'videos', 'wallclockAvailable']
-  - key kickoff · Kickoff ·  · periodo 1 · wallclock 2026-11-12T17:00:57Z · None
-  - key goal · Goal · 9' · periodo 1 · wallclock 2026-11-12T17:09:11Z · Goal! Armenia 0, Cyprus 1. Iasonas Pikis (Cyprus) left footed shot from the cent
-  - key yellow-card · Yellow Card · 44' · periodo 1 · wallclock 2026-11-12T17:44:23Z · Loizos Loizou (Cyprus) is shown the yellow card for a bad foul.
-  - key halftime · Halftime · 45'+2' · periodo 1 · wallclock 2026-11-12T17:47:04Z · First Half ends, Armenia 0, Cyprus 1.
-  - key start-2nd-half · Start 2nd Half · 45' · periodo 2 · wallclock 2026-11-12T18:02:42Z · None
-  - commento: 52 righe
-    -  · First Half begins. · None
-    - 6' · Artem Bandikyan (Armenia) wins a free kick on the right wing. · 2026-11-12T17:06:19Z
-    - 7' · Ioannis Pittas (Cyprus) wins a free kick in the defensive half. · 2026-11-12T17:07:28Z
-    - 13' · Iasonas Pikis (Cyprus) wins a free kick on the right wing. · 2026-11-12T17:13:28Z
-    - 18' · Artur Gharibyan (Armenia) wins a free kick on the left wing. · 2026-11-12T17:18:29Z
-    - 26' · Zhirayr Shaghoyan (Armenia) wins a free kick on the left wing. · 2026-11-12T17:26:37Z
-    - 29' · Grigoris Kastanos (Cyprus) wins a free kick in the defensive half. · 2026-11-12T17:28:57Z
-    - 42' · Iasonas Pikis (Cyprus) wins a free kick in the defensive half. · 2026-11-12T17:42:28Z
-    - 44' · Karlen Hovhannisyan (Armenia) wins a free kick in the attacking half. · 2026-11-12T17:44:09Z
-    - 45'+2' · First Half ends, Armenia 0, Cyprus 1. · 2026-11-12T17:46:55Z
-    - 45' · Second Half begins Armenia 0, Cyprus 1. · None
-### 401861145: chiavi ['boxscore', 'broadcasts', 'commentary', 'format', 'gameInfo', 'hasOdds', 'header', 'keyEvents', 'lastFiveGames', 'leaders', 'meta', 'news', 'odds', 'pickcenter', 'rosters', 'seasonseries', 'standings', 'videos', 'wallclockAvailable']
-  - key kickoff · Kickoff ·  · periodo 1 · wallclock 2026-11-12T17:02:28Z · None
-  - key goal---free-kick · Goal - Free-kick · 20' · periodo 1 · wallclock 2026-11-12T17:21:49Z · Goal! Türkiye 1, Belgium 0. Arda Güler (Türkiye) from a free kick with a left fo
-  - key goal · Goal · 27' · periodo 1 · wallclock 2026-11-12T17:28:40Z · Goal! Türkiye 1, Belgium 1. Kevin De Bruyne (Belgium) right footed shot from the
-  - key goal · Goal · 30' · periodo 1 · wallclock 2026-11-12T17:32:25Z · Goal! Türkiye 1, Belgium 2. Charles De Ketelaere (Belgium) left footed shot from
-  - key yellow-card · Yellow Card · 32' · periodo 1 · wallclock 2026-11-12T17:33:53Z · Ozan Kabak (Türkiye) is shown the yellow card for a bad foul.
-  - key halftime · Halftime · 45' · periodo 1 · wallclock 2026-11-12T17:47:28Z · First Half ends, Türkiye 1, Belgium 2.
-  - commento: 35 righe
-    -  · First Half begins. · None
-    - 4' · Diego Moreira (Belgium) wins a free kick on the right wing. · None
-    - 6' · Oguz Aydin (Türkiye) wins a free kick on the right wing. · 2026-11-12T17:07:33Z
-    - 10' · Jérémy Doku (Belgium) wins a free kick in the defensive half. · None
-    - 13' · Diego Moreira (Belgium) wins a free kick on the right wing. · 2026-11-12T17:14:28Z
-    - 17' · Maxim De Cuyper (Belgium) wins a free kick in the attacking half. · 2026-11-12T17:18:45Z
-    - 18' · Arda Güler (Türkiye) wins a free kick in the defensive half. · 2026-11-12T17:20:22Z
-    - 19' · Arda Güler (Türkiye) wins a free kick in the attacking half. · 2026-11-12T17:20:50Z
-    - 20' · Goal! Türkiye 1, Belgium 0. Arda Güler (Türkiye) from a free kick with a left footed shot to the top · 2026-11-12T17:21:49Z
-    - 32' · Charles De Ketelaere (Belgium) wins a free kick on the left wing. · 2026-11-12T17:33:45Z
-    - 40' · Enes Ünal (Türkiye) wins a free kick in the defensive half. · 2026-11-12T17:41:39Z
-    - 41' · Jérémy Doku (Belgium) wins a free kick on the left wing. · 2026-11-12T17:42:59Z
-    - 45' · First Half ends, Türkiye 1, Belgium 2. · 2026-11-12T17:47:29Z
-    - 45' · Second Half begins Türkiye 1, Belgium 2. · None
+## Infortuni
+- ✅ **basketball/nba/injuries** 27 squadre, 102 giocatori
+  - esempio: {"id": "539323", "longComment": "Landale missed four games earlier this month with a left hip issue, and he'll sit out Sunday due to right hip inflammation. Look for Zuby Ejiofor to see more minutes behind starter Onyeke Okongwu with Landale out of commission Sunday.", "shortComment": "Landale (hip) is out for Sunday's game against Bucks, Brad Rowland of the Locked On Podcast Network reports.", "status": "Out", "date": "2026-11-15T23:22Z", "athlete": {"firstName": "Jock", "lastName": "Landale", "displayName": "Jock Landale", "shortName": "J. Landale", "links": [{"language": "en-US", "rel": ["playercard", "desktop", "athlete"], "href": "https://www.espn.com/nba/player/_/id/3146557/jock-landal
+  - squadra: {"id": "1", "displayName": "Atlanta Hawks"}
+- ❌ **soccer/eng.1/injuries** 0 squadre, 0 giocatori
+- ❌ **soccer/ita.1/injuries** 0 squadre, 0 giocatori
+- ❌ **soccer/esp.1/injuries** 0 squadre, 0 giocatori
+- summary basketball/nba 401909985: chiavi ['againstTheSpread', 'boxscore', 'broadcasts', 'format', 'gameInfo', 'header', 'injuries', 'leaders', 'meta', 'news', 'odds', 'pickcenter', 'plays', 'seasonseries', 'standings', 'videos', 'wallclockAvailable', 'winprobability']; injuries: [{"team": {"id": "20", "uid": "s:40~l:46~t:20", "displayName": "Philadelphia 76ers", "abbreviation": "PHI", "links": [{"href": "https://www.espn.com/nba/team/_/name/phi/philadelphia-76ers", "text": "Clubhouse"}, {"href": "https://www.espn.com/nba/team/schedule/_/name/phi", "text": "Schedule"}], "logo": "https://a.espncdn.com/i/teamlogos/nba/500/phi.png", "logos": [{"href": "https://a.espncdn.com/i/teamlogos/nba/500/phi.png", "width": 500, "height": 500, "alt": "", "rel": ["full", "default"], "lastUpdated": "2024-06-25T21:17Z"}, {"href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/phi.png",
+- summary soccer/eng.1 401879233: chiavi ['boxscore', 'broadcasts', 'format', 'gameInfo', 'hasOdds', 'header', 'lastFiveGames', 'leaders', 'meta', 'news', 'odds', 'pickcenter', 'rosters', 'seasonseries', 'standings', 'ticketsInfo', 'wallclockAvailable']; injuries: nessuno
+- summary soccer/ita.1 401875056: chiavi ['boxscore', 'broadcasts', 'format', 'gameInfo', 'hasOdds', 'header', 'lastFiveGames', 'leaders', 'meta', 'news', 'odds', 'pickcenter', 'rosters', 'seasonseries', 'standings', 'wallclockAvailable']; injuries: nessuno

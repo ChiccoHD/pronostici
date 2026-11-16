@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Forma dei tennisti", items: [
+    "Nella scheda di un incontro di tennis c'è la sezione Forma, come per calcio e basket: ultimi 5, 10 o 15 incontri con vinte e perse, set, game vinti, vittorie senza perdere set e tie-break.",
+    "\"Filtra per giocata\" ora sta sotto il calendario." ] },
   { d: "2026-11-16", t: "Più ordine e niente zoom", items: [
     "All'apertura l'elenco mostra già la giornata di oggi.",
     "Barre più leggibili: lo sport scelto ha il suo colore, lo stato (Tutte, In diretta…) una pastiglia piena.",

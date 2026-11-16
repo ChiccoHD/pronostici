@@ -376,12 +376,13 @@ function renderList() {
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
-  html += `<div class="mk-row">${state.mk
-    ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
-    : `<button type="button" class="mk-btn" data-mk-open>🎯 Filtra per giocata</button>`}</div>`;
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
   if (st === "all" || st === "next") html += dayChips(ahead, e => e.date, "partite");
+  // filtro per giocata: sotto il calendario
+  html += `<div class="mk-row">${state.mk
+    ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
+    : `<button type="button" class="mk-btn" data-mk-open>🎯 Filtra per giocata</button>`}</div>`;
   if (LEAGUES[state.sport] && st !== "live") {
     const n = {};
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
@@ -1059,9 +1060,9 @@ function tennisView(d) {
     + sec("Game totali", rows(m.totals, { label: k => `Over ${line(k)} game` }), `attesi ${num(m.exp_games)}`)
     + sec("Handicap game", rows(m.handicap, { label: k => `${ln(d.home.name)} ${line(k)}` }))
     + `<p class="note">Game di servizio tenuti, stima: ${ln(d.home.name)} ${pct(m.hold[0])}, ${ln(d.away.name)} ${pct(m.hold[1])}.</p>`;
-  const gioc = sec("Confronto", tennisPlayers(d, cH, cA)) + sec("Testa a testa", tennisH2h(d), d.h2h.n ? `${d.h2h.a}–${d.h2h.b}` : "")
-    + sec("Ultimi incontri", tennisLast(d));
-  s += tabsView("tennis", [["esito", "Esito", esito], ["game", "Game", game], ["gioc", "Giocatori", gioc],
+  const gioc = sec("Confronto", tennisPlayers(d, cH, cA)) + sec("Testa a testa", tennisH2h(d), d.h2h.n ? `${d.h2h.a}–${d.h2h.b}` : "");
+  const forma = sec("Forma recente", tennisForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5)) + sec("Ultimi incontri", tennisLast(d));
+  s += tabsView("tennis", [["esito", "Esito", esito], ["game", "Game", game], ["forma", "Forma", forma], ["gioc", "Giocatori", gioc],
     ["mod", "Affidabilità", sec("Quanto fidarsi", reliabilityBlock(d.reliability))]]);
   return s;
 }
@@ -1072,13 +1073,33 @@ function tennisPlayers(d, cH, cA) {
   const surf = surfaceIt(d.surface).toLowerCase();
   return vsTable(lastName(d.home.name), lastName(d.away.name), cH, cA, [
     [`Elo su ${surf}`, A.elo, B.elo, "hi"],
-    ["Ultimi 5", formSeq((A.form10?.seq || []).slice(0, 5)), formSeq((B.form10?.seq || []).slice(0, 5))],
-    ["Ultimi 10, vinte-perse", A.form10 ? `${A.form10.w}-${A.form10.n - A.form10.w}` : null, B.form10 ? `${B.form10.w}-${B.form10.n - B.form10.w}` : null],
     ["Quest'anno", rec(A.year), rec(B.year)],
     [`Su ${surf}, 12 mesi`, rec(A.surface12m), rec(B.surface12m)],
     ["Set finiti al tie-break", A.tb_rate, B.tb_rate, "none", pct],
     ["Game medi (3 set)", A.avg_games_bo3, B.avg_games_bo3, "none", x => num(x)],
   ]);
+}
+
+/* forma dei tennisti sugli ultimi 5, 10 o 15 incontri, come per calcio e basket */
+function tennisForm(d, cH, cA) {
+  const A = d.players.home, B = d.players.away, hN = lastName(d.home.name), aN = lastName(d.away.name);
+  if (!A.form5 && !B.form5) {          // dati della versione precedente: solo gli ultimi 10
+    return formStrip(hN, aN, cH, cA, A.form10?.seq, B.form10?.seq);
+  }
+  const fr = (x, y) => x ? `${x[0]}-${x[1]}` : "–";
+  return [5, 10, 15].map(n => {
+    const h = A["form" + n] || {}, a = B["form" + n] || {};
+    const few = (h.n ?? 0) < n || (a.n ?? 0) < n;
+    return `<div data-segpane="form:${n}" ${n !== 5 ? "hidden" : ""}>${formStrip(hN, aN, cH, cA, h.seq, a.seq)}${vsTable(hN, aN, cH, cA, [
+      ["Vinte, perse", h.n ? `${h.w}-${h.l}` : null, a.n ? `${a.w}-${a.l}` : null],
+      ["Set vinti, persi", fr(h.sets), fr(a.sets)],
+      ["Game vinti", h.game_pct, a.game_pct, "hi", pct],
+      ["Game fatti / subiti", h.gw != null ? `${num(h.gw)} / ${num(h.gl)}` : null, a.gw != null ? `${num(a.gw)} / ${num(a.gl)}` : null],
+      ["Game totali a incontro", h.games, a.games, "none", x => x != null ? num(x) : "–"],
+      ["Vittorie senza perdere set", h.straight, a.straight, "hi", x => x != null ? pct(x) : "–"],
+      ["Tie-break vinti", h.tb?.[1] ? `${h.tb[0]} su ${h.tb[1]}` : "–", a.tb?.[1] ? `${a.tb[0]} su ${a.tb[1]}` : "–"],
+    ])}${few ? `<p class="note">Nello storico ci sono meno di ${n} incontri per almeno uno dei due: i conti usano quelli disponibili.</p>` : ""}</div>`;
+  }).join("");
 }
 
 function tennisH2h(d) {
@@ -1088,7 +1109,7 @@ function tennisH2h(d) {
 }
 
 function tennisLast(d) {
-  const list = (p, name) => `<h3>${esc(name)}</h3>` + ((p.last || []).length ? `<div class="rows games">${p.last.slice(0, 6).map(g =>
+  const list = (p, name) => `<h3>${esc(name)}</h3>` + ((p.last || []).length ? `<div class="rows games">${p.last.slice(0, 5).map(g =>
     `<div class="r"><span class="l">${fmtShort(g.date)}, con ${esc(g.opp)} <span class="faint">${esc(surfaceIt(g.surface).toLowerCase())}</span></span><span class="v num" style="font-size:16px"><span class="f ${g.res}">${g.res}</span> ${esc(g.score)}</span></div>`).join("")}</div>`
     : `<p class="note">Nessun incontro nello storico.</p>`);
   return list(d.players.home, d.home.name) + list(d.players.away, d.away.name);

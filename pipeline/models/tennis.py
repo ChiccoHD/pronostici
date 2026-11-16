@@ -221,11 +221,37 @@ def player_summary(matches, name, surface, today_iso):
     year_from = today_iso[:4] + "-01-01"
     s = SURF.get(surface, "Hard")
     last = []
-    for m in ms[:10]:
+    for m in ms[:15]:
         won = m["w"] == name
         last.append({"date": m["date"], "opp": m["l"] if won else m["w"], "res": "V" if won else "P",
                      "score": " ".join(f"{a}-{b}" if won else f"{b}-{a}" for a, b in m["sets"]),
                      "tournament": m["tournament"], "surface": m["surface"], "round": m["round"]})
+
+    def form_block(n):
+        """forma sugli ultimi n incontri, come per calcio e basket: risultati, set, game, tie-break"""
+        sel = ms[:n]
+        if not sel:
+            return {"seq": [], "w": 0, "l": 0, "n": 0}
+        sw = sl = gw = gl = tbw = tbp = straight = 0
+        for m in sel:
+            won = m["w"] == name
+            for a, b in m["sets"]:          # a = game del vincitore del match
+                mine, theirs = (a, b) if won else (b, a)
+                gw += mine; gl += theirs
+                if mine > theirs: sw += 1
+                elif theirs > mine: sl += 1
+                if a + b == 13:
+                    tbp += 1; tbw += mine > theirs
+            lost_sets = sum(1 for a, b in m["sets"] if (b > a if won else a > b))
+            if won and lost_sets == 0 and m["comment"] == "Completed":
+                straight += 1
+        k = len(sel)
+        w = sum(1 for m in sel if m["w"] == name)
+        return {"seq": ["V" if m["w"] == name else "P" for m in sel], "w": w, "l": k - w, "n": k,
+                "sets": [sw, sl], "gw": r(gw / k, 1), "gl": r(gl / k, 1),
+                "game_pct": r(gw / (gw + gl), 3) if gw + gl else None,
+                "games": r((gw + gl) / k, 1), "tb": [tbw, tbp],
+                "straight": r(straight / w, 3) if w else None}
     def rec(sel):
         w = sum(1 for m in sel if m["w"] == name)
         return {"w": w, "l": len(sel) - w}
@@ -240,7 +266,7 @@ def player_summary(matches, name, surface, today_iso):
         if rank:
             break
     return {"name": name, "rank": int(rank) if rank else None, "last": last,
-            "form10": {"seq": [x["res"] for x in last], "w": sum(x["res"] == "V" for x in last), "n": len(last)},
+            "form5": form_block(5), "form10": form_block(10), "form15": form_block(15),
             "year": rec(year), "surface12m": rec(surf12),
             "tb_rate": r(tb_rate, 3) if tb_rate is not None else None,
             "avg_games_bo3": r(sum(games) / len(games), 1) if games else None,

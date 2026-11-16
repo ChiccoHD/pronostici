@@ -1,7 +1,84 @@
-/* Pronostici — service worker: serve solo a ricevere le notifiche delle partite (nessuna copia del sito). */
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
+/* Pronostici — service worker
+   1. notifiche delle partite (push);
+   2. app veloce e usabile anche con poca rete:
+      - file dell'app (html, js, css, icone): subito dalla copia sul telefono, aggiornati in sottofondo
+        (se cambiano, l'app mostra "Aggiornamento disponibile");
+      - dati (data/*.json): prima la rete, con 4 secondi di pazienza; senza rete l'ultima copia salvata;
+      - loghi e foto ESPN: dalla copia sul telefono, scaricati una volta sola. */
+const APP = "pronostici-app-v2", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
+const SHELL = ["./", "index.html", "app.css", "app.js", "teams.js", "slip.js", "me.js", "live.js", "sheet.js", "notify.js", "novita.js", "layout.js",
+  "manifest.webmanifest", "icon-192.png", "badge-96.png"];
 
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(APP).then(c => c.addAll(SHELL).catch(() => null)).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", e => e.waitUntil((async () => {
+  for (const k of await caches.keys()) if (![APP, DATA, IMG].includes(k)) await caches.delete(k);
+  await self.clients.claim();
+})()));
+
+const tell = msg => self.clients.matchAll({ type: "window" }).then(ws => ws.forEach(w => w.postMessage(msg)));
+
+async function staleWhileRevalidate(req) {
+  const cache = await caches.open(APP);
+  const hit = await cache.match(req, { ignoreSearch: true });
+  const net = fetch(req, { cache: "no-cache" }).then(async res => {
+    if (res.ok) {
+      if (hit) {
+        const [a, b] = await Promise.all([hit.clone().text(), res.clone().text()]);
+        if (a !== b) tell({ type: "update" });
+      }
+      await cache.put(req, res.clone());
+    }
+    return res;
+  }).catch(() => null);
+  return hit || (await net) || new Response("", { status: 504 });
+}
+
+async function networkFirst(req) {
+  const cache = await caches.open(DATA);
+  const timeout = new Promise(r => setTimeout(() => r(null), 4000));
+  const net = fetch(req, { cache: "no-cache" }).then(res => { if (res.ok) cache.put(req, res.clone()); return res; }).catch(() => null);
+  const res = await Promise.race([net, timeout]);
+  if (res) return res;
+  const hit = await cache.match(req);
+  if (hit) {
+    const h = new Headers(hit.headers);
+    h.set("X-Copia", "1");                // l'app avvisa che sta mostrando dati salvati
+    return new Response(await hit.blob(), { status: 200, headers: h });
+  }
+  return (await net) || new Response("{}", { status: 504, headers: { "Content-Type": "application/json" } });
+}
+
+async function imageCacheFirst(req) {
+  const cache = await caches.open(IMG);
+  const hit = await cache.match(req);
+  if (hit) return hit;
+  try {
+    const res = await fetch(req);
+    if (res.ok || res.type === "opaque") {
+      await cache.put(req, res.clone());
+      const keys = await cache.keys();
+      if (keys.length > 600) await Promise.all(keys.slice(0, keys.length - 600).map(k => cache.delete(k)));
+    }
+    return res;
+  } catch { return new Response("", { status: 504 }); }
+}
+
+self.addEventListener("fetch", e => {
+  const req = e.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin === self.location.origin) {
+    if (url.pathname.startsWith("/api/")) return;                         // notifiche e cronaca: sempre dal server
+    if (url.pathname.includes("/data/")) return e.respondWith(networkFirst(req));
+    if (req.mode === "navigate") return e.respondWith(staleWhileRevalidate(new Request("index.html")));
+    return e.respondWith(staleWhileRevalidate(req));
+  }
+  if (/espncdn\.com|wikimedia\.org|thesportsdb\.com/.test(url.hostname) && req.destination === "image") return e.respondWith(imageCacheFirst(req));
+});
+
+/* ------------------------------------------------------------------ notifiche */
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Pronostici", body: e.data?.text() }; }

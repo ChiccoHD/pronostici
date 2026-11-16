@@ -1022,3 +1022,18 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .lv-say.ok, .lv-say.win { color: var(--go); }
 .lv-say.lose { color: #e5484d; }
 .lv-say.ko { color: #e8833a; }
+
+/* Avvisi in alto: nuova versione, senza rete */
+.app-banner { position: fixed; top: calc(var(--head, 52px) + 8px); left: 50%; transform: translateX(-50%); z-index: 15; width: calc(100% - 24px); max-width: 520px; display: flex; flex-direction: column; gap: 1px; padding: 10px 14px; border: 0; border-radius: 14px; background: var(--ink); color: var(--card); font: inherit; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,.25); cursor: pointer; }
+.app-banner b { font-size: 14px; }
+.app-banner span { font-size: 12.5px; opacity: .85; }
+#off-banner { background: #b45309; color: #fff; }
+
+/* Filtro per giocata */
+.mk-row { display: flex; gap: 6px; margin: 8px 0 0; }
+.mk-btn, .mk-on { flex: 1; border: 1px dashed var(--rule); background: transparent; color: var(--ink-2); border-radius: 12px; padding: 8px 12px; font: inherit; font-weight: 700; font-size: 13px; text-align: left; cursor: pointer; }
+.mk-on { border: 0; background: color-mix(in srgb, var(--go) 15%, transparent); color: var(--go); }
+.mk-x { border: 0; background: var(--soft-2); color: var(--ink-2); border-radius: 12px; width: 40px; font-size: 18px; cursor: pointer; }
+.mk-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.mk-hit { color: var(--go); font-weight: 700; }
+.mk-hit b { font-size: 13.5px; }

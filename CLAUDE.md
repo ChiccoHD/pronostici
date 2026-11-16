@@ -18,6 +18,8 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (campionat
 - Le quote dei bookmaker non devono entrare nei modelli: servono solo come confronto (in Migliori, "Modello contro bookmaker" da `disagree` di `migliori.json`).
 - Dal telefono, oltre al Live: formazioni ufficiali del calcio (`attachLineups` in `live.js`, da 90 minuti prima) che ricalcolano le percentuali dei giocatori (`withLineup` in `app.js`); lo storico della schedina vive nel `localStorage` del telefono (campo `result` delle giocate).
 - `public/teams.js`: Classifiche (`#/classifiche/<campionato>`) e pagina squadra (`#/squadra/<campionato>/<id ESPN>`), dai file `public/data/leagues/<campionato>.json` scritti da `league_page` in `build_soccer.py` e `build_nba.py`.
+- `public/sw.js`: oltre alle notifiche, copia dell'app sul telefono (file subito dalla copia e aggiornati in sottofondo con avviso "Nuova versione", dati prima dalla rete poi dalla copia con avviso "Senza rete", loghi ESPN salvati). Se aggiungi un file .js al sito, aggiungilo anche a `SHELL` in `sw.js`.
+- Filtro per giocata nell'elenco: `MARKETS`, `state.mk`, `showMarketSheet` in `app.js`.
 - `public/sheet.js`: finestre dal basso (`askConfirm`, `askText`: niente `confirm`/`prompt` del browser) e barra della schedina in costruzione (`updateSlipBar`, `showSlipSheet`) visibile su tutte le pagine tranne Schedina.
 - `public/slip.js`: Costruisci la multipla (`#/multipla`, dalle giocate di `migliori.json`) e Condividi la schedina (`#/condividi/<dati>`: le giocate stanno nel link, niente server).
 - Tendenze (serie aperte) in `pipeline/trends.py`: nei file delle partite (`trends`), nelle pagine squadra e in `migliori.json` (`trends`).

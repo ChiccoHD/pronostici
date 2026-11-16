@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Filtro per giocata e app più veloce", items: [
+    "In Partite tocca \"🎯 Filtra per giocata\": per esempio solo le partite con Over 2,5 almeno al 65%, Goal, 1X, favorita…",
+    "L'app si apre subito usando la copia salvata sul telefono e funziona anche senza rete, con gli ultimi dati scaricati.",
+    "Quando esce una nuova versione compare l'avviso \"Nuova versione dell'app\": tocca per aggiornare." ] },
   { d: "2026-11-13", t: "Computer: selezione più pulita", items: [
     "La partita aperta nell'elenco a sinistra ora è evidenziata con lo sfondo e una barretta verde, senza i riquadri intorno ai singoli pezzi." ] },
   { d: "2026-11-13", t: "Schedine chiuse più chiare", items: [

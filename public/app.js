@@ -188,8 +188,28 @@ function img(src, cls, alt = "") {
 async function getJSON(path) {
   const r = await fetch(path, { cache: "no-cache" });
   if (!r.ok) throw new Error(r.status);
+  if (r.headers.get("X-Copia")) offlineNotice();      // senza rete: il service worker ha dato l'ultima copia salvata
   return r.json();
 }
+
+/* ------------------------------------------------------------------ app veloce e senza rete (sw.js) */
+function appBanner(id, html, onClick) {
+  if (document.getElementById(id)) return;
+  const b = document.createElement("button");
+  b.type = "button"; b.id = id; b.className = "app-banner"; b.innerHTML = html;
+  b.onclick = onClick;
+  document.body.appendChild(b);
+}
+function offlineNotice() {
+  appBanner("off-banner", `<b>Senza rete</b><span>stai vedendo gli ultimi dati salvati sul telefono · tocca per riprovare</span>`, () => location.reload());
+}
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => null);
+  navigator.serviceWorker.addEventListener("message", ev => {
+    if (ev.data?.type === "update") appBanner("upd-banner", `<b>Nuova versione dell'app</b><span>tocca per aggiornare</span>`, () => location.reload());
+  });
+}
+window.addEventListener("online", () => document.getElementById("off-banner")?.remove());
 
 /* ------------------------------------------------------------------ avvio e navigazione */
 
@@ -298,7 +318,7 @@ function showList() {
 }
 function renderList() {
   const now = Date.now();
-  const bySport = INDEX.events.filter(e => state.sport === "all" || e.sport === state.sport);
+  const bySport = INDEX.events.filter(e => (state.sport === "all" || e.sport === state.sport) && mkPass(e));
   const ended = bySport.filter(e => isEnded(e)).sort((a, b) => b.date.localeCompare(a.date));
   if (typeof applyFinals === "function") applyFinals();      // esiti già visti dal telefono
   const liveN = typeof liveNow === "function" ? liveNow(state.sport) : null;
@@ -318,6 +338,9 @@ function renderList() {
     <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
+  html += `<div class="mk-row">${state.mk
+    ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
+    : `<button type="button" class="mk-btn" data-mk-open>🎯 Filtra per giocata</button>`}</div>`;
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
   if (st === "all" || st === "next") html += dayChips(ahead, e => e.date, "partite");
@@ -370,6 +393,8 @@ function renderList() {
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
+  $app.querySelectorAll("[data-mk-open]").forEach(b => b.onclick = showMarketSheet);
+  $app.querySelectorAll("[data-mk-clear]").forEach(b => b.onclick = () => { state.mk = null; showList(); });
   if (st === "live" && typeof showLive === "function") setTimeout(() => showLive({ embed: true }), 0);
   // fuori dal filtro "In diretta": una lettura ogni tanto per il numero di partite in corso e gli esiti appena arrivati
   else if (typeof liveData === "function") liveData(60000).then(updateLiveCount).catch(() => null);
@@ -430,6 +455,47 @@ function outcomeIx(e, f = e.final) {
 const isEnded = e => !!e.final || Date.now() - new Date(e.date).getTime() > (e.sport === "tennis" ? 30 : 4) * 3600e3;
 const isPastDay = e => isoDay(e.date) < isoDay(Date.now());
 
+/* ------------------------------------------------------------------ filtro per giocata */
+const totKey = e => Object.keys(e.extra || {}).find(k => /^Over \d+\.5$/.test(k));
+const MARKETS = [
+  ["fav", "Vince la favorita", e => Math.max(e.main[0], e.main[e.main.length - 1])],
+  ["1", "1", e => e.main[0]],
+  ["X", "X", e => e.main.length === 3 ? e.main[1] : null],
+  ["2", "2", e => e.main[e.main.length - 1]],
+  ["1X", "1X", e => e.main.length === 3 ? e.main[0] + e.main[1] : null],
+  ["X2", "X2", e => e.main.length === 3 ? e.main[1] + e.main[2] : null],
+  ["o25", "Over 2,5", e => e.extra?.["Over 2,5"] ?? null],
+  ["u25", "Under 2,5", e => e.extra?.["Over 2,5"] != null ? 1 - e.extra["Over 2,5"] : null],
+  ["gg", "Goal", e => e.extra?.Goal ?? null],
+  ["ng", "No Goal", e => e.extra?.Goal != null ? 1 - e.extra.Goal : null],
+  ["ot", "Over punti/game", e => { const k = totKey(e); return k ? e.extra[k] : null; }],
+  ["ut", "Under punti/game", e => { const k = totKey(e); return k ? 1 - e.extra[k] : null; }],
+];
+const MK = Object.fromEntries(MARKETS.map(m => [m[0], m]));
+const mkValue = e => state.mk ? MK[state.mk.m]?.[2](e) : null;
+const mkPass = e => !state.mk || (mkValue(e) ?? -1) >= state.mk.min;
+function mkLabel(e) {
+  if (!state.mk) return "";
+  const [k, l] = MK[state.mk.m];
+  if (k === "ot" || k === "ut") { const t = totKey(e); return t ? `${k === "ot" ? "Over" : "Under"} ${line(t.slice(5))}` : l; }
+  if (k === "fav") return `Vince ${e.main[0] >= e.main[e.main.length - 1] ? e.home : e.away}`;
+  return l;
+}
+function showMarketSheet() {
+  const cur = state.mk || { m: "o25", min: 0.65 };
+  const { el, close } = openSheet(`<h3 class="sheet-t">Filtra per giocata</h3>
+    <p class="sheet-p">Mostra solo le partite in cui la giocata scelta ha almeno la probabilità indicata.</p>
+    <div class="mk-grid">${MARKETS.map(([k, l]) => `<button type="button" class="nt-chip" data-mk="${k}" aria-pressed="${cur.m === k}">${l}</button>`).join("")}</div>
+    <h3 class="lb-h3">Almeno</h3>
+    <div class="mk-grid">${[0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85].map(v => `<button type="button" class="nt-chip" data-mkmin="${v}" aria-pressed="${cur.min === v}">${Math.round(v * 100)}%</button>`).join("")}</div>
+    <div class="sheet-acts"><button type="button" class="btn-main alt" data-mk-off>Togli il filtro</button><button type="button" class="btn-main" data-mk-ok>Mostra</button></div>`, { label: "Filtra per giocata" });
+  let pick = { ...cur };
+  el.querySelectorAll("[data-mk]").forEach(b => b.onclick = () => { pick.m = b.dataset.mk; el.querySelectorAll("[data-mk]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); });
+  el.querySelectorAll("[data-mkmin]").forEach(b => b.onclick = () => { pick.min = Number(b.dataset.mkmin); el.querySelectorAll("[data-mkmin]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); });
+  el.querySelector("[data-mk-ok]").onclick = () => { state.mk = pick; close(); showList(); };
+  el.querySelector("[data-mk-off]").onclick = () => { state.mk = null; close(); showList(); };
+}
+
 function fixture(e) {
   if (e.final) return fixtureDone(e);
   const three = e.main.length === 3;
@@ -438,7 +504,8 @@ function fixture(e) {
   const max = Math.max(...e.main);
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
   const sub = [];
-  for (const [k, v] of Object.entries(e.extra || {})) if (v != null) sub.push(`${esc(line(k))} <b>${pct(v)}</b>`);
+  if (state.mk && mkValue(e) != null) sub.push(`<span class="mk-hit">${esc(mkLabel(e))} <b>${pct(mkValue(e))}</b></span>`);
+  for (const [k, v] of Object.entries(e.extra || {})) if (v != null && !state.mk) sub.push(`${esc(line(k))} <b>${pct(v)}</b>`);
   if (e.sport === "nba" && e.exp_score) sub.push(`atteso <b>${Math.round(e.exp_score[0])}–${Math.round(e.exp_score[1])}</b>`);
   if (e.sport === "tennis" && e.surface) sub.push(surfaceIt(e.surface));
   if (e.book) {

@@ -64,7 +64,7 @@ function showMe() {
 
 /* ------------------------------------------------------------------ info: come funziona, affidabilità, stato */
 
-const INFO_TABS = [["come", "Come funziona"], ["affidabilita", "Affidabilità"], ["dati", "Aggiornamenti"]];
+const INFO_TABS = [["come", "Come funziona"], ["affidabilita", "Affidabilità"], ["archivio", "Archivio"], ["dati", "Aggiornamenti"]];
 
 async function showInfoHub(tab) {
   tab = INFO_TABS.some(([k]) => k === tab) ? tab : "come";
@@ -77,9 +77,68 @@ async function showInfoHub(tab) {
   if (tab === "come") body = infoHow();
   if (tab === "affidabilita") body = await infoReliability();
   if (tab === "dati") { body = newsSection() + infoStatus(); markNewsSeen(); }
+  if (tab === "archivio") body = await infoArchive();
   if (!location.hash.startsWith("#/info")) return;
   $app.innerHTML = `<h1 class="page-h">Info</h1>${tabs}${body}`;
 }
+
+/* ------------------------------------------------------------------ archivio dei pronostici (data/archive.json) */
+let ARCHIVE = null, ARCH_SPORT = "all", ARCH_DAYS = 7;
+async function infoArchive() {
+  if (!ARCHIVE) { try { ARCHIVE = await getJSON("data/archive.json"); } catch { ARCHIVE = { rows: [] }; } }
+  const rows = (ARCHIVE.rows || []).filter(r => ARCH_SPORT === "all" || r.s === ARCH_SPORT);
+  if (!(ARCHIVE.rows || []).length) return sec("Archivio", `<p class="note" style="margin:0">L'archivio si riempie man mano che le partite finiscono.</p>`, "", "Archivio");
+  const top = r => r.p.indexOf(Math.max(...r.p));
+  const out = r => r.s === "tennis" ? (r.r[2] ?? (r.r[0] > r.r[1] ? 0 : 1)) : r.p.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
+  const rate = list => list.length ? list.filter(x => x).length / list.length : null;
+  const box = (title, list, note = "") => {
+    const r = rate(list);
+    return `<div class="ar-box"><span class="ar-n">${r == null ? "–" : pct(r)}</span><b>${title}</b><small>${list.length ? `${list.filter(x => x).length} su ${list.length}` : "nessuna partita"}${note}</small></div>`;
+  };
+  const hitTop = rows.map(r => top(r) === out(r));
+  const strong = rows.filter(r => Math.max(...r.p) >= 0.6).map(r => top(r) === out(r));
+  const o25 = rows.filter(r => r.o != null && Math.max(r.o, 1 - r.o) >= 0.6).map(r => (r.o >= 0.5) === (r.r[0] + r.r[1] > 2.5));
+  const gg = rows.filter(r => r.g != null && Math.max(r.g, 1 - r.g) >= 0.6).map(r => (r.g >= 0.5) === (r.r[0] > 0 && r.r[1] > 0));
+  // il modello contro i bookmaker quando non sono d'accordo sulla favorita
+  const dis = rows.filter(r => r.b && top(r) !== r.b.indexOf(Math.max(...r.b)));
+  const disModel = dis.filter(r => top(r) === out(r)).length, disBook = dis.filter(r => r.b.indexOf(Math.max(...r.b)) === out(r)).length;
+  // calibrazione: quando dice 60-70% esce davvero il 60-70% delle volte?
+  const bands = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 1.01]].map(([lo, hi]) => {
+    const l = rows.filter(r => { const m = Math.max(...r.p); return m >= lo && m < hi; });
+    const avg = l.length ? l.reduce((a, r) => a + Math.max(...r.p), 0) / l.length : 0;
+    return { lo, hi, n: l.length, avg, real: rate(l.map(r => top(r) === out(r))) };
+  });
+  const byLeague = {};
+  for (const r of rows) (byLeague[r.ln.split(" · ")[0]] ||= []).push(top(r) === out(r));
+  const leagues = Object.entries(byLeague).filter(([, l]) => l.length >= 4).sort((a, b) => rate(b[1]) - rate(a[1]));
+  const days = [...new Set(rows.map(r => r.d.slice(0, 10)))].slice(0, ARCH_DAYS);
+  const fx = r => {
+    const e = { id: r.id, sport: r.s, league: r.l, league_name: r.ln, date: r.d + "Z", home: r.h, away: r.a, main: r.p, book: r.b,
+      extra: { ...(r.o != null ? { "Over 2,5": r.o } : {}), ...(r.g != null ? { Goal: r.g } : {}) },
+      final: { h: r.r[0], a: r.r[1], ...(r.r[2] != null ? { w: r.r[2] } : {}), st: "Finita" } };
+    return fixtureDone(e).replace(/href="[^"]*"/, 'href="javascript:void 0"');
+  };
+  const sportBtn = (k, l) => `<button type="button" class="nt-chip" data-ar-sport="${k}" aria-pressed="${ARCH_SPORT === k}">${l}</button>`;
+  return `<div class="mk-grid" style="margin-top:10px">${sportBtn("all", "Tutto")}${sportBtn("soccer", "Calcio")}${sportBtn("nba", "Basket")}${sportBtn("tennis", "Tennis")}</div>`
+    + sec("In sintesi", `<div class="ar-grid">${box("Pronostico più probabile", hitTop)}${box("Quando il modello è sicuro", strong, " · favorita al 60% o più")}
+        ${o25.length ? box("Over/Under 2,5", o25, " · quando è al 60% o più") : ""}${gg.length ? box("Goal/No Goal", gg, " · quando è al 60% o più") : ""}</div>
+      <p class="note">Ultimi ${Math.round((Date.now() - Date.parse(rows[rows.length - 1]?.d + "Z")) / 864e5) + 1 || 0} giorni, ${rows.length} partite concluse. Le percentuali restano stime: servono tante partite perché questi numeri diventino stabili.</p>`, "", "Archivio sintesi")
+    + sec("Quanto mantiene le promesse", `<div class="rows">${bands.filter(b => b.n).map(b => `<div class="r"><span class="l">Diceva <b>${Math.round(b.lo * 100)}–${Math.min(100, Math.round(b.hi * 100))}%</b> <span class="faint">(${b.n} partite, in media ${pct(b.avg)})</span></span><span class="v"><b class="${b.real >= b.avg - 0.05 ? "good" : "bad"}">${pct(b.real)}</b> uscite</span></div>`).join("")}</div>
+      <p class="note">Se il modello è ben tarato, la colonna a destra somiglia alla percentuale che dava.</p>`, "", "Archivio calibrazione")
+    + (dis.length ? sec("Modello contro bookmaker", `<p class="prose" style="margin:0">Nelle <b>${dis.length}</b> partite in cui non erano d'accordo sulla favorita, il modello ci ha preso <b>${disModel}</b> volte, i bookmaker <b>${disBook}</b>.</p>`, "", "Archivio quote") : "")
+    + (leagues.length ? sec("Per competizione", `<div class="rows">${leagues.map(([l, h]) => `<div class="r"><span class="l">${esc(l)} <span class="faint">${h.length} partite</span></span><span class="v"><b>${pct(rate(h))}</b></span></div>`).join("")}</div>`, "pronostico più probabile preso", "Archivio campionati") : "")
+    + sec("Partite", days.map(d => `<h3 class="lb-h3">${esc(fmtDay(d + "T12:00:00Z").label)}</h3><div class="ar-day">${rows.filter(r => r.d.startsWith(d)).map(fx).join("")}</div>`).join("")
+      + (new Set(rows.map(r => r.d.slice(0, 10))).size > ARCH_DAYS ? `<button type="button" class="btn-main alt" data-ar-more>Mostra giorni precedenti</button>` : ""), "", "Archivio partite");
+}
+document.addEventListener("click", async ev => {
+  const s = ev.target.closest("[data-ar-sport]"), m = ev.target.closest("[data-ar-more]");
+  if (!s && !m) return;
+  if (s) ARCH_SPORT = s.dataset.arSport;
+  if (m) ARCH_DAYS += 7;
+  const y = window.scrollY;
+  await showInfoHub("archivio");
+  window.scrollTo(0, y);
+});
 
 function infoHow() {
   const card = (ic, t, txt) => `<div class="how"><span class="how-ic">${ic}</span><div><b>${t}</b><p>${txt}</p></div></div>`;

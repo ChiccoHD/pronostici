@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Archivio dei pronostici", items: [
+    "In Info → Archivio: tutte le partite concluse (fino a 6 mesi) con pronostico ed esito.",
+    "Quante volte esce il pronostico più probabile, Over/Under e Goal, per sport e per competizione, e se quando dice 70% esce davvero 7 volte su 10.",
+    "Quando modello e bookmaker non sono d'accordo sulla favorita, chi ci ha preso." ] },
   { d: "2026-11-16", t: "Filtro per giocata e app più veloce", items: [
     "In Partite tocca \"🎯 Filtra per giocata\": per esempio solo le partite con Over 2,5 almeno al 65%, Goal, 1X, favorita…",
     "L'app si apre subito usando la copia salvata sul telefono e funziona anche senza rete, con gli ultimi dati scaricati.",

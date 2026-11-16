@@ -77,6 +77,13 @@ def main():
         status["risultati"] = {"esiti": rs.get("risultati"), "aggiornato": now.isoformat(timespec="minutes")}
     except Exception:
         logging.exception("Risultati finali non letti")
+    try:
+        from . import archive
+        ar = {}
+        archive.update(keep, ar)
+        status["archivio"] = ar.get("archivio")
+    except Exception:
+        logging.exception("Archivio non aggiornato")
     store.save(PUBLIC_DATA / "index.json", {"updated": now.isoformat(timespec="minutes"), "events": keep})
     store.save(PUBLIC_DATA / "affidabilita.json", reliability)
     store.save(PUBLIC_DATA / "meta.json", {"updated": now.isoformat(timespec="minutes"), "sample": False,

@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Colori delle squadre", items: [
+    "Nella scheda della partita lo sfondo richiama i colori delle due squadre e c'è una barra 1 / X / 2 colorata per vedere subito chi è favorito.",
+    "Nell'elenco ogni partita ha una striscia con i colori di casa e ospiti." ] },
   { d: "2026-11-16", t: "Nuove notifiche", items: [
     "Esito delle schedine salvate: \"✓ Schedina 2: vinta!\" o \"persa\" appena si decide, anche ad app chiusa.",
     "Formazioni ufficiali uscite, per le partite di calcio che segui.",

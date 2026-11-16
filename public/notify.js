@@ -9,6 +9,7 @@ const NOTIF_DEFAULT = {
   soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
+  general: { on: true, slips: true, lineup: true, gap: true, daily: false },
 };
 const NOTIF_OPTS = {
   soccer: ["Calcio", [["start", "Inizio partita"], ["goal", "Gol"], ["red", "Espulsioni"], ["ht", "Fine primo tempo"], ["end", "Fine partita"]]],
@@ -84,7 +85,10 @@ function notifMine() {
   const ev = new Set(followed().map(x => x.id));
   if (notifState().slips && typeof mySlips === "function") for (const s of mySlips()) for (const l of s.legs || []) if (!l.result && l.event) ev.add(l.event);
   const teams = typeof myTeams === "function" ? myTeams().flatMap(t => [t.name, t.short]).filter(Boolean) : [];
-  return { events: [...ev].slice(-600), teams: [...new Set(teams)] };
+  // schedine salvate ancora aperte: il server avvisa quando sono vinte o perse
+  const slips = typeof mySlips === "function" ? mySlips().filter(sl => !["win", "lose"].includes(slipState(sl).cls))
+    .map(sl => ({ id: sl.id, name: sl.name, odds: sl.odds || null, legs: sl.legs.map(l => ({ event: l.event, label: l.label })) })) : [];
+  return { events: [...ev].slice(-600), teams: [...new Set(teams)], slips };
 }
 
 async function pushPost(path, body) {
@@ -133,6 +137,7 @@ const NT_SHORT = {
   soccer: ["Calcio", [["start", "Inizio"], ["goal", "Gol"], ["yellow", "Ammonizioni"], ["red", "Espulsioni"], ["corner", "Calci d'angolo"], ["ht", "Fine 1° tempo"], ["second", "Inizio 2° tempo"], ["end", "Risultato finale"]]],
   nba: ["Basket", [["start", "Inizio"], ["qstart", "Inizio di ogni quarto"], ["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"]]],
   tennis: ["Tennis", [["start", "Inizio"], ["setstart", "Inizio di ogni set"], ["set", "Fine di ogni set"], ["game", "Ogni game"], ["end", "Risultato finale"]]],
+  general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"]]],
 };
 function notifSection() {
   const s = notifState();

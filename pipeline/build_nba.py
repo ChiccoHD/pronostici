@@ -152,7 +152,10 @@ def build(today: date):
                           "main": mk["win"], "main_labels": ["1", "2"],
                           "book": [r(book["p_home"]), r(book["p_away"])] if book and book.get("p_home") else None,
                           "extra": {f"Over {mk['total_line']:g}": mk["totals"].get(f"{mk['total_line']:g}")},
-                          "exp_score": mk["exp"]})
+                          "exp_score": mk["exp"],
+                          # giocatori importanti fuori (almeno 12 punti di media): si vedono già nell'elenco
+                          "out": [[p["name"] for p in detail["players"][s] if p.get("out") and (p.get("avg15") or {}).get("pts", 0) >= 12]
+                                  for s in ("home", "away")]})
         except Exception as ex:
             log.exception("NBA partita %s", g["id"])
             status.setdefault("errori_partite", []).append(f"{g['id']}: {ex}")

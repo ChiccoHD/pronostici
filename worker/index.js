@@ -36,15 +36,28 @@ async function notifiche(env) {
   const r = await env.ASSETS.fetch(new Request("https://assets.local/data/index.json"));
   if (!r.ok) return;
   const idx = await r.json();
-  const events = (idx.events || []).filter(e => e.espn).map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away, league_name: e.league_name, final: !!e.final }));
+  const events = (idx.events || []).filter(e => e.espn).map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away,
+    league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null }));
   await pushObject(env).fetch("https://push/api/push/tick", { method: "POST", body: JSON.stringify({ events }) });
+  // alle 9 (ora italiana): le migliori giocate del giorno, a chi le ha chieste
+  const rome = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const part = t => rome.find(p => p.type === t)?.value;
+  if (part("hour") === "09" && part("minute") === "00") {
+    const day = `${part("year")}-${part("month")}-${part("day")}`;
+    const m = await env.ASSETS.fetch(new Request("https://assets.local/data/migliori.json")).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+    const seen = new Set();
+    const items = (m.categories || []).flatMap(c => c.items || [])
+      .filter(x => { const d = new Date(x.date); return d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }) === day && d > new Date() && x.p < 0.97; })
+      .sort((a, b) => b.p - a.p).filter(x => !seen.has(x.event) && seen.add(x.event)).slice(0, 3);
+    await pushObject(env).fetch("https://push/api/push/daily", { method: "POST", body: JSON.stringify({ items, day }) });
+  }
 }
 
 export default {
   // Il sito resta fatto di soli file statici: qui arriva solo ciò che non esiste in public/.
   fetch(request, env) {
     const url = new URL(request.url);
-    if ((url.pathname.startsWith("/api/push/") && !url.pathname.endsWith("/tick")) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
+    if ((url.pathname.startsWith("/api/push/") && !/\/(tick|daily)$/.test(url.pathname)) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
     return env.ASSETS.fetch(request);
   },
   scheduled(event, env, ctx) {

@@ -1046,3 +1046,4 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .ar-box small { font-size: 11.5px; color: var(--ink-3); }
 .ar-day .fx { pointer-events: none; }
 b.good { color: var(--go); } b.bad { color: #e8833a; }
+.out-tag { color: #e8833a; font-weight: 700; }

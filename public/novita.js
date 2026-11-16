@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Nuove notifiche", items: [
+    "Esito delle schedine salvate: \"✓ Schedina 2: vinta!\" o \"persa\" appena si decide, anche ad app chiusa.",
+    "Formazioni ufficiali uscite, per le partite di calcio che segui.",
+    "Avviso quando il modello e i bookmaker sono lontani (12 punti o più) su una partita che segui.",
+    "A scelta, alle 9 di mattina le 3 giocate migliori del giorno.",
+    "Nell'elenco NBA compaiono i giocatori importanti fuori per infortunio (🚑)." ] },
   { d: "2026-11-16", t: "Archivio dei pronostici", items: [
     "In Info → Archivio: tutte le partite concluse (fino a 6 mesi) con pronostico ed esito.",
     "Quante volte esce il pronostico più probabile, Over/Under e Goal, per sport e per competizione, e se quando dice 70% esce davvero 7 volte su 10.",

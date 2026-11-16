@@ -2,6 +2,7 @@
 // ogni minuto legge da ESPN il tabellone delle sole competizioni con partite seguite in corso,
 // confronta con il minuto prima e manda gol, espulsioni, fine tempo/quarto/set/game e fine partita.
 import { newVapidKeys, sendPush } from "./webpush.js";
+import { judge } from "./judge.js";
 
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports";
 const MAX_BOARDS = 30;              // tabelloni letti al massimo per minuto
@@ -11,7 +12,9 @@ export const DEFAULT_PREFS = {
   soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
+  general: { slips: true, lineup: true, gap: true, daily: false },
 };
+const gen = s => ({ ...DEFAULT_PREFS.general, ...(s.prefs?.general || {}) });
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 const num = v => { const n = parseInt(v, 10); return isNaN(n) ? 0 : n; };
@@ -198,6 +201,7 @@ export class Push {
       if (path === "key") return json({ key: (await this.keys()).publicKey });
       if (path === "status") return json(await this.store.get("status") || {});
       if (path === "tick" && request.method === "POST") return json(await this.tick(await request.json()));
+      if (path === "daily" && request.method === "POST") return json(await this.daily(await request.json()));
       if (request.method !== "POST") return json({ error: "metodo" }, 405);
       const body = JSON.parse((await request.text()).slice(0, 100000) || "{}");
       if (!body.sub?.endpoint || !(/^https:\/\//.test(body.sub.endpoint) || this.env.ALLOW_HTTP)) return json({ error: "abbonamento non valido" }, 400);
@@ -209,7 +213,9 @@ export class Push {
         await this.store.put(id, {
           sub: { endpoint: body.sub.endpoint, keys: body.sub.keys },
           prefs: body.prefs || DEFAULT_PREFS,
-          mine: { events: (mine.events || []).slice(0, 600).map(String), teams: (mine.teams || []).slice(0, 100).map(norm).filter(Boolean) },
+          mine: { events: (mine.events || []).slice(0, 600).map(String), teams: (mine.teams || []).slice(0, 100).map(norm).filter(Boolean),
+            slips: (mine.slips || []).slice(0, 30).map(sl => ({ id: String(sl.id), name: String(sl.name || "Schedina").slice(0, 40), odds: sl.odds ?? null,
+              legs: (sl.legs || []).slice(0, 20).map(l => ({ event: String(l.event), label: String(l.label).slice(0, 80) })) })) },
           origin: url.origin, updated: Date.now(),
         });
         await this.store.put("origin", url.origin);
@@ -226,6 +232,80 @@ export class Push {
     } catch (e) {
       return json({ error: String(e?.message || e) }, 500);
     }
+  }
+
+  /* avvisi prima della partita: formazioni ufficiali e modello lontano dalle quote (solo partite seguite) */
+  async extras(subs, events, live, followers, outbox, now, status) {
+    const base = this.env.ESPN_BASE || ESPN;
+    const subMap = new Map(subs);
+    const soon = live.filter(e => followers.has(e.id) && Date.parse(e.date) > now - 10 * 60e3);
+    for (const e of soon) {
+      const fol = (followers.get(e.id) || []).map(k => [k, subMap.get(k)]);
+      // il modello contro le quote: una volta per partita, se su un esito c'è una distanza di almeno 12 punti
+      if (e.book && e.main && !(await this.store.get("gap:" + e.id))) {
+        const gaps = e.main.map((p, i) => p - (e.book[i] ?? p));
+        const i = gaps.reduce((b, g, k) => Math.abs(g) > Math.abs(gaps[b]) ? k : b, 0);
+        if (Math.abs(gaps[i]) >= 0.12) {
+          const lab = e.main.length === 3 ? [`vittoria ${e.home}`, "il pareggio", `vittoria ${e.away}`][i] : `vittoria ${[e.home, e.away][i]}`;
+          for (const [key, s] of fol) if (gen(s).gap) outbox.push({ key, s, payload: { title: `📊 Modello e quote non sono d'accordo`, body: `${e.home} – ${e.away}: ${lab} al ${Math.round(e.main[i] * 100)}% per il modello, ${Math.round(e.book[i] * 100)}% per i bookmaker`, tag: `${e.id}-gap`, url: `#/e/${e.id}` } });
+          await this.store.put("gap:" + e.id, now);
+        }
+      }
+      // formazioni ufficiali (calcio): da 75 minuti prima, ogni 3 minuti finché escono
+      if (e.sport === "soccer" && Date.parse(e.date) - now <= 75 * 60e3 && Date.parse(e.date) - now > -10 * 60e3 && new Date(now).getUTCMinutes() % 3 === 0 && !(await this.store.get("lu:" + e.id))) {
+        try {
+          const r = await fetch(`${base}/${e.espn}/summary?event=${e.id.split("-").pop()}`, { cf: { cacheTtl: 0 } });
+          const s = r.ok ? await r.json() : {};
+          const starters = (s.rosters || []).map(t => (t.roster || []).filter(p => p.starter).length);
+          if (starters.length === 2 && starters.every(n => n >= 11)) {
+            await this.store.put("lu:" + e.id, now);
+            for (const [key, sub] of fol) if (gen(sub).lineup) outbox.push({ key, s: sub, payload: { title: `📋 Formazioni ufficiali: ${e.home} – ${e.away}`, body: "Tocca per vedere i titolari e le percentuali dei giocatori aggiornate", tag: `${e.id}-lineup`, url: `#/e/${e.id}` } });
+          }
+        } catch (err) { status.errors.push(`formazioni: ${err.message || err}`); }
+      }
+    }
+  }
+
+  /* esito delle schedine salvate: appena una giocata è persa, oppure quando sono finite tutte */
+  async slipResults(subs, events, snaps, outbox, now) {
+    const byId = new Map(events.map(e => [e.id, e]));
+    for (const [key, s] of subs) {
+      if (!gen(s).slips) continue;
+      for (const sl of s.mine?.slips || []) {
+        const sentKey = `sd:${key.slice(4)}:${sl.id}`;
+        if (await this.store.get(sentKey)) continue;
+        const res = await Promise.all(sl.legs.map(async l => {
+          const e = byId.get(l.event);
+          if (!e) return { l, r: "gone" };
+          let f = e.final && typeof e.final === "object" ? e.final : null;
+          const snap = snaps[l.event] || (!f ? await this.store.get("st:" + l.event) : null);
+          if (!f && snap?.st === "post") f = e.sport === "tennis" ? { h: (snap.sets?.[0] || []).filter((g, i) => g > (snap.sets[1]?.[i] ?? 0)).length, a: (snap.sets?.[1] || []).filter((g, i) => g > (snap.sets[0]?.[i] ?? 0)).length, w: snap.w, games: snap.gt }
+            : { h: snap.h, a: snap.a, periods: snap.ls?.[0]?.length ? [[snap.ls[0][0]], [snap.ls[1][0]]] : null };
+          if (!f) return { l, r: "open" };
+          return { l, e, r: judge(l.label, f, e) ?? "unknown" };
+        }));
+        const lost = res.find(x => x.r === "lose");
+        const open = res.some(x => x.r === "open");
+        let payload = null;
+        if (lost) payload = { title: `✗ ${sl.name}: persa`, body: `Non è uscita "${lost.l.label}" (${lost.e.home} – ${lost.e.away})`, tag: `slip-${sl.id}`, url: "#/tu" };
+        else if (!open && res.length) {
+          const won = res.filter(x => x.r === "win").length, unk = res.filter(x => x.r === "unknown" || x.r === "gone").length;
+          payload = unk ? { title: `${sl.name}: partite finite`, body: `${won} giocate prese, ${unk} da controllare nell'app`, tag: `slip-${sl.id}`, url: "#/tu" }
+            : { title: `✓ ${sl.name}: vinta!`, body: `${won === 1 ? "La giocata è uscita" : `Tutte le ${won} giocate sono uscite`}${sl.odds ? ` · quota ${String(sl.odds).replace(".", ",")}` : ""}`, tag: `slip-${sl.id}`, url: "#/tu" };
+        }
+        if (payload) { outbox.push({ key, s, payload }); await this.store.put(sentKey, now); }
+      }
+    }
+  }
+
+  /* le migliori del giorno, alle 9 (chiamato dal timer con le giocate di migliori.json) */
+  async daily({ items = [], day }) {
+    if (!items.length || (await this.store.get("daily")) === day) return { sent: 0 };
+    await this.store.put("daily", day);
+    const subs = [...(await this.store.list({ prefix: "sub:" })).entries()].filter(([, s]) => gen(s).daily);
+    const body = items.slice(0, 3).map(x => `${x.label} ${Math.round(x.p * 100)}% (${x.match})`).join(" · ");
+    const outbox = subs.map(([key, s]) => ({ key, s, payload: { title: "⭐ Le migliori di oggi", body, tag: `daily-${day}`, url: "#/migliori" } }));
+    return this.finish(outbox, await this.keys(), { sent: 0, errors: [] }, Date.now(), Date.now(), false);
   }
 
   /* commento della partita (summary ESPN): "First Half ends" / "Match ends" arrivano subito */
@@ -248,7 +328,7 @@ export class Push {
     // partite in finestra: da 5 minuti prima del via fino a 4 ore dopo (10 nel tennis, gli orari sono indicativi)
     const live = events.filter(e => e.espn && !e.final && (() => {
       const t = Date.parse(e.date);
-      return t <= now + 5 * 60e3 && t >= now - (e.sport === "tennis" ? 10 : 4) * 3600e3;
+      return t <= now + (e.sport === "soccer" ? 80 : 5) * 60e3 && t >= now - (e.sport === "tennis" ? 10 : 4) * 3600e3;
     })());
     // chi segue cosa
     const followers = new Map();       // id partita -> [chiave abbonamento]
@@ -263,10 +343,17 @@ export class Push {
         }
       }
     }
+    // partite delle schedine salvate: si leggono per sapere l'esito (gli avvisi di gol ecc. solo se seguite)
+    const slipPoll = new Set();
+    for (const [, s] of subs) if (gen(s).slips) for (const sl of s.mine?.slips || []) for (const l of sl.legs) slipPoll.add(l.event);
     // il tennis si segue sempre (per la cronaca game per game); il resto solo se qualcuno lo segue
-    const watched = live.filter(e => followers.has(e.id) || e.sport === "tennis");
+    const watched = live.filter(e => (followers.has(e.id) || slipPoll.has(e.id) || e.sport === "tennis") && (e.sport === "soccer" ? Date.parse(e.date) <= now + 5 * 60e3 || followers.has(e.id) : true));
     status.watched = watched.length;
-    if (!watched.length) { await this.store.put("status", status); return status; }
+    const outbox = [];
+    const subMap = new Map(subs);
+    const keys = await this.keys();
+    await this.extras(subs, events, live, followers, outbox, now, status);
+    if (!watched.length) { await this.slipResults(subs, events, {}, outbox, now); return this.finish(outbox, keys, status, now, t0); }
     // un tabellone per competizione
     const groups = new Map();
     for (const e of watched) {
@@ -289,9 +376,6 @@ export class Push {
     });
     const ids = Object.keys(snaps);
     const prevMap = ids.length ? await this.store.get(ids.map(id => "st:" + id)) : new Map();
-    const keys = await this.keys();
-    const subMap = new Map(subs);
-    const outbox = [];
     const byId = new Map(watched.map(e => [e.id, e]));
     const logs = {};
     for (const id of ids) {
@@ -327,6 +411,11 @@ export class Push {
       }
     }
     await this.store.put({ ...Object.fromEntries(ids.map(id => ["st:" + id, snaps[id]])), ...logs });
+    await this.slipResults(subs, events, snaps, outbox, now);
+    return this.finish(outbox, keys, status, now, t0);
+  }
+
+  async finish(outbox, keys, status, now, t0, save = true) {
     // invio (al massimo 40 per minuto: il resto lo coprirebbe il minuto dopo, ma qui conta la diretta)
     const origin = await this.store.get("origin") || "https://pronostici.pages.dev";
     // in ordine (gol prima del fischio finale), un telefono alla volta in parallelo
@@ -349,7 +438,7 @@ export class Push {
     }
     status.ms = Date.now() - t0;
     status.errors = status.errors.slice(0, 10);
-    await this.store.put("status", status);
+    if (save) await this.store.put("status", status);
     return status;
   }
 }

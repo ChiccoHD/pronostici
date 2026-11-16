@@ -507,6 +507,7 @@ function fixture(e) {
   if (state.mk && mkValue(e) != null) sub.push(`<span class="mk-hit">${esc(mkLabel(e))} <b>${pct(mkValue(e))}</b></span>`);
   for (const [k, v] of Object.entries(e.extra || {})) if (v != null && !state.mk) sub.push(`${esc(line(k))} <b>${pct(v)}</b>`);
   if (e.sport === "nba" && e.exp_score) sub.push(`atteso <b>${Math.round(e.exp_score[0])}–${Math.round(e.exp_score[1])}</b>`);
+  if (e.out && (e.out[0].length || e.out[1].length)) sub.push(`<span class="out-tag">🚑 fuori ${esc([...e.out[0], ...e.out[1]].map(lastName).join(", "))}</span>`);
   if (e.sport === "tennis" && e.surface) sub.push(surfaceIt(e.surface));
   if (e.book) {
     const gap = Math.max(...e.main.map((p, i) => Math.abs(p - (e.book[i] ?? p))));

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T10:08+00:00",
+ "updated": "2026-11-16T11:53+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -167,7 +167,7 @@
     "storico": "12417 incontri (+0)",
     "espn": "16 incontri in programma"
    },
-   "aggiornato": "2026-11-16T10:08+00:00"
+   "aggiornato": "2026-11-16T11:53+00:00"
   },
   "coppe": {
    "uomini": {
@@ -256,7 +256,11 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-16T10:08+00:00"
+   "aggiornato": "2026-11-16T11:53+00:00"
+  },
+  "archivio": {
+   "partite": 171,
+   "nuove": 0
   }
  }
 }

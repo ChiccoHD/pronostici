@@ -1047,3 +1047,17 @@ body.has-slipbar #toast { bottom: calc(132px + env(safe-area-inset-bottom)); }
 .ar-day .fx { pointer-events: none; }
 b.good { color: var(--go); } b.bad { color: #e8833a; }
 .out-tag { color: #e8833a; font-weight: 700; }
+
+/* ===== Colori delle squadre ===== */
+/* riga della partita: striscia a sinistra con i due colori (casa sopra, ospiti sotto) */
+.fx.tc { position: relative; overflow: hidden; }
+.fx.tc::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, var(--ch) 0 50%, var(--ca) 50% 100%); }
+/* scheda della partita: sfumatura dei colori ai due lati, stemmi con il bordo della squadra */
+.board.tc { background:
+  radial-gradient(120% 90% at 0% 30%, color-mix(in srgb, var(--ch) 26%, transparent), transparent 60%),
+  radial-gradient(120% 90% at 100% 30%, color-mix(in srgb, var(--ca) 26%, transparent), transparent 60%), var(--card); }
+.board.tc .board-t:first-child .crest { box-shadow: 0 0 0 3px var(--ch); }
+.board.tc .board-t:last-child .crest { box-shadow: 0 0 0 3px var(--ca); }
+.pbar { display: flex; gap: 2px; height: 22px; border-radius: 11px; overflow: hidden; margin: 14px 0 4px; }
+.pbar span { display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; white-space: nowrap; overflow: hidden; min-width: 0; }
+.board.tc .board-t .crest { border-radius: 50%; }

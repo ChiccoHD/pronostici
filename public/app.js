@@ -513,7 +513,7 @@ function fixture(e) {
     const gap = Math.max(...e.main.map((p, i) => Math.abs(p - (e.book[i] ?? p))));
     if (gap >= 0.07) sub.push(`<span class="gap">${Math.round(gap * 100)} punti dalle quote</span>`);
   }
-  return `<a class="fx" href="#/e/${encodeURIComponent(e.id)}">
+  return `<a class="fx tc" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid">
       <div class="fx-t ${pH >= pA ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span>${esc(e.home)}</span></div>
@@ -540,7 +540,7 @@ function fixtureDone(e) {
     verdict += `<span>${over ? "Over" : "Under"} 2,5 <b>${pct(over ? p : 1 - p)}</b></span>`;
   }
   if (!f.void && e.sport === "tennis" && f.sets) verdict += `<span>${f.sets[0].map((g, i) => `${g}-${f.sets[1][i]}`).join(" ")}</span>`;
-  return `<a class="fx done" href="#/e/${encodeURIComponent(e.id)}">
+  return `<a class="fx done tc" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-time">${f.void ? "–" : "Finale"}<small>${fmtTime(e.date, e.time_valid)}</small></div>
     <div class="fx-mid">
       <div class="fx-t ${wH ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span>${sc("h")}</div>
@@ -614,10 +614,16 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     return `<${href ? `a href="${href}"` : "div"} class="board-t ${href ? "linked" : ""}"><span class="crest">${crest(t, c)}</span>
     <div class="board-name">${esc(t.name)}${href ? `<span class="tl-arrow">›</span>` : ""}</div>${sub ? `<div class="board-sub">${sub}</div>` : ""}</${href ? "a" : "div"}>`; };
   const when = `${fmtDay(d.date).label}, ${fmtTime(d.date, d.time_valid)}`;
-  return `<div class="board">
+  // barra delle probabilità con i colori delle squadre (1 / X / 2)
+  const segs = probs.map((p, i) => {
+    const c = probs.length === 3 ? [cH, "var(--ink-3)", cA][i] : [cH, cA][i];
+    return `<span style="flex:${Math.max(p, 0.04)};background:${c};color:${probs.length === 3 && i === 1 ? "var(--card)" : onColor(c)}">${p >= 0.12 ? `${esc(labels[i])} ${pct(p)}` : ""}</span>`;
+  }).join("");
+  return `<div class="board tc" style="--ch:${cH};--ca:${cA}">
     <div class="board-meta"><span class="bm-txt"><b>${esc(d.league_name)}</b><span>${esc(when)}</span></span>
       ${typeof bellBtn === "function" && !d.final ? bellBtn({ id: d.id, sport: d.sport, date: d.date, home: d.home.name, away: d.away.name, league_name: d.league_name }) : ""}</div>
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
+    <div class="pbar" aria-hidden="true">${segs}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
     ${bookGap(probs, book, favLabels)}

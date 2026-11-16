@@ -1108,3 +1108,19 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 .info-tabs a.has-news::after { top: 8px; right: 8px; box-shadow: 0 0 0 2px var(--card); }
 @media (min-width: 600px) { .info-tabs { grid-template-columns: repeat(4, 1fr); } }
 .info-tabs a.has-news { padding-right: 18px; }
+/* tennis in diretta: colonne con il numero del set, "Set vinti" staccata dai game, riepilogo a parole */
+.tb-head i { line-height: 1.1; }
+.tb-head i small { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.tb-row { grid-template-columns: 20px minmax(0, 1fr) repeat(var(--n, 3), 34px) 40px; }
+.tb-row > .tb-tot { margin-left: 6px; position: relative; }
+.tb-row > b.tb-tot { background: var(--go); color: #fff; }
+.tb-row > b.tb-tot::before, .tb-head i.tb-tot::before { content: ""; position: absolute; left: -5px; top: -4px; bottom: -4px; border-left: 1.5px dashed var(--line, rgba(127,127,127,.35)); }
+.tb-head i.tb-tot { position: relative; color: var(--go-ink, var(--go)); }
+.tb-row > b.l { opacity: .75; }
+.tb-says { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line, rgba(127,127,127,.2)); display: grid; gap: 6px; }
+.tb-say { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; }
+.tb-say > span { color: var(--ink-3); font-weight: 600; min-width: 112px; }
+.tb-say > b { font-weight: 700; }
+.tb-say.cur > span, .tb-say.cur > b { color: #e0352b; }
+.tb-say small { color: var(--ink-3); font-size: 12px; }
+.tboard.compact .tb-row { grid-template-columns: 18px minmax(0, 1fr) repeat(var(--n, 3), 26px) 30px; }

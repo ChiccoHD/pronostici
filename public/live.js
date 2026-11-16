@@ -248,7 +248,9 @@ function tennisInfo(tg, evs) {
 function tennisBoard(info, compact = false) {
   const n = Math.max(info.sets[0].length, info.sets[1].length, 1);
   const cur = info.state === "in" ? Math.min(info.period || n, n) - 1 : -1;
-  const head = `<div class="tb-row tb-head"><span></span>${Array.from({ length: n }, (_, k) => `<i class="${k === cur ? "cur" : ""}">${k === cur ? "in corso" : `${k + 1}° set`}</i>`).join("")}<i class="tb-tot">Set</i></div>`;
+  // intestazione: ogni colonna dice di che set è; quella del set in corso dice anche "ora"; l'ultima conta i set vinti
+  const head = `<div class="tb-row tb-head"><i></i><span></span>${Array.from({ length: n }, (_, k) =>
+    `<i class="${k === cur ? "cur" : ""}">${k + 1}° set${k === cur ? "<small>ora</small>" : ""}</i>`).join("")}<i class="tb-tot">Set<small>vinti</small></i></div>`;
   const row = (p, i) => {
     const cells = Array.from({ length: n }, (_, k) => {
       const g = info.sets[i][k], t = info.tb?.[i]?.[k];
@@ -258,7 +260,26 @@ function tennisBoard(info, compact = false) {
     const lead = info.winner === i;
     return `<div class="tb-row ${lead ? "winner" : ""}"><i class="tb-fl">${img(p.flag, "tflag")}</i><span>${esc(compact ? lastName(p.name) : p.name)}${lead ? " ✓" : ""}</span>${cells}<b class="tb-tot">${info.won[i]}</b></div>`;
   };
-  return `<div class="tboard ${compact ? "compact" : ""}" style="--n:${n}">${compact ? "" : head}${row(info.home, 0)}${row(info.away, 1)}</div>`;
+  // a parole, sotto il tabellone: com'è finito ogni set e a quanto sta quello in corso
+  let say = "";
+  if (!compact) {
+    const nm = [lastName(info.home.name), lastName(info.away.name)];
+    const lines = [];
+    for (let k = 0; k < n; k++) {
+      const a = info.sets[0][k], b = info.sets[1][k];
+      if (a == null && b == null) continue;
+      if (k === cur) {
+        lines.push(`<div class="tb-say cur"><span>${k + 1}° set, in corso</span><b>${esc(nm[0])} ${a ?? 0} – ${b ?? 0} ${esc(nm[1])}</b><small>game</small></div>`);
+      } else {
+        const w = info.setWin?.[k] ?? (a > b ? 0 : b > a ? 1 : null);
+        if (w == null) continue;
+        const t = info.tb?.[0]?.[k] != null || info.tb?.[1]?.[k] != null ? ` (tie-break ${info.tb?.[0]?.[k] ?? 0}-${info.tb?.[1]?.[k] ?? 0})` : "";
+        lines.push(`<div class="tb-say"><span>${k + 1}° set</span><b>vinto da ${esc(nm[w])} ${w === 0 ? `${a}-${b}` : `${b}-${a}`}${t}</b></div>`);
+      }
+    }
+    if (lines.length) say = `<div class="tb-says">${lines.join("")}</div>`;
+  }
+  return `<div class="tboard ${compact ? "compact" : ""}" style="--n:${n}">${compact ? "" : head}${row(info.home, 0)}${row(info.away, 1)}${say}</div>`;
 }
 
 /* cronaca del tennis, game per game. La registra il Worker ogni minuto per tutti gli incontri in corso

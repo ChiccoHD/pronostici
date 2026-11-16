@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-16", t: "Tennis in diretta più chiaro", items: [
+    "Il riquadro In diretta indica il numero di ogni set (con \"ora\" su quello in corso) e la colonna \"Set vinti\" è separata dai game.",
+    "Sotto il tabellone, a parole: chi ha vinto ogni set e con che punteggio, e a quanto sta il set in corso." ] },
   { d: "2026-11-16", t: "Forma dei tennisti", items: [
     "Nella scheda di un incontro di tennis c'è la sezione Forma, come per calcio e basket: ultimi 5, 10 o 15 incontri con vinte e perse, set, game vinti, vittorie senza perdere set e tie-break.",
     "\"Filtra per giocata\" ora sta sotto il calendario." ] },

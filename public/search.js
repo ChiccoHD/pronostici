@@ -36,7 +36,7 @@ async function showSearch() {
     <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="search-q" type="search" inputmode="search" autocomplete="off" placeholder="Squadra, tennista, campionato…" value="${esc(SEARCH.q)}" aria-label="Cerca">
       <button type="button" class="search-x" aria-label="Cancella" ${SEARCH.q ? "" : "hidden"}>×</button></div>
-    <div id="search-res"></div>`;
+    <div id="srch-res"></div>`;
   const inp = document.getElementById("search-q"), x = $app.querySelector(".search-x");
   let t = null;
   inp.oninput = () => { SEARCH.q = inp.value; x.hidden = !inp.value; clearTimeout(t); t = setTimeout(searchRender, 120); };
@@ -47,7 +47,7 @@ async function showSearch() {
 }
 
 function searchRender() {
-  const box = document.getElementById("search-res");
+  const box = document.getElementById("srch-res");
   if (!box) return;
   const q = SEARCH.q.trim();
   if (q.length < 2) {

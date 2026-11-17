@@ -1163,3 +1163,37 @@ body[data-view="cerca"] .search-btn { background: var(--go); color: #fff; border
 .live-box .live-probs .live-sub { flex: 1 1 100%; }
 .live-row .lp-grid, .live-row .lp-next { display: none; }
 .live-box .lp-short { display: none; }
+/* calendario: giorni passati più tenui */
+.days button.is-past:not([aria-pressed="true"]) { opacity: .7; }
+/* classifica nella scheda della partita */
+.mtable { display: grid; gap: 2px; }
+.mt-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 34px 40px 38px; align-items: center; gap: 4px; padding: 7px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; font-size: 13.5px; }
+.mt-row > span, .mt-row > b { text-align: center; font-variant-numeric: tabular-nums; }
+.mt-row > span { color: var(--ink-2); }
+.mt-row > i { font-style: normal; font-weight: 800; color: var(--ink-3); text-align: center; }
+.mt-n { display: flex !important; align-items: center; gap: 7px; text-align: left !important; color: var(--ink) !important; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mt-n .tlogo { width: 20px; height: 20px; flex: none; }
+.mt-head { font-size: 11.5px; font-weight: 700; padding-top: 0; padding-bottom: 2px; }
+.mt-head > * { color: var(--ink-3) !important; }
+.mt-home, .mt-away { background: color-mix(in srgb, var(--tc) 16%, var(--card)); box-shadow: inset 4px 0 0 var(--tc); font-weight: 800; }
+.mt-home > i, .mt-away > i { color: var(--ink); }
+.mt-gap { text-align: center; color: var(--ink-3); font-size: 12px; padding: 1px 0; }
+.mt-grp { font-size: 12px; font-weight: 800; color: var(--ink-2); margin: 8px 0 2px 4px; }
+.mt-all { display: block; text-align: right; margin-top: 8px; font-weight: 700; font-size: 13.5px; color: var(--go); text-decoration: none; }
+/* calendario: giorni passati più tenui */
+.days button.is-past:not([aria-pressed="true"]) { opacity: .7; }
+/* classifica nella scheda della partita */
+.mtable { display: grid; gap: 2px; }
+.mt-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 34px 40px 38px; align-items: center; gap: 4px; padding: 7px 8px; border-radius: 10px; color: var(--ink); text-decoration: none; font-size: 13.5px; }
+.mt-row > span, .mt-row > b { text-align: center; font-variant-numeric: tabular-nums; }
+.mt-row > span { color: var(--ink-2); }
+.mt-row > i { font-style: normal; font-weight: 800; color: var(--ink-3); text-align: center; }
+.mt-n { display: flex !important; align-items: center; gap: 7px; text-align: left !important; color: var(--ink) !important; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mt-n .tlogo { width: 20px; height: 20px; flex: none; }
+.mt-head { font-size: 11.5px; font-weight: 700; padding-top: 0; padding-bottom: 2px; }
+.mt-head > * { color: var(--ink-3) !important; }
+.mt-home, .mt-away { background: color-mix(in srgb, var(--tc) 16%, var(--card)); box-shadow: inset 4px 0 0 var(--tc); font-weight: 800; }
+.mt-home > i, .mt-away > i { color: var(--ink); }
+.mt-gap { text-align: center; color: var(--ink-3); font-size: 12px; padding: 1px 0; }
+.mt-grp { font-size: 12px; font-weight: 800; color: var(--ink-2); margin: 8px 0 2px 4px; }
+.mt-all { display: block; text-align: right; margin-top: 8px; font-weight: 700; font-size: 13.5px; color: var(--go); text-decoration: none; }

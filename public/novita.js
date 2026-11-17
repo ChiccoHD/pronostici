@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Classifica nella partita e giorni passati", items: [
+    "Nella scheda di una partita di campionato o NBA c'è la classifica con le due squadre evidenziate e le squadre vicine; da lì si apre quella completa.",
+    "Nel calendario dell'elenco ci sono anche ieri e i giorni prima: toccali per vedere le partite finite con il risultato." ] },
   { d: "2026-11-17", t: "Probabilità in diretta, Cerca, calendario e immagini", items: [
     "Durante la partita le percentuali si aggiornano con il punteggio: nel calcio anche Over, Goal, doppia chance e chi segna il prossimo gol; nel tennis chi vince adesso, dai set e dai game.",
     "Nelle schedine ogni giocata in corso mostra \"ora X%\" e le schedine salvate dicono quanto hanno di passare adesso.",

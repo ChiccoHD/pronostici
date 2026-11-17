@@ -199,3 +199,48 @@ function roundIt(r) {
     "Semifinals": "Semifinale", "Quarterfinals": "Quarti", "Finals": "Finale" };
   return map[s] || s.replace("Qualifying", "Qualificazioni");
 }
+
+/* ------------------------------------------------------------------ classifica nella scheda della partita
+   Le righe intorno alle due squadre (due sopra e due sotto ciascuna), evidenziate con il loro colore;
+   il resto si apre con "Tutta la classifica". NBA: la conference di ciascuna squadra. */
+async function matchTable(d) {
+  if (!["soccer", "nba"].includes(d.sport) || !d.home?.id || !d.away?.id) return "";
+  const lk = d.home.lk || d.league;
+  if (!lk || lk !== (d.away.lk || d.league) || !TABLE_LEAGUES.some(([k]) => k === lk)) return "";
+  const L = await leagueData(lk);
+  const tab = L?.table || [];
+  const hi = { [d.home.id]: "home", [d.away.id]: "away" };
+  if (!tab.some(r => hi[r.id])) return "";
+  const nba = d.sport === "nba";
+  const groups = nba ? [...new Set(tab.filter(r => hi[r.id]).map(r => r.group))] : [null];
+  const [cH, cA] = teamColors(d.home, d.away);
+  const head = nba ? `<span>V</span><span>P</span><span>%</span>` : `<span>G</span><span>DR</span><span>Pt</span>`;
+  const cells = r => nba ? `<span>${r.w}</span><span>${r.l}</span><span>${num(r.pct * 100, 0)}</span>`
+    : `<span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><b>${r.pts}</b>`;
+  const block = g => {
+    const rows = tab.filter(r => !nba || r.group === g);
+    const keep = new Set();
+    rows.forEach((r, i) => { if (hi[r.id]) for (let k = i - 2; k <= i + 2; k++) if (k >= 0 && k < rows.length) keep.add(k); });
+    if (!nba) { keep.add(0); }                                    // la prima resta sempre in vista
+    let out = "", last = -1;
+    rows.forEach((r, i) => {
+      if (!keep.has(i)) return;
+      if (last >= 0 && i > last + 1) out += `<div class="mt-gap">⋯</div>`;
+      last = i;
+      const side = hi[r.id];
+      out += `<a class="mt-row ${side ? "mt-" + side : ""}" href="${teamHref(lk, r.id)}" ${side ? `style="--tc:${side === "home" ? cH : cA}"` : ""}>
+        <i>${r.pos}</i><span class="mt-n">${r.logo ? img(r.logo, "tlogo") : ""}${esc(nba ? r.name : r.short || r.name)}</span>${cells(r)}</a>`;
+    });
+    if (last < rows.length - 1) out += `<div class="mt-gap">⋯ fino al ${rows.length}°</div>`;
+    return `${nba ? `<div class="mt-grp">Conference ${esc(g)}</div>` : ""}<div class="mt-row mt-head"><i>#</i><span class="mt-n">Squadra</span>${head}</div>${out}`;
+  };
+  const gap = (() => {
+    if (nba) return "";
+    const h = tab.find(r => r.id === d.home.id), a = tab.find(r => r.id === d.away.id);
+    if (!h || !a) return "";
+    const diff = Math.abs(h.pts - a.pts), top = h.pts >= a.pts ? h : a;
+    return diff ? `${esc(top.short || top.name)} è avanti di ${diff} ${diff === 1 ? "punto" : "punti"}` : "Sono appaiate";
+  })();
+  return sec(`Classifica ${esc(L.name || "")}`, `<div class="mtable">${groups.map(block).join("")}</div>
+    <a class="mt-all" href="#/classifiche/${encodeURIComponent(lk)}">Tutta la classifica ›</a>`, gap, "Classifica");
+}

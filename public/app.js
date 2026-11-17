@@ -326,9 +326,10 @@ function route() {
 /* filtro per data: chiave giorno in ora italiana (AAAA-MM-GG) */
 const isoDay = iso => new Date(iso).toLocaleDateString("sv-SE", { timeZone: TZ });
 function dayChipLabel(key) {
-  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5);
+  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5), yest = isoDay(Date.now() - 864e5);
   if (key === today) return "Oggi";
   if (key === tom) return "Domani";
+  if (key === yest) return "Ieri";
   const d = new Date(key + "T12:00:00");
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -338,16 +339,16 @@ function dayChips(items, getDate, what = "partite", done = 0) {
   for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
   const keys = Object.keys(counts).sort();
   if (state.day !== "all" && !counts[state.day] && !(state.day === "done" && done)) state.day = "all";
-  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5);
+  const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5), yest = isoDay(Date.now() - 864e5);
   const cnt = n => what ? `<small>${n} ${what}</small>` : "";
   const chip = k => {
     const d = new Date(k + "T12:00:00");
-    const top = k === today ? "Oggi" : k === tom ? "Domani" : d.toLocaleDateString("it-IT", { weekday: "short" }).replace(".", "");
+    const top = k === today ? "Oggi" : k === tom ? "Domani" : k === yest ? "Ieri" : d.toLocaleDateString("it-IT", { weekday: "short" }).replace(".", "");
     const month = d.toLocaleDateString("it-IT", { month: "short" }).replace(".", "");
-    return `<button data-day="${k}" class="${k === today ? "is-today" : ""}" aria-pressed="${state.day === k}" aria-label="${esc(dayChipLabel(k))}, ${counts[k]} ${what || ""}">
+    return `<button data-day="${k}" class="${k === today ? "is-today" : k < today ? "is-past" : ""}" aria-pressed="${state.day === k}" aria-label="${esc(dayChipLabel(k))}, ${counts[k]} ${what || ""}">
       <span class="d-top">${esc(top)}</span><b>${d.getDate()}</b><span class="d-mon">${esc(month)}</span>${cnt(counts[k])}</button>`;
   };
-  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
+  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.filter(it => isoDay(getDate(it)) >= today).length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
 }
 if (!state.day) state.day = "all";
 
@@ -367,7 +368,9 @@ function renderList() {
   const st = state.status;
   // Tutte = da oggi in avanti (anche quelle finite oggi); Da giocare = non ancora iniziate; Concluse = con esito, dalla più recente
   const ahead = st === "next" ? nextIx : bySport.filter(e => !isPastDay(e));
-  const byDay = st === "done" ? ended : st === "live" ? [] : ahead.filter(e => state.day === "all" || isoDay(e.date) === state.day);
+  // nel calendario di Tutte ci sono anche i giorni passati (partite finite, restano tre giorni); "Tutti" resta da oggi in avanti
+  const chipItems = st === "all" ? bySport : ahead;
+  const byDay = st === "done" ? ended : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
@@ -379,7 +382,7 @@ function renderList() {
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
-  if (st === "all" || st === "next") html += dayChips(ahead, e => e.date, "partite");
+  if (st === "all" || st === "next") html += dayChips(chipItems, e => e.date, "partite");
   // filtro per giocata: sotto il calendario
   html += `<div class="mk-row">${state.mk
     ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
@@ -723,6 +726,12 @@ async function showEvent(id) {
   const rv = reviewBox(d), brd = $app.querySelector(".board");
   if (rv) brd ? brd.insertAdjacentHTML("afterend", rv) : $app.querySelector(".back")?.insertAdjacentHTML("afterend", rv);
   if (typeof eventActions === "function") { brd?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
+  // classifica con le due squadre, sotto i pulsanti (arriva un attimo dopo: il file del campionato si carica a parte)
+  if (typeof matchTable === "function") matchTable(d).then(h => {
+    if (!h || !$app.contains(brd)) return;
+    const after = $app.querySelector(".ev-acts") || brd;
+    after.insertAdjacentHTML("afterend", h);
+  }).catch(() => null);
   wire(d.sport);
   attachLive(d);
   attachLineups(d);

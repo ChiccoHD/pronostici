@@ -3,7 +3,7 @@ Uso: python -m pipeline.check_sources"""
 import logging
 import time
 import os
-from datetime import timedelta
+from datetime import date, timedelta
 
 from . import config
 from .config import ROOT, SOCCER_LEAGUES

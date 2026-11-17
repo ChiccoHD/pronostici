@@ -418,6 +418,7 @@ function showList() {
 /* riquadro "Oggi" in cima all'elenco: le tue squadre in campo, le schedine in gioco, la migliore giocata del giorno */
 function todayWidget() {
   const today = isoDay(Date.now()), cards = [];
+  let bests = "";
   const teams = typeof myTeams === "function" ? myTeams() : [];
   const mine = INDEX.events.filter(e => isoDay(e.date) === today && teams.some(t => typeof teamPlays === "function" ? teamPlays(t, e) : false))
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -433,19 +434,30 @@ function todayWidget() {
     cards.push(`<a class="tw-card tw-slip" href="#/tu"><span class="tw-k">🎟️ Schedine</span><b>${on ? `${on} in gioco` : `${slips.length} da giocare`}</b><small>${on && slips.length > on ? `e ${slips.length - on} da giocare` : "toccala per seguirle"}</small></a>`);
   }
   if (BEST) {
-    const top = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
-      .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)    // niente giocate scontate (Over 1,5…)
-      .filter(it => isoDay(it.date) === today && Date.parse(it.date) > Date.now()).sort((a, b) => b.p - a.p)[0];
-    if (top) cards.push(`<a class="tw-card tw-best" href="#/e/${encodeURIComponent(top.event)}" style="--tc:${usable(top.color) ? top.color : "#0a9b5a"}"><span class="tw-k">⭐ Migliore di oggi</span>
-      <b>${esc(top.label)} <em>${pct(top.p)}</em></b><small>${esc(top.match)}, ${esc(fmtTime(top.date, top.time_valid))}</small></a>`);
+    // la migliore di oggi per ogni sport: la giocata più probabile, senza doppia chance e linee scontate (Over 1,5…)
+    const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
+      .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
+      .filter(it => isoDay(it.date) === today && Date.parse(it.date) > Date.now());
+    const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"]];
+    const tops = SP.map(([k, ic, name, c]) => [pool.filter(it => it.sport === k).sort((a, b) => b.p - a.p)[0], ic, name, c]).filter(x => x[0]);
+    if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori di oggi</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
+      const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
+      return `<a class="twb" href="#/e/${encodeURIComponent(it.event)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
+        <span class="twb-sp"><i>${ic}</i>${name}</span>
+        <span class="twb-p"><b data-count="${Math.round(it.p * 100)}">${Math.round(it.p * 100)}</b><small>%</small></span>
+        <span class="twb-bars">${[1, 2, 3, 4].map(i => `<i class="${i <= tier ? "on" : ""}"></i>`).join("")}</span>
+        <b class="twb-l">${esc(it.label)}</b>
+        <small class="twb-m">${esc(it.match)}</small>
+        <span class="twb-f"><span>${esc(fmtTime(it.date, it.time_valid))}</span><span>quota equa <b>${odd(it.p)}</b></span></span></a>`;
+    }).join("")}</div>`;
   } else if (!todayWidget.loading) {
     todayWidget.loading = true;
-    getJSON("data/migliori.json").then(js => { BEST = js; if ((location.hash || "#/") === "#/" || location.hash.startsWith("#/e/")) { const el = document.querySelector(".tw"); if (el) el.outerHTML = todayWidget(); else if (cards.length === 0) renderListRefresh(); } }).catch(() => null);
+    getJSON("data/migliori.json").then(js => { BEST = js; if ((location.hash || "#/") === "#/" || location.hash.startsWith("#/e/")) { const el = document.querySelector(".tw"); if (el) { el.outerHTML = todayWidget(); countUp(document.querySelector(".tw") || document); } } }).catch(() => null);
   }
-  if (!cards.length) return `<div class="tw" hidden></div>`;
+  if (!cards.length && !bests) return `<div class="tw" hidden></div>`;
   const h = new Date().getHours();
   return `<section class="tw"><div class="tw-h"><b>${h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera"}${load("name", "") ? `, ${esc(load("name", ""))}` : ""}</b><span>ecco la tua giornata</span></div>
-    <div class="tw-row">${cards.join("")}</div></section>`;
+    ${bests}${cards.length ? `<div class="tw-row">${cards.join("")}</div>` : ""}</section>`;
 }
 function renderListRefresh() { const el = document.querySelector(".tw"); if (el) el.outerHTML = todayWidget(); }
 
@@ -528,7 +540,7 @@ function renderList() {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
-  requestAnimationFrame(centerDays);
+  requestAnimationFrame(centerDays); countUp(document.querySelector(".tw") || $app);
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
   $app.querySelectorAll("[data-mk-open]").forEach(b => b.onclick = showMarketSheet);
   $app.querySelectorAll("[data-mk-clear]").forEach(b => b.onclick = () => { state.mk = null; showList(); });
@@ -735,8 +747,8 @@ function formChart(hName, aName, cH, cA, hSeq, aSeq) {
   const grid = [0.25, 0.5, 0.75, 1].map(f => `<line x1="${P}" x2="${W - P}" y1="${Y(max * f)}" y2="${Y(max * f)}" class="fc-grid"/>`).join("");
   const unit = soccer ? "punti" : "vittorie";
   return `<div class="fchart"><div class="fc-head"><span>Andamento: ${unit} nelle ultime ${n}</span>
-      <span><b style="color:${cH}">${ch[ch.length - 1]}</b> · <b style="color:${cA}">${ca[ca.length - 1]}</b></span></div>
-    <svg viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none" role="img" aria-label="Andamento della forma: ${esc(hName)} ${ch[ch.length - 1]} ${unit}, ${esc(aName)} ${ca[ca.length - 1]}">${grid}${line(ca, cA)}${line(ch, cH)}</svg>
+      <span><b style="color:${cH}">${ch[ch.length - 1]}</b>${A.length ? ` · <b style="color:${cA}">${ca[ca.length - 1]}</b>` : ""}</span></div>
+    <svg viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none" role="img" aria-label="Andamento della forma: ${esc(hName)} ${ch[ch.length - 1]} ${unit}, ${esc(aName)} ${ca[ca.length - 1]}">${grid}${A.length ? line(ca, cA) : ""}${line(ch, cH)}</svg>
     <div class="fc-axis"><span>${n} partite fa</span><span>ultima</span></div></div>`;
 }
 function vsTable(hName, aName, cH, cA, lines) {

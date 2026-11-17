@@ -1436,3 +1436,49 @@ body[data-view="cerca"] .search-btn { background: var(--go); color: #fff; border
 .me-badge.ok:nth-child(2) { animation-delay: .05s; } .me-badge.ok:nth-child(3) { animation-delay: .1s; } .me-badge.ok:nth-child(4) { animation-delay: .15s; }
 @keyframes badge-in { from { opacity: 0; transform: scale(.7); } }
 @media (prefers-reduced-motion: reduce) { .page-in, .goal-burst, .me-badge.ok { animation: none; } .goal-burst { display: none; } }
+/* le migliori di oggi, una per sport */
+.tw-best-h { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); margin: 0 2px 6px; }
+.tw-bests { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 8px; }
+.tw-bests::-webkit-scrollbar { display: none; }
+.twb { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 11px 12px 10px; border-radius: 18px; color: var(--ink); text-decoration: none; overflow: hidden;
+  background: radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--tc) 40%, transparent), transparent 65%), linear-gradient(165deg, color-mix(in srgb, var(--sc) 22%, var(--card)), var(--card) 80%);
+  border: 1px solid color-mix(in srgb, var(--sc) 40%, var(--rule)); box-shadow: 0 8px 20px -14px var(--sc); transition: transform .15s; }
+.twb:active { transform: scale(.97); }
+.twb-sp { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--sc); }
+.twb-sp i { font-style: normal; font-size: 16px; }
+.twb-p { display: flex; align-items: baseline; margin-top: 2px; }
+.twb-p b { font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.twb-p small { font-size: 16px; color: var(--ink-2); font-weight: 700; }
+.twb-bars { display: flex; gap: 3px; }
+.twb-bars i { width: 12px; height: 5px; border-radius: 3px; background: var(--soft-2); }
+.twb-bars i.on { background: var(--sc); }
+.twb-l { font-size: 14px; line-height: 1.25; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.twb-m { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.twb-f { display: flex; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 6px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--ink-3); }
+.twb-f b { color: var(--ink); }
+/* pagina squadra: compatta */
+.team-hero { --tc: #0a9b5a; padding: 14px; text-align: left; overflow: hidden;
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--tc) 45%, transparent), transparent 60%), linear-gradient(160deg, color-mix(in srgb, var(--tc) 18%, var(--card)), var(--card) 70%); }
+.tp-top { display: flex; align-items: center; gap: 14px; }
+.tp-logo { flex: none; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.92); box-shadow: 0 6px 18px -8px rgba(0,0,0,.5); }
+.tp-logo img { width: 54px; height: 54px; object-fit: contain; }
+.tp-logo .mono { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 22px; }
+.tp-id { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tp-id .th-lg { margin: 0; }
+.tp-id h1 { margin: 0; font-size: 23px; line-height: 1.1; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.tp-form { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.tp-form small { font-size: 11px; color: var(--ink-3); }
+.tp-form .f { width: 20px; height: 20px; font-size: 11px; }
+.tp-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
+.tp-tile { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 2px; border-radius: 12px; background: color-mix(in srgb, var(--card) 70%, transparent); border: 1px solid var(--rule); text-align: center; }
+.tp-tile b { font-size: 18px; font-weight: 800; line-height: 1.15; white-space: nowrap; }
+.tp-tile b small { font-size: 11px; color: var(--ink-3); }
+.tp-tile span { font-size: 10.5px; color: var(--ink-2); font-weight: 600; line-height: 1.15; }
+.tp-acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.tp-acts .follow { margin: 0; justify-content: center; width: 100%; padding: 8px 6px; font-size: 13px; }
+.tp-act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border-radius: 999px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); font-weight: 700; font-size: 13px; text-decoration: none; }
+.tp-act svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--go); }
+.tp-next { margin: 10px 0 2px; }
+.tp-next-k { display: block; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); margin: 0 4px 6px; }
+.tp-pane { padding-top: 6px; }
+.tp-pane .fchart { margin-top: 12px; }

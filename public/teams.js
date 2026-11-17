@@ -85,18 +85,25 @@ async function showTeam(lk, id) {
   const c = usable(T.color ? "#" + String(T.color).replace("#", "") : null) ? "#" + String(T.color).replace("#", "") : usable(T.alt ? "#" + String(T.alt).replace("#", "") : null) ? "#" + String(T.alt).replace("#", "") : "#6d5a6b";
   const S = T.season || {};
   const rec = nba ? `${T.record.w} vinte, ${T.record.l} perse` : `${S.w ?? 0} vinte, ${S.d ?? 0} pari, ${S.l ?? 0} perse`;
-  const lgName = `<span class="th-lg">${leagueMark(lk)}${esc(L.name)}</span>`;
-  const posTxt = nba ? `${T.pos}ª nella Conference ${T.group}` : `${T.pos}ª in ${L.name}, ${T.pts} punti`;
-  const head = `<div class="board team-head"><div class="th-logo">${T.logo ? img(T.logo, "") : `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(T.name))}</span>`}</div>
-    ${lgName}<h1>${esc(T.name)}</h1><div class="th-sub">${esc(posTxt)}</div><div class="th-sub">${esc(rec)}</div>
-    <div class="th-form">${formSeq((T.form5?.seq || []).slice(0, 5))}<small>ultime 5, la più recente a sinistra</small></div>
-    <div style="margin-top:10px">${followBtn({ kind: "team", lk, id: T.id, name: T.name, short: T.short, logo: T.logo })}</div>
-    <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a>
-    <a class="th-link" href="#/confronta/${encodeURIComponent(`t:${lk}:${T.id}`)}">⚖️ Confronta con un'altra squadra ›</a></div>`;
+  // intestazione compatta: logo e nome affiancati sul colore della squadra, numeri in riquadri, azioni in una riga
+  const tile = (v, l) => `<div class="tp-tile"><b>${v}</b><span>${l}</span></div>`;
+  const tiles = nba
+    ? tile(`${T.pos}<small>ª</small>`, `Conference ${esc(T.group)}`) + tile(`${T.record.w}-${T.record.l}`, "vinte-perse") + tile(num(S.pf, 1), "punti fatti") + tile(num(S.pa, 1), "punti subiti")
+    : tile(`${T.pos}<small>ª</small>`, "in classifica") + tile(T.pts, "punti") + tile(`${S.w ?? 0}-${S.d ?? 0}-${S.l ?? 0}`, "V-N-P") + tile(`${num(S.gf, 1)}<small>/</small>${num(S.ga, 1)}`, "gol fatti/subiti");
+  const ICON = { cls: '<path d="M5 20V10M12 20V4M19 20v-7"/>', cmp: '<path d="M12 4v16M5 8h14M7 8l-3 6h6zM17 8l-3 6h6z"/>' };
+  const head = `<div class="board team-hero" style="--tc:${c}">
+    <div class="tp-top"><div class="tp-logo">${T.logo ? img(T.logo, "") : `<span class="mono" style="background:${c};color:${onColor(c)}">${esc(initials(T.name))}</span>`}</div>
+      <div class="tp-id"><span class="th-lg">${leagueMark(lk)}${esc(L.name)}</span><h1>${esc(T.name)}</h1>
+        <div class="tp-form">${formSeq((T.form5?.seq || []).slice(0, 5))}<small>ultime 5</small></div></div></div>
+    <div class="tp-tiles">${tiles}</div>
+    <div class="tp-acts">${followBtn({ kind: "team", lk, id: T.id, name: T.name, short: T.short, logo: T.logo })}
+      <a class="tp-act" href="#/classifiche/${encodeURIComponent(lk)}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON.cls}</svg>Classifica</a>
+      <a class="tp-act" href="#/confronta/${encodeURIComponent(`t:${lk}:${T.id}`)}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON.cmp}</svg>Confronta</a></div>
+  </div>`;
 
   // prossime partite (anche di coppa): dall'elenco delle partite in programma
   const next = INDEX.events.filter(e => teamPlays({ ...T, lk }, e));
-  const nextHtml = next.length ? next.map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna partita nei prossimi giorni.</p>`;
+  const upcoming = next.filter(e => !e.final), nextHtml = upcoming.length ? upcoming.map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna partita nei prossimi giorni.</p>`;
 
   const oppName = o => nba ? ((L.names || {})[o] || o) : o;
   const last = `<div class="rows games">${(T.last || []).map(g => `<div class="r"><span class="l">${fmtShort(g.date)}, ${g.home ? "in casa con" : "fuori con"} ${esc(oppName(g.opp))}</span>
@@ -122,13 +129,20 @@ async function showTeam(lk, id) {
       `<div class="sp-row">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${esc(p.pos || "")} · ${p.starts} da titolare</span></span>
         <span class="v ${p.tot.g >= 5 ? "hot" : ""}">${p.tot.g}</span><span class="v">${p.tot.a}</span><span class="v">${p.apps}</span><span class="v">${p.tot.yc}</span></div>`).join("");
 
-  $app.innerHTML = backBtn("Indietro") + head
-    + (T.trends?.length ? sec("Tendenze in corso", trendsList(T.trends, nba ? "nba" : "soccer") + `<p class="note">Serie aperte nelle ultime partite. Prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`, "", "Squadra tendenze") : "")
-    + sec("Prossime partite", nextHtml, "", "Squadra prossime")
-    + sec("Ultime partite", last, "", "Squadra ultime")
-    + sec("In stagione", stats, "", "Squadra stagione")
-    + sec(nba ? "Giocatori, medie a partita" : "Giocatori in stagione", plHtml, nba ? "" : "in campionato", "Squadra giocatori")
+  // la prossima partita subito sotto l'intestazione, il resto in schede (niente sezioni chiuse da aprire una a una)
+  const first = upcoming[0];
+  const nextBox = first ? `<div class="tp-next"><span class="tp-next-k">Prossima partita</span><section class="group">${fixture(first)}</section></div>` : "";
+  const box = (inner, note = "") => `<section class="sec tp-pane">${inner}${note}</section>`;
+  const tabs = [
+    ["partite", "Partite", box(`${upcoming.length > 1 ? `<h3 class="lb-h3">In programma</h3>${upcoming.slice(1).map(e => `<section class="group">${fixture(e)}</section>`).join("")}` : ""}
+      <h3 class="lb-h3">Ultime partite</h3>${last}`)],
+    ["stagione", "Stagione", box(stats + (T.form10?.seq ? formChart(T.short || T.name, "", c, "transparent", T.form10.seq, []) : ""))],
+    ["giocatori", "Giocatori", box(plHtml, nba ? `<p class="note">Medie a partita.</p>` : `<p class="note">In campionato.</p>`)],
+  ];
+  if (T.trends?.length) tabs.push(["tendenze", "Tendenze", box(trendsList(T.trends, nba ? "nba" : "soccer"), `<p class="note">Serie aperte nelle ultime partite. Prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`)]);
+  $app.innerHTML = backBtn("Indietro") + head + nextBox + tabsView("team", tabs)
     + `<p class="note">Dati aggiornati ${esc(ago(L.updated))}.</p>`;
+  wire("team");
 }
 
 /* ------------------------------------------------------------------ squadre e giocatori preferiti */

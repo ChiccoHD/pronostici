@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Le migliori di oggi, una per sport", items: [
+    "Nel riquadro Oggi ci sono tre card, Calcio, Basket e Tennis: per ognuno la giocata di oggi con la probabilità stimata più alta, con la quota equa.",
+    "Pagina squadra più compatta: intestazione con i colori della squadra, posizione, punti e gol in riquadri, Segui/Classifica/Confronta in una riga, la prossima partita subito sotto e il resto in schede (Partite, Stagione, Giocatori, Tendenze)." ] },
   { d: "2026-11-17", t: "Tante novità: Oggi, Confronta, temi, backup", items: [
     "In cima all'elenco il riquadro Oggi: le tue squadre in campo, le schedine in gioco e la migliore giocata del giorno.",
     "Migliori: le prime 10 sono card da scorrere, con il colore della squadra e quanto è alta la stima.",

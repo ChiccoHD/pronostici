@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T15:56+00:00",
+ "updated": "2026-11-17T16:19+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -69,7 +69,7 @@
     "espn": "ok",
     "espn_tabellini": "180 partite",
     "partite_in_arrivo": 25,
-    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 42, da controllare 307"
+    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 62, senza foto 8, da controllare 279"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -143,7 +143,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-17T15:53+00:00"
+   "aggiornato": "2026-11-17T16:16+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -157,18 +157,18 @@
    },
    "partite_in_arrivo": 31,
    "partite_stagione": 205,
-   "aggiornato": "2026-11-17T15:56+00:00"
+   "aggiornato": "2026-11-17T16:19+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7747 incontri (+1)",
+    "storico": "7747 incontri (+0)",
     "espn": "7 incontri in programma"
    },
    "wta": {
-    "storico": "12426 incontri (+1)",
+    "storico": "12427 incontri (+1)",
     "espn": "9 incontri in programma"
    },
-   "aggiornato": "2026-11-17T15:56+00:00"
+   "aggiornato": "2026-11-17T16:19+00:00"
   },
   "coppe": {
    "uomini": {
@@ -228,7 +228,7 @@
     "espn_uefa.wchampions": "165 giocate, 10 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-17T15:55+00:00"
+   "aggiornato": "2026-11-17T16:18+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -248,11 +248,11 @@
    "gold-cup": "fuori stagione",
    "concacaf-nations": "5 giorni controllati",
    "amichevoli": "3 giorni controllati",
-   "risultati_recenti_da_espn": 135,
+   "risultati_recenti_da_espn": 136,
    "in_arrivo_nations-league": 8,
    "in_arrivo_qual-coppa-africa": 12,
    "in_arrivo_concacaf-nations": 9,
-   "in_arrivo_amichevoli": 11,
+   "in_arrivo_amichevoli": 10,
    "classifica_nations-league": 54,
    "classifica_mondiali": 48,
    "classifica_europei": 24,
@@ -268,15 +268,15 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-17T15:55+00:00"
+   "aggiornato": "2026-11-17T16:19+00:00"
   },
   "risultati": {
-   "esiti": "15 nuovi esiti, 4 calendari letti",
-   "aggiornato": "2026-11-17T15:56+00:00"
+   "esiti": "2 nuovi esiti, 2 calendari letti",
+   "aggiornato": "2026-11-17T16:19+00:00"
   },
   "archivio": {
-   "partite": 228,
-   "nuove": 15
+   "partite": 230,
+   "nuove": 2
   }
  }
 }

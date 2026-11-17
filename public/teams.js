@@ -6,6 +6,17 @@ const TABLE_LEAGUES = [["serie-a", "Serie A"], ["premier-league", "Premier"], ["
   ["ligue-1", "Ligue 1"], ["serie-b", "Serie B"], ["championship", "Championship"], ["eredivisie", "Eredivisie"], ["super-lig", "Süper Lig"],
   ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["nba", "NBA"]];
 const LEAGUE_DATA = new Map();
+/* nazionali con classifica a gironi (file scritto dalla pipeline solo se la competizione è in corso) */
+const NAT_TABLE_KEYS = ["nations-league", "qual-mondiali", "qual-mondiali-sudamerica", "qual-mondiali-concacaf", "qual-mondiali-asia",
+  "qual-mondiali-africa", "qual-europei", "mondiali", "europei", "copa-america", "coppa-africa", "qual-coppa-africa", "coppa-asia",
+  "gold-cup", "concacaf-nations"];
+const natName = k => (LEAGUES.soccer.find(([x]) => x === k) || [k, k])[1];
+/* quelle con partite in elenco e un file di classifica */
+async function natTables() {
+  const keys = NAT_TABLE_KEYS.filter(k => (INDEX?.events || []).some(e => e.league === k));
+  const got = await Promise.all(keys.map(async k => [k, await leagueData(k)]));
+  return got.filter(([, L]) => L?.table?.length).map(([k]) => [k, natName(k)]);
+}
 
 async function leagueData(key) {
   if (!LEAGUE_DATA.has(key)) LEAGUE_DATA.set(key, getJSON(`data/leagues/${encodeURIComponent(key)}.json`).catch(() => null));
@@ -17,9 +28,12 @@ const backBtn = label => `<button class="back" onclick="history.length > 1 ? his
 /* ------------------------------------------------------------------ classifiche */
 
 async function showStandings(key) {
-  key = TABLE_LEAGUES.some(([k]) => k === key) ? key : load("table", "serie-a");
+  const nat = await natTables();
+  const all = [...TABLE_LEAGUES, ...nat];
+  key = all.some(([k]) => k === key) ? key : load("table", "serie-a");
+  if (!all.some(([k]) => k === key)) key = "serie-a";
   save("table", key);
-  const chips = `<div class="leagues tbl-leagues" role="group" aria-label="Campionato">${TABLE_LEAGUES.map(([k, l]) =>
+  const chips = `<div class="leagues tbl-leagues" role="group" aria-label="Campionato">${all.map(([k, l]) =>
     `<a href="#/classifiche/${k}" class="chip-a" aria-pressed="${k === key}">${leagueMark(k)}${esc(l)}</a>`).join("")}</div>`;
   $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + `<p class="muted" style="padding:16px 4px">Caricamento…</p>`;
   $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
@@ -40,6 +54,14 @@ async function showStandings(key) {
           <span>${r.w}</span><span>${r.l}</span><span>${(r.pct * 100).toFixed(0)}</span>${form(r.form)}</a>`).join("")}</div>`, "", `Classifica NBA ${g}`);
     };
     body = grp("Est") + grp("Ovest") + `<p class="note">In verde le prime 6 di ogni conference (playoff diretti), in giallo dalla 7ª alla 10ª (play-in). Forma: ultime 5, la più recente a destra.</p>`;
+  } else if (L.groups) {
+    // nazionali: un riquadro per girone, niente pagina squadra
+    body = L.groups.map(g => {
+      const rows = L.table.filter(r => r.group === g);
+      return sec(esc(g), `<div class="std nat"><div class="std-r head"><span>#</span><span>Squadra</span><span>G</span><span>DR</span><span>Pt</span></div>
+        ${rows.map(r => `<div class="std-r"><span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.name)}</b></span>
+          <span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><span><b>${r.pts}</b></span></div>`).join("")}</div>`, "", `Classifica ${key} ${g}`);
+    }).join("") + `<p class="note">Classifiche ufficiali dei gironi, da ESPN. G partite giocate, DR differenza reti.</p>`;
   } else {
     body = sec(L.name, `<div class="std"><div class="std-r head"><span>#</span><span>Squadra</span><span>G</span><span>DR</span><span>Pt</span><span>Forma</span></div>
       ${L.table.map(r => `<a class="std-r" href="${teamHref(key, r.id)}"><span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.short || r.name)}</b></span>
@@ -47,7 +69,7 @@ async function showStandings(key) {
       `${L.table[0]?.p ?? 0} giornate`, `Classifica ${key}`)
       + `<p class="note">G partite giocate, DR differenza reti. Forma: ultime 5, la più recente a destra. La classifica è calcolata dai risultati: penalizzazioni e criteri di parità ufficiali possono cambiare qualche posizione.</p>`;
   }
-  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + body + `<p class="note">Tocca una squadra per la sua pagina.</p>`;
+  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + body + (L.groups ? "" : `<p class="note">Tocca una squadra per la sua pagina.</p>`);
   $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
 }
 
@@ -205,42 +227,45 @@ function roundIt(r) {
    il resto si apre con "Tutta la classifica". NBA: la conference di ciascuna squadra. */
 async function matchTable(d) {
   if (!["soccer", "nba"].includes(d.sport) || !d.home?.id || !d.away?.id) return "";
-  const lk = d.home.lk || d.league;
-  if (!lk || lk !== (d.away.lk || d.league) || !TABLE_LEAGUES.some(([k]) => k === lk)) return "";
+  const natl = d.cup === "national";
+  const lk = natl ? d.league : d.home.lk || d.league;
+  if (natl ? !NAT_TABLE_KEYS.includes(lk) : (!lk || lk !== (d.away.lk || d.league) || !TABLE_LEAGUES.some(([k]) => k === lk))) return "";
   const L = await leagueData(lk);
   const tab = L?.table || [];
   const hi = { [d.home.id]: "home", [d.away.id]: "away" };
   if (!tab.some(r => hi[r.id])) return "";
-  const nba = d.sport === "nba";
-  const groups = nba ? [...new Set(tab.filter(r => hi[r.id]).map(r => r.group))] : [null];
+  const nba = d.sport === "nba", grouped = nba || !!L.groups;
+  const groups = grouped ? [...new Set(tab.filter(r => hi[r.id]).map(r => r.group))] : [null];
   const [cH, cA] = teamColors(d.home, d.away);
   const head = nba ? `<span>V</span><span>P</span><span>%</span>` : `<span>G</span><span>DR</span><span>Pt</span>`;
   const cells = r => nba ? `<span>${r.w}</span><span>${r.l}</span><span>${num(r.pct * 100, 0)}</span>`
     : `<span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><b>${r.pts}</b>`;
   const block = g => {
-    const rows = tab.filter(r => !nba || r.group === g);
+    const rows = tab.filter(r => !grouped || r.group === g);
     const keep = new Set();
     rows.forEach((r, i) => { if (hi[r.id]) for (let k = i - 2; k <= i + 2; k++) if (k >= 0 && k < rows.length) keep.add(k); });
-    if (!nba) { keep.add(0); }                                    // la prima resta sempre in vista
+    if (!grouped) keep.add(0);                                     // la prima resta sempre in vista
+    if (L.groups) rows.forEach((r, i) => keep.add(i));               // i gironi sono corti: tutti
     let out = "", last = -1;
     rows.forEach((r, i) => {
       if (!keep.has(i)) return;
       if (last >= 0 && i > last + 1) out += `<div class="mt-gap">⋯</div>`;
       last = i;
       const side = hi[r.id];
-      out += `<a class="mt-row ${side ? "mt-" + side : ""}" href="${teamHref(lk, r.id)}" ${side ? `style="--tc:${side === "home" ? cH : cA}"` : ""}>
-        <i>${r.pos}</i><span class="mt-n">${r.logo ? img(r.logo, "tlogo") : ""}${esc(nba ? r.name : r.short || r.name)}</span>${cells(r)}</a>`;
+      const tag = natl ? "div" : "a";
+      out += `<${tag} class="mt-row ${side ? "mt-" + side : ""}" ${natl ? "" : `href="${teamHref(lk, r.id)}"`} ${side ? `style="--tc:${side === "home" ? cH : cA}"` : ""}>
+        <i>${r.pos}</i><span class="mt-n">${r.logo ? img(r.logo, "tlogo") : ""}${esc(nba ? r.name : r.short || r.name)}</span>${cells(r)}</${tag}>`;
     });
     if (last < rows.length - 1) out += `<div class="mt-gap">⋯ fino al ${rows.length}°</div>`;
-    return `${nba ? `<div class="mt-grp">Conference ${esc(g)}</div>` : ""}<div class="mt-row mt-head"><i>#</i><span class="mt-n">Squadra</span>${head}</div>${out}`;
+    return `${nba ? `<div class="mt-grp">Conference ${esc(g)}</div>` : L.groups ? `<div class="mt-grp">${esc(g)}</div>` : ""}<div class="mt-row mt-head"><i>#</i><span class="mt-n">Squadra</span>${head}</div>${out}`;
   };
   const gap = (() => {
-    if (nba) return "";
+    if (nba || (L.groups && groups.length > 1)) return "";
     const h = tab.find(r => r.id === d.home.id), a = tab.find(r => r.id === d.away.id);
     if (!h || !a) return "";
     const diff = Math.abs(h.pts - a.pts), top = h.pts >= a.pts ? h : a;
     return diff ? `${esc(top.short || top.name)} è avanti di ${diff} ${diff === 1 ? "punto" : "punti"}` : "Sono appaiate";
   })();
-  return sec(`Classifica ${esc(L.name || "")}`, `<div class="mtable">${groups.map(block).join("")}</div>
+  return sec(L.groups ? `Classifica del girone` : `Classifica ${esc(L.name || "")}`, `<div class="mtable">${groups.map(block).join("")}</div>
     <a class="mt-all" href="#/classifiche/${encodeURIComponent(lk)}">Tutta la classifica ›</a>`, gap, "Classifica");
 }

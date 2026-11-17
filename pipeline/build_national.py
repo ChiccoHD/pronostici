@@ -200,6 +200,45 @@ def build(today: date):
             n += 1
         if n:
             status[f"in_arrivo_{key}"] = n
+    # classifiche a gironi (Nations League, qualificazioni...): solo per le competizioni con partite in questi giorni
+    for key, evs in per_comp.items():
+        if key == "amichevoli" or not evs:
+            continue
+        try:
+            n = _standings(key, NATIONAL[key], known)
+            if n:
+                status[f"classifica_{key}"] = n
+        except Exception as ex:
+            log.exception("Classifica %s", key)
+            status[f"classifica_{key}"] = f"errore: {type(ex).__name__}"
     if unmatched:
         status["nazionali_senza_storico"] = sorted(unmatched)
     return index, reliability, status
+
+
+def _group_it(name: str) -> str:
+    """'League A, Group 1' -> 'Lega A, gruppo 1'; 'Group C' -> 'Gruppo C'."""
+    if name.strip().isdigit():                  # girone unico (es. Sudamerica: "2026")
+        return "Classifica"
+    s = name.replace("League", "Lega").replace("Group", "gruppo").replace("Grupo", "gruppo")
+    return s[:1].upper() + s[1:]
+
+
+def _standings(key: str, comp: dict, known: set) -> int:
+    """Scrive public/data/leagues/<competizione>.json con i gironi; restituisce quante squadre."""
+    groups = espn.group_standings("soccer", comp["espn"])
+    if not groups:
+        return 0
+    table = []
+    for g in groups:
+        gname = _group_it(g["name"])
+        for r in g["rows"]:
+            hn = to_history(r["name"], known)
+            nm = it(hn) if hn else r["name"]
+            table.append({**{k: r[k] for k in ("pos", "p", "w", "d", "l", "gf", "ga", "gd", "pts")},
+                          "id": r["id"], "name": nm, "short": nm, "abbr": r["abbr"], "logo": r["logo"],
+                          "group": gname, "note": r.get("note")})
+    store.save(PUBLIC_DATA / "leagues" / f"{key}.json", {
+        "key": key, "name": comp["name"], "sport": "soccer", "national": True, "groups": [_group_it(g["name"]) for g in groups],
+        "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"), "table": table, "teams": {}})
+    return len(table)

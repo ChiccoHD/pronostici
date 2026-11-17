@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Classifiche delle nazionali", items: [
+    "Nations League, qualificazioni e le altre competizioni a gironi hanno le classifiche ufficiali dei gironi: nella scheda della partita (il girone delle due squadre) e in Classifiche." ] },
   { d: "2026-11-17", t: "Classifica nella partita e giorni passati", items: [
     "Nella scheda di una partita di campionato o NBA c'è la classifica con le due squadre evidenziate e le squadre vicine; da lì si apre quella completa.",
     "Nel calendario dell'elenco ci sono anche ieri e i giorni prima: toccali per vedere le partite finite con il risultato." ] },

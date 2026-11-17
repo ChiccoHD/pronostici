@@ -1197,3 +1197,5 @@ body[data-view="cerca"] .search-btn { background: var(--go); color: #fff; border
 .mt-gap { text-align: center; color: var(--ink-3); font-size: 12px; padding: 1px 0; }
 .mt-grp { font-size: 12px; font-weight: 800; color: var(--ink-2); margin: 8px 0 2px 4px; }
 .mt-all { display: block; text-align: right; margin-top: 8px; font-weight: 700; font-size: 13.5px; color: var(--go); text-decoration: none; }
+.std.nat .std-r { grid-template-columns: 24px minmax(0, 1fr) 34px 40px 38px; }
+.std.nat .std-r.head > span:nth-child(2) { text-align: left; }

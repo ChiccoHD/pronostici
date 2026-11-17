@@ -777,11 +777,13 @@ function liveBox(info, d, flash = false) {
   } else {
     score = `<div class="lb-score"><span>${esc(info.home.name)}</span><b class="${flash ? "flash" : ""}">${info.H}<i>-</i>${info.A}</b><span>${esc(info.away.name)}</span></div>`;
   }
+  if (info.sport === "soccer") score += soccerTimebar(info, d);
   const lr = liveRings(info, ix);
   const probs = lr ? `<div class="live-probs">${lr.rings ? `<div class="fx-rings">${lr.rings}</div>` : ""}${lr.sub ? `<div class="live-sub">${lr.sub}</div>` : ""}</div>` : "";
   const mine = favs().filter(f => f.event === d.id);
   const slip = mine.length ? `<h3 class="lb-h3">Le tue giocate su questa partita</h3>${statusChips(mine, info)}` : "";
-  return `<section class="sec live-box">${head}${score}${probs}${slip}</section>` + liveDetails(info, d);
+  const burst = flash && info.state === "in" && info.sport === "soccer" ? `<div class="goal-burst" aria-hidden="true">GOL!</div>` : "";   // solo il gol: game e canestri sarebbero troppi
+  return `<section class="sec live-box">${burst}${head}${score}${probs}${slip}</section>` + liveDetails(info, d);
 }
 
 /* ------------------------------------------------------------------ cronaca e statistiche in diretta */
@@ -800,6 +802,22 @@ function evKind(t) {
   if (/end-regular-time|end-extra-time|full-time/.test(t)) return "end";
   return null;
 }
+/* linea del tempo 0'–90': gol e cartellini della casa sopra, degli ospiti sotto */
+function soccerTimebar(info, d) {
+  const mins = c => { const m = String(c || "").match(/(\d+)'?(?:\s*\+\s*(\d+))?/); return m ? +m[1] + (+m[2] || 0) : null; };
+  const evs = (info.events || []).map(e => ({ ...e, k: evKind(e.type), m: mins(e.clock) })).filter(e => ["goal", "own", "pen", "red", "yellow"].includes(e.k) && e.m != null);
+  const now = info.state === "in" ? Math.min(mins(info.clock) ?? 0, 120) : 90;
+  const end = Math.max(90, now, ...evs.map(e => e.m));
+  const [cH, cA] = typeof teamColors === "function" ? teamColors(d.home || {}, d.away || {}) : ["var(--go)", "var(--ink-3)"];
+  const pos = m => `${Math.min(100, 100 * m / end).toFixed(1)}%`;
+  const mark = e => `<span class="tb-mk ${e.side} k-${e.k}" style="left:${pos(e.m)}" title="${esc(e.clock)} ${esc((e.who || [])[0] || "")}">${e.k === "yellow" ? "" : e.k === "red" ? "" : "⚽"}</span>`;
+  return `<div class="tbar" style="--ch:${cH};--ca:${cA}">
+    <div class="tb-side h">${evs.filter(e => e.side === "home").map(mark).join("")}</div>
+    <div class="tb-line"><span class="tb-fill" style="width:${pos(now)}"></span><span class="tb-ht" style="left:${pos(45)}"></span></div>
+    <div class="tb-side a">${evs.filter(e => e.side === "away").map(mark).join("")}</div>
+    <div class="tb-ticks"><span>0'</span><span style="left:${pos(45)}">45'</span><span style="right:0">${end}'</span></div></div>`;
+}
+
 function soccerTimeline(info) {
   const rows = (info.events || []).map(e => ({ ...e, k: evKind(e.type) })).filter(e => e.k).reverse();
   if (!rows.length) return "";

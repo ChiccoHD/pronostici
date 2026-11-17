@@ -36,12 +36,25 @@ function showMe() {
   html += playedHtml();
 
   // dati sul telefono
-  html += sec(`${meIc("💾", "#64748b")}I tuoi dati`, `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Salvane una copia per non perderli se cambi telefono o cancelli i dati del browser.</p>
-    <div class="me-acts"><button type="button" class="btn-main" id="me-export">Salva una copia</button>
+  const bAt = load("backup_at", ""), bDays = bAt ? Math.floor((Date.now() - Date.parse(bAt)) / 864e5) : null;
+  html += sec(`${meIc("💾", "#64748b")}I tuoi dati`, `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Per non perderli se cambi telefono o cancelli i dati del browser, crea un <b>link di backup</b>: aprendolo su un altro telefono ritrovi tutto.</p>
+    <div class="bk-card ${bDays == null || bDays > 14 ? "warn" : ""}"><span class="bk-ic">🔗</span><span><b>Link di backup</b><small>${bDays == null ? "non ancora creato" : bDays === 0 ? "aggiornato oggi" : `ultimo ${bDays === 1 ? "ieri" : `${bDays} giorni fa`}`}${bDays != null && bDays > 14 ? ": conviene rifarlo" : ""}</small></span>
+      <button type="button" class="btn-main" id="me-backup">${bAt ? "Aggiorna" : "Crea"}</button></div>
+    <div class="me-acts"><button type="button" class="btn-main alt" id="me-export">Salva una copia in un file</button>
     <label class="btn-main alt" style="cursor:pointer">Ripristina da una copia<input type="file" id="me-import" accept="application/json,.json" hidden></label></div>`, "", "Tu dati");
   if (typeof notifSection === "function") html += notifSection();     // in fondo alla pagina
   $app.innerHTML = html;
   wireSlips();
+  countUp($app);
+  // festa per le schedine vinte non ancora festeggiate
+  try {
+    const seen = new Set(JSON.parse(load("cheered", "[]")));
+    const fresh = won.filter(s => !seen.has(s.id));
+    if (fresh.length) {
+      fresh.forEach(s => seen.add(s.id)); save("cheered", JSON.stringify([...seen].slice(-100)));
+      if (seen.size > fresh.length || fresh.length < 3) { confetti(); toast(fresh.length === 1 ? `🎉 ${fresh[0].name}: vinta!` : `🎉 ${fresh.length} schedine vinte!`); }
+    }
+  } catch { /* niente */ }
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
 
   document.getElementById("me-name")?.addEventListener("click", async () => {
@@ -50,6 +63,7 @@ function showMe() {
     save("name", v.trim().slice(0, 24)); showMe();
   });
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
+  document.getElementById("me-backup")?.addEventListener("click", makeBackupLink);
   document.getElementById("me-export").onclick = () => {
     const data = {};
     for (const k of Object.keys(localStorage)) if (k.startsWith("p_")) data[k] = localStorage.getItem(k);
@@ -68,6 +82,64 @@ function showMe() {
       for (const [k, v] of Object.entries(js.data)) if (k.startsWith("p_")) localStorage.setItem(k, v);
       toast("Dati ripristinati"); updateFavBadge(); showMe();
     } catch { toast("Questo file non è una copia di Pronostici"); }
+  };
+}
+
+/* ------------------------------------------------------------------ backup in un link (niente server: i dati stanno nel link, compressi) */
+
+const BACKUP_KEYS = ["p_slips", "p_favs", "p_myteams", "p_follow", "p_notif", "p_name", "p_theme", "p_sport", "p_news_seen", "p_shut"];
+const b64u = {
+  enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+  dec: s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0)),
+};
+async function zip(text, how) {
+  const stream = new Blob([text]).stream().pipeThrough(how === "in" ? new CompressionStream("deflate-raw") : new DecompressionStream("deflate-raw"));
+  return new Response(stream).arrayBuffer();
+}
+async function makeBackupLink() {
+  try {
+    const data = {};
+    for (const k of BACKUP_KEYS) { const v = localStorage.getItem(k); if (v != null) data[k] = v; }
+    let enc;
+    if ("CompressionStream" in window) {
+      const buf = await zip(JSON.stringify({ v: 1, at: new Date().toISOString(), data }), "in");
+      let bin = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 8192) bin += String.fromCharCode(...u.subarray(i, i + 8192));
+      enc = "z" + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    } else enc = "j" + btoa(unescape(encodeURIComponent(JSON.stringify({ v: 1, data })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const url = `${location.origin}${location.pathname}#/ripristina/${enc}`;
+    save("backup_at", new Date().toISOString());
+    const nSl = JSON.parse(data.p_slips || "[]").length, nT = JSON.parse(data.p_myteams || "[]").length;
+    const { el, close } = openSheet(`<h3 class="sheet-t">Il tuo link di backup</h3>
+      <p class="sheet-p">Contiene ${nSl} ${nSl === 1 ? "schedina" : "schedine"}, ${nT} ${nT === 1 ? "squadra seguita" : "squadre seguite"}, lo storico delle giocate e le tue scelte. Salvalo dove lo ritrovi (note, email, messaggio a te stesso): aprendolo su un altro telefono ti chiedo se ripristinare tutto.</p>
+      <p class="note">Il link contiene i tuoi dati: non mandarlo ad altri. Lunghezza: ${Math.round(url.length / 1024 * 10) / 10} kB.</p>
+      <div class="sheet-acts"><button type="button" class="btn-main alt" data-copy>Copia</button>${navigator.share ? `<button type="button" class="btn-main" data-share>Salva o invia</button>` : ""}</div>`, { label: "Link di backup", onClose: () => location.hash.startsWith("#/tu") && showMe() });
+    el.querySelector("[data-copy]").onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Link copiato"); close(); } catch { toast("Non riesco a copiarlo: usa Salva o invia"); } };
+    el.querySelector("[data-share]")?.addEventListener("click", async () => { try { await navigator.share({ title: "Backup Pronostici", url }); close(); } catch { /* annullato */ } });
+  } catch (e) { toast("Backup non riuscito"); }
+}
+async function showRestore(enc) {
+  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Ripristina</h1><p class="muted" style="padding:8px 4px">Leggo il backup…</p>`;
+  let js;
+  try {
+    if (enc[0] === "z") js = JSON.parse(new TextDecoder().decode(await zip(b64u.dec(enc.slice(1)), "out")));
+    else js = JSON.parse(decodeURIComponent(escape(atob(enc.slice(1).replace(/-/g, "+").replace(/_/g, "/")))));
+    if (!js?.data) throw new Error();
+  } catch {
+    $app.innerHTML = backBtn("Partite") + `<div class="empty"><b>Link di backup non valido</b>Forse è stato tagliato quando l'hai copiato: prova a riaprirlo per intero.</div>`;
+    return;
+  }
+  const n = k => { try { return JSON.parse(js.data[k] || "[]").length; } catch { return 0; } };
+  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Ripristina il backup</h1>
+    <section class="sec"><p>Backup del <b>${js.at ? esc(new Date(js.at).toLocaleString("it-IT", { dateStyle: "long", timeStyle: "short" })) : "—"}</b>${js.data.p_name ? ` di <b>${esc(js.data.p_name)}</b>` : ""}.</p>
+      <div class="me-tiles bk-tiles"><div class="me-tile"><b>${n("p_slips")}</b><span>schedine</span></div><div class="me-tile"><b>${n("p_myteams")}</b><span>squadre seguite</span></div><div class="me-tile"><b>${n("p_favs")}</b><span>giocate</span></div></div>
+      <p class="note">Ripristinando, i dati di questo telefono vengono sostituiti da quelli del backup.</p>
+      <button type="button" class="btn-main" id="bk-go" style="width:100%">Ripristina</button></section>`;
+  document.getElementById("bk-go").onclick = async () => {
+    if (!(await askConfirm("Schedine, squadre seguite e storico di questo telefono verranno sostituiti.", { title: "Ripristinare il backup?", ok: "Sì, ripristina" }))) return;
+    for (const [k, v] of Object.entries(js.data)) if (BACKUP_KEYS.includes(k)) localStorage.setItem(k, v);
+    toast("Backup ripristinato");
+    if (typeof notifySync === "function") notifySync();
+    history.replaceState(null, "", "#/tu"); location.reload();
   };
 }
 
@@ -93,12 +165,12 @@ function meHero(teams, openSlips, won, lost, closed) {
   const sub = openSlips.length ? `${openSlips.length} ${openSlips.length === 1 ? "schedina aperta" : "schedine aperte"}`
     : closed.length ? "Nessuna schedina aperta" : "Inizia salvando una schedina o seguendo una squadra";
   const streakTxt = streak >= 2 ? ` · ${streak} ${last === "win" ? "prese" : "perse"} di fila ${last === "win" ? "🔥" : "🧊"}` : "";
-  const tile = (n, l) => `<div class="mh-tile"><b>${n}</b><span>${l}</span></div>`;
+  const tile = (n, l) => `<div class="mh-tile"><b>${typeof n === "number" ? `<span data-count="${n}">${n}</span>` : n}</b><span>${l}</span></div>`;
   return `<section class="me-hero">
     <div class="mh-top"><button type="button" class="mh-av" id="me-name" aria-label="Cambia il tuo nome">${esc(name ? initials(name) : "🙂")}</button>
       <div class="mh-hi"><small>${hi}${name ? "," : ""}</small><b>${esc(name || "La tua area")}</b><span>${esc(sub)}${streakTxt}</span></div></div>
-    <div class="mh-tiles">${tile(teams.length, teams.length === 1 ? "seguita" : "seguite")}${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte")}
-      ${tile(closed.length ? `${Math.round(100 * w / closed.length)}<small>%</small>` : "–", closed.length ? `prese su ${closed.length}` : "giocate prese")}</div>
+    <div class="mh-tiles">${tile(teams.length, teams.length === 1 ? "seguita" : "seguite")}${tile(`<span data-count="${won.length}">${won.length}</span><small>/${won.length + lost.length}</small>`, "schedine vinte")}
+      ${tile(closed.length ? `<span data-count="${Math.round(100 * w / closed.length)}">${Math.round(100 * w / closed.length)}</span><small>%</small>` : "–", closed.length ? `prese su ${closed.length}` : "giocate prese")}</div>
     ${name ? "" : `<p class="mh-tip">Tocca la faccina per dire come ti chiami</p>`}
   </section>`;
 }

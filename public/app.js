@@ -254,21 +254,37 @@ window.addEventListener("online", () => document.getElementById("off-banner")?.r
 /* tema: automatico (segue il telefono), chiaro, scuro */
 const THEMES = [["auto", "Auto", '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>'],
   ["light", "Chiaro", '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'],
-  ["dark", "Scuro", '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>']];
+  ["dark", "Scuro", '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'],
+  ["stadio", "Stadio", '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M12 6v12"/><circle cx="12" cy="12" r="2.5"/>'],
+  ["contrasto", "Contrasto", '<circle cx="12" cy="12" r="8"/><path d="M12 4v16" stroke-width="3"/>']];
+const THEME_INFO = { auto: ["Segue il telefono", "#f3f5f7", "#0d1117"], light: ["Superfici bianche", "#f3f5f7", "#ffffff"], dark: ["Grigio scuro", "#0d1117", "#161b22"],
+  stadio: ["Verde prato di sera", "#071a12", "#0e2a1d"], contrasto: ["Nero e bianco, testi più marcati", "#000000", "#111111"] };
+const THEME_COLOR = { stadio: "#071a12", contrasto: "#000000" };
 function applyTheme(t) {
+  // Stadio e Contrasto sono varianti del tema scuro: usano le sue regole più le loro
   if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  else if (THEME_COLOR[t]) document.documentElement.dataset.theme = "dark";
   else delete document.documentElement.dataset.theme;
+  if (THEME_COLOR[t]) document.documentElement.dataset.variant = t; else delete document.documentElement.dataset.variant;
   const [, label, icon] = THEMES.find(x => x[0] === t) || THEMES[0];
   const btn = document.getElementById("theme");
   if (btn) { btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>${label}`; btn.setAttribute("aria-label", `Tema: ${label}. Tocca per cambiare`); }
-  const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", dark ? "#0d1117" : "#f3f5f7"));
+  const dark = t === "dark" || !!THEME_COLOR[t] || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", THEME_COLOR[t] || (dark ? "#0d1117" : "#f3f5f7")));
 }
 (function initTheme() {
   let t = load("theme", "auto");
   applyTheme(t);
   const btn = document.getElementById("theme");
-  if (btn) btn.onclick = () => { const i = THEMES.findIndex(x => x[0] === t); t = THEMES[(i + 1) % THEMES.length][0]; save("theme", t); applyTheme(t); };
+  // scelta del tema in una finestra dal basso, con l'anteprima dei colori
+  if (btn) btn.onclick = () => {
+    const { el, close } = openSheet(`<h3 class="sheet-t">Tema</h3><div class="th-opts">${THEMES.map(([k, l, ic]) => {
+      const [d, bg, card] = THEME_INFO[k];
+      return `<button type="button" class="th-opt ${k === t ? "on" : ""}" data-th="${k}"><span class="th-sw" style="--b:${bg};--c:${card}">${k === "auto" ? `<i style="--b:#0d1117;--c:#161b22"></i>` : ""}</span>
+        <span class="th-tx"><b><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${l}</b><small>${d}</small></span>${k === t ? "<em>✓</em>" : ""}</button>`;
+    }).join("")}</div>`, { label: "Scegli il tema" });
+    el.querySelectorAll("[data-th]").forEach(b => b.onclick = () => { t = b.dataset.th; save("theme", t); applyTheme(t); close(); });
+  };
 })();
 
 function measureHeader() {
@@ -276,14 +292,43 @@ function measureHeader() {
   if (h) document.documentElement.style.setProperty("--head", h.offsetHeight + "px");
 }
 
+/* apertura veloce: l'ultima copia dei dati salvata sul telefono (cache del service worker), subito */
+async function cachedJSON(path) {
+  try {
+    if (!("caches" in window)) return null;
+    const c = await caches.open("pronostici-data-v1");
+    const hit = await c.match(new URL(path, location.href).href, { ignoreSearch: true });
+    return hit ? await hit.json() : null;
+  } catch { return null; }
+}
+
 async function boot() {
   measureHeader();
   window.addEventListener("resize", measureHeader);
-  try {
-    [INDEX, META] = await Promise.all([getJSON("data/index.json"), getJSON("data/meta.json")]);
-  } catch {
-    $app.innerHTML = `<div class="empty"><b>Ancora nessun dato</b>Il primo aggiornamento automatico creerà l'elenco delle partite.</div>`;
-    return;
+  // prima la copia sul telefono (l'elenco compare subito), poi i dati dalla rete in sottofondo
+  const fresh = Promise.all([getJSON("data/index.json"), getJSON("data/meta.json")]);
+  const [ci, cm] = await Promise.all([cachedJSON("data/index.json"), cachedJSON("data/meta.json")]);
+  let fromCache = false;
+  if (ci?.events && cm) { INDEX = ci; META = cm; fromCache = true; }
+  else {
+    try { [INDEX, META] = await fresh; }
+    catch {
+      $app.innerHTML = `<div class="empty"><b>Ancora nessun dato</b>Il primo aggiornamento automatico creerà l'elenco delle partite.</div>`;
+      return;
+    }
+  }
+  if (fromCache) {
+    document.getElementById("updated")?.classList.add("syncing");
+    fresh.then(([i, m]) => {
+      document.getElementById("updated")?.classList.remove("syncing");
+      if (!i?.events) return;
+      const changed = m?.updated !== META?.updated;
+      INDEX = i; META = m;
+      if (META.updated) document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>aggiornato`;
+      // dati nuovi: ridisegna solo le pagine "elenco", senza disturbare chi sta leggendo una scheda o compilando
+      const v = location.hash.replace(/^#\/?/, "").split("/")[0];
+      if (changed && ["", "migliori"].includes(v)) { const y = window.scrollY; BEST = null; route(); window.scrollTo(0, y); }
+    }).catch(() => document.getElementById("updated")?.classList.remove("syncing"));
   }
   if (META.updated) {
     document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>aggiornato`;
@@ -304,6 +349,8 @@ function route() {
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.body.dataset.view = view || "home";
   window.scrollTo(0, 0);
+  // entrata morbida della pagina
+  $app.classList.remove("page-in"); void $app.offsetWidth; $app.classList.add("page-in");
   if (typeof layoutRoute === "function" && layoutRoute(view, arg)) return;   // computer: elenco a sinistra (layout.js)
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
   if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
@@ -314,7 +361,9 @@ function route() {
   if (view === "live") { state.status = "live"; location.replace("#/"); return; }   // il Live ora è un filtro dell'elenco
   if (view === "multipla") return showMultipla();
   if (view === "cerca") return showSearch();
+  if (view === "confronta") { const p = location.hash.replace(/^#\/?/, "").split("/"); return showCompare(p[1], p[2]); }
   if (view === "condividi" && arg) return showShared(arg);
+  if (view === "ripristina" && arg) return showRestore(arg);
   if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
   if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
   if (view === "squadra" && arg) { const [, , lk, id] = location.hash.split("/"); return showTeam(decodeURIComponent(lk), decodeURIComponent(id || "")); }
@@ -366,6 +415,40 @@ function showList() {
   if (typeof listInSide === "function" && listInSide()) return;   // computer: l'elenco sta nella colonna a sinistra
   renderList();
 }
+/* riquadro "Oggi" in cima all'elenco: le tue squadre in campo, le schedine in gioco, la migliore giocata del giorno */
+function todayWidget() {
+  const today = isoDay(Date.now()), cards = [];
+  const teams = typeof myTeams === "function" ? myTeams() : [];
+  const mine = INDEX.events.filter(e => isoDay(e.date) === today && teams.some(t => typeof teamPlays === "function" ? teamPlays(t, e) : false))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  for (const e of mine.slice(0, 4)) {
+    const t = teams.find(t => teamPlays(t, e)), fin = e.final;
+    cards.push(`<a class="tw-card tw-team" href="#/e/${encodeURIComponent(e.id)}" style="--tc:${t.color ? "#" + String(t.color).replace("#", "") : "#0a9b5a"}">
+      <span class="tw-k">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : "★"}La tua squadra</span>
+      <b>${esc(e.home)} – ${esc(e.away)}</b><small>${fin && !fin.void ? `finita ${fin.sets ? fin.sets[0].map((g, i) => `${g}-${fin.sets[1][i]}`).join(" ") : `${fin.h}-${fin.a}`}` : Date.parse(e.date) < Date.now() ? "in corso" : `ore ${fmtTime(e.date, e.time_valid)}`}</small></a>`);
+  }
+  const slips = typeof mySlips === "function" ? mySlips().filter(s => !["win", "lose"].includes(slipState(s).cls)) : [];
+  if (slips.length) {
+    const on = slips.filter(s => slipState(s).cls === "on").length;
+    cards.push(`<a class="tw-card tw-slip" href="#/tu"><span class="tw-k">🎟️ Schedine</span><b>${on ? `${on} in gioco` : `${slips.length} da giocare`}</b><small>${on && slips.length > on ? `e ${slips.length - on} da giocare` : "toccala per seguirle"}</small></a>`);
+  }
+  if (BEST) {
+    const top = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
+      .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)    // niente giocate scontate (Over 1,5…)
+      .filter(it => isoDay(it.date) === today && Date.parse(it.date) > Date.now()).sort((a, b) => b.p - a.p)[0];
+    if (top) cards.push(`<a class="tw-card tw-best" href="#/e/${encodeURIComponent(top.event)}" style="--tc:${usable(top.color) ? top.color : "#0a9b5a"}"><span class="tw-k">⭐ Migliore di oggi</span>
+      <b>${esc(top.label)} <em>${pct(top.p)}</em></b><small>${esc(top.match)}, ${esc(fmtTime(top.date, top.time_valid))}</small></a>`);
+  } else if (!todayWidget.loading) {
+    todayWidget.loading = true;
+    getJSON("data/migliori.json").then(js => { BEST = js; if ((location.hash || "#/") === "#/" || location.hash.startsWith("#/e/")) { const el = document.querySelector(".tw"); if (el) el.outerHTML = todayWidget(); else if (cards.length === 0) renderListRefresh(); } }).catch(() => null);
+  }
+  if (!cards.length) return `<div class="tw" hidden></div>`;
+  const h = new Date().getHours();
+  return `<section class="tw"><div class="tw-h"><b>${h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera"}${load("name", "") ? `, ${esc(load("name", ""))}` : ""}</b><span>ecco la tua giornata</span></div>
+    <div class="tw-row">${cards.join("")}</div></section>`;
+}
+function renderListRefresh() { const el = document.querySelector(".tw"); if (el) el.outerHTML = todayWidget(); }
+
 function renderList() {
   const now = Date.now();
   const bySport = INDEX.events.filter(e => (state.sport === "all" || e.sport === state.sport) && mkPass(e));
@@ -387,7 +470,7 @@ function renderList() {
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
-    <div id="search-res"></div><div id="list-main"><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+    <div id="search-res"></div><div id="list-main">${todayWidget()}<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
@@ -634,7 +717,27 @@ const tpill = (name, c) => `<span class="tpill" style="background:${c};color:${o
 /* ultimi risultati: una riga per squadra, così non si confondono */
 function formStrip(hName, aName, cH, cA, hSeq, aSeq) {
   const row = (n, c, s) => `<div class="fs-row">${tpill(n, c)}<span class="fs-seq ${(s || []).length > 5 ? "many" : ""}">${formSeq(s)}</span></div>`;
-  return `<div class="fstrip">${row(hName, cH, hSeq)}${row(aName, cA, aSeq)}<div class="fs-note">ultime partite, la più recente a sinistra</div></div>`;
+  return `<div class="fstrip">${row(hName, cH, hSeq)}${row(aName, cA, aSeq)}<div class="fs-note">ultime partite, la più recente a sinistra</div></div>${formChart(hName, aName, cH, cA, hSeq, aSeq)}`;
+}
+/* andamento della forma: punti (calcio) o vittorie accumulati partita dopo partita, dalla più vecchia */
+function formChart(hName, aName, cH, cA, hSeq, aSeq) {
+  const H = (hSeq || []).slice().reverse(), A = (aSeq || []).slice().reverse();
+  const n = Math.max(H.length, A.length);
+  if (n < 3) return "";
+  const soccer = [...H, ...A].includes("N");
+  const val = r => r === "V" ? (soccer ? 3 : 1) : r === "N" ? 1 : 0;
+  const cum = s => s.reduce((a, r) => [...a, a[a.length - 1] + val(r)], [0]);
+  const ch = cum(H), ca = cum(A), max = Math.max(1, ...ch, ...ca, soccer ? 3 * n * 0.6 : n * 0.6);
+  const W = 300, Ht = 110, P = 8;
+  const X = i => P + (W - 2 * P) * i / n, Y = v => Ht - P - (Ht - 2 * P) * v / max;
+  const line = (c, col) => `<path d="${c.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("")}" fill="none" stroke="${col}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(c.length - 1)}" cy="${Y(c[c.length - 1])}" r="4" fill="${col}"/>`;
+  const grid = [0.25, 0.5, 0.75, 1].map(f => `<line x1="${P}" x2="${W - P}" y1="${Y(max * f)}" y2="${Y(max * f)}" class="fc-grid"/>`).join("");
+  const unit = soccer ? "punti" : "vittorie";
+  return `<div class="fchart"><div class="fc-head"><span>Andamento: ${unit} nelle ultime ${n}</span>
+      <span><b style="color:${cH}">${ch[ch.length - 1]}</b> · <b style="color:${cA}">${ca[ca.length - 1]}</b></span></div>
+    <svg viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none" role="img" aria-label="Andamento della forma: ${esc(hName)} ${ch[ch.length - 1]} ${unit}, ${esc(aName)} ${ca[ca.length - 1]}">${grid}${line(ca, cA)}${line(ch, cH)}</svg>
+    <div class="fc-axis"><span>${n} partite fa</span><span>ultima</span></div></div>`;
 }
 function vsTable(hName, aName, cH, cA, lines) {
   return `<table class="vs-table"><tr><th></th><th>${tpill(hName, cH)}</th><th>${tpill(aName, cA)}</th></tr>
@@ -1141,6 +1244,38 @@ function tennisLast(d) {
 
 const SPORT_OF = { soccer: "soccer", nba: "nba", tennis: "tennis" };
 
+/* numeri che salgono: elementi con data-count="valore" (e data-dec per i decimali) */
+function countUp(root = document) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  root.querySelectorAll("[data-count]").forEach(el => {
+    const to = parseFloat(el.dataset.count), dec = +(el.dataset.dec || 0), t0 = performance.now(), dur = 700;
+    if (!isFinite(to)) return;
+    const step = t => {
+      const k = Math.min(1, (t - t0) / dur), v = to * (1 - Math.pow(1 - k, 3));
+      el.textContent = dec ? v.toFixed(dec).replace(".", ",") : Math.round(v);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+/* coriandoli, per una schedina vinta */
+function confetti(ms = 1800) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c = document.createElement("canvas"), x = c.getContext("2d"), dpr = devicePixelRatio || 1;
+  c.className = "confetti"; c.width = innerWidth * dpr; c.height = innerHeight * dpr; document.body.appendChild(c);
+  const cols = ["#0a9b5a", "#f5b301", "#3b82f6", "#e5484d", "#a855f7", "#fff"];
+  const P = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 80, y: innerHeight * .35, vx: (Math.random() - .5) * 12, vy: -Math.random() * 13 - 4,
+    r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .4, c: cols[Math.random() * cols.length | 0] }));
+  const t0 = performance.now();
+  const step = t => {
+    x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of P) { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+      x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillStyle = p.c; x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); }
+    if (t - t0 < ms) requestAnimationFrame(step); else c.remove();
+  };
+  requestAnimationFrame(step);
+}
+
 function ring(p, lead = false) {
   const v = Math.max(0, Math.min(1, p ?? 0));
   const cls = v >= .7 ? "r-hi" : v >= .5 ? "r-md" : "";
@@ -1168,6 +1303,23 @@ function pickRow(it, big, showCat = false) {
   </a>`;
 }
 
+/* card della classifica Migliori: colore della squadra, probabilità grande e quanto è solida la stima */
+function pickCard(it, rank) {
+  const key = favKey(it.label, it.p, it.book, { event: it.event, match: it.match, date: it.date, time_valid: it.time_valid, league_name: it.league_name, sport: it.sport });
+  const when = `${fmtDay(it.date).rel || fmtShort(it.date)}, ${fmtTime(it.date, it.time_valid)}`;
+  const c = usable(it.color) ? it.color : it.sport === "nba" ? "#ea7a1a" : it.sport === "tennis" ? "#9aa51a" : "#0a9b5a";
+  const tier = it.p >= .85 ? ["Molto alta", 4] : it.p >= .78 ? ["Alta", 3] : it.p >= .7 ? ["Buona", 2] : ["Media", 1];
+  const bars = [1, 2, 3, 4].map(i => `<i class="${i <= tier[1] ? "on" : ""}"></i>`).join("");
+  const book = it.book != null ? `<span class="pc-book ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">bookmaker ${pct(it.book)}</span>` : "";
+  return `<a class="pcard" href="#/e/${encodeURIComponent(it.event)}" style="--tc:${c}">
+    <span class="pc-top"><span class="pc-rank">${rank}</span><span class="pc-lg">${esc(SPORT_NAME[it.sport] || "")} · ${esc(it.cat || "")}</span>${star(key)}</span>
+    <span class="pc-mid">${pickMark(it)}<span class="pc-p"><b><span data-count="${Math.round(it.p * 100)}">${Math.round(it.p * 100)}</span><small>%</small></b><span class="pc-tier" title="Probabilità stimata: ${tier[0].toLowerCase()}">${bars}<em>${tier[0]}</em></span></span></span>
+    <b class="pc-label">${esc(it.label)}</b>
+    <span class="pc-match">${esc(it.match)}</span>
+    <span class="pc-foot"><span>${esc(when)}${it.low ? " · pochi dati" : ""}</span>${book}</span>
+  </a>`;
+}
+
 const HIGH = 0.70;   // soglia della classifica "in assoluto"
 async function showBest() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
@@ -1192,7 +1344,8 @@ async function showBest() {
     const top = best.slice(0, 10), rest = best.slice(10);
     const who = { all: "di tutti gli sport", soccer: "del calcio", nba: "del basket", tennis: "del tennis" }[state.sport];
     html += `<section class="sec best overall"><h2>Le migliori in assoluto<small>${who}, ${high.length >= 5 ? `dal ${Math.round(HIGH * 100)}% in su` : "le più probabili"}</small></h2>
-      ${top.map(it => pickRow(it, true, true)).join("")}
+      <div class="pcards">${top.map((it, i) => pickCard(it, i + 1)).join("")}</div>
+      <div class="pc-dots" aria-hidden="true">${top.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>
       ${rest.length ? `<details class="more"><summary>Altre ${rest.length} in classifica</summary>${rest.map(it => pickRow(it, false, true)).join("")}</details>` : ""}
     </section>`;
   }
@@ -1230,6 +1383,13 @@ async function showBest() {
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
   requestAnimationFrame(centerDays);
+  countUp($app);
+  // puntini sotto le card: quale si sta guardando
+  const pc = $app.querySelector(".pcards"), dots = $app.querySelectorAll(".pc-dots i");
+  if (pc && dots.length) pc.addEventListener("scroll", () => {
+    const w = pc.firstElementChild?.getBoundingClientRect().width || 1, i = Math.round(pc.scrollLeft / (w + 10));
+    dots.forEach((d, k) => d.classList.toggle("on", k === i));
+  }, { passive: true });
 }
 
 /* ------------------------------------------------------------------ schedina */

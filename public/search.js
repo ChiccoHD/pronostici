@@ -36,6 +36,7 @@ async function showSearch() {
     <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="search-q" type="search" inputmode="search" autocomplete="off" placeholder="Squadra, tennista, campionato…" value="${esc(SEARCH.q)}" aria-label="Cerca">
       <button type="button" class="search-x" aria-label="Cancella" ${SEARCH.q ? "" : "hidden"}>×</button></div>
+    <a class="cmp-entry" href="#/confronta"><span>⚖️</span><span><b>Confronta</b><small>due squadre o due tennisti, anche se non si affrontano</small></span><em>›</em></a>
     <div id="srch-res"></div>`;
   const inp = document.getElementById("search-q"), x = $app.querySelector(".search-x");
   let t = null;

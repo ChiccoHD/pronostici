@@ -91,7 +91,8 @@ async function showTeam(lk, id) {
     ${lgName}<h1>${esc(T.name)}</h1><div class="th-sub">${esc(posTxt)}</div><div class="th-sub">${esc(rec)}</div>
     <div class="th-form">${formSeq((T.form5?.seq || []).slice(0, 5))}<small>ultime 5, la più recente a sinistra</small></div>
     <div style="margin-top:10px">${followBtn({ kind: "team", lk, id: T.id, name: T.name, short: T.short, logo: T.logo })}</div>
-    <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a></div>`;
+    <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a>
+    <a class="th-link" href="#/confronta/${encodeURIComponent(`t:${lk}:${T.id}`)}">⚖️ Confronta con un'altra squadra ›</a></div>`;
 
   // prossime partite (anche di coppa): dall'elenco delle partite in programma
   const next = INDEX.events.filter(e => teamPlays({ ...T, lk }, e));
@@ -203,7 +204,8 @@ async function showPlayer(tour, name) {
     <div class="th-sub">${P.year.w} vinte e ${P.year.l} perse quest'anno · Elo ${P.elo}</div>
     ${P.streak?.n >= 2 ? `<div class="th-sub"><b>${P.streak.res === "V" ? "Vince" : "Perde"} da ${P.streak.n} incontri</b></div>` : ""}
     <div class="th-form">${formSeq(P.last.slice(0, 10).map(x => x.res))}<small>ultimi 10, il più recente a sinistra</small></div>
-    <div style="margin-top:10px">${followBtn({ kind: "player", lk: tour, id: P.name, name: P.name, short: lastName(P.name), logo: P.flag })}</div></div>`;
+    <div style="margin-top:10px">${followBtn({ kind: "player", lk: tour, id: P.name, name: P.name, short: lastName(P.name), logo: P.flag })}</div>
+    <a class="th-link" href="#/confronta/${encodeURIComponent(`p:${tour}:${P.name}`)}">⚖️ Confronta con un altro tennista ›</a></div>`;
   const surf = `<table class="vs-table st3"><tr><th></th><th>Elo</th><th>Ultimi 12 mesi</th><th>Nello storico</th></tr>
     ${["Hard", "Clay", "Grass"].map(s => { const x = P.surfaces[s]; return `<tr><td>${SURF_IT[s]}</td><td>${x.elo}</td><td>${x.y.w}-${x.y.l} <small class="faint">${pctW(x.y)}</small></td><td>${x.all.w}-${x.all.l}</td></tr>`; }).join("")}</table>
     <p class="note">L'Elo misura la forza stimata: 1500 è la media del circuito, sopra i 2000 i migliori.</p>`;

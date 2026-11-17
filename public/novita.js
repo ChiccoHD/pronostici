@@ -1,6 +1,15 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Tante novità: Oggi, Confronta, temi, backup", items: [
+    "In cima all'elenco il riquadro Oggi: le tue squadre in campo, le schedine in gioco e la migliore giocata del giorno.",
+    "Migliori: le prime 10 sono card da scorrere, con il colore della squadra e quanto è alta la stima.",
+    "Confronta due squadre o due tennisti qualsiasi (dalla lente, dalla pagina squadra o tennista): forza, forma, statistiche di stagione e una stima se si affrontassero.",
+    "Scheda partita: grafico dell'andamento della forma e, in diretta, la linea del tempo con gol e cartellini.",
+    "Due temi nuovi, Stadio e Contrasto: tocca il pulsante del tema in alto.",
+    "Animazioni leggere: pagine che entrano morbide, numeri che salgono, \"GOL!\" in diretta e coriandoli per una schedina vinta.",
+    "L'app si apre subito con gli ultimi dati salvati e si aggiorna da sola in sottofondo (il pallino verde accanto all'orario).",
+    "In Tu → I tuoi dati: link di backup con schedine, squadre e storico, da aprire su un altro telefono per ritrovare tutto." ] },
   { d: "2026-11-17", t: "Notifiche più semplici", items: [
     "Le scelte delle notifiche sono quattro riquadri (Calcio, Basket, Tennis, Altri avvisi): toccane uno per gli interruttori, con le scorciatoie Essenziali, Tutti e Nessuno.",
     "Partite, squadre e tennisti seguiti stanno in una riga compatta \"Per chi\".",

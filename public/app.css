@@ -1549,3 +1549,12 @@ html, body { overflow-anchor: none; }
 .days button .d-mon { display: none; }
 .days button b { font-size: 17px; line-height: 1.1; }
 .days button { padding: 5px 6px 5px; }
+/* effetto delle formazioni */
+.lu-imp { margin: 6px 0 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f5b301 10%, var(--card)); border: 1px solid color-mix(in srgb, #f5b301 35%, var(--rule)); }
+.lu-imp > b { display: block; margin-bottom: 4px; }
+.lu-imp p { margin: 2px 0; font-size: 13px; }
+.lu-imp-g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 8px 0 4px; }
+.lu-imp-g span { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; background: var(--soft); }
+.lu-imp-g small { font-size: 10.5px; color: var(--ink-2); font-weight: 700; }
+.lu-imp-g b { font-size: 15px; }
+.lu-imp-g em { font-style: normal; font-size: 10px; color: var(--ink-3); }

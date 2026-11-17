@@ -46,11 +46,12 @@ class NbaModel:
         i = self.idx.get(t)
         return (self.o[i], self.d[i]) if i is not None else (0.0, 0.0)
 
-    def expected(self, home, away, b2b_home=False, b2b_away=False):
+    def expected(self, home, away, b2b_home=False, b2b_away=False, adj=(0.0, 0.0)):
+        """adj: punti in meno per gli assenti (casa, ospiti), da injury_impact."""
         oh, dh = self._od(home)
         oa, da = self._od(away)
-        hs = self.mu + self.h + oh - da + self.b2b_own * b2b_home + self.b2b_opp * b2b_away
-        as_ = self.mu + oa - dh + self.b2b_own * b2b_away + self.b2b_opp * b2b_home
+        hs = self.mu + self.h + oh - da + self.b2b_own * b2b_home + self.b2b_opp * b2b_away - adj[0]
+        as_ = self.mu + oa - dh + self.b2b_own * b2b_away + self.b2b_opp * b2b_home - adj[1]
         return hs, as_
 
     def ratings(self):
@@ -98,19 +99,36 @@ def _half(x):
     return math.floor(x) + 0.5
 
 
-def blend_shift(m: NbaModel, home, away, b2b_home, b2b_away, p_espn, weight) -> float:
-    """Punti da spostare sul margine perché la vittoria rifletta la media pesata modello/ESPN."""
+# assenti: un giocatore fuori toglie alla sua squadra una parte dei punti che segna (chi lo sostituisce ne fa una parte),
+# in proporzione ai minuti che gioca. Prudente e con un tetto: l'effetto vero dipende da chi lo rimpiazza.
+INJ_SHARE = 0.30
+INJ_CAP = 9.0
+
+
+def injury_impact(players: list[dict]) -> float:
+    pts = 0.0
+    for p in players:
+        if not p.get("out"):
+            continue
+        a = p.get("avg15") or {}
+        pts += INJ_SHARE * max(0.0, (a.get("pts") or 0) - 4) * min(1.0, (p.get("min_proj") or a.get("min") or 0) / 32)
+    return round(min(pts, INJ_CAP), 1)
+
+
+def blend_shift(m: NbaModel, home, away, b2b_home, b2b_away, p_espn, weight, adj=(0.0, 0.0)) -> float:
+    """Punti da spostare sul margine perché la vittoria rifletta la media pesata modello/ESPN.
+    Gli assenti (adj) entrano solo nella parte del modello: la previsione ESPN li considera già."""
     if p_espn is None or not weight:
         return 0.0
     from statistics import NormalDist
-    hs, as_ = m.expected(home, away, b2b_home, b2b_away)
+    hs, as_ = m.expected(home, away, b2b_home, b2b_away, adj)
     p_model = norm_cdf((hs - as_) / m.s_m)
     p = min(max((1 - weight) * p_model + weight * p_espn, 0.01), 0.99)
     return NormalDist().inv_cdf(p) * m.s_m - (hs - as_)
 
 
-def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None, shift: float = 0.0) -> dict:
-    hs, as_ = m.expected(home, away, b2b_home, b2b_away)
+def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None, shift: float = 0.0, adj=(0.0, 0.0)) -> dict:
+    hs, as_ = m.expected(home, away, b2b_home, b2b_away, adj)
     hs, as_ = hs + shift / 2, as_ - shift / 2
     margin, total = hs - as_, hs + as_
     p_home = norm_cdf(margin / m.s_m)
@@ -314,7 +332,7 @@ def _best_weight(pairs):
         return tot / len(pairs)
     grid = [i / 10 for i in range(11)]
     best = min(grid, key=ll)
-    # prudenza: con poche partite si dimezza il peso
-    w = best if len(pairs) >= 150 else best / 2
+    # prudenza: con poche partite il peso scelto vale meno (metà a 0 partite, pieno da 150)
+    w = best * min(1.0, 0.5 + len(pairs) / 300)
     return {"n": len(pairs), "weight": round(w, 2), "logloss_model": round(ll(0), 4),
             "logloss_espn": round(ll(1), 4), "logloss_mix": round(ll(w), 4)}

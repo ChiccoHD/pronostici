@@ -82,8 +82,10 @@ def _attach_xg(matches: list[dict], league: dict, start_year: int, matcher: Matc
                 rows = []
         xg_rows.extend(rows)
     if not xg_rows:
-        status.setdefault("understat", "non raggiungibile (si usano solo i gol)")
-        return 0
+        # Understat risponde con una pagina generica ai server di GitHub (verificato con Verifica fonti, modo xg):
+        # gli xG della stagione in corso arrivano comunque da football-data, manca solo la stagione scorsa
+        status.setdefault("understat", "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol" if have else "non raggiungibile (si usano solo i gol)")
+        return have
     idx = {}
     for x in xg_rows:
         h, a = matcher.match(x["home"]), matcher.match(x["away"])
@@ -95,10 +97,11 @@ def _attach_xg(matches: list[dict], league: dict, start_year: int, matcher: Matc
         for dd in (d, d - timedelta(days=1), d + timedelta(days=1)):
             x = idx.get((dd.isoformat(), m["home"], m["away"]))
             if x:
-                m["hxg"], m["axg"] = x["hxg"], x["axg"]
-                n += 1
+                if m.get("hxg") is None:
+                    m["hxg"], m["axg"] = x["hxg"], x["axg"]
+                    n += 1
                 break
-    return n
+    return have + n
 
 
 def espn_book(e: dict) -> dict:

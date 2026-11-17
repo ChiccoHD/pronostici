@@ -259,6 +259,7 @@ async function showInfoHub(tab) {
 
 /* ------------------------------------------------------------------ archivio dei pronostici (data/archive.json) */
 let ARCHIVE = null, ARCH_SPORT = "all", ARCH_DAYS = 7;
+let CALIB = null;
 async function infoArchive() {
   if (!ARCHIVE) { try { ARCHIVE = await getJSON("data/archive.json"); } catch { ARCHIVE = { rows: [] }; } }
   const rows = (ARCHIVE.rows || []).filter(r => ARCH_SPORT === "all" || r.s === ARCH_SPORT);
@@ -287,6 +288,21 @@ async function infoArchive() {
   for (const r of rows) (byLeague[r.ln.split(" · ")[0]] ||= []).push(top(r) === out(r));
   const leagues = Object.entries(byLeague).filter(([, l]) => l.length >= 4).sort((a, b) => rate(b[1]) - rate(a[1]));
   const days = [...new Set(rows.map(r => r.d.slice(0, 10)))].slice(0, ARCH_DAYS);
+  // mese per mese: quante volte esce la favorita del modello rispetto a quanto la dava in media
+  const months = {};
+  for (const r of rows) (months[r.d.slice(0, 7)] ||= []).push(r);
+  const monthRows = Object.entries(months).sort((a, b) => b[0].localeCompare(a[0])).map(([k, l]) => {
+    const real = rate(l.map(r => top(r) === out(r))), avg = l.reduce((a, r) => a + Math.max(...r.p), 0) / l.length;
+    const name = new Date(k + "-15T12:00:00Z").toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+    const diff = real - avg;
+    return `<div class="r"><span class="l"><b>${esc(name[0].toUpperCase() + name.slice(1))}</b> <span class="faint">${l.length} partite · la dava in media al ${pct(avg)}</span></span>
+      <span class="v"><b class="${Math.abs(diff) <= .05 ? "" : diff > 0 ? "good" : "bad"}">${pct(real)}</b> presa</span></div>`;
+  });
+  if (!CALIB) { try { CALIB = await getJSON("data/calibration.json"); } catch { CALIB = { sports: {} }; } }
+  const SPN = { soccer: "Calcio", nba: "Basket", tennis: "Tennis" };
+  const calTxt = Object.entries(CALIB.sports || {}).filter(([s]) => ARCH_SPORT === "all" || ARCH_SPORT === s).map(([s, c]) =>
+    `<div class="r"><span class="l"><b>${SPN[s]}</b> <span class="faint">${c.n} partite</span></span><span class="v">${!c.t_fit ? `<span class="faint">${esc(c.nota || "ancora poche partite")}</span>`
+      : Math.abs(c.t - 1) < .02 ? "nessuna correzione" : c.t < 1 ? "percentuali un po' più nette" : "percentuali un po' più prudenti"}</span></div>`).join("");
   const fx = r => {
     const e = { id: r.id, sport: r.s, league: r.l, league_name: r.ln, date: r.d + "Z", home: r.h, away: r.a, main: r.p, book: r.b,
       extra: { ...(r.o != null ? { "Over 2,5": r.o } : {}), ...(r.g != null ? { Goal: r.g } : {}) },
@@ -300,6 +316,8 @@ async function infoArchive() {
       <p class="note">Ultimi ${Math.round((Date.now() - Date.parse(rows[rows.length - 1]?.d + "Z")) / 864e5) + 1 || 0} giorni, ${rows.length} partite concluse. Le percentuali restano stime: servono tante partite perché questi numeri diventino stabili.</p>`, "", "Archivio sintesi")
     + sec("Quanto mantiene le promesse", `<div class="rows">${bands.filter(b => b.n).map(b => `<div class="r"><span class="l">Diceva <b>${Math.round(b.lo * 100)}–${Math.min(100, Math.round(b.hi * 100))}%</b> <span class="faint">(${b.n} partite, in media ${pct(b.avg)})</span></span><span class="v"><b class="${b.real >= b.avg - 0.05 ? "good" : "bad"}">${pct(b.real)}</b> uscite</span></div>`).join("")}</div>
       <p class="note">Se il modello è ben tarato, la colonna a destra somiglia alla percentuale che dava.</p>`, "", "Archivio calibrazione")
+    + (monthRows.length ? sec("Mese per mese", `<div class="rows">${monthRows.join("")}</div><p class="note">Quante volte è uscito l'esito più probabile secondo il modello, rispetto alla probabilità che gli dava in media.</p>`, "", "Archivio mesi") : "")
+    + (calTxt ? sec("Taratura automatica", `<div class="rows">${calTxt}</div><p class="note">Se nelle partite concluse il modello è stato troppo sicuro o troppo prudente sul risultato principale, le prossime percentuali vengono corrette di poco, sempre di più man mano che l'archivio cresce. Serve un minimo di 60 partite per sport.</p>`, "", "Archivio taratura") : "")
     + (dis.length ? sec("Modello contro bookmaker", `<p class="prose" style="margin:0">Nelle <b>${dis.length}</b> partite in cui non erano d'accordo sulla favorita, il modello ci ha preso <b>${disModel}</b> volte, i bookmaker <b>${disBook}</b>.</p>`, "", "Archivio quote") : "")
     + (leagues.length ? sec("Per competizione", `<div class="rows">${leagues.map(([l, h]) => `<div class="r"><span class="l">${esc(l)} <span class="faint">${h.length} partite</span></span><span class="v"><b>${pct(rate(h))}</b></span></div>`).join("")}</div>`, "pronostico più probabile preso", "Archivio campionati") : "")
     + sec("Partite", days.map(d => `<h3 class="lb-h3">${esc(fmtDay(d + "T12:00:00Z").label)}</h3><div class="ar-day">${rows.filter(r => r.d.startsWith(d)).map(fx).join("")}</div>`).join("")
@@ -320,9 +338,9 @@ function infoHow() {
   const term = (t, d) => `<div class="r"><span class="l"><b>${t}</b><br><span class="faint">${d}</span></span></div>`;
   return sec("In breve", `<div class="prose"><p>Per ogni partita l'app stima le probabilità di tutti gli esiti partendo dai dati delle partite già giocate. Sono <b>stime</b>, non certezze.</p>
       <p>I dati si aggiornano da soli sei volte al giorno (${UPDATE_TIMES}); il Live si aggiorna dal telefono ogni pochi secondi.</p></div>`, "", "Info breve")
-    + sec("Come ragiona per ogni sport", card("⚽", "Calcio", "Quanto attacca e quanto difende ogni squadra, dalle ultime tre stagioni con più peso alle partite recenti. Usa gol, gol attesi (xG) e tiri in porta. Da lì calcola la probabilità di ogni risultato e tutti i mercati.")
+    + sec("Come ragiona per ogni sport", card("⚽", "Calcio", "Quanto attacca e quanto difende ogni squadra, dalle ultime tre stagioni con più peso alle partite recenti. Usa gol, gol attesi (xG) e tiri in porta. Da lì calcola la probabilità di ogni risultato e tutti i mercati. Quando escono le formazioni ufficiali, se manca un titolare importante 1X2, Over e Goal vengono ritoccati.")
       + card("🏆", "Coppe europee", "Un modello unico su più campionati europei e sulle partite di coppa, che dicono quanto vale una squadra rispetto a quelle di altri paesi.")
-      + card("🏀", "NBA", "Valutazione di attacco e difesa in punti, fattore campo, stanchezza nelle partite in due sere di fila, incrociata con il modello di ESPN.")
+      + card("🏀", "NBA", "Valutazione di attacco e difesa in punti, fattore campo, stanchezza nelle partite in due sere di fila e giocatori assenti (in base a quanto segnano e giocano), incrociata con il modello di ESPN.")
       + card("🎾", "Tennis", "Punteggio Elo generale e per superficie, poi una simulazione punto per punto per game, set e tie-break."), "", "Info sport")
     + sec("Parole che trovi nell'app", `<div class="rows glossary">
       ${term("Quota equa", "La quota giusta secondo il modello (1 diviso la probabilità). Se il sito paga meno, la giocata è sfavorevole secondo il modello.")}

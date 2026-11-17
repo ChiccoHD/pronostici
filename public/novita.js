@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-18", t: "Stime più precise", items: [
+    "Calcio: quando escono le formazioni ufficiali, se manca un titolare importante 1X2, Over 2,5 e Goal vengono ricalcolati (riquadro in cima a Esito, con le percentuali di prima).",
+    "Nazionali: le formazioni ufficiali compaiono anche per le loro partite, circa un'ora prima del via.",
+    "NBA: i giocatori assenti tolgono punti al punteggio atteso della loro squadra, in base a quanto segnano e giocano; il modello di ESPN pesa un po' di più.",
+    "Tennis: nella scheda Giocatori la condizione (ultimo incontro, incontri negli ultimi 7 e 14 giorni, cambio di superficie).",
+    "Taratura automatica: se nelle partite concluse il modello è stato troppo sicuro o troppo prudente, le prossime percentuali vengono corrette di poco. In Info → Archivio anche il riepilogo mese per mese." ] },
   { d: "2026-11-17", t: "Tema Stadio rifatto e tema Notte", items: [
     "Il tema Stadio ha il prato tagliato a strisce, le linee del campo appena accennate e la luce dei riflettori.",
     "Nuovo tema Notte: blu profondo con luci al neon.",

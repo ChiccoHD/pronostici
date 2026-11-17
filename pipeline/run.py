@@ -84,6 +84,11 @@ def main():
         status["archivio"] = ar.get("archivio")
     except Exception:
         logging.exception("Archivio non aggiornato")
+    try:
+        from . import calibrate
+        calibrate.apply(keep, status)     # taratura con l'archivio, prima di elenco e Migliori
+    except Exception:
+        logging.exception("Taratura non applicata")
     store.save(PUBLIC_DATA / "index.json", {"updated": now.isoformat(timespec="minutes"), "events": keep})
     store.save(PUBLIC_DATA / "affidabilita.json", reliability)
     store.save(PUBLIC_DATA / "meta.json", {"updated": now.isoformat(timespec="minutes"), "sample": False,

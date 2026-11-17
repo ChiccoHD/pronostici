@@ -55,3 +55,11 @@ mese con i soli dati precedenti; parametri scelti sul 2023-24, controllati sul 2
 - Campo neutro: niente vantaggio casa. Fasi finali pesano 1,2, qualificazioni e Nations League 1,0.
 - Per tipo (2025-26): qualificazioni 0,756, amichevoli 0,866, Nations League 0,923 (gironi equilibrati).
 - Calibrazione: errore medio 2,3 punti; i favoriti netti vincono un po' più spesso di quanto stimato.
+
+## Tennis: riposo, stanchezza e cambio di superficie (novembre 2026)
+
+Provate come correzioni dell'Elo sullo storico ESPN (ATP 7.748 incontri, WTA 12.431):
+penalità per il rientro dopo più di 45 giorni, per più di 3 incontri in 7 giorni e per il primo incontro su una superficie diversa.
+Sull'ultimo anno la scelta migliore (rientro: ATP 70, WTA 40 punti Elo; stanchezza ATP 10) migliora la log loss di meno di 0,001
+(ATP 0,6411 → 0,6403; WTA 0,6377 → 0,6372); su un periodo diverso (maggio–novembre 2025) il guadagno sparisce
+(ATP 0,6570 → 0,6571; WTA 0,6622 → 0,6621). Non le usiamo: nella scheda si vedono come informazione ("Condizione").

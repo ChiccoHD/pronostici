@@ -1099,7 +1099,7 @@ function soccerPlayers(d, cH, cA, lu = null, side = "home") {
   const order = { start: 0, bench: 1, out: 2 };
   const tbl = (side, c) => {
     let list = d.players[side];
-    if (!list.length) return `<p class="note">${d.cup === "women" ? "Per la Champions femminile non ci sono dati sui singoli giocatori." : d.cup === "national" ? "Per le nazionali non ci sono ancora dati sui singoli giocatori: le convocazioni cambiano a ogni finestra." : d.cup ? `Per ${esc(d[side].short || d[side].name)} non ci sono dati sui giocatori: gioca in un campionato che l'app non segue.` : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
+    if (!list.length) return `<p class="note">${d.cup === "women" ? "Per la Champions femminile non ci sono dati sui singoli giocatori." : d.cup === "national" ? "Per le nazionali non ci sono percentuali dei singoli giocatori (le convocazioni cambiano a ogni finestra), ma le formazioni ufficiali compaiono qui e in Esito circa un'ora prima del via." : d.cup ? `Per ${esc(d[side].short || d[side].name)} non ci sono dati sui giocatori: gioca in un campionato che l'app non segue.` : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
     if (lu) list = list.map(p => withLineup(p, status(side, p))).sort((a, b) => order[a.lu] - order[b.lu] || b.p_goal - a.p_goal);
     return `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
     ${list.map(p => `<div class="sp-row ${p.lu === "out" ? "sp-out" : ""}">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${p.lu ? `<i class="lu lu-${p.lu}">${LU_LABEL[p.lu]}</i> ` : ""}${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
@@ -1107,6 +1107,36 @@ function soccerPlayers(d, cH, cA, lu = null, side = "home") {
   };
   return `<div id="sp-wrap"><div data-segpane="pl:home" ${side !== "home" ? "hidden" : ""}>${tbl("home", cH)}</div><div data-segpane="pl:away" ${side !== "away" ? "hidden" : ""}>${tbl("away", cA)}</div>
     <p class="note">${lu ? "Percentuali ricalcolate con le formazioni ufficiali: un titolare gioca tutta la partita, chi è in panchina entra circa una volta su due per uno spezzone." : `${d.cup ? "Nelle coppe i numeri dei giocatori vengono dal loro campionato. " : ""}Stime da presenze, titolarità e gol attesi della squadra in questa partita. Quando escono le formazioni ufficiali (circa un'ora prima) vengono ricalcolate qui.`}</p></div>`;
+}
+
+/* formazioni e risultato: chi di solito gioca e oggi è fuori (o in panchina) toglie alla squadra una parte dei suoi gol attesi;
+   chi lo sostituisce ne recupera circa la metà. Poi 1X2, Over 2,5 e Goal ricalcolati con Poisson e applicati come differenza
+   alle percentuali del modello. Prudente: al massimo un quarto dei gol attesi della squadra. */
+function lineupImpact(d, lu) {
+  const xg = d.markets?.xg;
+  if (!xg || !lu) return null;
+  const lost = { home: 0, away: 0 }, who = { home: [], away: [] };
+  for (const side of ["home", "away"]) {
+    const t = lu[side];
+    if (!t) continue;
+    const has = (list, p) => list.some(x => (x.pid && x.pid === String(p.pid)) || x.name === p.name);
+    for (const p of d.players?.[side] || []) {
+      if ((p.involvement ?? 0) < .55 || !p.p_goal) continue;          // conta solo chi di solito gioca
+      const g = -Math.log(1 - Math.min(p.p_goal, .95)) + .5 * -Math.log(1 - Math.min(p.p_assist || 0, .95));
+      const st = has(t.starters, p) ? "start" : has(t.bench, p) ? "bench" : "out";
+      if (st === "start") continue;
+      lost[side] += .5 * g * (st === "bench" ? .7 : 1);
+      if (g >= .12) who[side].push({ name: p.name, st, g: p.tot?.g ?? 0 });
+    }
+  }
+  const lh = Math.max(xg[0] - lost.home, xg[0] * .75), la = Math.max(xg[1] - lost.away, xg[1] * .75);
+  if (Math.abs(lh - xg[0]) < .03 && Math.abs(la - xg[1]) < .03) return { who, changed: false };
+  const mk = (a, b) => { let w = 0, dr = 0, ov = 0, gg = 0;
+    for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) { const p = poisson(a, i) * poisson(b, j); if (i > j) w += p; else if (i === j) dr += p; if (i + j > 2) ov += p; if (i && j) gg += p; }
+    return [w, dr, 1 - w - dr, ov, gg]; };
+  const o = mk(xg[0], xg[1]), n = mk(lh, la), m = d.markets, clip = x => Math.min(.99, Math.max(.01, x));
+  const x12 = [0, 1, 2].map(i => clip(m["1x2"][i] + n[i] - o[i])), s = x12.reduce((a, b) => a + b, 0);
+  return { who, changed: true, xg: [lh, la], x12: x12.map(v => v / s), over: clip((m.ou?.["2.5"] ?? o[3]) + n[3] - o[3]), btts: clip((m.btts ?? o[4]) + n[4] - o[4]) };
 }
 
 /* formazioni ufficiali arrivate (da live.js): riquadro con titolari e panchina, e tabella giocatori ricalcolata */
@@ -1124,7 +1154,21 @@ function showLineups(d, lu) {
   const team = (t, name, c) => `<div class="lu-team"><h3><span class="tdot" style="background:${c}"></span>${esc(name)}${t.formation ? `<small>${esc(t.formation)}</small>` : ""}</h3>
     <ol>${t.starters.map(p => `<li><b>${esc(p.jersey)}</b>${esc(p.name)}<small>${esc(p.pos)}</small></li>`).join("")}</ol>
     ${t.bench.length ? `<details><summary>Panchina (${t.bench.length})</summary><p>${t.bench.map(p => esc(p.name)).join(", ")}</p></details>` : ""}</div>`;
-  box.innerHTML = `<h2>Formazioni ufficiali<small>da ESPN</small></h2><div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`;
+  // effetto delle formazioni sul risultato (solo dove ci sono i dati dei giocatori: campionati e coppe)
+  const imp = d.players?.home?.length || d.players?.away?.length ? lineupImpact(d, lu) : null;
+  const names = side => imp.who[side].map(w => `${esc(w.name)}${w.st === "bench" ? " (panchina)" : ""}`).join(", ");
+  const impHtml = !imp ? "" : !imp.changed ? `<p class="note lu-imp">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>`
+    : `<div class="lu-imp"><b>Con queste formazioni</b>
+      ${["home", "away"].filter(s => imp.who[s].length).map(s => `<p>${esc(d[s].short || d[s].name)} senza ${names(s)}.</p>`).join("")}
+      <div class="lu-imp-g">${[["1", 0], ["X", 1], ["2", 2]].map(([l, i]) => `<span><small>${l}</small><b>${pct(imp.x12[i])}</b><em>prima ${pct(d.markets["1x2"][i])}</em></span>`).join("")}
+        <span><small>Over 2,5</small><b>${pct(imp.over)}</b><em>prima ${pct(d.markets.ou?.["2.5"])}</em></span><span><small>Goal</small><b>${pct(imp.btts)}</b><em>prima ${pct(d.markets.btts)}</em></span></div>
+      <p class="note">Stima: chi manca toglie una parte dei gol che di solito porta, chi entra al suo posto ne recupera circa la metà. Gol attesi ${num(imp.xg[0], 2)} – ${num(imp.xg[1], 2)} (prima ${num(d.markets.xg[0], 2)} – ${num(d.markets.xg[1], 2)}).</p></div>`;
+  box.innerHTML = `<h2>Formazioni ufficiali<small>da ESPN</small></h2>${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`;
+  // le formazioni anche nella scheda Esito, in alto: è lì che si guarda prima
+  // nazionali (niente dati dei giocatori): le formazioni intere direttamente in Esito
+  if ((imp?.changed || !imp) && !document.getElementById("lu-top")) document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
+    `<section class="sec" id="lu-top"><h2>Formazioni ufficiali<small>da ESPN</small></h2>${imp ? `${impHtml}<p class="note">Titolari e panchina nella scheda Giocatori.</p>`
+      : `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}</section>`);
   const tab = document.querySelector('[data-tab="gioc"]');
   if (tab && !tab.querySelector(".lu-dot")) tab.insertAdjacentHTML("beforeend", `<span class="lu-dot" title="Formazioni ufficiali"></span>`);
 }
@@ -1142,8 +1186,9 @@ function nbaView(d) {
   let s = board(d, { subH: sub(H), subA: sub(A), probs: m.win, labels: [H.short || "Casa", A.short || "Ospite"], favLabels: [`${H.short || H.name} vince`, `${A.short || A.name} vince`], book: b.p_home ? [b.p_home, b.p_away] : null,
     foot: [`Punteggio atteso <b class="num">${Math.round(m.exp[0])}–${Math.round(m.exp[1])}</b>`, b.p_home ? `Quote: ${esc(b.provider || "")}` : ""] });
 
+  const injTxt = (m.injury_pts || []).some(x => x > 0) ? `<p class="note">Assenti: tolti al punteggio atteso ${[[H, m.injury_pts[0]], [d.away, m.injury_pts[1]]].filter(([, x]) => x > 0).map(([t, x]) => `${num(x, 1)} punti a ${esc(t.short || t.name)}`).join(" e ")}, in base a quanto segnano e giocano i giocatori fuori.</p>` : "";
   const bpi = m.espn_bpi != null ? `<p class="note">Il modello di previsione di ESPN (BPI) dà ${esc(H.short)} al ${pct(m.espn_bpi)}. ${m.espn_weight ? `Pesa per il ${Math.round(m.espn_weight * 100)}% nella percentuale qui sopra: è il peso che ha sbagliato meno sulle partite già giocate.` : "Non è incluso nel calcolo."}</p>` : "";
-  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0], `${H.short || H.name} vince`], [A.short || A.name, m.win[1], `${A.short || A.name} vince`]], b.p_home ? [b.p_home, b.p_away] : null) + bpi)
+  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0], `${H.short || H.name} vince`], [A.short || A.name, m.win[1], `${A.short || A.name} vince`]], b.p_home ? [b.p_home, b.p_away] : null) + bpi + injTxt)
     + sec("Handicap", rows(m.spreads, { label: k => `${H.short || "Casa"} ${line(k)}` }), `margine atteso ${m.margin > 0 ? "+" : ""}${num(m.margin)}`)
     + sec("Margine di vittoria", rows(Object.fromEntries(Object.entries(m.bands).map(([k, v]) =>
       [k.replace("casa", `${H.short || "Casa"} vince di`).replace("ospite", `${A.short || "Ospite"} vince di`), v]))));
@@ -1250,7 +1295,28 @@ function tennisPlayers(d, cH, cA) {
     [`Su ${surf}, 12 mesi`, rec(A.surface12m), rec(B.surface12m)],
     ["Set finiti al tie-break", A.tb_rate, B.tb_rate, "none", pct],
     ["Game medi (3 set)", A.avg_games_bo3, B.avg_games_bo3, "none", x => num(x)],
-  ]);
+  ]) + tennisCondition(d, cH, cA);
+}
+/* condizione: quanto riposo, quanti incontri ravvicinati, se arriva da un'altra superficie (informazione, non cambia le percentuali) */
+function tennisCondition(d, cH, cA) {
+  const A = d.players.home.cond, B = d.players.away.cond;
+  if (!A && !B) return "";
+  const SURF_IT = { Hard: "cemento", Clay: "terra", Grass: "erba" };
+  const off = c => c?.days_off == null ? "–" : c.days_off === 0 ? "oggi" : c.days_off === 1 ? "ieri" : `${c.days_off} giorni fa`;
+  const flag = c => {
+    if (!c) return "";
+    if (c.days_off != null && c.days_off > 45) return "rientra dopo una lunga pausa";
+    if (c.m7 >= 4) return "molti incontri in pochi giorni";
+    if (c.surface_change) return `arriva dalla ${SURF_IT[c.prev_surface] || "un'altra superficie"}`;
+    return "";
+  };
+  const fa = flag(A), fb = flag(B);
+  return `<h3 class="lb-h3">Condizione</h3>${vsTable(lastName(d.home.name), lastName(d.away.name), cH, cA, [
+    ["Ultimo incontro", off(A), off(B)],
+    ["Incontri negli ultimi 7 giorni", A?.m7, B?.m7, "none", x => x ?? "–"],
+    ["Negli ultimi 14 giorni", A?.m14, B?.m14, "none", x => x ?? "–"],
+  ])}${fa || fb ? `<p class="note">${[[d.home.name, fa], [d.away.name, fb]].filter(([, f]) => f).map(([n, f]) => `${esc(lastName(n))}: ${f}`).join(". ")}.</p>` : ""}
+  <p class="note">Solo informazione: provati sugli incontri passati, riposo e stanchezza non hanno reso le stime più precise, quindi non cambiano le percentuali.</p>`;
 }
 
 /* forma dei tennisti sugli ultimi 5, 10 o 15 incontri, come per calcio e basket */

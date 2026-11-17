@@ -116,16 +116,21 @@ def build(today: date):
             p_espn = espn.predictor(summ)
             if p_espn is not None:
                 bpi[g["id"]] = round(p_espn, 4)
-            shift = N.blend_shift(mdl, g["home"], g["away"], hb, ab, p_espn, w_espn)
-            mk = N.markets(mdl, g["home"], g["away"], hb, ab, book, shift)
-            mk["espn_bpi"] = p_espn
-            mk["espn_weight"] = w_espn if p_espn is not None else 0.0
             th = N.team_summary(games, g["home"], season_from)
             ta = N.team_summary(games, g["away"], season_from)
-            fh = mk["exp"][0] / (th["season"].get("pf") or mk["exp"][0])
-            fa = mk["exp"][1] / (ta["season"].get("pf") or mk["exp"][1])
             inj_h = {x["pid"]: x for x in inj.get(g["home"], [])}
             inj_a = {x["pid"]: x for x in inj.get(g["away"], [])}
+            # prima i giocatori (per sapere chi manca e quanto pesa), poi i mercati con gli assenti
+            pl_h0 = N.player_props(lines, g["home"], team_ids.get(g["home"], []), 1.0, inj_h)
+            pl_a0 = N.player_props(lines, g["away"], team_ids.get(g["away"], []), 1.0, inj_a)
+            adj = (N.injury_impact(pl_h0), N.injury_impact(pl_a0))
+            shift = N.blend_shift(mdl, g["home"], g["away"], hb, ab, p_espn, w_espn, adj)
+            mk = N.markets(mdl, g["home"], g["away"], hb, ab, book, shift, adj)
+            mk["espn_bpi"] = p_espn
+            mk["espn_weight"] = w_espn if p_espn is not None else 0.0
+            mk["injury_pts"] = list(adj)
+            fh = mk["exp"][0] / (th["season"].get("pf") or mk["exp"][0])
+            fa = mk["exp"][1] / (ta["season"].get("pf") or mk["exp"][1])
             def team(t, b2b, injd):
                 n = names.get(t, (t, None, None, None))
                 rr = rec.get(t, {"w": 0, "l": 0})

@@ -265,7 +265,18 @@ def player_summary(matches, name, surface, today_iso):
         rank = m["wr"] if m["w"] == name else m["lr"]
         if rank:
             break
-    return {"name": name, "rank": int(rank) if rank else None, "last": last,
+    # condizione: riposo, incontri ravvicinati, cambio di superficie. Solo informazione: provate come correzioni
+    # dell'Elo sullo storico non migliorano le previsioni (report/taratura.md), quindi non toccano le percentuali
+    from datetime import date as _d
+    td = _d.fromisoformat(today_iso[:10])
+    days_off = (td - _d.fromisoformat(ms[0]["date"])).days if ms else None
+    m7 = sum(1 for m in ms[:10] if 0 <= (td - _d.fromisoformat(m["date"])).days <= 7)
+    m14 = sum(1 for m in ms[:15] if 0 <= (td - _d.fromisoformat(m["date"])).days <= 14)
+    prev_surf = SURF.get(ms[0]["surface"], "Hard") if ms else None
+    cond = {"days_off": days_off, "m7": m7, "m14": m14,
+            "surface_change": bool(prev_surf and prev_surf != s and days_off is not None and days_off <= 30),
+            "prev_surface": prev_surf}
+    return {"name": name, "rank": int(rank) if rank else None, "last": last, "cond": cond,
             "form5": form_block(5), "form10": form_block(10), "form15": form_block(15),
             "year": rec(year), "surface12m": rec(surf12),
             "tb_rate": r(tb_rate, 3) if tb_rate is not None else None,

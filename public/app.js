@@ -256,10 +256,11 @@ const THEMES = [["auto", "Auto", '<circle cx="12" cy="12" r="8"/><path d="M12 4a
   ["light", "Chiaro", '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'],
   ["dark", "Scuro", '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'],
   ["stadio", "Stadio", '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M12 6v12"/><circle cx="12" cy="12" r="2.5"/>'],
+  ["notte", "Notte", '<path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M18 15l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/>'],
   ["contrasto", "Contrasto", '<circle cx="12" cy="12" r="8"/><path d="M12 4v16" stroke-width="3"/>']];
 const THEME_INFO = { auto: ["Segue il telefono", "#f3f5f7", "#0d1117"], light: ["Superfici bianche", "#f3f5f7", "#ffffff"], dark: ["Grigio scuro", "#0d1117", "#161b22"],
-  stadio: ["Verde prato di sera", "#071a12", "#0e2a1d"], contrasto: ["Nero e bianco, testi più marcati", "#000000", "#111111"] };
-const THEME_COLOR = { stadio: "#071a12", contrasto: "#000000" };
+  stadio: ["Prato a strisce, linee del campo e riflettori", "#0a2618", "#0e2a1d"], notte: ["Blu profondo con luci al neon", "#0b0b1e", "#14143a"], contrasto: ["Nero e bianco, testi più marcati", "#000000", "#111111"] };
+const THEME_COLOR = { stadio: "#071a12", notte: "#0b0b1e", contrasto: "#000000" };
 function applyTheme(t) {
   // Stadio e Contrasto sono varianti del tema scuro: usano le sue regole più le loro
   if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;

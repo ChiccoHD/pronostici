@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Tema Stadio rifatto e tema Notte", items: [
+    "Il tema Stadio ha il prato tagliato a strisce, le linee del campo appena accennate e la luce dei riflettori.",
+    "Nuovo tema Notte: blu profondo con luci al neon.",
+    "La barra dei giorni è un po' più bassa: più spazio per le partite." ] },
   { d: "2026-11-17", t: "Ritocchi", items: [
     "Le migliori di oggi sono card più piccole, tutte e tre visibili insieme (🌙 = partita della notte, q. = quota equa).",
     "Corretto il salto dell'elenco quando i filtri si riducono durante lo scorrimento." ] },

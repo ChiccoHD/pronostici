@@ -1506,3 +1506,46 @@ html, body { overflow-anchor: none; }
 .tw-best-h { font-size: 11px; margin-bottom: 4px; }
 .tw-bests { grid-auto-columns: minmax(108px, 1fr); }
 .twb-f { white-space: nowrap; }
+/* barra dei giorni un po' più bassa */
+.days { gap: 6px; }
+.days button { min-width: 52px; padding: 5px 6px 6px; border-radius: 12px; }
+.days button .d-top { font-size: 9.5px; }
+.days button b { font-size: 18px; }
+.days button .d-mon { font-size: 10px; }
+.days button small { margin-top: 3px; font-size: 9.5px; padding: 1px 5px; }
+
+/* tema Stadio: prato tagliato a strisce, linee del campo appena accennate e luce dei riflettori */
+:root[data-variant="stadio"] body {
+  background:
+    radial-gradient(90% 40% at 15% -5%, rgba(255,255,240,.10), transparent 60%),
+    radial-gradient(90% 40% at 85% -5%, rgba(255,255,240,.10), transparent 60%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.028) 0 64px, transparent 64px 128px),
+    linear-gradient(180deg, #0a2618 0%, #071a12 55%, #05140d 100%);
+  background-attachment: fixed;
+}
+:root[data-variant="stadio"] body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .07;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 83px, #fff 84px 85.5px, transparent 86.5px),
+    linear-gradient(#fff, #fff) center / 100% 1.5px no-repeat,
+    radial-gradient(circle at 50% 50%, #fff 0 4px, transparent 5px);
+}
+:root[data-variant="stadio"] .sec, :root[data-variant="stadio"] .fx, :root[data-variant="stadio"] .group, :root[data-variant="stadio"] .board {
+  background-color: rgba(10, 38, 25, .82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(143, 240, 187, .12);
+}
+:root[data-variant="stadio"] .top, :root[data-variant="stadio"] .filters, :root[data-variant="stadio"] .tabs { background: rgba(6, 22, 14, .78); }
+:root[data-variant="stadio"] #app { position: relative; z-index: 1; }
+
+/* tema Notte: blu profondo con luci al neon */
+:root[data-variant="notte"] {
+  --bg: #0b0b1e; --card: #14143a; --soft: #1c1c4a; --soft-2: #26265c;
+  --ink: #f1f0ff; --ink-2: #b7b4e6; --ink-3: #8380bd;
+  --rule: #262660; --rule-strong: #3a3a80;
+  --go: #2ee6a6; --go-2: #20c48c; --go-bg: #0f3b33; --go-ink: #8ef5d0; --ring-off: #2a2a66;
+}
+:root[data-variant="notte"] body { background: radial-gradient(80% 50% at 0% 0%, rgba(168, 85, 247, .25), transparent 60%), radial-gradient(80% 50% at 100% 100%, rgba(46, 230, 166, .14), transparent 60%), var(--bg); background-attachment: fixed; }
+:root[data-variant="notte"] .sec, :root[data-variant="notte"] .board { box-shadow: 0 0 0 1px rgba(168, 85, 247, .18), 0 10px 30px -18px rgba(168, 85, 247, .6); }
+:root[data-variant="notte"] .days button[aria-pressed="true"], :root[data-variant="notte"] .btn-main { box-shadow: 0 0 18px rgba(46, 230, 166, .45); }
+.days button .d-mon { display: none; }
+.days button b { font-size: 17px; line-height: 1.1; }
+.days button { padding: 5px 6px 5px; }

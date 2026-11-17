@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T06:23+00:00",
+ "updated": "2026-11-17T09:46+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -252,12 +252,27 @@
    "in_arrivo_nations-league": 8,
    "in_arrivo_qual-coppa-africa": 18,
    "in_arrivo_concacaf-nations": 9,
-   "in_arrivo_amichevoli": 19,
-   "aggiornato": "2026-11-17T06:23+00:00"
+   "in_arrivo_amichevoli": 18,
+   "classifica_nations-league": 54,
+   "classifica_mondiali": 48,
+   "classifica_europei": 24,
+   "classifica_qual-europei": 53,
+   "classifica_qual-mondiali": 54,
+   "classifica_qual-mondiali-sudamerica": 10,
+   "classifica_qual-mondiali-concacaf": 12,
+   "classifica_qual-mondiali-asia": 6,
+   "classifica_qual-mondiali-africa": 54,
+   "classifica_copa-america": 16,
+   "classifica_coppa-africa": 24,
+   "classifica_qual-coppa-africa": 48,
+   "classifica_coppa-asia": 24,
+   "classifica_gold-cup": 16,
+   "classifica_concacaf-nations": 37,
+   "aggiornato": "2026-11-17T09:46+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-17T06:23+00:00"
+   "esiti": "0 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-17T09:46+00:00"
   },
   "archivio": {
    "partite": 212,

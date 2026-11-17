@@ -316,8 +316,32 @@ def xg_check():
     check("Understat letto dal programma", bool(ux), f"({len(ux)} partite)")
 
 
+def lineups_check():
+    """Formazioni nel summary ESPN delle nazionali (partite giocate negli ultimi giorni)."""
+    out("## Formazioni delle nazionali")
+    today = date.today()
+    for code in ("uefa.nations", "fifa.friendly", "caf.nations_qual", "concacaf.nations.league", "fifa.worldq.uefa"):
+        evs = espn.scoreboard("soccer", code, today - timedelta(days=4), today + timedelta(days=1))
+        parsed = [p for p in (espn.parse_event(e) for e in evs) if p]
+        done = [p for p in parsed if p["completed"]][:3]
+        if not done:
+            out(f"- {code}: nessuna partita conclusa negli ultimi giorni ({len(parsed)} in calendario)")
+            continue
+        for p in done:
+            summ = espn.summary("soccer", code, p["id"]) or {}
+            ro = summ.get("rosters") or []
+            st = [sum(1 for x in (t.get("roster") or []) if x.get("starter")) for t in ro]
+            check(f"{code} {p.get('home_name') or p.get('home')} – {p.get('away_name') or p.get('away')}: formazioni", bool(ro) and all(n >= 11 for n in st),
+                  f"(squadre {len(ro)}, titolari {st}, moduli {[t.get('formation') for t in ro]})")
+
+
 def main():
     import sys
+    if "formazioni" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        lineups_check()
+        _write()
+        return
     if "xg" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         xg_check()

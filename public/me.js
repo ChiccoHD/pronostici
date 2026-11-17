@@ -13,11 +13,11 @@ function showMe() {
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
   const evs = [], seen = new Set();
-  for (const t of teams) for (const e of INDEX.events.filter(e => names(t).has(e.home) || names(t).has(e.away)).slice(0, 2))
+  for (const t of teams) for (const e of INDEX.events.filter(e => !e.final && teamPlays(t, e)).slice(0, 2))
     if (!seen.has(e.id)) { seen.add(e.id); evs.push(e); }
   evs.sort((a, b) => a.date.localeCompare(b.date));
   const href = t => t.kind === "player" ? playerHref(t.lk, t.id) : teamHref(t.lk, t.id);
-  const nextOf = t => INDEX.events.filter(e => !e.final && (names(t).has(e.home) || names(t).has(e.away))).sort((a, b) => a.date.localeCompare(b.date))[0];
+  const nextOf = t => INDEX.events.filter(e => !e.final && teamPlays(t, e)).sort((a, b) => a.date.localeCompare(b.date))[0];
   html += sec(`${meIc("⭐", "#f5b301")}Le mie squadre`, teams.length
     ? `<div class="me-cards">${teams.map((t, i) => {
         const c = t.color ? "#" + String(t.color).replace("#", "") : t.kind === "player" ? "#3b82f6" : "#0a9b5a", n = nextOf(t);

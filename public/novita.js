@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Notifiche più semplici", items: [
+    "Le scelte delle notifiche sono quattro riquadri (Calcio, Basket, Tennis, Altri avvisi): toccane uno per gli interruttori, con le scorciatoie Essenziali, Tutti e Nessuno.",
+    "Partite, squadre e tennisti seguiti stanno in una riga compatta \"Per chi\".",
+    "Corretto: seguendo una squadra (es. Inter) non compaiono più le partite della sua squadra femminile, né in Tu né nelle notifiche." ] },
   { d: "2026-11-17", t: "Area personale rinnovata", items: [
     "Tu ha una nuova intestazione con il tuo nome (tocca la faccina per sceglierlo), le schedine vinte, la percentuale di giocate prese e la serie in corso.",
     "Grafico del bilancio in euro (dalle schedine con quota e puntata) oppure delle giocate prese contro quelle attese dal modello.",

@@ -17,6 +17,16 @@ const NOTIF_OPTS = {
   tennis: ["Tennis", [["start", "Inizio incontro"], ["set", "Fine di ogni set"], ["game", "Fine di ogni game (tante notifiche)"], ["end", "Fine incontro"]]],
 };
 
+const NT_ICON = { soccer: ["⚽", "#16a34a"], nba: ["🏀", "#ea7a1a"], tennis: ["🎾", "#c3cc1f"], general: ["🔔", "#8b5cf6"] };
+/* "Essenziali": quello che serve senza riempire il telefono */
+const NT_ESSENTIAL = { soccer: ["goal", "red", "ht", "end"], nba: ["quarter", "end"], tennis: ["set", "end"], general: ["slips", "lineup"] };
+function ntSummary(sp, p) {
+  const opts = NT_SHORT[sp][1], on = opts.filter(([k]) => p.on && p[k]);
+  if (!on.length) return "spenti";
+  if (on.length === opts.length) return "tutti";
+  return on.map(([, l]) => l).join(", ");
+}
+
 /* partite seguite con la campanella: solo per queste (e per squadre e tennisti seguiti) arrivano gli avvisi */
 const FOLLOW_KEY = "p_follow";
 function followed() {
@@ -162,24 +172,30 @@ function notifSection() {
       ? fl.map(x => `<div class="nt-f"><span class="nt-ic bell-ic on">${BELL_SVG}</span><span class="nt-f-t"><b>${esc(x.match)}</b><small>${esc(fmtDay(x.date).label)}, ${esc(fmtTime(x.date))}${x.league_name ? ` · ${esc(x.league_name)}` : ""}</small></span>
           <button type="button" class="me-x" data-bell="${esc(x.id)}" data-ev='${esc(JSON.stringify({ id: x.id }))}' aria-label="Smetti di seguire ${esc(x.match)}">×</button></div>`).join("")
       : `<p class="note" style="margin:4px 0">Nessuna partita: tocca una campanella per aggiungerla.</p>`;
-    const chips = sp => {
-      const [title, opts] = NT_SHORT[sp], p = s.prefs[sp];
-      return `<div class="nt-row"><b>${title}</b><div class="nt-chips">${opts.map(([k, l]) => `<button type="button" class="nt-chip" data-nt="${sp}.${k}" aria-pressed="${!!(p.on && p[k])}">${l}</button>`).join("")}</div></div>`;
+    // cosa ti avviso: un riquadro per sport, le scelte si aprono in una finestra dal basso
+    const tile = sp => {
+      const [title, opts] = NT_SHORT[sp], p = s.prefs[sp], [ic, c] = NT_ICON[sp];
+      const n = opts.filter(([k]) => p.on && p[k]).length;
+      return `<button type="button" class="nt-tile ${n ? "" : "off"}" data-nt-open="${sp}" style="--ic:${c}">
+        <span class="nt-tile-ic">${ic}</span><span class="nt-tile-t"><b>${title}</b><small>${esc(ntSummary(sp, p))}</small></span>
+        <span class="nt-tile-n">${n}<small>/${opts.length}</small></span></button>`;
     };
-    body = `${how}
-      <h3 class="lb-h3">Partite che segui</h3><div class="nt-follow">${list}</div>
-      <h3 class="lb-h3">Squadre e tennisti che segui</h3>
-      <div class="nt-follow">${teams.length ? teams.map((t, i) => `<div class="nt-f"><span class="nt-ic">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : "★"}</span>
-          <span class="nt-f-t"><b>${esc(t.name)}</b><small>${t.kind === "player" ? "tennista" : "squadra"} · avvisi per tutte le sue partite</small></span>
-          <button type="button" class="me-x" data-unfollow="${i}" aria-label="Smetti di seguire ${esc(t.name)}">×</button></div>`).join("")
-        : `<p class="note" style="margin:4px 0">Nessuna: apri la pagina di una squadra o di un tennista e tocca <b>Segui</b>.</p>`}</div>
+    const who = [...fl.map(x => ({ t: "match", x })), ...teams.map((t, i) => ({ t: "team", x: t, i }))];
+    body = `<h3 class="lb-h3">Cosa ti avviso</h3><div class="nt-grid">${Object.keys(NT_SHORT).map(tile).join("")}</div>
+      <h3 class="lb-h3">Per chi <span class="faint">${who.length || ""}</span></h3>
+      <div class="nt-who">${who.length ? who.map(w => w.t === "match"
+        ? `<span class="nt-pill"><span class="bell-ic on">${BELL_SVG}</span><span><b>${esc(w.x.match)}</b><small>${esc(fmtDay(w.x.date).label)}, ${esc(fmtTime(w.x.date))}</small></span>
+            <button type="button" data-bell="${esc(w.x.id)}" data-ev='${esc(JSON.stringify({ id: w.x.id }))}' aria-label="Smetti di seguire ${esc(w.x.match)}">×</button></span>`
+        : `<span class="nt-pill">${w.x.logo ? img(w.x.logo, w.x.kind === "player" ? "tflag" : "tlogo") : "★"}<span><b>${esc(w.x.short || w.x.name)}</b><small>tutte le partite</small></span>
+            <button type="button" data-unfollow="${w.i}" aria-label="Smetti di seguire ${esc(w.x.name)}">×</button></span>`).join("")
+        : `<p class="note" style="margin:2px 0">Ancora nessuno.</p>`}</div>
+      <details class="nt-howto"><summary>Come scelgo per chi?</summary>${how}</details>
       <label class="nt-line"><span>Anche le partite delle schedine salvate</span><input type="checkbox" class="switch" id="nt-slips" ${s.slips ? "checked" : ""}></label>
-      <h3 class="lb-h3">Cosa ti avviso</h3>${Object.keys(NT_SHORT).map(chips).join("")}
       ${on ? `<p class="note">Gli avvisi arrivano anche ad app chiusa, entro circa un minuto. <button type="button" class="linklike" id="nt-test">Manda una notifica di prova</button></p>` : ""}`;
   }
-  const head = `<div class="nt-top"><div><b>${on ? "Notifiche attive" : "Notifiche spente"}</b><span>${on ? "Ti avviso solo per le partite che scegli tu." : "Attivale per ricevere gol, set e risultati delle partite che scegli."}</span></div>
+  const head = `<div class="nt-top ${on ? "on" : ""}"><span class="nt-top-ic">${BELL_SVG}</span><div><b>${on ? "Notifiche attive" : "Notifiche spente"}</b><span>${on ? "Solo per le partite, le squadre e i tennisti che scegli tu." : "Attivale per ricevere gol, set e risultati di quello che segui."}</span></div>
     ${can ? `<input type="checkbox" class="switch big" id="nt-master" ${on ? "checked" : ""} aria-label="Notifiche">` : ""}</div>`;
-  return sec("Notifiche", `<div class="nt ${on ? "" : "is-off"}">${head}${body}<p class="nt-msg" id="nt-msg" role="status"></p></div>`, "", "Tu notifiche");
+  return sec(`${typeof meIc === "function" ? meIc("🔔", "#8b5cf6") : ""}Notifiche`, `<div class="nt ${on ? "" : "is-off"}">${head}${body}<p class="nt-msg" id="nt-msg" role="status"></p></div>`, "", "Tu notifiche");
 }
 
 function wireNotifs() {
@@ -201,6 +217,7 @@ function wireNotifs() {
       const r = await pushPost("test", { sub: sub.toJSON() }); msg(r.ok ? "Inviata: dovrebbe arrivare tra qualche secondo." : `Il servizio push ha risposto ${r.code}.`); }
     catch (e) { msg(`Prova non riuscita: ${e.message}.`); }
   });
+  document.querySelectorAll("[data-nt-open]").forEach(b => b.addEventListener("click", () => ntSheet(b.dataset.ntOpen, redraw)));
   document.querySelectorAll(".nt-chip[data-nt]").forEach(b => b.addEventListener("click", () => {
     const [sp, k] = b.dataset.nt.split("."), s = notifState();
     const val = b.getAttribute("aria-pressed") !== "true";
@@ -212,6 +229,30 @@ function wireNotifs() {
     notifySync();
   }));
   document.getElementById("nt-slips")?.addEventListener("change", ev => { saveNotif({ ...notifState(), slips: ev.target.checked }); notifySync(); });
+}
+
+/* scelte di uno sport, in una finestra dal basso: interruttori uno sotto l'altro e due scorciatoie */
+function ntSheet(sp, after) {
+  const [title, opts] = NT_SHORT[sp], [ic, c] = NT_ICON[sp];
+  const p = () => notifState().prefs[sp];
+  const rows = () => opts.map(([k, l]) => `<label class="nt-opt"><span>${l}${NT_ESSENTIAL[sp].includes(k) ? "" : ""}</span><input type="checkbox" class="switch" data-nt-k="${k}" ${p().on && p()[k] ? "checked" : ""}></label>`).join("");
+  const { el, close } = openSheet(`<div class="nt-sh-h" style="--ic:${c}"><span class="nt-tile-ic">${ic}</span><h3 class="sheet-t">${title}</h3></div>
+    <div class="nt-presets"><button type="button" data-pre="ess">Essenziali</button><button type="button" data-pre="all">Tutti</button><button type="button" data-pre="none">Nessuno</button></div>
+    <div class="nt-opts">${rows()}</div>
+    <button type="button" class="btn-main" data-done style="width:100%;margin-top:12px">Fatto</button>`, { label: `Notifiche ${title}`, onClose: after });
+  const apply = keys => {
+    const s = notifState();
+    for (const [k] of opts) s.prefs[sp][k] = keys.includes(k);
+    s.prefs[sp].on = keys.length > 0;
+    saveNotif(s); notifySync();
+    el.querySelectorAll("[data-nt-k]").forEach(i => { i.checked = keys.includes(i.dataset.ntK); });
+  };
+  el.querySelectorAll("[data-nt-k]").forEach(i => i.addEventListener("change", () =>
+    apply([...el.querySelectorAll("[data-nt-k]")].filter(x => x.checked).map(x => x.dataset.ntK))));
+  el.querySelector('[data-pre="ess"]').onclick = () => apply(NT_ESSENTIAL[sp]);
+  el.querySelector('[data-pre="all"]').onclick = () => apply(opts.map(([k]) => k));
+  el.querySelector('[data-pre="none"]').onclick = () => apply([]);
+  el.querySelector("[data-done]").onclick = () => close();
 }
 
 // all'apertura dell'app: rinnova l'iscrizione con le partite "mie" aggiornate

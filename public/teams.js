@@ -94,8 +94,7 @@ async function showTeam(lk, id) {
     <a class="th-link" href="#/classifiche/${encodeURIComponent(lk)}">Classifica ${esc(L.name)} ›</a></div>`;
 
   // prossime partite (anche di coppa): dall'elenco delle partite in programma
-  const names = new Set([T.name, T.short].filter(Boolean));
-  const next = INDEX.events.filter(e => names.has(e.home) || names.has(e.away));
+  const next = INDEX.events.filter(e => teamPlays({ ...T, lk }, e));
   const nextHtml = next.length ? next.map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna partita nei prossimi giorni.</p>`;
 
   const oppName = o => nba ? ((L.names || {})[o] || o) : o;
@@ -133,6 +132,14 @@ async function showTeam(lk, id) {
 
 /* ------------------------------------------------------------------ squadre e giocatori preferiti */
 
+/* una partita è della squadra seguita? Stesso nome, ma le squadre femminili sono un'altra squadra
+   (es. Inter e Inter femminile): la Champions femminile vale solo per chi la segue da lì. */
+const WOMEN_LEAGUES = new Set(["champions-femminile"]);
+function teamPlays(t, e) {
+  const ns = new Set([t.name, t.short].filter(Boolean));
+  if (!ns.has(e.home) && !ns.has(e.away)) return false;
+  return WOMEN_LEAGUES.has(e.league) === WOMEN_LEAGUES.has(t.lk);
+}
 function myTeams() { try { return JSON.parse(localStorage.getItem("p_myteams") || "[]"); } catch { return []; } }
 function saveMyTeams(list) {
   try { localStorage.setItem("p_myteams", JSON.stringify(list)); } catch { /* niente */ }

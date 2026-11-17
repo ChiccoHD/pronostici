@@ -337,7 +337,7 @@ export class Push {
       for (const e of live) {
         const p = (s.prefs || DEFAULT_PREFS)[e.sport];
         if (!p?.on) continue;
-        if (p.mode === "all" || mine.has(e.id) || teams.has(norm(e.home)) || teams.has(norm(e.away))) {
+        if (p.mode === "all" || mine.has(e.id) || (e.league !== "champions-femminile" && (teams.has(norm(e.home)) || teams.has(norm(e.away))))) {
           if (!followers.has(e.id)) followers.set(e.id, []);
           followers.get(e.id).push(key);
         }

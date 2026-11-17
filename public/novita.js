@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Area personale rinnovata", items: [
+    "Tu ha una nuova intestazione con il tuo nome (tocca la faccina per sceglierlo), le schedine vinte, la percentuale di giocate prese e la serie in corso.",
+    "Grafico del bilancio in euro (dalle schedine con quota e puntata) oppure delle giocate prese contro quelle attese dal modello.",
+    "Traguardi da sbloccare: prima presa, schedina vinta, tris, cinquina, colpo grosso e altri.",
+    "Le squadre seguite sono schede colorate con la prossima partita." ] },
   { d: "2026-11-17", t: "Calendario centrato su oggi", items: [
     "All'apertura la barra dei giorni mostra oggi al centro: scorri a sinistra per i giorni passati, a destra per i prossimi." ] },
   { d: "2026-11-17", t: "Classifiche delle nazionali", items: [

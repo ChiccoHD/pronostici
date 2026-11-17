@@ -7,10 +7,8 @@ function showMe() {
   const teams = myTeams(), slips = mySlips(), hist = favs().filter(f => f.result);
   const st = s => slipState(s).cls;
   const openSlips = slips.filter(s => !["win", "lose"].includes(st(s))), won = slips.filter(s => st(s) === "win"), lost = slips.filter(s => st(s) === "lose");
-  const tile = (n, l, href) => `<a class="me-tile" href="${href}"><b>${n}</b><span>${l}</span></a>`;
-  let html = `<h1 class="page-h">La tua area</h1>
-    <div class="me-tiles">${tile(teams.length, teams.length === 1 ? "squadra seguita" : "squadre seguite", "#/tu")}${tile(openSlips.length, "schedine aperte", "#/tu")}
-      ${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte", "#/tu")}</div>`;
+  const closed = meClosed();
+  let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips) + meBadges(closed, slips, teams);
 
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
@@ -19,12 +17,18 @@ function showMe() {
     if (!seen.has(e.id)) { seen.add(e.id); evs.push(e); }
   evs.sort((a, b) => a.date.localeCompare(b.date));
   const href = t => t.kind === "player" ? playerHref(t.lk, t.id) : teamHref(t.lk, t.id);
-  html += sec("Le mie squadre", teams.length
-    ? `<div class="me-teams">${teams.map((t, i) => `<div class="me-team"><a href="${href(t)}">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : ""}<b>${esc(t.name)}</b></a>
-        <button type="button" class="me-x" data-unfollow="${i}" aria-label="Smetti di seguire ${esc(t.name)}">×</button></div>`).join("")}</div>
+  const nextOf = t => INDEX.events.filter(e => !e.final && (names(t).has(e.home) || names(t).has(e.away))).sort((a, b) => a.date.localeCompare(b.date))[0];
+  html += sec(`${meIc("⭐", "#f5b301")}Le mie squadre`, teams.length
+    ? `<div class="me-cards">${teams.map((t, i) => {
+        const c = t.color ? "#" + String(t.color).replace("#", "") : t.kind === "player" ? "#3b82f6" : "#0a9b5a", n = nextOf(t);
+        const opp = n ? (names(t).has(n.home) ? `contro ${n.away}` : `contro ${n.home}`) : "";
+        return `<div class="me-card" style="--tc:${c}"><a href="${href(t)}"><span class="me-card-logo">${t.logo ? img(t.logo, t.kind === "player" ? "tflag" : "tlogo") : `<span class="mono">${esc(initials(t.name))}</span>`}</span>
+          <b>${esc(t.short || t.name)}</b><small>${n ? `${esc(fmtDay(n.date).rel || fmtShort(n.date))} ${esc(fmtTime(n.date, n.time_valid))}<br>${esc(opp)}` : "nessuna partita a breve"}</small></a>
+          <button type="button" class="me-x" data-unfollow="${i}" aria-label="Smetti di seguire ${esc(t.name)}">×</button></div>`;
+      }).join("")}</div>
       <h3 class="lb-h3">Prossime partite</h3>${evs.length ? evs.slice(0, 8).map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna loro partita nei prossimi giorni.</p>`}`
     : `<p class="note">Non segui ancora nessuna squadra. Apri la pagina di una squadra (dalle <a href="#/classifiche">Classifiche</a> o toccandone il nome in una partita) o di un tennista e tocca <b>Segui</b>: qui troverai le loro prossime partite.</p>`,
-    "", "Tu squadre");
+    teams.length ? `${teams.length}` : "", "Tu squadre");
 
   // schedine salvate (complete, con quota, puntata ed esito) e storico delle giocate
   html += slips.length ? slipsSection() : sec("Le mie schedine", `<p class="note">Componi una schedina nella pagina Schedina e tocca <b>Salva come schedina</b>: la ritrovi qui, e l'app segna da sola se è vinta o persa.</p>
@@ -32,7 +36,7 @@ function showMe() {
   html += playedHtml();
 
   // dati sul telefono
-  html += sec("I tuoi dati", `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Salvane una copia per non perderli se cambi telefono o cancelli i dati del browser.</p>
+  html += sec(`${meIc("💾", "#64748b")}I tuoi dati`, `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Salvane una copia per non perderli se cambi telefono o cancelli i dati del browser.</p>
     <div class="me-acts"><button type="button" class="btn-main" id="me-export">Salva una copia</button>
     <label class="btn-main alt" style="cursor:pointer">Ripristina da una copia<input type="file" id="me-import" accept="application/json,.json" hidden></label></div>`, "", "Tu dati");
   if (typeof notifSection === "function") html += notifSection();     // in fondo alla pagina
@@ -40,6 +44,11 @@ function showMe() {
   wireSlips();
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
 
+  document.getElementById("me-name")?.addEventListener("click", async () => {
+    const v = await askText("Come ti chiami?", load("name", ""), { ok: "Salva", hint: "Lo vedi solo tu, in cima a questa pagina." });
+    if (v == null) return;
+    save("name", v.trim().slice(0, 24)); showMe();
+  });
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
   document.getElementById("me-export").onclick = () => {
     const data = {};
@@ -60,6 +69,96 @@ function showMe() {
       toast("Dati ripristinati"); updateFavBadge(); showMe();
     } catch { toast("Questo file non è una copia di Pronostici"); }
   };
+}
+
+/* ------------------------------------------------------------------ area personale: intestazione, andamento, traguardi */
+
+const meIc = (e, c) => `<span class="me-ic" style="--ic:${c}" aria-hidden="true">${e}</span>`;
+
+/* tutte le giocate chiuse (singole e delle schedine), una volta sola, dalla più vecchia */
+function meClosed() {
+  const seen = new Set();
+  return [...favs(), ...mySlips().flatMap(s => s.legs)]
+    .filter(f => f.result && f.key && !seen.has(f.key) && seen.add(f.key))
+    .sort((a, b) => (a.closed || a.date).localeCompare(b.closed || b.date));
+}
+
+function meHero(teams, openSlips, won, lost, closed) {
+  const name = load("name", ""), h = new Date().getHours();
+  const hi = h < 6 ? "Buonanotte" : h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera";
+  const w = closed.filter(f => f.result === "win").length;
+  let streak = 0;
+  for (let i = closed.length - 1; i >= 0 && closed[i].result === closed[closed.length - 1].result; i--) streak++;
+  const last = closed[closed.length - 1]?.result;
+  const sub = openSlips.length ? `${openSlips.length} ${openSlips.length === 1 ? "schedina aperta" : "schedine aperte"}`
+    : closed.length ? "Nessuna schedina aperta" : "Inizia salvando una schedina o seguendo una squadra";
+  const streakTxt = streak >= 2 ? ` · ${streak} ${last === "win" ? "prese" : "perse"} di fila ${last === "win" ? "🔥" : "🧊"}` : "";
+  const tile = (n, l) => `<div class="mh-tile"><b>${n}</b><span>${l}</span></div>`;
+  return `<section class="me-hero">
+    <div class="mh-top"><button type="button" class="mh-av" id="me-name" aria-label="Cambia il tuo nome">${esc(name ? initials(name) : "🙂")}</button>
+      <div class="mh-hi"><small>${hi}${name ? "," : ""}</small><b>${esc(name || "La tua area")}</b><span>${esc(sub)}${streakTxt}</span></div></div>
+    <div class="mh-tiles">${tile(teams.length, teams.length === 1 ? "seguita" : "seguite")}${tile(`${won.length}<small>/${won.length + lost.length}</small>`, "schedine vinte")}
+      ${tile(closed.length ? `${Math.round(100 * w / closed.length)}<small>%</small>` : "–", closed.length ? `prese su ${closed.length}` : "giocate prese")}</div>
+    ${name ? "" : `<p class="mh-tip">Tocca la faccina per dire come ti chiami</p>`}
+  </section>`;
+}
+
+/* andamento: bilancio in euro se ci sono schedine con quota e puntata, altrimenti giocate prese contro quelle attese */
+function meTrend(closed, slips) {
+  const money = slips.filter(s => s.odds && s.stake && ["win", "lose"].includes(slipState(s).cls))
+    .sort((a, b) => Math.max(...a.legs.map(f => +new Date(f.date))) - Math.max(...b.legs.map(f => +new Date(f.date))));
+  let series, title, right, legend;
+  if (money.length >= 2) {
+    let bal = 0;
+    series = [[0, 0], ...money.map((s, i) => [i + 1, bal += slipState(s).cls === "win" ? s.stake * s.odds - s.stake : -s.stake])];
+    title = "Il tuo bilancio";
+    right = `${bal >= 0 ? "+" : "−"}${num(Math.abs(bal), 2)} €`;
+    legend = `<span><i class="lg-a"></i>bilancio dopo ogni schedina chiusa (${money.length})</span>`;
+    return sec(`${meIc("📈", "#0a9b5a")}${title}`, `<div class="me-chart ${bal >= 0 ? "up" : "down"}">${meSvg([series], bal >= 0 ? ["var(--go)"] : ["#e5484d"], true)}</div><div class="me-legend">${legend}</div>`, right, "Tu andamento");
+  }
+  if (closed.length < 3) return "";
+  let w = 0, e = 0;
+  const got = [[0, 0]], exp = [[0, 0]];
+  closed.forEach((f, i) => { w += f.result === "win"; e += f.p || 0; got.push([i + 1, w]); exp.push([i + 1, e]); });
+  const diff = w - e;
+  return sec(`${meIc("📈", "#0a9b5a")}Il tuo andamento`, `<div class="me-chart">${meSvg([exp, got], ["var(--ink-3)", "var(--go)"], false)}</div>
+    <div class="me-legend"><span><i class="lg-a"></i>giocate prese</span><span><i class="lg-b"></i>quelle che il modello si aspettava</span></div>
+    <p class="note">${Math.abs(diff) < 1 ? "Sei in linea con le stime del modello." : diff > 0 ? `Ne hai prese ${num(diff, 1)} in più delle attese.` : `Ne hai prese ${num(-diff, 1)} in meno delle attese.`} Con poche giocate conta molto il caso.</p>`,
+    `${w} su ${closed.length}`, "Tu andamento");
+}
+function meSvg(lines, colors, area) {
+  const W = 320, H = 120, P = 6, pts = lines.flat();
+  const xMax = Math.max(1, ...pts.map(p => p[0])), yMin = Math.min(0, ...pts.map(p => p[1])), yMax = Math.max(1, ...pts.map(p => p[1]));
+  const X = x => P + (W - 2 * P) * x / xMax, Y = y => H - P - (H - 2 * P) * (y - yMin) / (yMax - yMin || 1);
+  const path = l => l.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  const zero = yMin < 0 ? `<line x1="${P}" x2="${W - P}" y1="${Y(0)}" y2="${Y(0)}" class="ch-zero"/>` : "";
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Grafico dell'andamento">
+    <defs><linearGradient id="chg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${colors[colors.length - 1]}" stop-opacity=".35"/><stop offset="1" stop-color="${colors[colors.length - 1]}" stop-opacity="0"/></linearGradient></defs>${zero}
+    ${area || lines.length > 1 ? `<path d="${path(lines[lines.length - 1])}L${X(lines[lines.length - 1].at(-1)[0])},${Y(yMin)}L${X(0)},${Y(yMin)}Z" fill="url(#chg)"/>` : ""}
+    ${lines.map((l, i) => `<path d="${path(l)}" fill="none" stroke="${colors[i]}" stroke-width="${i === lines.length - 1 ? 2.6 : 1.8}" ${i < lines.length - 1 ? 'stroke-dasharray="4 4"' : ""} stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join("")}
+    <circle cx="${X(lines.at(-1).at(-1)[0])}" cy="${Y(lines.at(-1).at(-1)[1])}" r="4" fill="${colors.at(-1)}"/></svg>`;
+}
+
+/* traguardi: piccoli obiettivi, accesi quando raggiunti */
+function meBadges(closed, slips, teams) {
+  let best = 0, run = 0;
+  for (const f of closed) { run = f.result === "win" ? run + 1 : 0; best = Math.max(best, run); }
+  const wonSlips = slips.filter(s => slipState(s).cls === "win");
+  const sports = new Set(closed.filter(f => f.result === "win").map(f => f.sport).filter(Boolean));
+  const B = [
+    ["🎯", "Prima presa", "una giocata andata a segno", closed.some(f => f.result === "win")],
+    ["🏆", "Schedina vinta", "la prima schedina vinta", wonSlips.length > 0],
+    ["🔥", "Tris", "3 giocate prese di fila", best >= 3],
+    ["⚡", "Cinquina", "5 giocate prese di fila", best >= 5],
+    ["💎", "Colpo grosso", "schedina vinta con quota 5 o più", wonSlips.some(s => Number(s.odds || 0) >= 5 || s.legs.reduce((a, f) => a * f.p, 1) <= 0.2)],
+    ["🌍", "Tuttofare", "prese in calcio, basket e tennis", sports.size >= 3],
+    ["📣", "Tifoso", "segui almeno 3 squadre o tennisti", teams.length >= 3],
+    ["📚", "Veterano", "50 giocate chiuse", closed.length >= 50],
+  ];
+  const got = B.filter(b => b[3]).length;
+  return sec(`${meIc("🏅", "#a855f7")}Traguardi`, `<div class="me-badges">${B.map(([ic, t, d, ok]) =>
+    `<div class="me-badge ${ok ? "ok" : ""}" title="${esc(d)}"><span>${ic}</span><b>${esc(t)}</b><small>${esc(d)}</small></div>`).join("")}</div>`,
+    `${got} su ${B.length}`, "Tu traguardi");
 }
 
 /* ------------------------------------------------------------------ info: come funziona, affidabilità, stato */

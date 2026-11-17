@@ -1199,3 +1199,47 @@ body[data-view="cerca"] .search-btn { background: var(--go); color: #fff; border
 .mt-all { display: block; text-align: right; margin-top: 8px; font-weight: 700; font-size: 13.5px; color: var(--go); text-decoration: none; }
 .std.nat .std-r { grid-template-columns: 24px minmax(0, 1fr) 34px 40px 38px; }
 .std.nat .std-r.head > span:nth-child(2) { text-align: left; }
+/* ------------------------------------------------------------------ area personale */
+.me-hero { position: relative; overflow: hidden; margin: 2px 0 14px; padding: 18px 16px 16px; border-radius: 22px; color: #fff;
+  background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.18), transparent 55%), linear-gradient(135deg, #0a9b5a 0%, #0b7d6e 55%, #155e8a 100%);
+  box-shadow: 0 10px 30px -12px rgba(10,155,90,.55); }
+.me-hero::after { content: ""; position: absolute; right: -40px; bottom: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.mh-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+.mh-av { flex: none; width: 54px; height: 54px; border-radius: 50%; border: 2px solid rgba(255,255,255,.65); background: rgba(255,255,255,.18); color: #fff; font: inherit; font-size: 21px; font-weight: 800; cursor: pointer; }
+.mh-hi { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.mh-hi small { font-size: 13px; opacity: .85; font-weight: 600; }
+.mh-hi b { font-size: 23px; font-weight: 800; letter-spacing: -.01em; }
+.mh-hi span { font-size: 12.5px; opacity: .9; margin-top: 3px; }
+.mh-tiles { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+.mh-tile { display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 14px; background: rgba(255,255,255,.14); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,.18); }
+.mh-tile b { font-size: 24px; font-weight: 800; line-height: 1.1; }
+.mh-tile b small { font-size: 13px; opacity: .75; margin-left: 1px; }
+.mh-tile span { font-size: 11.5px; opacity: .9; font-weight: 600; text-align: center; }
+.mh-tip { position: relative; z-index: 1; margin: 10px 0 0; font-size: 12px; opacity: .8; }
+.me-ic { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 8px; border-radius: 8px; font-size: 14px; vertical-align: -6px; background: color-mix(in srgb, var(--ic) 20%, transparent); }
+.me-chart { margin: 4px 0 6px; padding: 8px 4px 2px; border-radius: 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--go) 7%, transparent), transparent); }
+.me-chart.down { background: linear-gradient(180deg, rgba(229,72,77,.08), transparent); }
+.me-chart svg { display: block; width: 100%; height: 130px; }
+.ch-zero { stroke: var(--rule-strong); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.me-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); }
+.me-legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; background: var(--go); }
+.me-legend i.lg-b { background: none; border-top: 2px dashed var(--ink-3); height: 0; }
+.me-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.me-badge { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 10px 4px 8px; border-radius: 14px; background: var(--soft); opacity: .5; filter: grayscale(1); }
+.me-badge span { font-size: 24px; line-height: 1.1; }
+.me-badge b { font-size: 11.5px; line-height: 1.15; }
+.me-badge small { display: none; }
+.me-badge.ok { opacity: 1; filter: none; background: linear-gradient(160deg, color-mix(in srgb, #f5b301 22%, var(--card)), var(--card)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #f5b301 55%, transparent); }
+.me-cards { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; scroll-snap-type: x mandatory; }
+.me-cards::-webkit-scrollbar { display: none; }
+.me-card { position: relative; flex: 0 0 132px; scroll-snap-align: start; border-radius: 18px; overflow: hidden;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--tc) 38%, var(--card)) 0%, color-mix(in srgb, var(--tc) 10%, var(--card)) 60%, var(--card) 100%);
+  border: 1px solid color-mix(in srgb, var(--tc) 35%, transparent); }
+.me-card a { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 14px 8px 12px; color: var(--ink); text-decoration: none; }
+.me-card-logo { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.9); box-shadow: 0 4px 12px -4px rgba(0,0,0,.35); }
+.me-card-logo img { width: 40px; height: 40px; object-fit: contain; }
+.me-card-logo .tflag { width: 40px; height: 28px; border-radius: 4px; object-fit: cover; }
+.me-card-logo .mono { font-weight: 800; color: var(--tc); }
+.me-card b { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.me-card small { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+.me-card .me-x { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0,0,0,.25); color: #fff; font-size: 15px; line-height: 1; cursor: pointer; }

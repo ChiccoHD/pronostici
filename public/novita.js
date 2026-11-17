@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Più spazio per le partite", items: [
+    "Scorrendo l'elenco in giù i filtri si riducono a una sola riga con i giorni: tornando un po' su ricompaiono sport, stato e campionati.",
+    "Le migliori di oggi includono anche il basket: contano le partite fino alle 8 di domattina, come quelle NBA della notte." ] },
   { d: "2026-11-17", t: "Le migliori di oggi, una per sport", items: [
     "Nel riquadro Oggi ci sono tre card, Calcio, Basket e Tennis: per ognuno la giocata di oggi con la probabilità stimata più alta, con la quota equa.",
     "Pagina squadra più compatta: intestazione con i colori della squadra, posizione, punti e gol in riquadri, Segui/Classifica/Confronta in una riga, la prossima partita subito sotto e il resto in schede (Partite, Stagione, Giocatori, Tendenze)." ] },

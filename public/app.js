@@ -383,6 +383,22 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+/* filtri compatti: scorrendo in giù resta solo la riga dei giorni, in piccolo; tornando su ricompaiono sport e stato */
+(function compactFilters() {
+  let lastY = scrollY, up = 0;
+  addEventListener("scroll", () => {
+    const mark = document.getElementById("f-mark"), y = scrollY;
+    if (!mark) { document.body.classList.remove("fcompact"); lastY = y; return; }
+    const head = document.querySelector(".top")?.offsetHeight || 52;
+    const past = mark.getBoundingClientRect().top < head - 60;
+    const was = document.body.classList.contains("fcompact");
+    if (!past) { if (was) document.body.classList.remove("fcompact"); up = 0; }
+    else if (y > lastY) { up = 0; if (!was) document.body.classList.add("fcompact"); }
+    else { up += lastY - y; if (was && up > 90) document.body.classList.remove("fcompact"); }
+    lastY = y;
+  }, { passive: true });
+})();
+
 /* barra dei giorni: il giorno scelto (di solito oggi) al centro; a sinistra i giorni passati, a destra i prossimi */
 function centerDays() {
   document.querySelectorAll(".days").forEach(bar => {
@@ -416,6 +432,13 @@ function showList() {
   renderList();
 }
 /* riquadro "Oggi" in cima all'elenco: le tue squadre in campo, le schedine in gioco, la migliore giocata del giorno */
+/* "oggi" per le giocate del giorno: fino alle 8 di domattina, così entrano le partite NBA della notte italiana */
+function tonight(date) {
+  const k = isoDay(date), today = isoDay(Date.now());
+  if (k === today) return true;
+  if (k !== isoDay(Date.now() + 864e5)) return false;
+  return +new Date(date).toLocaleString("it-IT", { hour: "2-digit", hourCycle: "h23", timeZone: TZ }) < 8;
+}
 function todayWidget() {
   const today = isoDay(Date.now()), cards = [];
   let bests = "";
@@ -437,7 +460,7 @@ function todayWidget() {
     // la migliore di oggi per ogni sport: la giocata più probabile, senza doppia chance e linee scontate (Over 1,5…)
     const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
       .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
-      .filter(it => isoDay(it.date) === today && Date.parse(it.date) > Date.now());
+      .filter(it => tonight(it.date) && Date.parse(it.date) > Date.now());
     const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"]];
     const tops = SP.map(([k, ic, name, c]) => [pool.filter(it => it.sport === k).sort((a, b) => b.p - a.p)[0], ic, name, c]).filter(x => x[0]);
     if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori di oggi</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
@@ -448,7 +471,7 @@ function todayWidget() {
         <span class="twb-bars">${[1, 2, 3, 4].map(i => `<i class="${i <= tier ? "on" : ""}"></i>`).join("")}</span>
         <b class="twb-l">${esc(it.label)}</b>
         <small class="twb-m">${esc(it.match)}</small>
-        <span class="twb-f"><span>${esc(fmtTime(it.date, it.time_valid))}</span><span>quota equa <b>${odd(it.p)}</b></span></span></a>`;
+        <span class="twb-f"><span>${isoDay(it.date) === today ? "" : "stanotte "}${esc(fmtTime(it.date, it.time_valid))}</span><span>quota equa <b>${odd(it.p)}</b></span></span></a>`;
     }).join("")}</div>`;
   } else if (!todayWidget.loading) {
     todayWidget.loading = true;
@@ -482,7 +505,7 @@ function renderList() {
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
-    <div id="search-res"></div><div id="list-main">${todayWidget()}<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
+    <div id="search-res"></div><div id="list-main">${todayWidget()}<div id="f-mark"></div><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>

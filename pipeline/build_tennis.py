@@ -137,7 +137,8 @@ def build(today: date):
                               "home": a["name"], "away": b["name"], "main": mk["win"], "main_labels": ["1", "2"],
                               "home_short": a.get("cc"), "away_short": b.get("cc"),
                               "home_flag": a.get("flag"), "away_flag": b.get("flag"),
-                              "book": None, "extra": {f"Over {k}": v for k, v in tot[3:4]}, "surface": surface})
+                              "book": None, "extra": {f"Over {k}": v for k, v in tot[3:4]}, "surface": surface,
+                              "bo": m["best_of"]})
             store.save(PUBLIC_DATA / "tennis" / f"{tour}.json", {"tour": tour, "updated": now.isoformat(timespec="minutes"),
                                                                  "players": profiles})
             status_all[tour] = status

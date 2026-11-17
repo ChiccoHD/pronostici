@@ -313,6 +313,7 @@ function route() {
   if (view === "info") return showInfoHub(arg);
   if (view === "live") { state.status = "live"; location.replace("#/"); return; }   // il Live ora è un filtro dell'elenco
   if (view === "multipla") return showMultipla();
+  if (view === "cerca") return showSearch();
   if (view === "condividi" && arg) return showShared(arg);
   if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
   if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
@@ -721,6 +722,7 @@ async function showEvent(id) {
   // in alto la partita (squadre e campanella), poi diretta e "com'è andata"
   const rv = reviewBox(d), brd = $app.querySelector(".board");
   if (rv) brd ? brd.insertAdjacentHTML("afterend", rv) : $app.querySelector(".back")?.insertAdjacentHTML("afterend", rv);
+  if (typeof eventActions === "function") { brd?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
   wire(d.sport);
   attachLive(d);
   attachLineups(d);
@@ -1264,6 +1266,7 @@ function showSlip() {
     <p class="note">${sameMatch ? "Ci sono più giocate sulla stessa partita: sono collegate tra loro, quindi la probabilità complessiva è solo indicativa. " : ""}Le probabilità sono quelle del momento in cui hai aggiunto la giocata. La quota equa è quella sotto cui il modello la ritiene sfavorevole.</p>
     ${next.length ? `<div class="slip-acts"><button type="button" class="btn-main" id="slip-save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Salva come schedina</button>
       <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
+      <button type="button" class="btn-main alt" id="slip-img"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4.5 3.5"/></svg>Immagine</button>
       <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></div>` : ""}</section>
     <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + toMe;
   $app.innerHTML = html;
@@ -1278,6 +1281,8 @@ function showSlip() {
   };
   const sh = document.getElementById("slip-share");
   if (sh) sh.onclick = () => shareSlip(next);
+  const si = document.getElementById("slip-img");
+  if (si) si.onclick = () => shareSlipImage(next, "La mia schedina");
   const c = document.getElementById("slip-clear");
   if (c) c.onclick = async () => {
     if (await askConfirm("Togliere tutte le giocate dalla schedina in costruzione?", { title: "Svuotare la schedina?", ok: "Sì, svuota", danger: true })) {

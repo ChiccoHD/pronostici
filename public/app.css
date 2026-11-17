@@ -1124,3 +1124,42 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 .tb-say.cur > span, .tb-say.cur > b { color: #e0352b; }
 .tb-say small { color: var(--ink-3); font-size: 12px; }
 .tboard.compact .tb-row { grid-template-columns: 18px minmax(0, 1fr) repeat(var(--n, 3), 26px) 30px; }
+/* probabilità adesso */
+.lv-ch { margin-left: auto; font-size: 11.5px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: var(--soft-2); color: var(--ink-2); white-space: nowrap; }
+.lv-ch.hi { background: color-mix(in srgb, var(--go) 22%, transparent); color: var(--go-ink, var(--go)); }
+.lv-ch.lo { background: color-mix(in srgb, #e5484d 20%, transparent); color: #e5484d; }
+.ls > b .lv-ch { margin-left: 6px; vertical-align: 1px; }
+.lp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.lp-grid span { display: flex; justify-content: space-between; gap: 6px; padding: 6px 9px; border-radius: 9px; background: var(--soft-2); font-size: 12.5px; color: var(--ink-2); }
+.lp-grid b { color: var(--ink); }
+.lp-next { margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+.lp-next b { color: var(--ink); }
+.lp-pre { margin-top: 6px; font-size: 12px; color: var(--ink-3); }
+.ss-chance { display: flex; align-items: center; gap: 10px; margin: 6px 0 8px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--go) 10%, var(--card)); border: 1px solid color-mix(in srgb, var(--go) 30%, transparent); }
+.ss-chance > span { display: flex; flex-direction: column; gap: 2px; }
+.ss-chance small { color: var(--ink-3); font-size: 11.5px; }
+.tl-ch { margin-top: 6px; font-size: 12.5px; }
+/* cerca */
+.search-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink-2); }
+.search-btn svg, .search-box svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+body[data-view="cerca"] .search-btn { background: var(--go); color: #fff; border-color: var(--go); }
+.search-box { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; padding: 0 12px; height: 46px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--go); color: var(--ink-3); }
+.search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; }
+.search-box input::-webkit-search-cancel-button { display: none; }
+.search-x { border: 0; background: var(--soft-2); color: var(--ink-2); width: 26px; height: 26px; border-radius: 999px; font-size: 17px; line-height: 1; cursor: pointer; }
+.r.srch { text-decoration: none; color: inherit; }
+.r.srch .l { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.r.srch .l b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srch-ph { width: 28px; height: 28px; border-radius: 999px; object-fit: cover; flex: none; background: var(--soft-2); display: inline-grid; place-items: center; font-size: 14px; }
+/* calendario e immagine */
+.ev-acts { display: flex; gap: 8px; margin: 10px 0 4px; }
+.ev-act { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); font: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+.ev-act svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--go); }
+.cal-opts { display: grid; gap: 8px; margin: 12px 0 6px; }
+.cal-opts .btn-main { justify-content: center; text-decoration: none; }
+.share-prev { display: block; width: 100%; max-height: 52vh; object-fit: contain; border-radius: 14px; margin: 10px 0 12px; background: #0f1622; }
+.live-box .live-probs { flex-wrap: wrap; }
+.live-box .live-probs .fx-rings { flex: 1 1 100%; justify-content: center; }
+.live-box .live-probs .live-sub { flex: 1 1 100%; }
+.live-row .lp-grid, .live-row .lp-next { display: none; }
+.live-box .lp-short { display: none; }

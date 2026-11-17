@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Probabilità in diretta, Cerca, calendario e immagini", items: [
+    "Durante la partita le percentuali si aggiornano con il punteggio: nel calcio anche Over, Goal, doppia chance e chi segna il prossimo gol; nel tennis chi vince adesso, dai set e dai game.",
+    "Nelle schedine ogni giocata in corso mostra \"ora X%\" e le schedine salvate dicono quanto hanno di passare adesso.",
+    "Nuova lente in alto: trova squadre, tennisti, partite e campionati.",
+    "Nella scheda di una partita: Calendario (Google Calendar o calendario del telefono, con promemoria 30 minuti prima) e Immagine da mandare su WhatsApp.",
+    "Anche le schedine si condividono come immagine." ] },
   { d: "2026-11-16", t: "Tennis in diretta più chiaro", items: [
     "Il riquadro In diretta indica il numero di ogni set (con \"ora\" su quello in corso) e la colonna \"Set vinti\" è separata dai game.",
     "Sotto il tabellone, a parole: chi ha vinto ogni set e con che punteggio, e a quanto sta il set in corso." ] },

@@ -232,11 +232,12 @@ function slipCard(sl) {
   return `<details class="sec saved-slip st-${st.cls}" data-slip-id="${esc(sl.id)}" ${st.cls === "on" ? "open" : ""}>
     <summary><span class="ss-badge ${st.cls}">${st.txt}</span><b>${esc(sl.name)}</b>
       <small>${sl.legs.length} giocate · ${won ? `${won} prese · ` : ""}quota equa ${odd(prod)}${quota ? ` · sul sito ${num(quota, 2)}` : ""}</small></summary>
+    ${st.cls === "on" ? `<div class="ss-chance" data-slip-chance="${esc(sl.id)}" hidden></div>` : ""}
     ${sl.legs.map(leg).join("")}
     <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
       <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
     ${quota && stake ? `<p class="note">${st.cls === "win" ? `Vincita: <b>${num(quota * stake, 2)} €</b>` : st.cls === "lose" ? `Persi ${num(stake, 2)} €` : `Vincita possibile: <b>${num(quota * stake, 2)} €</b>`}. ${quota && prod ? `Il modello la stima al ${pct(prod)}, quota equa ${odd(prod)}: ${quota > 1 / prod ? "il sito paga più della quota equa." : "il sito paga meno della quota equa."}` : ""}</p>` : ""}
-    <div class="ss-acts"><button type="button" class="link-btn" data-ss-share>Condividi</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
+    <div class="ss-acts"><button type="button" class="link-btn" data-ss-share>Condividi link</button><button type="button" class="link-btn" data-ss-img>Immagine</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
   </details>`;
 }
 
@@ -263,6 +264,7 @@ function wireSlips() {
     card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
+    card.querySelector("[data-ss-img]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlipImage(sl.legs, sl.name); });
     card.querySelector("[data-ss-rename]")?.addEventListener("click", async () => { const n = await askText("Nome della schedina", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); refreshSlips(); } });
     card.querySelector("[data-ss-del]")?.addEventListener("click", async () => { if (await askConfirm("Non si potrà recuperare.", { title: "Eliminare questa schedina?", ok: "Sì, elimina", danger: true })) { saveMySlips(mySlips().filter(s => s.id !== id)); refreshSlips(); } });
   });

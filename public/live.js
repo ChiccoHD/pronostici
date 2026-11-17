@@ -126,6 +126,152 @@ function nbaLive(comp, expMargin, hs, as) {
   const p = 0.5 * (1 + erf(z / Math.SQRT2));
   return [p, 1 - p];
 }
+/* ------------------------------------------------------------------ probabilità adesso, per qualsiasi giocata
+   Calcio: gol che restano con Poisson sul tempo che manca, sommati al risultato attuale.
+   Basket: margine e punti totali con una normale che si stringe man mano che il tempo passa.
+   Tennis: catena di Markov game per game dal punteggio di set e game (chi serve non lo sappiamo: media dei due casi). */
+
+function soccerDist(xg, hs, as, minute) {
+  const rem = Math.max(0, (95 - Math.min(minute, 95)) / 92);
+  const lh = (xg?.[0] ?? 1.35) * rem, la = (xg?.[1] ?? 1.1) * rem;
+  const out = []; let s = 0;
+  for (let i = 0; i <= 9; i++) for (let j = 0; j <= 9; j++) { const p = poisson(lh, i) * poisson(la, j); s += p; out.push([hs + i, as + j, p]); }
+  out.forEach(x => x[2] /= s);
+  return { cells: out, lh, la };
+}
+const soccerP = (dist, f) => dist.cells.reduce((a, [h, a2, p]) => a + (f(h, a2) ? p : 0), 0);
+
+function nbaFrac(info) {
+  const st = info.comp?.status || {};
+  const period = st.period || info.period || 1, clock = st.clock ?? 720;
+  const remMin = period > 4 ? Math.max(0, clock / 60) : Math.max(0, (4 - period) * 12 + clock / 60);
+  return Math.max(remMin / 48, 0.002);
+}
+const normCdf = z => 0.5 * (1 + erf(z / Math.SQRT2));
+
+function tHold(p) { const q = 1 - p; return p ** 4 * (1 + 4 * q + 10 * q * q) + 20 * p ** 3 * q ** 3 * (p * p / (p * p + q * q)); }
+function tTiebreak(pa, pb) {
+  const q = (pa + 1 - pb) / 2, memo = new Map();
+  const f = (i, j) => {
+    if (i >= 7 && i - j >= 2) return 1; if (j >= 7 && j - i >= 2) return 0;
+    if (i >= 6 && j >= 6 && i === j) return q * q / (q * q + (1 - q) * (1 - q));
+    const k = i * 40 + j; if (memo.has(k)) return memo.get(k);
+    const v = q * f(i + 1, j) + (1 - q) * f(i, j + 1); memo.set(k, v); return v;
+  };
+  return f(0, 0);
+}
+function tSetWin(pa, pb, gi, gj) {          // A vince il set dai game gi-gj (media su chi serve adesso)
+  const hA = tHold(pa), hB = tHold(pb), tb = tTiebreak(pa, pb), memo = new Map();
+  const f = (i, j, s) => {
+    if (i >= 6 && i - j >= 2) return 1; if (j >= 6 && j - i >= 2) return 0;
+    if (i === 7) return 1; if (j === 7) return 0;
+    if (i === 6 && j === 6) return tb;
+    const k = (i * 8 + j) * 2 + s; if (memo.has(k)) return memo.get(k);
+    const g = s === 0 ? hA : 1 - hB;
+    const v = g * f(i + 1, j, 1 - s) + (1 - g) * f(i, j + 1, 1 - s); memo.set(k, v); return v;
+  };
+  return (f(gi, gj, 0) + f(gi, gj, 1)) / 2;
+}
+function tMatchWin(pa, pb, bo, sa = 0, sb = 0, gi = 0, gj = 0) {
+  const need = bo === 5 ? 3 : 2, ps = tSetWin(pa, pb, 0, 0);
+  const M = (a, b) => a >= need ? 1 : b >= need ? 0 : ps * M(a + 1, b) + (1 - ps) * M(a, b + 1);
+  if (sa >= need) return 1; if (sb >= need) return 0;
+  const pc = gi || gj ? tSetWin(pa, pb, gi, gj) : ps;
+  return pc * M(sa + 1, sb) + (1 - pc) * M(sa, sb + 1);
+}
+/* punti vinti al servizio dei due giocatori, ricavati dalla probabilità di vittoria prima del via */
+const SP_CACHE = new Map();
+function tennisServe(pWin, league, bo) {
+  const key = `${pWin}|${league}|${bo}`;
+  if (SP_CACHE.has(key)) return SP_CACHE.get(key);
+  const p0 = league === "wta" ? 0.56 : 0.64;
+  let lo = -0.25, hi = 0.25;
+  for (let k = 0; k < 25; k++) { const mid = (lo + hi) / 2; if (tMatchWin(p0 + mid, p0 - mid, bo) < pWin) lo = mid; else hi = mid; }
+  const d = (lo + hi) / 2, sp = [p0 + d, p0 - d];
+  SP_CACHE.set(key, sp); return sp;
+}
+function tennisLive(info, ix, bo = 3) {
+  const pre = ix?.main?.[0];
+  if (pre == null || !info.sets) return null;
+  if (info.state === "post") return info.winner === 0 ? [1, 0] : info.winner === 1 ? [0, 1] : null;
+  const league = ix.league || "atp", [pa, pb] = tennisServe(pre, league, bo);
+  const n = Math.max(info.sets[0].length, info.sets[1].length), done = (info.won?.[0] || 0) + (info.won?.[1] || 0);
+  const gi = n > done ? info.sets[0][n - 1] || 0 : 0, gj = n > done ? info.sets[1][n - 1] || 0 : 0;
+  const p = tMatchWin(pa, pb, bo, info.won?.[0] || 0, info.won?.[1] || 0, gi, gj);
+  return [p, 1 - p];
+}
+
+function sideIn(info, txt) {
+  const k = normName(txt);
+  const hit = side => (info[side]?.keys || [normName(info[side]?.name)]).some(x => x && (x === k || k.startsWith(x + " ") || x.startsWith(k)));
+  return hit("home") ? "home" : hit("away") ? "away" : null;
+}
+/* giocata del calcio decisa dal risultato finale -> funzione (gol casa, gol ospiti) -> presa? */
+function scorePred(L, info) {
+  const SIGN = { "1": (h, a) => h > a, "X": (h, a) => h === a, "2": (h, a) => a > h, "1X": (h, a) => h >= a, "X2": (h, a) => a >= h, "12": (h, a) => h !== a };
+  if (SIGN[L]) return SIGN[L];
+  let m;
+  if (L.includes(" + ")) {
+    const fs = L.split(" + ").map(x => scorePred(x.trim(), info));
+    return fs.every(Boolean) ? (h, a) => fs.every(f => f(h, a)) : null;
+  }
+  if ((m = L.match(/^(Over|Under) (\d+),5$/))) return m[1] === "Over" ? (h, a) => h + a > +m[2] : (h, a) => h + a <= +m[2];
+  if (L === "Goal" || L === "Goal, segnano entrambe") return (h, a) => h > 0 && a > 0;
+  if (L === "No Goal") return (h, a) => !(h > 0 && a > 0);
+  if ((m = L.match(/^Multigol (\d+)-(\d+)$/))) return (h, a) => h + a >= +m[1] && h + a <= +m[2];
+  if (L === "Pareggio") return (h, a) => h === a;
+  if (L === "Una delle due vince") return (h, a) => h !== a;
+  if ((m = L.match(/^(\d+)-(\d+)$/))) return (h, a) => h === +m[1] && a === +m[2];
+  if ((m = L.match(/^(.+) o pareggio$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? h >= a : a >= h : null; }
+  if ((m = L.match(/^(.+) vince$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? h > a : a > h : null; }
+  if ((m = L.match(/^(.+) non subisce gol$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? a === 0 : h === 0 : null; }
+  if ((m = L.match(/^(.+) ([+-]\d+(?:,\d)?)$/))) {
+    const s = sideIn(info, m[1]); if (!s) return null;
+    const hc = parseFloat(m[2].replace(",", "."));
+    return (h, a) => (s === "home" ? h - a : a - h) + hc > 0;
+  }
+  return null;
+}
+
+/* probabilità adesso che una giocata passi (null se non sappiamo stimarla) */
+function liveChance(L, info, ix) {
+  if (!info || info.state !== "in" || !ix) return null;
+  let m;
+  if (info.sport === "soccer") {
+    const f = scorePred(L, info);
+    if (!f || !ix.xg) return null;
+    return soccerP(soccerDist(ix.xg, info.H, info.A, minuteOf(info)), f);
+  }
+  if (info.sport === "nba") {
+    const ex = ix.exp_score || [112, 112], frac = nbaFrac(info);
+    const marginMu = (info.H - info.A) + (ex[0] - ex[1]) * frac, marginSd = 13 * Math.sqrt(frac);
+    if ((m = L.match(/^(.+) vince$/))) {
+      const s = sideIn(info, m[1]); if (!s) return null;
+      const p = nbaLive(info.comp, ex[0] - ex[1], info.H, info.A)[0];
+      return s === "home" ? p : 1 - p;
+    }
+    if ((m = L.match(/^(Over|Under) (\d+),5( punti)?$/))) {
+      const mu = info.H + info.A + (ex[0] + ex[1]) * frac, sd = 18 * Math.sqrt(frac);
+      const pOver = 1 - normCdf((+m[2] + 0.5 - mu) / sd);
+      return m[1] === "Over" ? pOver : 1 - pOver;
+    }
+    if ((m = L.match(/^(.+) ([+-]\d+(?:,\d)?)$/))) {
+      const s = sideIn(info, m[1]); if (!s) return null;
+      const hc = parseFloat(m[2].replace(",", "."));
+      const pHome = 1 - normCdf((-hc - marginMu) / marginSd);          // casa: margine + hc > 0
+      return s === "home" ? pHome : normCdf((hc - marginMu) / marginSd); // ospiti: -margine + hc > 0
+    }
+    return null;
+  }
+  if (info.sport === "tennis" && (m = L.match(/^(.+) vince$/))) {
+    const s = sideIn(info, m[1]); if (!s) return null;
+    const p = tennisLive(info, ix);
+    return p ? p[s === "home" ? 0 : 1] : null;
+  }
+  return null;
+}
+const chanceTag = p => p == null ? "" : `<span class="lv-ch ${p >= .6 ? "hi" : p < .3 ? "lo" : ""}" title="Stima del modello adesso">ora ${pct(p)}</span>`;
+
 function erf(x) { const t = 1 / (1 + .3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; }
 
 /* ------------------------------------------------------------------ dati live da ESPN */
@@ -516,7 +662,7 @@ function slipDots(pr) {
   if (need > 8) return `<span class="lv-c"><b>${pr.cur}</b>/${need}</span>`;
   return `<span class="lv-c" title="${pr.cur} di ${need} ${esc(pr.what)}">${"<i class=on></i>".repeat(cur)}${"<i></i>".repeat(need - cur)}</span>`;
 }
-function slipLiveHtml(s, info, label = "") {
+function slipLiveHtml(s, info, label = "", ch = null) {
   const live = info.state === "in";
   const clock = info.sport === "tennis" ? `${Math.max(1, info.sets?.[0]?.length || 1)}° set` : (info.sport === "soccer" ? (info.clock || info.detail || "") : (info.detail || ""));
   const score = info.sport === "tennis" ? `${info.won?.[0] ?? 0}-${info.won?.[1] ?? 0}` : `${info.H}-${info.A}`;
@@ -528,7 +674,7 @@ function slipLiveHtml(s, info, label = "") {
     : lost || s.cls === "lose" ? ["lose", "✗ Persa"]
     : !missing.length ? ["ok", "✓ Per ora presa"]
     : [s.cls === "ko" || parts.some(p => p.s?.cls === "ko") ? "ko" : "wait", `${live ? "Ti serve" : "Serviva"}: ${missing.join(" e ")}`];
-  return `<div class="lv2"><span class="lv-min ${live ? "" : "done"}">${live ? `<i class="ls-dot live"></i>${esc(clock)}` : "Finita"}</span><b class="lv-score">${esc(score)}</b>${dots}</div>
+  return `<div class="lv2"><span class="lv-min ${live ? "" : "done"}">${live ? `<i class="ls-dot live"></i>${esc(clock)}` : "Finita"}</span><b class="lv-score">${esc(score)}</b>${dots}${live && !["win", "lose"].includes(s.cls) ? chanceTag(ch) : ""}</div>
     <div class="lv-say ${cls}">${esc(txt)}</div>`;
 }
 
@@ -556,7 +702,8 @@ function statusChips(list, info) {
   if (!list.length) return "";
   return `<div class="live-slip">${list.map(f => {
     const s = pickStatus(f.label, info);
-    return `<div class="ls ${s?.cls || ""}"><b>★ ${esc(f.label)}</b>${s ? `<span>${esc(s.txt)}</span>${s.parts ? `<span class="sl-parts">${s.parts.map(p => `<span class="sl-part ${p.s.cls}">${esc(p.label)}</span>`).join("")}</span>` : ""}${progBar(s)}` : `<span>Si vede a fine partita</span>`}</div>`;
+    const ch = s && !["win", "lose"].includes(s.cls) ? liveChance(f.label, info, INDEX?.events.find(e => e.id === f.event)) : null;
+    return `<div class="ls ${s?.cls || ""}"><b>★ ${esc(f.label)} ${chanceTag(ch)}</b>${s ? `<span>${esc(s.txt)}</span>${s.parts ? `<span class="sl-parts">${s.parts.map(p => `<span class="sl-part ${p.s.cls}">${esc(p.label)}</span>`).join("")}</span>` : ""}${progBar(s)}` : `<span>Si vede a fine partita</span>`}</div>`;
   }).join("")}</div>`;
 }
 
@@ -566,13 +713,26 @@ function liveRings(info, ix) {
   if (info.state !== "in") return "";
   if (info.sport === "soccer") {
     const p = soccerLive(ix?.xg, info.H, info.A, minuteOf(info));
+    const dist = soccerDist(ix?.xg, info.H, info.A, minuteOf(info)), G = (f) => pct(soccerP(dist, f));
+    const tot = info.H + info.A, lines = [tot + 0.5, tot + 1.5, tot + 2.5].map(x => Math.floor(x) + 0.5);
+    const none = Math.exp(-(dist.lh + dist.la)), sh = dist.lh + dist.la ? dist.lh / (dist.lh + dist.la) : .5;
+    const grid = `<div class="lp-grid">${lines.map(l => `<span>Over ${String(l).replace(".", ",")}<b>${G((h, a) => h + a > l)}</b></span>`).join("")}
+      <span>Goal<b>${G((h, a) => h > 0 && a > 0)}</b></span><span>1X<b>${G((h, a) => h >= a)}</b></span><span>X2<b>${G((h, a) => a >= h)}</b></span></div>
+      <div class="lp-next">Prossimo gol: <b>${esc(info.home.name)} ${pct((1 - none) * sh)}</b> · nessuno <b>${pct(none)}</b> · <b>${esc(info.away.name)} ${pct((1 - none) * (1 - sh))}</b></div>`;
     return { rings: p.win.map((x, i) => `<span class="fx-ring">${ring(x, x === Math.max(...p.win))}<small>${["1", "X", "2"][i]}</small></span>`).join(""),
-      sub: `Adesso Over 2,5 <b>${pct(p.over25)}</b>, Goal <b>${pct(p.btts)}</b>${ix ? `. Prima del via: ${ix.main.map(pct).join(" / ")}` : ""}` };
+      sub: `<div class="lp-short">Adesso Over 2,5 <b>${pct(p.over25)}</b>, Goal <b>${pct(p.btts)}</b></div>${grid}${ix ? `<div class="lp-pre">Prima del via: ${ix.main.map(pct).join(" / ")}</div>` : ""}` };
   }
   if (info.sport === "nba") {
     const p = info.winProb != null ? [info.winProb, 1 - info.winProb] : nbaLive(info.comp, ix?.exp_score ? ix.exp_score[0] - ix.exp_score[1] : 0, info.H, info.A);
     return { rings: p.map((x, i) => `<span class="fx-ring">${ring(x, x === Math.max(...p))}<small>${i ? "2" : "1"}</small></span>`).join(""),
       sub: ix ? `Prima del via: ${ix.main.map(pct).join(" / ")}` : "" };
+  }
+  if (info.sport === "tennis") {
+    const p = tennisLive(info, ix, ix?.bo || 3);
+    if (!p) return "";
+    const nm = [lastName(info.home.name), lastName(info.away.name)];
+    return { rings: p.map((x, i) => `<span class="fx-ring">${ring(x, x === Math.max(...p))}<small>${esc(nm[i])}</small></span>`).join(""),
+      sub: `Chi vince adesso, dal punteggio di set e game${ix ? `. Prima del via: ${ix.main.map(pct).join(" / ")}` : ""}` };
   }
   return "";
 }
@@ -741,14 +901,34 @@ async function attachSlipStatus() {
   if (location.hash !== hash) return;
   let anyLive = false;
   const closed = new Map();   // giocate con esito ormai deciso: restano nello storico
+  const chances = new Map();  // probabilità adesso di ogni giocata in corso
   document.querySelectorAll("[data-slip-event]").forEach(el => {
     const info = infos[el.dataset.slipEvent];
     if (!info) return;
     if (info.state === "in") anyLive = true;
     const s = pickStatus(el.dataset.slipLabel, info);
-    el.innerHTML = s ? slipLiveHtml(s, info, el.dataset.slipLabel) : "";
+    const ix = INDEX?.events.find(e => e.id === el.dataset.slipEvent);
+    const ch = s?.cls === "win" ? 1 : s?.cls === "lose" ? 0 : liveChance(el.dataset.slipLabel, info, ix);
+    chances.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, ch);
+    el.innerHTML = s ? slipLiveHtml(s, info, el.dataset.slipLabel, ch) : "";
     el.className = `slip-live lvw ${s?.cls || ""}`;
     if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, { ...s, _info: info });
+  });
+  // schedine salvate: probabilità adesso che passino tutte (giocate non iniziate: stima di prima del via)
+  document.querySelectorAll("[data-slip-chance]").forEach(el => {
+    const sl = mySlips().find(x => x.id === el.dataset.slipChance);
+    if (!sl) return;
+    let p = 1, live = false, unknown = false;
+    for (const f of sl.legs) {
+      if (f.result) { p *= f.result === "win" ? 1 : 0; continue; }
+      const c = chances.get(`${f.event}|${f.label}`);
+      if (c != null) { p *= c; live = true; }
+      else if (new Date(f.date).getTime() > Date.now()) p *= f.p;
+      else unknown = true;
+    }
+    if (!live || unknown) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = `${ring(p, p >= .5)}<span><b>Adesso la schedina ha il ${pct(p)} di passare</b><small>stima del modello dal punteggio in diretta; prima del via era ${pct(sl.legs.reduce((a, f) => a * f.p, 1))}</small></span>`;
   });
   if (closed.size) {
     const list = favs();
@@ -883,7 +1063,8 @@ async function showLive(opt = { embed: true }) {
     if (info.sport === "tennis") {
       const setTxt = info.state === "in" ? `${Math.min(info.period || 1, Math.max(info.sets[0].length, 1))}° set` : "Finale";
       return `<a class="live-row" href="${href}"><div class="live-main"><div class="live-min ${info.state === "in" ? "on" : ""}">${esc(setTxt)}${bell}</div>
-        <div class="${fl}">${tennisBoard(info, true)}</div></div>${mine}</a>`;
+        <div class="${fl}">${tennisBoard(info, true)}</div></div>${(() => { const p = info.state === "in" ? tennisLive(info, ix) : null;
+          return p ? `<div class="live-sub tl-ch">Adesso: ${esc(lastName(info.home.name))} <b>${pct(p[0])}</b> · ${esc(lastName(info.away.name))} <b>${pct(p[1])}</b></div>` : ""; })()}${mine}</a>`;
     }
     const lr = liveRings(info, ix);
     const min = info.state === "in" ? (info.sport === "soccer" ? (info.clock || info.detail) : info.detail) : "Finale";

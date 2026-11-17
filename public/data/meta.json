@@ -1,13 +1,13 @@
 {
- "updated": "2026-11-17T23:17+00:00",
+ "updated": "2026-11-17T23:56+00:00",
  "sample": false,
  "status": {
   "calcio": {
    "serie-a": {
     "football-data": "ok",
     "xg": "football-data, 110 partite",
-    "understat": "non raggiungibile (si usano solo i gol)",
-    "xg_partite": 0,
+    "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
+    "xg_partite": 110,
     "espn": "ok",
     "espn_tabellini": "110 partite",
     "partite_in_arrivo": 11,
@@ -16,8 +16,8 @@
    "premier-league": {
     "football-data": "ok",
     "xg": "football-data, 100 partite",
-    "understat": "non raggiungibile (si usano solo i gol)",
-    "xg_partite": 0,
+    "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
+    "xg_partite": 100,
     "espn": "ok",
     "espn_tabellini": "100 partite",
     "partite_in_arrivo": 11,
@@ -26,8 +26,8 @@
    "la-liga": {
     "football-data": "ok",
     "xg": "football-data, 119 partite",
-    "understat": "non raggiungibile (si usano solo i gol)",
-    "xg_partite": 0,
+    "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
+    "xg_partite": 119,
     "espn": "ok",
     "espn_tabellini": "119 partite",
     "partite_in_arrivo": 11,
@@ -36,8 +36,8 @@
    "bundesliga": {
     "football-data": "ok",
     "xg": "football-data, 81 partite",
-    "understat": "non raggiungibile (si usano solo i gol)",
-    "xg_partite": 0,
+    "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
+    "xg_partite": 81,
     "espn": "ok",
     "espn_tabellini": "81 partite",
     "partite_in_arrivo": 10,
@@ -46,8 +46,8 @@
    "ligue-1": {
     "football-data": "ok",
     "xg": "football-data, 90 partite",
-    "understat": "non raggiungibile (si usano solo i gol)",
-    "xg_partite": 0,
+    "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
+    "xg_partite": 90,
     "espn": "ok",
     "espn_tabellini": "90 partite",
     "partite_in_arrivo": 10,
@@ -69,7 +69,7 @@
     "espn": "ok",
     "espn_tabellini": "180 partite",
     "partite_in_arrivo": 25,
-    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 132, senza foto 22, da controllare 195"
+    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 156, senza foto 22, da controllare 171"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -143,21 +143,21 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-17T23:16+00:00"
+   "aggiornato": "2026-11-17T23:55+00:00"
   },
   "nba": {
    "espn": "ok",
    "tabellini": "205 partite",
    "incrocio_espn": {
     "n": 51,
-    "weight": 0.5,
+    "weight": 0.67,
     "logloss_model": 0.6328,
     "logloss_espn": 0.5779,
-    "logloss_mix": 0.6012
+    "logloss_mix": 0.5923
    },
    "partite_in_arrivo": 31,
    "partite_stagione": 205,
-   "aggiornato": "2026-11-17T23:17+00:00"
+   "aggiornato": "2026-11-17T23:56+00:00"
   },
   "tennis": {
    "atp": {
@@ -165,10 +165,10 @@
     "espn": "6 incontri in programma"
    },
    "wta": {
-    "storico": "12431 incontri (+1)",
-    "espn": "9 incontri in programma"
+    "storico": "12432 incontri (+1)",
+    "espn": "8 incontri in programma"
    },
-   "aggiornato": "2026-11-17T23:17+00:00"
+   "aggiornato": "2026-11-17T23:56+00:00"
   },
   "coppe": {
    "uomini": {
@@ -228,7 +228,7 @@
     "espn_uefa.wchampions": "165 giocate, 10 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-17T23:17+00:00"
+   "aggiornato": "2026-11-17T23:56+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -266,15 +266,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-17T23:17+00:00"
+   "aggiornato": "2026-11-17T23:56+00:00"
   },
   "risultati": {
    "esiti": "1 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-17T23:17+00:00"
+   "aggiornato": "2026-11-17T23:56+00:00"
   },
   "archivio": {
-   "partite": 264,
+   "partite": 265,
    "nuove": 1
+  },
+  "taratura": {
+   "soccer": "x0.95 su 168 partite",
+   "nba": "servono almeno 60 partite concluse",
+   "tennis": "servono almeno 60 partite concluse",
+   "partite_ritoccate": 240
   }
  }
 }

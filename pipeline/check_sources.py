@@ -1,6 +1,7 @@
 """Verifica delle fonti: controlla cosa restituisce davvero ogni fonte e scrive report/fonti.md.
 Uso: python -m pipeline.check_sources"""
 import logging
+import time
 import os
 from datetime import timedelta
 

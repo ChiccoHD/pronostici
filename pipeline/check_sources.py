@@ -293,8 +293,35 @@ def standings_check():
             out(f"  - {g['name']}: " + ", ".join(f"{r['pos']}. {r['name']} {r['pts']} ({r['p']}G, {r['gd']:+d})" for r in g["rows"]))
 
 
+def xg_check():
+    """Understat: risposta grezza delle due vie (API e pagina), per capire se blocca o se ha cambiato formato."""
+    import requests
+    out("## Understat")
+    H = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"}
+    for url, extra in (("https://understat.com/getLeagueData/Serie_A/2025", {"X-Requested-With": "XMLHttpRequest", "Referer": "https://understat.com/league/Serie_A/2025"}),
+                       ("https://understat.com/league/Serie_A/2025", {}), ("https://understat.com/", {})):
+        for ua in ("pipeline", "browser"):
+            try:
+                hd = {**extra, **(H if ua == "browser" else {})}
+                r = (requests.get(url, headers=hd, timeout=30) if ua == "browser" else http._session.get(url, headers=extra, timeout=30))
+                body = r.text[:300].replace("\n", " ")
+                out(f"- {url} [{ua}] → HTTP {r.status_code}, {len(r.content)} byte, tipo {r.headers.get('content-type')}, server {r.headers.get('server')}: `{body[:200]}`")
+                if "datesData" in r.text:
+                    out("  - contiene datesData")
+            except Exception as e:
+                out(f"- {url} [{ua}] → errore {type(e).__name__}: {e}")
+            time.sleep(2)
+    ux = understat.league_matches("Serie_A", 2025)
+    check("Understat letto dal programma", bool(ux), f"({len(ux)} partite)")
+
+
 def main():
     import sys
+    if "xg" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        xg_check()
+        _write()
+        return
     if "classifiche" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         standings_check()

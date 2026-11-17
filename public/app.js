@@ -334,6 +334,16 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+/* barra dei giorni: il giorno scelto (di solito oggi) al centro; a sinistra i giorni passati, a destra i prossimi */
+function centerDays() {
+  document.querySelectorAll(".days").forEach(bar => {
+    const sel = bar.querySelector('[aria-pressed="true"]');
+    if (!sel || sel.classList.contains("d-all") || sel.classList.contains("d-done")) { bar.scrollLeft = 0; return; }
+    const b = bar.getBoundingClientRect(), s = sel.getBoundingClientRect();
+    bar.scrollLeft += (s.left + s.width / 2) - (b.left + b.width / 2);
+  });
+}
+
 function dayChips(items, getDate, what = "partite", done = 0) {
   const counts = {};
   for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
@@ -435,6 +445,7 @@ function renderList() {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
+  requestAnimationFrame(centerDays);
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
   $app.querySelectorAll("[data-mk-open]").forEach(b => b.onclick = showMarketSheet);
   $app.querySelectorAll("[data-mk-clear]").forEach(b => b.onclick = () => { state.mk = null; showList(); });
@@ -1218,6 +1229,7 @@ async function showBest() {
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
+  requestAnimationFrame(centerDays);
 }
 
 /* ------------------------------------------------------------------ schedina */

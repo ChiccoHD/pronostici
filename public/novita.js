@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Calendario centrato su oggi", items: [
+    "All'apertura la barra dei giorni mostra oggi al centro: scorri a sinistra per i giorni passati, a destra per i prossimi." ] },
   { d: "2026-11-17", t: "Classifiche delle nazionali", items: [
     "Nations League, qualificazioni e le altre competizioni a gironi hanno le classifiche ufficiali dei gironi: nella scheda della partita (il girone delle due squadre) e in Classifiche." ] },
   { d: "2026-11-17", t: "Classifica nella partita e giorni passati", items: [

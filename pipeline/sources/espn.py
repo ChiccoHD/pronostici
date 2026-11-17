@@ -329,3 +329,53 @@ def tennis_result_row(m: dict, tour: str, surface: str) -> dict | None:
     return {"id": m["id"], "date": (m["date"] or "")[:10], "tour": tour, "tournament": m["tournament"],
             "location": m["location"], "surface": surface, "round": m["round"] or "", "bo": m["best_of"],
             "w": w["name"], "l": l["name"], "wr": w["rank"], "lr": l["rank"], "sets": sets, "comment": comment}
+
+
+STANDINGS = "https://site.api.espn.com/apis/v2/sports"
+
+
+def standings_raw(sport: str, league: str, season: int | None = None) -> dict | None:
+    params = {"season": season} if season else None
+    return http.get_json(f"{STANDINGS}/{sport}/{league}/standings", params, delay=0.5)
+
+
+def group_standings(sport: str, league: str, season: int | None = None) -> list[dict]:
+    """Classifiche a gironi (Nations League, qualificazioni...): [{name, rows: [{id, name, abbr, logo, pos, p, w, d, l, gf, ga, gd, pts}]}].
+    Lista vuota se la fonte non ha classifiche per questa competizione."""
+    js = standings_raw(sport, league, season)
+    if not js:
+        return []
+    groups = []
+
+    def walk(node, label=""):
+        name = node.get("name") or node.get("abbreviation") or label
+        st = node.get("standings") or {}
+        entries = st.get("entries") or []
+        if entries:
+            rows = []
+            for e in entries:
+                t = e.get("team") or {}
+                s = {}
+                for x in e.get("stats") or []:
+                    k = x.get("name") or x.get("type")
+                    if k is not None and x.get("value") is not None:
+                        s[k] = x["value"]
+                logo = (t.get("logos") or [{}])[0].get("href")
+                rows.append({"id": str(t.get("id") or ""), "name": t.get("displayName") or t.get("name") or "",
+                             "abbr": t.get("abbreviation") or "", "logo": logo,
+                             "pos": int(s.get("rank") or 0), "p": int(s.get("gamesPlayed") or 0),
+                             "w": int(s.get("wins") or 0), "d": int(s.get("ties") or 0), "l": int(s.get("losses") or 0),
+                             "gf": int(s.get("pointsFor") or 0), "ga": int(s.get("pointsAgainst") or 0),
+                             "gd": int(s.get("pointDifferential") or 0), "pts": int(s.get("points") or 0),
+                             "note": (e.get("note") or {}).get("description")})
+            if not all(r["pos"] for r in rows):
+                rows.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
+                for i, r in enumerate(rows, 1):
+                    r["pos"] = i
+            rows.sort(key=lambda r: r["pos"])
+            groups.append({"name": name, "rows": rows})
+        for ch in node.get("children") or []:
+            walk(ch, name)
+
+    walk(js)
+    return groups

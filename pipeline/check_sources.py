@@ -266,8 +266,40 @@ def injuries_check():
         out(f"- summary {path} {evs[0]['id']}: chiavi {sorted(s.keys())}; injuries: {json.dumps(inj, ensure_ascii=False)[:600] if inj else 'nessuno'}")
 
 
+def standings_check():
+    """Classifiche a gironi delle nazionali (ESPN /apis/v2/.../standings): struttura grezza e lettura."""
+    import json
+    out("## Classifiche delle nazionali")
+    for code in ("uefa.nations", "fifa.worldq.uefa", "concacaf.nations.league", "fifa.worldq.conmebol", "caf.nations_qual"):
+        js = espn.standings_raw("soccer", code)
+        if not js:
+            check(code, False, "nessuna risposta")
+            continue
+        out(f"### {code}")
+        out(f"- chiavi: {list(js.keys())}; season: {json.dumps(js.get('season'))[:200]}")
+        ch = js.get("children") or []
+        out(f"- children: {len(ch)}: {[c.get('name') for c in ch][:20]}")
+        if ch:
+            c0 = ch[0]
+            out(f"- primo figlio: chiavi {list(c0.keys())}; figli {len(c0.get('children') or [])}")
+            ents = (c0.get("standings") or {}).get("entries") or []
+            if ents:
+                e = ents[0]
+                out(f"- entry: {json.dumps({k: v for k, v in e.items() if k != 'stats'}, ensure_ascii=False)[:600]}")
+                out(f"- stats: {[(x.get('name'), x.get('value')) for x in e.get('stats') or []]}")
+        gs = espn.group_standings("soccer", code)
+        check(f"{code}: gironi letti", bool(gs), f"({len(gs)} gironi, {sum(len(g['rows']) for g in gs)} squadre)")
+        for g in gs[:3]:
+            out(f"  - {g['name']}: " + ", ".join(f"{r['pos']}. {r['name']} {r['pts']} ({r['p']}G, {r['gd']:+d})" for r in g["rows"]))
+
+
 def main():
     import sys
+    if "classifiche" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        standings_check()
+        _write()
+        return
     if "infortuni" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         injuries_check()

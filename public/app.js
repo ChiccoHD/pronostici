@@ -383,18 +383,30 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-/* filtri compatti: scorrendo in giù resta solo la riga dei giorni, in piccolo; tornando su ricompaiono sport e stato */
+/* filtri compatti: scorrendo in giù resta solo la riga dei giorni, in piccolo; tornando su ricompaiono sport e stato.
+   L'altezza persa resta come margine sotto i filtri: l'elenco non si sposta e la pagina non "salta" avanti e indietro. */
 (function compactFilters() {
   let lastY = scrollY, up = 0;
+  const set = on => {
+    const f = document.querySelector("#list-main .filters");
+    if (!f || document.body.classList.contains("fcompact") === on) return;
+    if (on) {
+      const full = f.offsetHeight;
+      document.body.classList.add("fcompact");
+      f.style.marginBottom = `${Math.max(0, full - f.offsetHeight)}px`;
+    } else {
+      document.body.classList.remove("fcompact");
+      f.style.marginBottom = "";
+    }
+  };
   addEventListener("scroll", () => {
     const mark = document.getElementById("f-mark"), y = scrollY;
     if (!mark) { document.body.classList.remove("fcompact"); lastY = y; return; }
     const head = document.querySelector(".top")?.offsetHeight || 52;
     const past = mark.getBoundingClientRect().top < head - 60;
-    const was = document.body.classList.contains("fcompact");
-    if (!past) { if (was) document.body.classList.remove("fcompact"); up = 0; }
-    else if (y > lastY) { up = 0; if (!was) document.body.classList.add("fcompact"); }
-    else { up += lastY - y; if (was && up > 90) document.body.classList.remove("fcompact"); }
+    if (!past) { set(false); up = 0; }
+    else if (y > lastY) { up = 0; set(true); }
+    else { up += lastY - y; if (up > 120) set(false); }
     lastY = y;
   }, { passive: true });
 })();
@@ -471,7 +483,7 @@ function todayWidget() {
         <span class="twb-bars">${[1, 2, 3, 4].map(i => `<i class="${i <= tier ? "on" : ""}"></i>`).join("")}</span>
         <b class="twb-l">${esc(it.label)}</b>
         <small class="twb-m">${esc(it.match)}</small>
-        <span class="twb-f"><span>${isoDay(it.date) === today ? "" : "stanotte "}${esc(fmtTime(it.date, it.time_valid))}</span><span>quota equa <b>${odd(it.p)}</b></span></span></a>`;
+        <span class="twb-f"><span>${isoDay(it.date) === today ? "" : "🌙 "}${esc(fmtTime(it.date, it.time_valid))}</span><span title="quota equa">q. <b>${odd(it.p)}</b></span></span></a>`;
     }).join("")}</div>`;
   } else if (!todayWidget.loading) {
     todayWidget.loading = true;

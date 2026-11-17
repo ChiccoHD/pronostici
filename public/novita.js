@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-17", t: "Ritocchi", items: [
+    "Le migliori di oggi sono card più piccole, tutte e tre visibili insieme (🌙 = partita della notte, q. = quota equa).",
+    "Corretto il salto dell'elenco quando i filtri si riducono durante lo scorrimento." ] },
   { d: "2026-11-17", t: "Più spazio per le partite", items: [
     "Scorrendo l'elenco in giù i filtri si riducono a una sola riga con i giorni: tornando un po' su ricompaiono sport, stato e campionati.",
     "Le migliori di oggi includono anche il basket: contano le partite fino alle 8 di domattina, come quelle NBA della notte." ] },

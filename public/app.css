@@ -1490,3 +1490,19 @@ body.fcompact #list-main .filters .days button { flex-direction: row; align-item
 body.fcompact #list-main .filters .days button b { font-size: 14px; }
 body.fcompact #list-main .filters .days button .d-top { font-size: 10px; }
 body.fcompact #list-main .filters .days button .d-mon, body.fcompact #list-main .filters .days button small { display: none; }
+html, body { overflow-anchor: none; }
+/* le migliori di oggi: card più piccole */
+.tw-bests { grid-auto-columns: minmax(128px, 1fr); gap: 6px; }
+.twb { padding: 8px 10px 7px; border-radius: 14px; gap: 2px; }
+.twb-sp { font-size: 10.5px; }
+.twb-sp i { font-size: 13px; }
+.twb-p b { font-size: 24px; }
+.twb-p small { font-size: 12px; }
+.twb-bars i { width: 9px; height: 4px; }
+.twb-l { font-size: 12.5px; margin-top: 2px; -webkit-line-clamp: 1; white-space: nowrap; text-overflow: ellipsis; display: block; }
+.twb-m { font-size: 10.5px; }
+.twb-f { padding-top: 4px; font-size: 10px; }
+.tw-h b { font-size: 15px; }
+.tw-best-h { font-size: 11px; margin-bottom: 4px; }
+.tw-bests { grid-auto-columns: minmax(108px, 1fr); }
+.twb-f { white-space: nowrap; }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T18:54+00:00",
+ "updated": "2026-11-17T19:01+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -69,7 +69,7 @@
     "espn": "ok",
     "espn_tabellini": "180 partite",
     "partite_in_arrivo": 25,
-    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 80, senza foto 12, da controllare 257"
+    "foto_giocatori": "Wikipedia 504, ESPN 37, TheSportsDB 78, senza foto 12, da controllare 259"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -143,7 +143,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 216, Wikipedia 63, ESPN 4"
    },
-   "aggiornato": "2026-11-17T18:51+00:00"
+   "aggiornato": "2026-11-17T18:59+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -157,7 +157,7 @@
    },
    "partite_in_arrivo": 31,
    "partite_stagione": 205,
-   "aggiornato": "2026-11-17T18:54+00:00"
+   "aggiornato": "2026-11-17T19:01+00:00"
   },
   "tennis": {
    "atp": {
@@ -168,7 +168,7 @@
     "storico": "12429 incontri (+2)",
     "espn": "9 incontri in programma"
    },
-   "aggiornato": "2026-11-17T18:54+00:00"
+   "aggiornato": "2026-11-17T19:01+00:00"
   },
   "coppe": {
    "uomini": {
@@ -228,7 +228,7 @@
     "espn_uefa.wchampions": "165 giocate, 10 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-17T18:53+00:00"
+   "aggiornato": "2026-11-17T19:00+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -268,11 +268,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-17T18:53+00:00"
+   "aggiornato": "2026-11-17T19:01+00:00"
   },
   "risultati": {
    "esiti": "13 nuovi esiti, 3 calendari letti",
-   "aggiornato": "2026-11-17T18:54+00:00"
+   "aggiornato": "2026-11-17T19:01+00:00"
   },
   "archivio": {
    "partite": 243,

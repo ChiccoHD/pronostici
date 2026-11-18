@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T06:23+00:00",
+ "updated": "2026-11-18T09:53+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -69,7 +69,7 @@
     "espn": "ok",
     "espn_tabellini": "180 partite",
     "partite_in_arrivo": 35,
-    "foto_giocatori": "Wikipedia 701, ESPN 51, TheSportsDB 290, senza foto 49, da controllare 155"
+    "foto_giocatori": "Wikipedia 701, ESPN 51, TheSportsDB 317, senza foto 52, da controllare 125"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -144,21 +144,21 @@
     "partite_in_arrivo": 10,
     "foto_giocatori": "da controllare 271, Wikipedia 77, ESPN 5"
    },
-   "aggiornato": "2026-11-18T06:22+00:00"
+   "aggiornato": "2026-11-18T09:52+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "209 partite",
+   "tabellini": "210 partite",
    "incrocio_espn": {
-    "n": 55,
-    "weight": 0.68,
-    "logloss_model": 0.6491,
-    "logloss_espn": 0.5966,
-    "logloss_mix": 0.6095
+    "n": 56,
+    "weight": 0.69,
+    "logloss_model": 0.6408,
+    "logloss_espn": 0.5898,
+    "logloss_mix": 0.6022
    },
-   "partite_in_arrivo": 34,
-   "partite_stagione": 209,
-   "aggiornato": "2026-11-18T06:23+00:00"
+   "partite_in_arrivo": 33,
+   "partite_stagione": 210,
+   "aggiornato": "2026-11-18T09:53+00:00"
   },
   "tennis": {
    "atp": {
@@ -169,7 +169,7 @@
     "storico": "12433 incontri (+0)",
     "espn": "8 incontri in programma"
    },
-   "aggiornato": "2026-11-18T06:23+00:00"
+   "aggiornato": "2026-11-18T09:53+00:00"
   },
   "coppe": {
    "uomini": {
@@ -229,7 +229,7 @@
     "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-18T06:23+00:00"
+   "aggiornato": "2026-11-18T09:53+00:00"
   },
   "nazionali": {
    "storico": "12369 partite, fino al 2026-10-06",
@@ -266,15 +266,15 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-18T06:23+00:00"
+   "aggiornato": "2026-11-18T09:53+00:00"
   },
   "risultati": {
-   "esiti": "3 nuovi esiti, 4 calendari letti",
-   "aggiornato": "2026-11-18T06:23+00:00"
+   "esiti": "1 nuovi esiti, 2 calendari letti",
+   "aggiornato": "2026-11-18T09:53+00:00"
   },
   "archivio": {
-   "partite": 279,
-   "nuove": 3
+   "partite": 280,
+   "nuove": 1
   },
   "taratura": {
    "soccer": "x0.93 su 177 partite",

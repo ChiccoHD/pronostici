@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T18:54+00:00",
+ "updated": "2026-11-18T20:59+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -78,7 +78,7 @@
     "espn": "ok",
     "espn_tabellini": "108 partite",
     "partite_in_arrivo": 13,
-    "foto_giocatori": "ESPN 301, Wikipedia 58, da controllare 82"
+    "foto_giocatori": "ESPN 301, Wikipedia 58, senza foto 3, TheSportsDB 2, da controllare 77"
    },
    "super-lig": {
     "football-data": "ok",
@@ -144,7 +144,7 @@
     "partite_in_arrivo": 10,
     "foto_giocatori": "da controllare 271, Wikipedia 77, ESPN 5"
    },
-   "aggiornato": "2026-11-18T18:52+00:00"
+   "aggiornato": "2026-11-18T20:58+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -158,7 +158,7 @@
    },
    "partite_in_arrivo": 33,
    "partite_stagione": 210,
-   "aggiornato": "2026-11-18T18:54+00:00"
+   "aggiornato": "2026-11-18T20:59+00:00"
   },
   "tennis": {
    "atp": {
@@ -166,10 +166,10 @@
     "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12435 incontri (+0)",
-    "espn": "6 incontri in programma"
+    "storico": "12436 incontri (+1)",
+    "espn": "5 incontri in programma"
    },
-   "aggiornato": "2026-11-18T18:54+00:00"
+   "aggiornato": "2026-11-18T20:59+00:00"
   },
   "coppe": {
    "uomini": {
@@ -226,10 +226,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
-    "partite_storico": 165
+    "espn_uefa.wchampions": "167 giocate, 11 giorni controllati",
+    "partite_storico": 167
    },
-   "aggiornato": "2026-11-18T18:53+00:00"
+   "aggiornato": "2026-11-18T20:59+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -266,21 +266,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-18T18:53+00:00"
+   "aggiornato": "2026-11-18T20:59+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-18T18:54+00:00"
+   "esiti": "3 nuovi esiti, 3 calendari letti",
+   "aggiornato": "2026-11-18T20:59+00:00"
   },
   "archivio": {
-   "partite": 283,
-   "nuove": 0
+   "partite": 286,
+   "nuove": 3
   },
   "taratura": {
-   "soccer": "x0.93 su 177 partite",
+   "soccer": "x0.93 su 179 partite",
    "nba": "servono almeno 60 partite concluse",
    "tennis": "servono almeno 60 partite concluse",
-   "partite_ritoccate": 297
+   "partite_ritoccate": 295
   }
  }
 }

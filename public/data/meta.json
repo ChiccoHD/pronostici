@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T22:53+00:00",
+ "updated": "2026-11-18T22:56+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -285,7 +285,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-18T22:53+00:00"
+   "aggiornato": "2026-11-18T22:56+00:00"
   },
   "archivio": {
    "partite": 289,
@@ -295,7 +295,25 @@
    "soccer": "x0.93 su 181 partite",
    "nba": "servono almeno 60 partite concluse",
    "tennis": "servono almeno 60 partite concluse",
-   "partite_ritoccate": 324
+   "partite_ritoccate": 0
+  },
+  "f1": {
+   "gp_in_arrivo": 3,
+   "jolpica_2023": "22 gare",
+   "jolpica_2024": "24 gare",
+   "jolpica_2025": "24 gare",
+   "jolpica_2026": "20 gare",
+   "gare_in_storico": 90,
+   "modello": {
+    "n": 17,
+    "scale": 8.0,
+    "half_life": 5.0,
+    "logloss_winner": 1.84,
+    "logloss_uniform": 3.091,
+    "brier_podium": 0.0838
+   },
+   "openf1_richieste": 48,
+   "aggiornato": "2026-11-18T22:56+00:00"
   }
  }
 }

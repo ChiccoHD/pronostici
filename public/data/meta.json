@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T22:26+00:00",
+ "updated": "2026-11-18T22:53+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -78,7 +78,7 @@
     "espn": "ok",
     "espn_tabellini": "108 partite",
     "partite_in_arrivo": 13,
-    "foto_giocatori": "ESPN 301, Wikipedia 58, senza foto 18, TheSportsDB 20, da controllare 44"
+    "foto_giocatori": "ESPN 301, Wikipedia 58, senza foto 27, TheSportsDB 28, da controllare 27"
    },
    "super-lig": {
     "football-data": "ok",
@@ -148,17 +148,18 @@
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "240 partite",
-    "partite_in_arrivo": 22
+    "espn_tabellini": "341 partite",
+    "partite_in_arrivo": 22,
+    "foto_giocatori": "Wikipedia 312, da controllare 445, ESPN 29"
    },
    "argentina": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "240 partite",
+    "espn_tabellini": "360 partite",
     "partite_in_arrivo": 8
    },
-   "aggiornato": "2026-11-18T22:25+00:00"
+   "aggiornato": "2026-11-18T22:52+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -172,18 +173,18 @@
    },
    "partite_in_arrivo": 33,
    "partite_stagione": 210,
-   "aggiornato": "2026-11-18T22:26+00:00"
+   "aggiornato": "2026-11-18T22:53+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7750 incontri (+1)",
+    "storico": "7750 incontri (+0)",
     "espn": "4 incontri in programma"
    },
    "wta": {
     "storico": "12436 incontri (+0)",
     "espn": "5 incontri in programma"
    },
-   "aggiornato": "2026-11-18T22:26+00:00"
+   "aggiornato": "2026-11-18T22:53+00:00"
   },
   "coppe": {
    "uomini": {
@@ -243,7 +244,7 @@
     "espn_uefa.wchampions": "169 giocate, 11 giorni controllati",
     "partite_storico": 169
    },
-   "aggiornato": "2026-11-18T22:25+00:00"
+   "aggiornato": "2026-11-18T22:52+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -280,11 +281,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-18T22:26+00:00"
+   "aggiornato": "2026-11-18T22:53+00:00"
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-18T22:26+00:00"
+   "aggiornato": "2026-11-18T22:53+00:00"
   },
   "archivio": {
    "partite": 289,
@@ -294,7 +295,7 @@
    "soccer": "x0.93 su 181 partite",
    "nba": "servono almeno 60 partite concluse",
    "tennis": "servono almeno 60 partite concluse",
-   "partite_ritoccate": 325
+   "partite_ritoccate": 324
   }
  }
 }

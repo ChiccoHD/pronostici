@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-18", t: "Brasile e Argentina", items: [
+    "Nuovi campionati: Brasileirão (Brasile) e Liga Profesional (Argentina), con pronostici, classifiche, pagine squadra e diretta." ] },
   { d: "2026-11-18", t: "Stime più precise", items: [
     "Calcio: quando escono le formazioni ufficiali, se manca un titolare importante 1X2, Over 2,5 e Goal vengono ricalcolati (riquadro in cima a Esito, con le percentuali di prima).",
     "Nazionali: le formazioni ufficiali compaiono anche per le loro partite, circa un'ora prima del via.",

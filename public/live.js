@@ -8,7 +8,7 @@ const ESPN_SITE = "https://site.api.espn.com/apis/site/v2/sports";
 const ESPN_CODE = {
   "serie-a": "ita.1", "premier-league": "eng.1", "la-liga": "esp.1", "bundesliga": "ger.1", "ligue-1": "fra.1",
   "serie-b": "ita.2", "championship": "eng.2", "eredivisie": "ned.1", "super-lig": "tur.1", "scozia": "sco.1", "belgio": "bel.1",
-  "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1",
+  "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1", "brasileirao": "bra.1", "argentina": "arg.1",
   "champions": "uefa.champions", "europa-league": "uefa.europa", "conference": "uefa.europa.conf",
   "champions-femminile": "uefa.wchampions",
   "nations-league": "uefa.nations", "mondiali": "fifa.world", "europei": "uefa.euro", "qual-europei": "uefa.euroq",

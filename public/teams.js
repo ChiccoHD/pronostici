@@ -4,7 +4,7 @@
 
 const TABLE_LEAGUES = [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"],
   ["ligue-1", "Ligue 1"], ["serie-b", "Serie B"], ["championship", "Championship"], ["eredivisie", "Eredivisie"], ["super-lig", "Süper Lig"],
-  ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["nba", "NBA"]];
+  ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["nba", "NBA"]];
 const LEAGUE_DATA = new Map();
 /* nazionali con classifica a gironi (file scritto dalla pipeline solo se la competizione è in corso) */
 const NAT_TABLE_KEYS = ["nations-league", "qual-mondiali", "qual-mondiali-sudamerica", "qual-mondiali-concacaf", "qual-mondiali-asia",

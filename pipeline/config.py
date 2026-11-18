@@ -24,6 +24,8 @@ SOCCER_LEAGUES = {
     "j1": {"name": "J1 League", "country": "Giappone", "espn": "jpn.1", "kind": "fdnew", "fdnew": ("JPN", "J1"), "season": "cal"},
     "mls": {"name": "MLS", "country": "Stati Uniti", "espn": "usa.1", "kind": "fdnew", "fdnew": ("USA", "MLS"), "season": "cal"},
     "eliteserien": {"name": "Eliteserien", "country": "Norvegia", "espn": "nor.1", "kind": "fdnew", "fdnew": ("NOR", "Eliteserien"), "season": "cal"},
+    "brasileirao": {"name": "Brasileirão", "country": "Brasile", "espn": "bra.1", "kind": "fdnew", "fdnew": ("BRA", "Serie A"), "season": "cal"},
+    "argentina": {"name": "Liga Profesional", "country": "Argentina", "espn": "arg.1", "kind": "fdnew", "fdnew": ("ARG", "Liga Profesional"), "season": "cal"},
 }
 
 # Coppe europee: modello unico su campionati europei (football-data) + partite di coppa (ESPN)

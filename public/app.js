@@ -16,7 +16,7 @@ const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
     ["primeira-liga", "Portogallo"], ["eredivisie", "Eredivisie"], ["serie-b", "Serie B"], ["championship", "Championship"],
-    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"],
+    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"],
     ["nations-league", "Nations League"], ["mondiali", "Mondiali"], ["europei", "Europei"], ["qual-europei", "Qual. Europei"],
     ["qual-mondiali", "Qual. Mondiali"], ["qual-mondiali-sudamerica", "Qual. Mondiali Sudamerica"], ["qual-mondiali-concacaf", "Qual. Mondiali CONCACAF"],
     ["qual-mondiali-asia", "Qual. Mondiali Asia"], ["qual-mondiali-africa", "Qual. Mondiali Africa"], ["copa-america", "Copa América"],
@@ -27,7 +27,7 @@ const LEAGUES = {
 /* logo di ogni campionato (da ESPN, con la versione per il tema scuro); bandiera dove ESPN non ce l'ha */
 const LG = "https://a.espncdn.com/i/leaguelogos/soccer/";
 const LEAGUE_LOGO = {
-  "serie-a": 12, "premier-league": 23, "la-liga": 15, "bundesliga": 10, "ligue-1": 9, "primeira-liga": 14, "j1": 2199, "mls": 19,
+  "serie-a": 12, "premier-league": 23, "la-liga": 15, "bundesliga": 10, "ligue-1": 9, "primeira-liga": 14, "j1": 2199, "mls": 19, "brasileirao": 85, "argentina": 1,
   "serie-b": 99, "championship": 24, "eredivisie": 11, "super-lig": 18, "scozia": 45, "belgio": 6,
   "champions": 2, "europa-league": 2310, "conference": 20296, "champions-femminile": 2408,
   "nations-league": 2395, "mondiali": 4, "europei": 74, "qual-europei": 56, "qual-mondiali": 67, "qual-mondiali-sudamerica": 65,

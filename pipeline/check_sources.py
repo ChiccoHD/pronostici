@@ -5,7 +5,7 @@ import time
 import os
 from datetime import date, timedelta
 
-from . import config
+from . import config, http
 from .config import ROOT, SOCCER_LEAGUES
 from .sources import espn, footballdata, understat
 

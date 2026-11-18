@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T18:30+00:00",
+ "updated": "2026-11-18T18:54+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -69,7 +69,7 @@
     "espn": "ok",
     "espn_tabellini": "180 partite",
     "partite_in_arrivo": 35,
-    "foto_giocatori": "Wikipedia 701, ESPN 51, TheSportsDB 389, senza foto 76, da controllare 29"
+    "foto_giocatori": "Wikipedia 701, ESPN 51, TheSportsDB 415, senza foto 79"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -144,7 +144,7 @@
     "partite_in_arrivo": 10,
     "foto_giocatori": "da controllare 271, Wikipedia 77, ESPN 5"
    },
-   "aggiornato": "2026-11-18T18:29+00:00"
+   "aggiornato": "2026-11-18T18:52+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -158,7 +158,7 @@
    },
    "partite_in_arrivo": 33,
    "partite_stagione": 210,
-   "aggiornato": "2026-11-18T18:30+00:00"
+   "aggiornato": "2026-11-18T18:54+00:00"
   },
   "tennis": {
    "atp": {
@@ -166,10 +166,10 @@
     "espn": "5 incontri in programma"
    },
    "wta": {
-    "storico": "12435 incontri (+2)",
+    "storico": "12435 incontri (+0)",
     "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-18T18:30+00:00"
+   "aggiornato": "2026-11-18T18:54+00:00"
   },
   "coppe": {
    "uomini": {
@@ -229,7 +229,7 @@
     "espn_uefa.wchampions": "165 giocate, 11 giorni controllati",
     "partite_storico": 165
    },
-   "aggiornato": "2026-11-18T18:29+00:00"
+   "aggiornato": "2026-11-18T18:53+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -266,15 +266,15 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-18T18:30+00:00"
+   "aggiornato": "2026-11-18T18:53+00:00"
   },
   "risultati": {
-   "esiti": "2 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-18T18:30+00:00"
+   "esiti": "0 nuovi esiti, 0 calendari letti",
+   "aggiornato": "2026-11-18T18:54+00:00"
   },
   "archivio": {
    "partite": 283,
-   "nuove": 2
+   "nuove": 0
   },
   "taratura": {
    "soccer": "x0.93 su 177 partite",

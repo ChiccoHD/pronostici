@@ -335,8 +335,54 @@ def lineups_check():
                   f"(squadre {len(ro)}, titolari {st}, moduli {[t.get('formation') for t in ro]})")
 
 
+def f1_check():
+    """Formula 1: Jolpica (storico), OpenF1 (gomme, meteo, giri), Open-Meteo (previsioni), ESPN racing (diretta e quote)."""
+    import json
+    J = "https://api.jolpi.ca/ergast/f1"
+    out("## F1 — Jolpica")
+    for path in ("2026.json", "2026/last/results.json", "2026/last/qualifying.json", "2026/driverStandings.json", "2026/constructorStandings.json",
+                 "2026/last/sprint.json", "2025/1/pitstops.json?limit=5", "2025/1/laps/1.json", "circuits.json?limit=3"):
+        js = http.get_json(f"{J}/{path}", delay=1.0)
+        mr = (js or {}).get("MRData") or {}
+        tbl = next((v for k, v in mr.items() if k.endswith("Table")), None)
+        check(f"Jolpica {path}", bool(js), f"(totale {mr.get('total')}) {json.dumps(tbl, ensure_ascii=False)[:600] if tbl else ''}")
+    out("## F1 — OpenF1")
+    O = "https://api.openf1.org/v1"
+    meet = http.get_json(f"{O}/meetings", {"year": 2026}, delay=1.5) or []
+    check("OpenF1 meetings 2026", bool(meet), f"({len(meet)}) ultimo: {json.dumps(meet[-1], ensure_ascii=False)[:400] if meet else ''}")
+    ses = http.get_json(f"{O}/sessions", {"year": 2026}, delay=1.5) or []
+    races = [s for s in ses if s.get("session_name") == "Race" and s.get("date_end", "") < date.today().isoformat()]
+    check("OpenF1 sessions 2026", bool(ses), f"({len(ses)}; gare concluse {len(races)}) es: {json.dumps(races[-1] if races else ses[:1], ensure_ascii=False)[:400]}")
+    if races:
+        sk = races[-1]["session_key"]
+        for ep in ("stints", "weather", "pit", "laps", "position", "race_control", "drivers", "session_result", "starting_grid"):
+            js = http.get_json(f"{O}/{ep}", {"session_key": sk}, delay=2.0)
+            check(f"OpenF1 {ep}", bool(js), f"({len(js or [])} righe) {json.dumps((js or [None])[0], ensure_ascii=False)[:300]}")
+    out("## F1 — Open-Meteo")
+    w = http.get_json("https://api.open-meteo.com/v1/forecast", {"latitude": 36.11, "longitude": -115.17, "hourly": "temperature_2m,precipitation_probability,precipitation,wind_speed_10m",
+                                                                  "forecast_days": 7, "timezone": "UTC"}, delay=1.0)
+    check("Open-Meteo previsioni (Las Vegas)", bool(w and w.get("hourly")), f"{json.dumps((w or {}).get('hourly', {}), ensure_ascii=False)[:300]}")
+    out("## F1 — ESPN racing")
+    sb = http.get_json("https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard", delay=1.0)
+    evs = (sb or {}).get("events") or []
+    check("ESPN F1 scoreboard", bool(evs), f"({len(evs)} eventi) {json.dumps(evs[0], ensure_ascii=False)[:1500] if evs else json.dumps(sb, ensure_ascii=False)[:300]}")
+    if evs:
+        comps = evs[0].get("competitions") or []
+        out(f"- sessioni nell'evento: {[(c.get('type', {}).get('abbreviation'), c.get('date'), c.get('status', {}).get('type', {}).get('name')) for c in comps]}")
+        c0 = comps[-1] if comps else {}
+        out(f"- concorrenti gara (primi 2): {json.dumps((c0.get('competitors') or [])[:2], ensure_ascii=False)[:900]}")
+        out(f"- quote: {json.dumps(c0.get('odds'), ensure_ascii=False)[:400]}")
+        summ = http.get_json("https://site.api.espn.com/apis/site/v2/sports/racing/f1/summary", {"event": evs[0].get("id")}, delay=1.0)
+        out(f"- summary chiavi: {list((summ or {}).keys())}")
+
+
 def main():
     import sys
+    if "f1" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        f1_check()
+        _write()
+        return
     if "formazioni" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         lineups_check()

@@ -126,7 +126,25 @@ function topPicks(d) {
   return out.filter(([, p]) => p != null && p <= 0.92 && p >= 0.4).sort((a, b) => b[1] - a[1]).slice(0, 3);
 }
 
+/* Formula 1: GP, favoriti per la vittoria e per il podio */
+function f1Canvas(d) {
+  const H = 1350, { c, x, C } = cvSetup(H), D = d.drivers || [];
+  cvHeader(x, C, `Formula 1 · Round ${d.gp?.round ?? ""}`);
+  rrect(x, 40, 160, IMG_W - 80, 200, 32); x.fillStyle = C.card; x.fill();
+  font(x, 54, 800); x.fillStyle = C.ink; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(fitText(x, d.home.name, IMG_W - 140), IMG_W / 2, 235);
+  font(x, 28, 600); x.fillStyle = C.ink2; x.fillText(fitText(x, `${d.away.name} · ${fmtDay(d.date).rel || fmtShort(d.date)}, ${fmtTime(d.date)}`, IMG_W - 140), IMG_W / 2, 300); x.textAlign = "left";
+  let Y = 440;
+  const fin = d.final;
+  font(x, 32, 800); x.fillStyle = C.ink; x.fillText(fin ? `Ha vinto ${fin.winner}` : "Chi vince il GP", 60, Y); Y += 64;
+  for (const p of D.slice(0, 5)) { cvBar(x, C, 60, Y, IMG_W - 120, `${p.short} · ${p.team_name}`, p.win, f1c(p.color), true); Y += 92; }
+  Y += 20; font(x, 32, 800); x.fillStyle = C.ink; x.fillText("Sul podio", 60, Y); Y += 64;
+  for (const p of [...D].sort((a, b) => b.podium - a.podium).slice(0, 3)) { cvBar(x, C, 60, Y, IMG_W - 120, p.short, p.podium, f1c(p.color)); Y += 84; }
+  cvFooter(x, C, H);
+  return c;
+}
+
 function matchCanvas(d) {
+  if (d.sport === "f1") return f1Canvas(d);
   const H = 1350, { c, x, C } = cvSetup(H);
   const when = `${fmtDay(d.date).rel || fmtShort(d.date)}, ${fmtTime(d.date, d.time_valid)}`;
   cvHeader(x, C, d.league_name || "");

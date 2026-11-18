@@ -1,6 +1,6 @@
 # Pronostici
 
-Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1, Primeira Liga, Eliteserien, MLS, J1 League, Champions, Europa League, Conference League e Champions femminile), **NBA** e **tennis** (ATP e WTA). Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
+Web app personale con statistiche dettagliate e probabilità per **calcio** (Serie A, Premier League, LaLiga, Bundesliga, Ligue 1, Primeira Liga, Eliteserien, MLS, J1 League, Champions, Europa League, Conference League e Champions femminile), **NBA**, **tennis** (ATP e WTA) e **Formula 1**. Costo zero: i dati arrivano da fonti gratuite, GitHub li aggiorna sei volte al giorno e Cloudflare pubblica il sito.
 
 **Indirizzo del sito: https://pronostici.dimariafnc.workers.dev/**
 
@@ -13,6 +13,7 @@ Web app personale con statistiche dettagliate e probabilità per **calcio** (Ser
 | Calcio | 1X2, doppia chance, Over/Under 0,5–5,5, Goal/No Goal, multigol, gol per squadra, combo, risultati esatti, primo tempo, angoli, cartellini; per giocatore: segna, assist, tiro in porta, ammonizione | Forma ultime 5/10/15, casa/trasferta, testa a testa, classifica, xG, tiri, angoli |
 | NBA | Vincente, punti totali, handicap, punti per squadra, margine; per giocatore: soglie di punti, rimbalzi, assist, triple, punti+rimbalzi+assist | Forma 5/10/15, medie giocatori 5/10/15/stagione, infortuni, testa a testa, partite in due sere di fila |
 | Tennis | Vincente, risultato in set, game totali, handicap game, tie-break, set decisivo | Classifica, Elo per superficie, forma, record per superficie, testa a testa |
+| Formula 1 | Vittoria, podio, primi 10, ritiro, pole, giro veloce, Sprint, scuderia vincente, testa a testa tra piloti, safety car | Classifiche piloti e costruttori, forma, compagno di squadra, circuito (albo, pole→vittoria, ritiri), gomme e soste delle edizioni passate, pit stop, meteo per sessione |
 
 ## Grafica
 
@@ -23,6 +24,7 @@ Chiara e pulita, con un solo accento verde campo e cerchi percentuali in elenco,
 - **Calcio**: il modello mescola gol reali e gol attesi (xG) di football-data; Understat si aggiunge quando torna online.
 - **Coppe europee**: un solo modello su 11 campionati europei (football-data) più le partite di coppa (ESPN), che collegano i campionati tra loro. La Champions femminile usa solo le sue partite (ESPN).
 - **NBA**: la probabilità di vittoria combina il nostro modello con quello di ESPN (BPI). Il peso si ricalcola a ogni aggiornamento sulle partite già giocate e si vede nella pagina *Affidabilità*.
+- **Formula 1**: risultati e qualifiche da Jolpica (archivio Ergast, gratuito), gomme, soste, meteo in pista e safety car delle edizioni passate da OpenF1 (dati storici gratuiti), previsioni meteo da Open-Meteo. Il modello simula la gara 20.000 volte dal passo in gara e in qualifica (più peso alle gare recenti), dall'importanza della griglia sul circuito, dai ritiri e dalla pioggia; i parametri si scelgono sulle gare già corse.
 - Le quote dei bookmaker non entrano nel calcolo: restano un termine di paragone.
 
 ## Come funziona
@@ -81,6 +83,7 @@ python -m http.server -d public    # apre il sito su http://localhost:8000
 - **Tennis**: storico e tabelloni arrivano da ESPN (tennis-data.co.uk blocca i server di GitHub). La superficie è dedotta dal nome del torneo e dal periodo dell'anno; la classifica mondiale non è disponibile: si mostra il numero di testa di serie nel torneo.
 - **Understat** (xG) a novembre 2026 è in manutenzione: il calcio funziona lo stesso con gol e tiri in porta, e gli xG torneranno da soli quando il sito sarà di nuovo online.
 - **Voti dei giocatori**: nessuna fonte gratuita li fornisce in modo affidabile, quindi non ci sono.
-- **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per il tennis non ci sono quote.
+- **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per tennis e Formula 1 non ci sono quote gratuite.
+- **Formula 1**: la diretta di OpenF1 è a pagamento, quindi durante le sessioni l'ordine arriva dal tabellone di ESPN (letto dal telefono e dal Worker per gli avvisi). Niente foto dei piloti: numero sul colore della scuderia.
 - **Orari**: GitHub a volte ritarda o salta le esecuzioni programmate. Se serve, si può affiancare un orario di Cloudflare che le avvia.
 - **Niente dati in diretta**: solo prima e dopo le partite.

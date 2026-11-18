@@ -9,6 +9,7 @@ const NOTIF_DEFAULT = {
   soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
+  f1: { on: true, mode: "mine", start: true, quali: true, end: true },
   general: { on: true, slips: true, lineup: true, gap: true, daily: false },
 };
 const NOTIF_OPTS = {
@@ -17,9 +18,9 @@ const NOTIF_OPTS = {
   tennis: ["Tennis", [["start", "Inizio incontro"], ["set", "Fine di ogni set"], ["game", "Fine di ogni game (tante notifiche)"], ["end", "Fine incontro"]]],
 };
 
-const NT_ICON = { soccer: ["⚽", "#16a34a"], nba: ["🏀", "#ea7a1a"], tennis: ["🎾", "#c3cc1f"], general: ["🔔", "#8b5cf6"] };
+const NT_ICON = { soccer: ["⚽", "#16a34a"], nba: ["🏀", "#ea7a1a"], tennis: ["🎾", "#c3cc1f"], f1: ["🏎️", "#e10600"], general: ["🔔", "#8b5cf6"] };
 /* "Essenziali": quello che serve senza riempire il telefono */
-const NT_ESSENTIAL = { soccer: ["goal", "red", "ht", "end"], nba: ["quarter", "end"], tennis: ["set", "end"], general: ["slips", "lineup"] };
+const NT_ESSENTIAL = { soccer: ["goal", "red", "ht", "end"], nba: ["quarter", "end"], tennis: ["set", "end"], f1: ["quali", "end"], general: ["slips", "lineup"] };
 function ntSummary(sp, p) {
   const opts = NT_SHORT[sp][1], on = opts.filter(([k]) => p.on && p[k]);
   if (!on.length) return "spenti";
@@ -147,6 +148,7 @@ const NT_SHORT = {
   soccer: ["Calcio", [["start", "Inizio"], ["goal", "Gol"], ["yellow", "Ammonizioni"], ["red", "Espulsioni"], ["corner", "Calci d'angolo"], ["ht", "Fine 1° tempo"], ["second", "Inizio 2° tempo"], ["end", "Risultato finale"]]],
   nba: ["Basket", [["start", "Inizio"], ["qstart", "Inizio di ogni quarto"], ["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"]]],
   tennis: ["Tennis", [["start", "Inizio"], ["setstart", "Inizio di ogni set"], ["set", "Fine di ogni set"], ["game", "Ogni game"], ["end", "Risultato finale"]]],
+  f1: ["Formula 1", [["start", "Partenza (gara e Sprint)"], ["quali", "Pole position"], ["end", "Vincitore e podio"]]],
   general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"]]],
 };
 function notifSection() {

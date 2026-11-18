@@ -9,9 +9,10 @@ const SPORTS = [
   { key: "soccer", label: "Calcio" },
   { key: "nba", label: "Basket" },
   { key: "tennis", label: "Tennis" },
+  { key: "f1", label: "F1" },
 ];
 /* pallino dello sport: gli stessi colori dei riquadri dell'elenco */
-const sportDot = k => k === "all" ? `<span class="sdots"><i class="g-soccer"></i><i class="g-nba"></i><i class="g-tennis"></i></span>` : `<span class="sdots"><i class="g-${k}"></i></span>`;
+const sportDot = k => k === "all" ? `<span class="sdots"><i class="g-soccer"></i><i class="g-nba"></i><i class="g-tennis"></i><i class="g-f1"></i></span>` : `<span class="sdots"><i class="g-${k}"></i></span>`;
 const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
@@ -34,7 +35,7 @@ const LEAGUE_LOGO = {
   "qual-mondiali-concacaf": 64, "qual-mondiali-asia": 62, "qual-mondiali-africa": 63, "copa-america": 83, "coppa-africa": 76,
   "qual-coppa-africa": 76, "coppa-asia": 2243, "gold-cup": 59, "concacaf-nations": 2406, "amichevoli": 53,
 };
-const LEAGUE_FLAG = { "eliteserien": "🇳🇴" };
+const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "f1": "🏎️" };
 function leagueMark(key, sport) {
   if (LEAGUE_LOGO[key]) { const id = LEAGUE_LOGO[key];
     return `<span class="lgm">${img(`${LG}500/${id}.png`, "lg-l")}${img(`${LG}500-dark/${id}.png`, "lg-d")}</span>`; }
@@ -366,6 +367,7 @@ function route() {
   if (view === "condividi" && arg) return showShared(arg);
   if (view === "ripristina" && arg) return showRestore(arg);
   if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
+  if (view === "pilota" && arg) return showDriver(decodeURIComponent(arg));
   if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
   if (view === "squadra" && arg) { const [, , lk, id] = location.hash.split("/"); return showTeam(decodeURIComponent(lk), decodeURIComponent(id || "")); }
   showList();
@@ -474,7 +476,7 @@ function todayWidget() {
     const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
       .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
       .filter(it => tonight(it.date) && Date.parse(it.date) > Date.now());
-    const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"]];
+    const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"], ["f1", "🏎️", "F1", "#e10600"]];
     const tops = SP.map(([k, ic, name, c]) => [pool.filter(it => it.sport === k).sort((a, b) => b.p - a.p)[0], ic, name, c]).filter(x => x[0]);
     if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori di oggi</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
       const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
@@ -517,7 +519,7 @@ function renderList() {
   const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
-    <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
+    <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main">${todayWidget()}<div id="f-mark"></div><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
@@ -633,11 +635,12 @@ function groupName(e) {
 /* indice dell'esito uscito (0 = 1, 1 = X oppure 2 nelle sfide a due, 2 = 2); null se non c'è */
 function outcomeIx(e, f = e.final) {
   if (!f || f.void || f.h == null) return null;
+  if (e.sport === "f1") return null;
   if (e.sport === "tennis") return f.w ?? (f.h > f.a ? 0 : 1);
   if (e.main.length === 3) return f.h > f.a ? 0 : f.h === f.a ? 1 : 2;
   return f.h > f.a ? 0 : 1;
 }
-const isEnded = e => !!e.final || Date.now() - new Date(e.date).getTime() > (e.sport === "tennis" ? 30 : 4) * 3600e3;
+const isEnded = e => !!e.final || Date.now() - new Date(e.date).getTime() > (e.sport === "tennis" ? 30 : e.sport === "f1" ? 3 : 4) * 3600e3;
 const isPastDay = e => isoDay(e.date) < isoDay(Date.now());
 
 /* ------------------------------------------------------------------ filtro per giocata */
@@ -657,7 +660,7 @@ const MARKETS = [
   ["ut", "Under punti/game", e => { const k = totKey(e); return k ? 1 - e.extra[k] : null; }],
 ];
 const MK = Object.fromEntries(MARKETS.map(m => [m[0], m]));
-const mkValue = e => state.mk ? MK[state.mk.m]?.[2](e) : null;
+const mkValue = e => state.mk && e.sport !== "f1" ? MK[state.mk.m]?.[2](e) : null;
 const mkPass = e => !state.mk || (mkValue(e) ?? -1) >= state.mk.min;
 function mkLabel(e) {
   if (!state.mk) return "";
@@ -682,6 +685,7 @@ function showMarketSheet() {
 }
 
 function fixture(e) {
+  if (e.sport === "f1") return f1Fixture(e);
   if (e.final) return fixtureDone(e);
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
@@ -711,6 +715,7 @@ function fixture(e) {
 
 /* partita conclusa: risultato al posto dell'orario, e quale percentuale ha preso */
 function fixtureDone(e) {
+  if (e.sport === "f1") return f1Fixture(e);
   const f = e.final, three = e.main.length === 3;
   const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
@@ -880,7 +885,13 @@ async function showEvent(id) {
     attachLive(d);
     return;
   }
-  CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
+  CUR = { event: d.id, match: d.sport === "f1" ? d.home.name : `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
+  if (d.sport === "f1") {   // Formula 1: scheda a parte (f1.js)
+    $app.innerHTML = back + f1View(d) + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
+    if (typeof eventActions === "function") { $app.querySelector(".board")?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
+    wire("f1"); wireF1(d);
+    return;
+  }
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
   const extra = sec("Segui in diretta", followLinks(d)) + sec("Dove vederla", whereToWatch(d.league));
   $app.innerHTML = back + body + extra + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
@@ -1404,7 +1415,7 @@ function pickMark(it) {
   return `<span class="ava" style="background:${c};color:${onColor(c)}" aria-hidden="true">${esc((it.tag || "").slice(0, 3))}</span>`;
 }
 
-const SPORT_NAME = { soccer: "Calcio", nba: "NBA", tennis: "Tennis" };
+const SPORT_NAME = { soccer: "Calcio", nba: "NBA", tennis: "Tennis", f1: "F1" };
 
 function pickRow(it, big, showCat = false) {
   const key = favKey(it.label, it.p, it.book, { event: it.event, match: it.match, date: it.date, time_valid: it.time_valid, league_name: it.league_name, sport: it.sport });
@@ -1456,7 +1467,7 @@ async function showBest() {
     const high = sorted.filter(it => it.p >= HIGH);
     const best = (high.length >= 5 ? high : sorted.slice(0, 5)).slice(0, 60);
     const top = best.slice(0, 10), rest = best.slice(10);
-    const who = { all: "di tutti gli sport", soccer: "del calcio", nba: "del basket", tennis: "del tennis" }[state.sport];
+    const who = { all: "di tutti gli sport", soccer: "del calcio", nba: "del basket", tennis: "del tennis", f1: "della Formula 1" }[state.sport];
     html += `<section class="sec best overall"><h2>Le migliori in assoluto<small>${who}, ${high.length >= 5 ? `dal ${Math.round(HIGH * 100)}% in su` : "le più probabili"}</small></h2>
       <div class="pcards">${top.map((it, i) => pickCard(it, i + 1)).join("")}</div>
       <div class="pc-dots" aria-hidden="true">${top.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>
@@ -1512,6 +1523,7 @@ async function showBest() {
 function kindOf(f) {
   const l = f.label || "";
   if (f.sport === "tennis") return /game/i.test(l) ? "Game nel tennis" : "Vincente tennis";
+  if (f.sport === "f1") return / davanti a /.test(l) ? "Testa a testa F1" : / in pole/.test(l) ? "Pole F1" : / vince il GP/.test(l) ? "Vincente F1" : "Piazzamento F1";
   if (f.sport === "nba") return / almeno /.test(l) ? "Giocatori NBA" : /vince/.test(l) ? "Vincente NBA" : "Punti NBA";
   if (/\+/.test(l)) return "Combo";
   if (/primo tempo/i.test(l)) return "Primo tempo";

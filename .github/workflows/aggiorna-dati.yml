@@ -41,7 +41,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Scarica dati e calcola le percentuali
-        run: python -m pipeline.run --solo "${{ github.event.inputs.solo || 'calcio,coppe,nazionali,nba,tennis' }}"
+        run: python -m pipeline.run --solo "${{ github.event.inputs.solo || 'calcio,coppe,nazionali,nba,tennis,f1' }}"
 
       - name: Riepilogo
         if: always()

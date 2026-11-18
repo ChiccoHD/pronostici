@@ -21,7 +21,9 @@ async function searchPool() {
     const T = await getJSON(`data/tennis/${tour}.json`);
     for (const p of Object.values(T?.players || {})) players.push({ name: p.name, tour, photo: p.photo, elo: p.elo });
   }));
-  SEARCH.pool = { teams: [...teams.values()], players };
+  const drivers = [];
+  try { const F = await leagueData("f1"); for (const x of F?.drivers || []) drivers.push(x); } catch { /* niente */ }
+  SEARCH.pool = { teams: [...teams.values()], players, drivers };
   return SEARCH.pool;
 }
 
@@ -62,6 +64,7 @@ function searchRender() {
     .sort((a, b) => a.date.localeCompare(b.date));
   const teams = P ? P.teams.filter(t => searchMatch(q, t.name)).slice(0, 12) : [];
   const players = P ? P.players.filter(p => searchMatch(q, p.name)).sort((a, b) => (b.elo || 0) - (a.elo || 0)).slice(0, 10) : [];
+  const drivers = P?.drivers ? P.drivers.filter(x => searchMatch(q, x.name, x.code, x.team_name)).slice(0, 8) : [];
   const leagues = Object.entries(LEAGUES).flatMap(([sp, l]) => l.map(([k, n]) => ({ k, n, sp }))).filter(l => searchMatch(q, l.n, l.k.replace(/-/g, " ")));
   let html = "";
   if (teams.length) html += sec("Squadre", `<div class="rows">${teams.map(t => `<a class="r srch" href="${teamHref(t.lk, t.id)}">
@@ -69,6 +72,8 @@ function searchRender() {
       <span class="v faint">${esc(t.league)}${t.pos ? `, ${t.pos}°` : ""} ›</span></a>`).join("")}</div>`, `${teams.length}`, "Squadre trovate");
   if (players.length) html += sec("Tennisti", `<div class="rows">${players.map(p => `<a class="r srch" href="${playerHref(p.tour, p.name)}">
       <span class="l">${p.photo ? img(p.photo, "srch-ph") : `<span class="srch-ph none">🎾</span>`}<b>${esc(p.name)}</b></span><span class="v faint">${p.tour.toUpperCase()} ›</span></a>`).join("")}</div>`, `${players.length}`, "Tennisti trovati");
+  if (drivers.length) html += sec("Piloti di F1", `<div class="rows">${drivers.map(x => `<a class="r srch" href="${f1Href(x.id)}">
+      <span class="l">${f1Num(x, "xs")}<b>${esc(x.name)}</b></span><span class="v faint">${esc(x.team_name)}, ${x.pos}° ›</span></a>`).join("")}</div>`, `${drivers.length}`, "Piloti trovati");
   if (evs.length) html += sec("Partite", evs.map(e => e.final ? fixtureDone(e) : fixture(e)).join(""), `${evs.length}`, "Partite trovate");
   if (leagues.length) html += sec("Campionati", `<div class="rows">${leagues.map(l => {
     const hasTable = typeof TABLE_LEAGUES !== "undefined" && TABLE_LEAGUES.some(([k]) => k === l.k);

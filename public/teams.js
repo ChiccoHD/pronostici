@@ -29,7 +29,7 @@ const backBtn = label => `<button class="back" onclick="history.length > 1 ? his
 
 async function showStandings(key) {
   const nat = await natTables();
-  const all = [...TABLE_LEAGUES, ...nat];
+  const all = [...TABLE_LEAGUES, ["f1", "Formula 1"], ...nat];
   key = all.some(([k]) => k === key) ? key : load("table", "serie-a");
   if (!all.some(([k]) => k === key)) key = "serie-a";
   save("table", key);
@@ -39,6 +39,11 @@ async function showStandings(key) {
   $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   const L = await leagueData(key);
   if (!location.hash.startsWith("#/classifiche")) return;
+  if (key === "f1" && L?.drivers?.length) {
+    $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + f1Standings(L);
+    $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+    return;
+  }
   if (!L || !L.table?.length) {
     $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + `<div class="empty"><b>Classifica non ancora disponibile</b>Compare dopo il prossimo aggiornamento dei dati.</div>`;
     return;

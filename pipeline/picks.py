@@ -98,8 +98,36 @@ def tennis(d):
     return out
 
 
+def f1(d):
+    """Formula 1: vittoria, podio, punti, pole e sfide tra compagni di squadra."""
+    out, D = [], d.get("drivers") or []
+    base = {**_base(d), "match": d["home"]["name"]}
+    for x in D:
+        b = {**base, "color": x.get("color"), "tag": x.get("code"), "book": None}
+        out.append({**b, "cat": "Vincente F1", "label": f"{x['short']} vince il GP", "p": x["win"]})
+        out.append({**b, "cat": "Podio F1", "label": f"{x['short']} sul podio", "p": x["podium"]})
+        if x.get("top10", 0) < 0.97:
+            out.append({**b, "cat": "Punti F1", "label": f"{x['short']} nei primi 10", "p": x["top10"]})
+        if not (d.get("gp") or {}).get("quali_done") and x.get("pole") is not None:
+            out.append({**b, "cat": "Pole F1", "label": f"{x['short']} in pole", "p": x["pole"]})
+    H = d.get("h2h") or []
+    ix = {x["id"]: i for i, x in enumerate(D)}
+    seen = set()
+    for x in D:
+        mate = next((y for y in D if y["team"] == x["team"] and y["id"] != x["id"]), None)
+        if not mate or (mate["id"], x["id"]) in seen or not H:
+            continue
+        seen.add((x["id"], mate["id"]))
+        p = H[ix[x["id"]]][ix[mate["id"]]]
+        a, b2 = (x, mate) if p >= 0.5 else (mate, x)
+        out.append({**base, "color": a.get("color"), "tag": a.get("code"), "book": None, "cat": "Testa a testa F1",
+                    "label": f"{a['short']} davanti a {b2['short']}", "p": max(p, 1 - p)})
+    return out
+
+
 ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",
-         "Assist", "Triple", "Punti + rimbalzi + assist", "Vincente tennis", "Game nel tennis"]
+         "Assist", "Triple", "Punti + rimbalzi + assist", "Vincente tennis", "Game nel tennis",
+         "Vincente F1", "Podio F1", "Punti F1", "Pole F1", "Testa a testa F1"]
 
 
 def build(event_ids: list[str]) -> dict:
@@ -114,7 +142,7 @@ def build(event_ids: list[str]) -> dict:
                 trend_items.append({**_base(d), "team": T.get("short") or T.get("name"), "logo": T.get("logo"), "color": T.get("color"),
                                     "text": t["t"], "kind": t["k"], "score": t["s"]})
         try:
-            items += {"soccer": soccer, "nba": nba, "tennis": tennis}[d["sport"]](d)
+            items += {"soccer": soccer, "nba": nba, "tennis": tennis, "f1": f1}[d["sport"]](d)
         except (KeyError, TypeError, ValueError):
             continue
     cats = {}

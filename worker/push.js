@@ -12,6 +12,7 @@ export const DEFAULT_PREFS = {
   soccer: { on: true, mode: "mine", start: false, goal: true, red: true, yellow: true, corner: false, ht: true, second: true, end: true },
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
+  f1: { on: true, mode: "mine", start: true, quali: true, end: true },
   general: { slips: true, lineup: true, gap: true, daily: false },
 };
 const gen = s => ({ ...DEFAULT_PREFS.general, ...(s.prefs?.general || {}) });
@@ -318,6 +319,50 @@ export class Push {
     return { ht: ke.includes("halftime") || /First Half ends/i.test(txt), ft: ke.some(t => /full-time|end-regular-time|match-end/.test(t)) || /Match ends/i.test(txt) };
   }
 
+  /* Formula 1: partenza della gara, pole e ordine d'arrivo (tabellone racing/f1 di ESPN, una "competition" per sessione).
+     Letto solo se qualcuno segue un GP con una sessione in corso. */
+  async f1Step(subs, events, outbox, now, status) {
+    const inWin = s => { const t = Date.parse(s.date); return now > t - 5 * 60e3 && now < t + 3 * 3600e3; };
+    const evs = events.filter(e => e.sport === "f1" && !e.final && (e.f1?.sessions || []).some(s => ["Q", "Sprint", "Race"].includes(s.k) && inWin(s)));
+    if (!evs.length) return;
+    const fol = new Map();
+    for (const [key, s] of subs) {
+      const p = { ...DEFAULT_PREFS.f1, ...(s.prefs?.f1 || {}) };
+      if (!p.on) continue;
+      const mine = new Set(s.mine?.events || []);
+      for (const e of evs) if (p.mode === "all" || mine.has(e.id)) { if (!fol.has(e.id)) fol.set(e.id, []); fol.get(e.id).push([key, s, p]); }
+    }
+    if (!fol.size) return;
+    const base = this.env.ESPN_BASE || ESPN;
+    const r = await fetch(`${base}/racing/f1/scoreboard`, { cf: { cacheTtl: 0 } });
+    status.boards++;
+    if (!r.ok) throw new Error(`tabellone ${r.status}`);
+    const comps = ((await r.json()).events || []).flatMap(ev => ev.competitions || []);
+    for (const e of evs) {
+      for (const s of e.f1.sessions) {
+        if (!["Q", "Sprint", "Race"].includes(s.k) || !inWin(s) || !fol.has(e.id)) continue;
+        const t = Date.parse(s.date);
+        const c = comps.filter(c => Math.abs(Date.parse(c.date || c.startDate) - t) < 90 * 60e3)
+          .sort((a, b) => Math.abs(Date.parse(a.date || a.startDate) - t) - Math.abs(Date.parse(b.date || b.startDate) - t))[0];
+        if (!c) continue;
+        const st = c.status?.type?.state, k = `st:${e.id}:${s.k}`, prev = await this.store.get(k);
+        if (!st || prev?.st === st) continue;
+        await this.store.put(k, { st, t: now });
+        const order = (c.competitors || []).map((x, i) => ({ o: x.order ?? x.position ?? i + 1, n: last(x.athlete?.displayName || x.athlete?.shortName || "") }))
+          .sort((a, b) => a.o - b.o).map(x => x.n).filter(Boolean);
+        let type = null, title = "", body = "";
+        const nm = s.k === "Q" ? "qualifica" : s.k === "Sprint" ? "Sprint" : "gara";
+        if (st === "in" && s.k !== "Q" && now - t < 20 * 60e3) { type = "start"; title = `🏁 ${e.home}: si parte`; body = `È iniziata la ${nm}`; }
+        if (st === "post" && order.length && now - t < 4 * 3600e3) {
+          if (s.k === "Q") { type = "quali"; title = `⏱️ ${e.home}: pole per ${order[0]}`; body = order[1] ? `In prima fila con ${order[1]}` : "Qualifica finita"; }
+          else { type = "end"; title = `🏆 ${e.home}: vince ${order[0]}${s.k === "Sprint" ? " la Sprint" : ""}`; body = `Podio: ${order.slice(0, 3).map((n, i) => `${i + 1}. ${n}`).join(", ")}`; }
+        }
+        if (!type) continue;
+        for (const [key, sub, p] of fol.get(e.id)) if (p[type]) outbox.push({ key, s: sub, payload: { title, body, tag: `${e.id}-${s.k}-${type}`, url: `#/e/${e.id}` } });
+      }
+    }
+  }
+
   /* chiamato ogni minuto dal timer, con l'elenco delle partite (index.json del sito) */
   async tick({ events = [] }) {
     const t0 = Date.now();
@@ -353,6 +398,7 @@ export class Push {
     const subMap = new Map(subs);
     const keys = await this.keys();
     await this.extras(subs, events, live, followers, outbox, now, status);
+    await this.f1Step(subs, events, outbox, now, status).catch(err => status.errors.push(`f1: ${err?.message || err}`));
     if (!watched.length) { await this.slipResults(subs, events, {}, outbox, now); return this.finish(outbox, keys, status, now, t0); }
     // un tabellone per competizione
     const groups = new Map();

@@ -13,8 +13,23 @@ function side(text, ev) {
   return null;
 }
 
+/* Formula 1: ordine d'arrivo (cognomi) e pole, scritti dalla pipeline */
+export function judgeF1(label, f) {
+  if (!f?.names) return null;
+  const pos = n => { const i = f.names.indexOf(n); return i < 0 ? null : i + 1; };
+  const r = v => v == null ? null : v ? "win" : "lose";
+  let m;
+  if ((m = label.match(/^(.+) vince il GP$/))) return r(pos(m[1]) === 1);
+  if ((m = label.match(/^(.+) sul podio$/))) { const p = pos(m[1]); return p == null ? null : r(p <= 3); }
+  if ((m = label.match(/^(.+) nei primi 10$/))) { const p = pos(m[1]); return p == null ? null : r(p <= 10); }
+  if ((m = label.match(/^(.+) in pole$/))) return f.pole_s ? r(f.pole_s === m[1]) : null;
+  if ((m = label.match(/^(.+) davanti a (.+)$/))) { const a = pos(m[1]), b = pos(m[2]); return a == null || b == null ? null : r(a < b); }
+  return null;
+}
+
 /* "win" | "lose" | null (non giudicabile dal solo risultato) */
 export function judge(label, f, ev) {
+  if (ev?.sport === "f1") return judgeF1(String(label || "").trim(), f);
   if (!f || f.void || f.h == null) return null;
   const L = String(label || "").trim();
   const H = Number(f.h), A = Number(f.a), tennis = ev.sport === "tennis";

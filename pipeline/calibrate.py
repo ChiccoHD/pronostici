@@ -75,6 +75,8 @@ def apply(events: list[dict], status: dict) -> None:
     now = datetime.now(timezone.utc).isoformat()[:16]
     changed = 0
     for e in events:
+        if e["sport"] not in ("soccer", "nba", "tennis"):
+            continue
         c = cal.get(e["sport"] if e["sport"] in ("nba", "tennis") else "soccer")
         if not c or abs(c["t"] - 1) < 0.02 or e.get("cal") or e["date"] <= now or not e.get("main"):
             continue

@@ -299,7 +299,7 @@ async function infoArchive() {
       <span class="v"><b class="${Math.abs(diff) <= .05 ? "" : diff > 0 ? "good" : "bad"}">${pct(real)}</b> presa</span></div>`;
   });
   if (!CALIB) { try { CALIB = await getJSON("data/calibration.json"); } catch { CALIB = { sports: {} }; } }
-  const SPN = { soccer: "Calcio", nba: "Basket", tennis: "Tennis" };
+  const SPN = { soccer: "Calcio", nba: "Basket", tennis: "Tennis", f1: "F1" };
   const calTxt = Object.entries(CALIB.sports || {}).filter(([s]) => ARCH_SPORT === "all" || ARCH_SPORT === s).map(([s, c]) =>
     `<div class="r"><span class="l"><b>${SPN[s]}</b> <span class="faint">${c.n} partite</span></span><span class="v">${!c.t_fit ? `<span class="faint">${esc(c.nota || "ancora poche partite")}</span>`
       : Math.abs(c.t - 1) < .02 ? "nessuna correzione" : c.t < 1 ? "percentuali un po' più nette" : "percentuali un po' più prudenti"}</span></div>`).join("");

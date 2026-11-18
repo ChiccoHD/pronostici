@@ -903,6 +903,10 @@ let slipTimer = null;
 async function attachSlipStatus() {
   clearTimeout(slipTimer);
   const now = Date.now(), hash = location.hash;
+  if (typeof f1Settle === "function" && f1Settle()) {             // Formula 1: esito dal risultato nei dati, niente diretta ESPN
+    if (location.hash.startsWith("#/schedina")) { showSlip(); return; }
+    if (location.hash.startsWith("#/tu")) { showMe(); return; }
+  }
   const legs = [...favs(), ...mySlips().flatMap(s => s.legs)];   // giocate della schedina e delle schedine salvate
   const started = legs.filter(f => { const t = new Date(f.date).getTime(); return !f.result && t <= now && now - t < 4 * 864e5; });
   const ids = [...new Set(started.map(f => f.event))].slice(0, 20);

@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-18", t: "Arriva la Formula 1", items: [
+    "Nuovo sport F1: ogni GP con le probabilità di vittoria, podio, punti, ritiro e pole per tutti i piloti (20.000 gare simulate dal passo in gara e in qualifica delle ultime stagioni).",
+    "Nella scheda del GP: programma del weekend, Sprint, testa a testa tra due piloti a scelta e tra compagni di squadra, scuderia vincente.",
+    "Gomme e strategia dalle edizioni passate (soste, mescole, durata degli stint, safety car), pit stop delle scuderie, meteo per ogni sessione e scheda del circuito.",
+    "Pagina di ogni pilota, classifiche piloti e costruttori in Classifiche, piloti nella ricerca. Durante le sessioni l'ordine in diretta.",
+    "Campanella sul GP per avvisi di partenza, pole e podio. Per la F1 non ci sono quote dei bookmaker gratuite: niente confronto con le quote." ] },
   { d: "2026-11-18", t: "Brasile e Argentina", items: [
     "Nuovi campionati: Brasileirão (Brasile) e Liga Profesional (Argentina), con pronostici, classifiche, pagine squadra e diretta." ] },
   { d: "2026-11-18", t: "Stime più precise", items: [

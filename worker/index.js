@@ -36,8 +36,9 @@ async function notifiche(env) {
   const r = await env.ASSETS.fetch(new Request("https://assets.local/data/index.json"));
   if (!r.ok) return;
   const idx = await r.json();
-  const events = (idx.events || []).filter(e => e.espn).map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away,
-    league: e.league, league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null }));
+  const events = (idx.events || []).filter(e => e.espn || e.sport === "f1").map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away,
+    league: e.league, league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null,
+    ...(e.f1 ? { f1: { sessions: e.f1.sessions } } : {}) }));
   await pushObject(env).fetch("https://push/api/push/tick", { method: "POST", body: JSON.stringify({ events }) });
   // alle 9 (ora italiana): le migliori giocate del giorno, a chi le ha chieste
   const rome = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());

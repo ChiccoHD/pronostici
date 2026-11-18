@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from . import config, store
 from .config import PUBLIC_DATA
 
-SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nazionali": "build_national", "nba": "build_nba", "tennis": "build_tennis"}
+SPORTS = {"calcio": "build_soccer", "coppe": "build_cups", "nazionali": "build_national", "nba": "build_nba", "tennis": "build_tennis", "f1": "build_f1"}
 CUP_KEYS = set(config.CUPS) | set(config.WOMEN_CUPS)
 NATIONAL_KEYS = set(config.NATIONAL)
 KEEP_DAYS = 3      # giorni in cui una partita iniziata resta in elenco
@@ -23,7 +23,7 @@ def owner(e: dict) -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--solo", default="calcio,coppe,nazionali,nba,tennis")
+    ap.add_argument("--solo", default="calcio,coppe,nazionali,nba,tennis,f1")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     today = config.today()

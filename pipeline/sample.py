@@ -2,6 +2,7 @@
 Sostituisce le fonti con generatori casuali e lancia la pipeline vera.
 Uso: python -m pipeline.sample   — il sito mostrerà l'avviso "dati di esempio"."""
 import math
+from collections import defaultdict
 import random
 import shutil
 from datetime import date, datetime, timedelta, timezone
@@ -383,6 +384,130 @@ def _gen_tennis():
 
 # ----------------------------------------------------------------- collegamento alle fonti
 
+# ----------------------------------------------------------------- formula 1
+F1_TEAMS = [("mercedes", "Mercedes"), ("ferrari", "Ferrari"), ("mclaren", "McLaren"), ("red_bull", "Red Bull"), ("aston_martin", "Aston Martin"),
+            ("alpine", "Alpine"), ("williams", "Williams"), ("rb", "Racing Bulls"), ("audi", "Audi"), ("haas", "Haas"), ("cadillac", "Cadillac")]
+F1_NAMES = ["Marco Rossetti", "Luca Ferraro", "Tom Hartley", "Jan de Wit", "Pierre Lamotte", "Diego Navarro", "Kai Sorensen", "Yuki Tanabe",
+            "Oscar Lind", "Max Brenner", "Leo Costa", "Nico Albers", "Sam Doyle", "Ali Haddad", "Ben Carter", "Ivo Petrov", "Raul Ortega",
+            "Finn Walsh", "Hugo Martel", "Emil Strand", "Theo Grant", "Paul Weber"]
+F1_GP = [("Australian Grand Prix", "albert_park", "Albert Park", "Melbourne", "Australia", -37.85, 144.97),
+         ("Japanese Grand Prix", "suzuka", "Suzuka Circuit", "Suzuka", "Japan", 34.84, 136.54),
+         ("Italian Grand Prix", "monza", "Autodromo Nazionale di Monza", "Monza", "Italy", 45.62, 9.29),
+         ("Monaco Grand Prix", "monaco", "Circuit de Monaco", "Monte-Carlo", "Monaco", 43.73, 7.42),
+         ("British Grand Prix", "silverstone", "Silverstone Circuit", "Silverstone", "UK", 52.07, -1.02),
+         ("Las Vegas Grand Prix", "vegas", "Las Vegas Strip Street Circuit", "Las Vegas", "USA", 36.11, -115.17),
+         ("Qatar Grand Prix", "losail", "Losail International Circuit", "Lusail", "Qatar", 25.49, 51.45)]
+F1DATA = {}
+
+
+def _gen_f1(today):
+    """Stagione inventata: forza di ogni pilota, risultati delle gare passate, tre GP nei prossimi giorni."""
+    drivers = [{"id": n.split()[-1].lower(), "name": n, "code": n.split()[-1][:3].upper(), "num": str(i + 2), "nat": random.choice(["Italian", "British", "German", "Spanish", "Dutch"]),
+                "team": F1_TEAMS[i // 2][0], "team_name": F1_TEAMS[i // 2][1], "force": 1.6 - (i // 2) * 0.28 + random.uniform(-0.3, 0.3)}
+               for i, n in enumerate(F1_NAMES)]
+    year = today.year
+    sched, seasons = [], {}
+    for y in (year - 1, year):
+        races = []
+        n_r = 22 if y < year else 18
+        for k in range(n_r):
+            gp = F1_GP[k % len(F1_GP)]
+            d = (date(y, 3, 8) + timedelta(days=14 * k)) if y < year else (today - timedelta(days=1 + 14 * (n_r - 1 - k)))
+            perf = sorted(drivers, key=lambda x: -(x["force"] + random.gauss(0, 1)))
+            dnf = {x["id"] for x in drivers if random.random() < 0.07}
+            fin = [x for x in perf if x["id"] not in dnf] + [x for x in perf if x["id"] in dnf]
+            grid = sorted(drivers, key=lambda x: -(x["force"] + random.gauss(0, 0.8)))
+            gpos = {x["id"]: i + 1 for i, x in enumerate(grid)}
+            res = [{**{kk: x[kk] for kk in ("id", "name", "code", "num", "nat", "team", "team_name")}, "pos": i + 1, "grid": gpos[x["id"]],
+                    "status": "Retired" if x["id"] in dnf else "Finished", "classified": x["id"] not in dnf,
+                    "points": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1][i] if i < 10 and x["id"] not in dnf else 0, "laps": 57, "fl_rank": 1 if i == 0 else None}
+                   for i, x in enumerate(fin)]
+            quali = [{**{kk: x[kk] for kk in ("id", "name", "code", "num", "nat", "team")}, "pos": gpos[x["id"]], "q": [None, None, None]} for x in grid]
+            races.append({"season": y, "round": k + 1, "name": gp[0], "date": d.isoformat(), "circuit": gp[1], "results": res, "quali": quali, "sprint": []})
+        seasons[y] = {"season": y, "_last": n_r, "races": races}
+    last = seasons[year]["races"][-1]   # GP di ieri, già concluso: per provare il risultato
+    lg = next(g for g in F1_GP if g[1] == last["circuit"])
+    ld = date.fromisoformat(last["date"])
+    sched.append({"season": year, "round": last["round"], "name": lg[0], "circuit": lg[1], "circuit_name": lg[2], "locality": lg[3], "country": lg[4],
+                  "lat": lg[5], "lon": lg[6], "sessions": {"FP1": f"{(ld - timedelta(days=2)).isoformat()}T11:30:00Z", "Q": f"{(ld - timedelta(days=1)).isoformat()}T14:00:00Z",
+                                                          "Race": f"{ld.isoformat()}T13:00:00Z"}})
+    for k in range(3):
+        gp = F1_GP[(4 + k) % len(F1_GP)]
+        d = today + timedelta(days=2 + 7 * k)
+        rnd = 19 + k
+        iso = lambda dd, h: f"{dd.isoformat()}T{h}Z"
+        ses = {"FP1": iso(d - timedelta(days=2), "11:30"), "FP2": iso(d - timedelta(days=2), "15:00"), "FP3": iso(d - timedelta(days=1), "10:30"),
+               "Q": iso(d - timedelta(days=1), "14:00"), "Race": iso(d, "13:00")}
+        if k == 1:
+            ses = {"FP1": ses["FP1"], "SQ": ses["FP2"], "Sprint": iso(d - timedelta(days=1), "10:00"), "Q": ses["Q"], "Race": ses["Race"]}
+        sched.append({"season": year, "round": rnd, "name": gp[0], "circuit": gp[1], "circuit_name": gp[2], "locality": gp[3], "country": gp[4],
+                      "lat": gp[5], "lon": gp[6], "sessions": ses})
+    # griglia del primo GP (qualifiche già fatte se è domani)
+    F1DATA.update({"drivers": drivers, "seasons": seasons, "sched": sched})
+
+
+def _install_f1_fakes():
+    from .sources import jolpica, openf1, openmeteo
+    jolpica.schedule = lambda y: [g for g in F1DATA["sched"] if g["season"] == y]
+    jolpica.season = lambda y, completed, status: F1DATA["seasons"].get(y, {"races": []})
+    jolpica.quali_for = lambda y, rnd: []
+    def standings(y):
+        pts = defaultdict(float); wins = defaultdict(int); tp = defaultdict(float); tw = defaultdict(int)
+        info = {d["id"]: d for d in F1DATA["drivers"]}
+        for x in F1DATA["seasons"].get(y, {}).get("races", []):
+            for z in x["results"]:
+                pts[z["id"]] += z["points"]; tp[z["team"]] += z["points"]
+                if z["pos"] == 1 and z["classified"]:
+                    wins[z["id"]] += 1; tw[z["team"]] += 1
+        ds = sorted(pts, key=lambda k: -pts[k])
+        ts = sorted(tp, key=lambda k: -tp[k])
+        names = dict(F1_TEAMS)
+        return {"drivers": [{"id": k, "name": info[k]["name"], "code": info[k]["code"], "num": info[k]["num"], "nat": info[k]["nat"], "pos": i + 1,
+                             "points": pts[k], "wins": wins[k], "team": info[k]["team"], "team_name": info[k]["team_name"]} for i, k in enumerate(ds)],
+                "teams": [{"id": k, "name": names[k], "pos": i + 1, "points": tp[k], "wins": tw[k]} for i, k in enumerate(ts)]}
+    jolpica.standings = standings
+    def ses(y):
+        out = []
+        for x in F1DATA["seasons"].get(y, {}).get("races", []):
+            gp = next(g for g in F1_GP if g[1] == x["circuit"])
+            out.append({"session_key": y * 100 + x["round"], "session_name": "Race", "location": gp[3], "circuit_short_name": gp[3],
+                        "country_name": gp[4], "year": y, "date_start": x["date"] + "T13:00:00+00:00", "date_end": x["date"] + "T15:00:00+00:00", "meeting_key": y * 100 + x["round"]})
+        return out
+    openf1.sessions = ses
+    def sdata(key, budget):
+        y, rnd = divmod(key, 100)
+        x = F1DATA["seasons"][y]["races"][rnd - 1]
+        rr = random.Random(key)
+        nums = {d["id"]: int(d["num"]) for d in F1DATA["drivers"]}
+        stints, pit = [], []
+        for z in x["results"]:
+            n = nums[z["id"]]
+            k = rr.choice([1, 1, 2, 2, 2, 3])
+            cuts = sorted(rr.sample(range(12, 50), k)) if k else []
+            edges = [1] + [c + 1 for c in cuts]
+            comps = [rr.choice(["MEDIUM", "SOFT"])] + [rr.choice(["HARD", "MEDIUM"]) for _ in cuts]
+            for i, a in enumerate(edges):
+                b = (edges[i + 1] - 1) if i + 1 < len(edges) else 57
+                stints.append({"num": n, "n": i + 1, "from": a, "to": b, "c": comps[i], "age": 0})
+            for c in cuts:
+                pit.append({"num": n, "lap": c, "stop": round(rr.uniform(2.1, 3.6), 2), "lane": round(rr.uniform(20, 25), 1)})
+        return {"stints": stints, "pit": pit,
+                "weather": {"air": [22, 23], "track": [38, 41], "rain": 1 if rr.random() < 0.15 else 0, "n": 2},
+                "race_control": [{"lap": 12, "cat": "SafetyCar", "flag": None, "msg": "SAFETY CAR DEPLOYED"}] if rr.random() < 0.5 else [],
+                "drivers": [{"num": nums[d["id"]], "code": d["code"], "team": d["team_name"], "colour": {"mercedes": "27F4D2", "ferrari": "E8002D", "mclaren": "FF8000", "red_bull": "3671C6"}.get(d["team"], "888888"), "last": d["name"].split()[-1]} for d in F1DATA["drivers"]],
+                "session_result": [{"driver_number": nums[z["id"]], "position": z["pos"], "dnf": not z["classified"]} for z in x["results"]]}
+    openf1.session_data = sdata
+    def fc(lat, lon):
+        start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        times = [(start + timedelta(hours=h)).strftime("%Y-%m-%dT%H:00") for h in range(16 * 24)]
+        rnd = random.Random(int(lat * 100))
+        return {"time": times, "temperature_2m": [round(18 + 6 * rnd.random(), 1) for _ in times],
+                "precipitation_probability": [int(rnd.random() * (70 if lat > 50 else 15)) for _ in times],
+                "precipitation": [round(rnd.random() * (1.5 if lat > 50 else 0.1), 1) for _ in times],
+                "wind_speed_10m": [round(5 + 15 * rnd.random(), 1) for _ in times], "cloud_cover": [int(100 * rnd.random()) for _ in times]}
+    openmeteo.forecast = fc
+
+
 def _install_fakes():
     def fd_season(code, sc):
         return [dict(m) for m in SOCCER.get(code, {}).get("seasons", {}).get(sc, [])]
@@ -481,6 +606,7 @@ def _install_fakes():
     espn.tennis_matches = lambda evs, tour: [e["_t"] for e in evs]
     from .sources import intl_results
     intl_results.matches = lambda since: [dict(m) for m in NATIONAL_HIST if m["date"] >= since]
+    espn.group_standings = lambda *a, **k: []
     espn.league_board = lambda sport, league: {"leagues": [{"season": {"endDate": "2099-01-01"}}], "events": []}
     footballdata.season = fd_season
     footballdata.fixtures = fd_fixtures
@@ -523,8 +649,8 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")
     shutil.rmtree(CACHE, ignore_errors=True)
     shutil.rmtree(PUBLIC_DATA, ignore_errors=True)
-    _gen_soccer(); _gen_nba(); _gen_tennis()
-    _install_fakes()
+    _gen_soccer(); _gen_nba(); _gen_tennis(); _gen_f1(date.today())
+    _install_fakes(); _install_f1_fakes()
     photos.ENABLED = False  # nessuna rete con i dati di esempio
     import sys
     from . import run

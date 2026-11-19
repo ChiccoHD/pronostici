@@ -7,7 +7,9 @@ const NOVITA = [
     "F1, Gara: accanto a ogni percentuale quella del mercato e la sezione \"Modello contro mercato\" con le giocate dove il modello vede più valore.",
     "F1, Circuito: giri, tempo perso nella corsia box, albo d'oro più lungo con chi partiva in pole. Pagina del pilota con i numeri di carriera.",
     "Tu: tocca la faccina per scegliere un'immagine del profilo: una tua foto, il logo di una squadra che segui o di un campionato, un simbolo o una bandiera.",
-    "Elenco: quando arrivano dati nuovi mentre scorri, la pagina non torna più in cima." ] },
+    "Elenco: quando arrivano dati nuovi mentre scorri, la pagina non torna più in cima.",
+    "Scelta dello sport rifatta: icona, nome e numero su tre righe uguali, con più spazio attorno a quello scelto.",
+    "F1 nell'elenco anche nei giorni di prove libere, qualifiche e Sprint, con i favoriti per la pole e per la Sprint." ] },
   { d: "2026-11-18", t: "Arriva la Formula 1", items: [
     "Nuovo sport F1: ogni GP con le probabilità di vittoria, podio, punti, ritiro e pole per tutti i piloti (20.000 gare simulate dal passo in gara e in qualifica delle ultime stagioni).",
     "Nella scheda del GP: programma del weekend, Sprint, testa a testa tra due piloti a scelta e tra compagni di squadra, scuderia vincente.",

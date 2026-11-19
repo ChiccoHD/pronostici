@@ -347,9 +347,12 @@ def _final(done) -> dict:
 
 def _index_entry(d) -> dict:
     top, G = d["drivers"][:3], d["gp"]
+    byid = {x["id"]: x for x in d["drivers"]}
     return {"id": d["id"], "sport": "f1", "league": "f1", "league_name": "Formula 1", "date": d["date"], "time_valid": True,
             "home": G["name"], "away": G["locality"], "home_flag": G.get("flag"), "main": [x["win"] for x in top],
             "f1": {"round": G["round"], "circuit": G["circuit"], "top": [[x["short"], x["code"], x["color"], x["win"], x["podium"]] for x in top],
+                   "pole_top": [[x["short"], x["code"], x["color"], x["pole"]] for x in sorted([y for y in d["drivers"] if y.get("pole") is not None], key=lambda y: -y["pole"])[:3]],
+                   "sprint_top": [[byid[s["id"]]["short"], byid[s["id"]]["code"], byid[s["id"]]["color"], s["win"]] for s in sorted(d.get("sprint") or [], key=lambda s: -s["win"])[:3] if s["id"] in byid],
                    "quali_done": G.get("quali_done"), "rain": d.get("rain"), "sessions": G["sessions"]},
             **({"final": d["final"]} if d.get("final") else {})}
 

@@ -17,7 +17,24 @@ const f1Pos = p => p == null ? `<i class="f1p dnf" title="ritirato">R</i>` : `<i
 const f1Next = s => (s || []).find(x => Date.parse(x.date) > Date.now() - 90 * 60e3);
 
 /* ------------------------------------------------------------------ elenco */
+/* riga di una sessione del weekend (prove libere, qualifiche, Sprint) che porta alla scheda del GP */
+const SES_ICON = { FP1: "🛠️", FP2: "🛠️", FP3: "🛠️", SQ: "⏱️", Q: "⏱️", Sprint: "🏁" };
+function f1SessionFixture(e) {
+  const s = e._ses, F = e.f1 || {}, t = Date.parse(s.date), now = Date.now();
+  const st = now > t + 100 * 60e3 ? "done" : now > t ? "live" : "";
+  let info = "";
+  if ((s.k === "Q" || s.k === "SQ") && F.pole_top?.length) info = `<div class="f1fx-top"><span class="f1fx-lab">Pole</span>${F.pole_top.map(([n, code, c, p]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || n)}<b>${pct(p)}</b></span>`).join("")}</div>`;
+  else if (s.k === "Sprint" && F.sprint_top?.length) info = `<div class="f1fx-top"><span class="f1fx-lab">Vince</span>${F.sprint_top.map(([n, code, c, p]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || n)}<b>${pct(p)}</b></span>`).join("")}</div>`;
+  else info = `<div class="fx-sub"><span>${st === "done" ? "Settori e velocità nella scheda del GP" : "Settori e velocità a fine sessione"}</span></div>`;
+  return `<a class="fx f1fx ses ${st === "done" ? "done" : ""}" href="#/e/${encodeURIComponent(e.id)}">
+    <div class="fx-time">${st === "live" ? `<span class="f1-on">ORA</span>` : fmtTime(e.date)}${st === "done" ? "<small>finita</small>" : ""}</div>
+    <div class="fx-mid"><div class="f1fx-gp"><span class="f1flag">${SES_ICON[s.k] || "🏎️"}</span><b>${esc(s.name)}</b></div>
+      <div class="f1fx-sub">${e.home_flag || ""} ${esc(e.home)} · Round ${F.round ?? "–"}</div>${info}</div>
+  </a>`;
+}
+
 function f1Fixture(e) {
+  if (e._ses) return f1SessionFixture(e);
   const F = e.f1 || {}, fin = e.final;
   const top = (F.top || []).map(([s, code, c, w]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || s)}<b>${pct(w)}</b></span>`).join("");
   const nx = f1Next(F.sessions);

@@ -12,6 +12,11 @@ const SPORTS = [
   { key: "f1", label: "F1" },
 ];
 /* pallino dello sport: gli stessi colori dei riquadri dell'elenco */
+/* pulsante dello sport: icona, nome e numero (in tre righe corte e uguali per tutti) */
+const SPORT_ICON = { soccer: "⚽", nba: "🏀", tennis: "🎾", f1: "🏎️" };
+const sportBtn = (s, n, what) => `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}" aria-label="${esc(s.label)}, ${n} ${what}">
+  <span class="sp-ic" aria-hidden="true">${s.key === "all" ? `<span class="sp-grid"><i class="g-soccer"></i><i class="g-nba"></i><i class="g-tennis"></i><i class="g-f1"></i></span>` : SPORT_ICON[s.key]}</span>
+  <span class="sp-name">${esc(s.label)}</span><small>${n}</small></button>`;
 const sportDot = k => k === "all" ? `<span class="sdots"><i class="g-soccer"></i><i class="g-nba"></i><i class="g-tennis"></i><i class="g-f1"></i></span>` : `<span class="sdots"><i class="g-${k}"></i></span>`;
 const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
@@ -432,7 +437,8 @@ function dayChips(items, getDate, what = "partite", done = 0) {
   const keys = Object.keys(counts).sort();
   if (state.day !== "all" && !counts[state.day] && !(state.day === "done" && done)) state.day = "all";
   const today = isoDay(Date.now()), tom = isoDay(Date.now() + 864e5), yest = isoDay(Date.now() - 864e5);
-  const cnt = n => what ? `<small>${n} ${what}</small>` : "";
+  const one = { partite: "partita", sessioni: "sessione", giocate: "giocata" };
+  const cnt = n => what ? `<small>${n} ${n === 1 ? one[what] || what : what}</small>` : "";
   const chip = k => {
     const d = new Date(k + "T12:00:00");
     const top = k === today ? "Oggi" : k === tom ? "Domani" : k === yest ? "Ieri" : d.toLocaleDateString("it-IT", { weekday: "short" }).replace(".", "");
@@ -501,10 +507,21 @@ function todayWidget() {
 }
 function renderListRefresh() { const el = document.querySelector(".tw"); if (el) el.outerHTML = todayWidget(); }
 
+/* elenco: ogni GP di F1 compare anche nei giorni delle prove libere, delle qualifiche e della Sprint (una riga per sessione) */
+function listEvents() {
+  const out = [];
+  for (const e of INDEX.events) {
+    out.push(e);
+    if (e.sport !== "f1" || e.final) continue;
+    for (const s of e.f1?.sessions || []) if (s.k !== "Race") out.push({ ...e, date: s.date, _ses: s });
+  }
+  return out;
+}
+
 function renderList() {
   const now = Date.now();
-  const bySport = INDEX.events.filter(e => (state.sport === "all" || e.sport === state.sport) && mkPass(e));
-  const ended = bySport.filter(e => isEnded(e)).sort((a, b) => b.date.localeCompare(a.date));
+  const bySport = listEvents().filter(e => (state.sport === "all" || e.sport === state.sport) && mkPass(e));
+  const ended = bySport.filter(e => isEnded(e) && !e._ses).sort((a, b) => b.date.localeCompare(a.date));
   if (typeof applyFinals === "function") applyFinals();      // esiti già visti dal telefono
   const liveN = typeof liveNow === "function" ? liveNow(state.sport) : null;
   const nextIx = bySport.filter(e => Date.parse(e.date) > now);
@@ -518,16 +535,17 @@ function renderList() {
   const byDay = st === "done" ? ended : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
-  const count = k => INDEX.events.filter(e => k === "all" || e.sport === k).length;
+  if (st !== "done") evs.sort((a, b) => a.date.localeCompare(b.date));   // in ordine di orario (le sessioni F1 sono aggiunte in fondo)
+  const count = k => listEvents().filter(e => (k === "all" || e.sport === k) && !isPastDay(e)).length;
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main">${todayWidget()}<div id="f-mark"></div><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
-    `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} partite</small></button>`).join("")}</div>`;
+    sportBtn(s, count(s.key), s.key === "f1" ? "sessioni" : "partite")).join("")}</div>`;
   const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
-  if (st === "all" || st === "next") html += dayChips(chipItems, e => e.date, "partite");
+  if (st === "all" || st === "next") html += dayChips(chipItems, e => e.date, state.sport === "f1" ? "sessioni" : "partite");
   // filtro per giocata: sotto il calendario
   html += `<div class="mk-row">${state.mk
     ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
@@ -560,6 +578,7 @@ function renderList() {
     if (!m.has(g)) m.set(g, []);
     m.get(g).push(e);
   }
+  for (const m of days.values()) for (const l of m.values()) l.sort((a, b) => a.date.localeCompare(b.date));
   for (const [k, groups] of days) {
     const d = fmtDay(groups.values().next().value[0].date);
     html += `<h2 class="day">${esc(d.label)}${d.rel ? `<span>${d.rel}</span>` : ""}</h2>`;
@@ -567,7 +586,7 @@ function renderList() {
       const gk = `${k}|${g}`;   // un riquadro = una competizione in un giorno
       const closed = closedGroups().includes(gk);
       html += `<section class="group ${closed ? "closed" : ""}"><button type="button" class="group-h" data-group="${esc(gk)}" aria-expanded="${!closed}">
-        ${leagueMark(list[0].league, list[0].sport)}<b>${esc(g)}</b><small>${list.length} ${list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
+        ${leagueMark(list[0].league, list[0].sport)}<b>${esc(g)}</b><small>${list.length} ${list[0].sport === "f1" ? (list.length === 1 ? "sessione" : "sessioni") : list.length === 1 ? "partita" : "partite"}${closed ? `, dalle ${fmtTime(list[0].date, list[0].time_valid)}` : ""}</small>
         <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="group-body">${list.map(fixture).join("")}</div></section>`;
     }
@@ -1468,7 +1487,7 @@ async function showBest() {
   const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
   const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3).length, 0);
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
-    `<button data-sport="${s.key}" class="sp-${s.key}" aria-pressed="${state.sport === s.key}"><span class="sp-l">${sportDot(s.key)}${s.label}</span><small>${count(s.key)} giocate</small></button>`).join("")}</div>
+    sportBtn(s, count(s.key), "giocate")).join("")}</div>
     ${dayChips(oneEach, it => it.date, "partite")}</div>`;
   if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
   // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance

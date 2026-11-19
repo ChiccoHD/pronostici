@@ -84,6 +84,6 @@ python -m http.server -d public    # apre il sito su http://localhost:8000
 - **Understat** (xG) a novembre 2026 è in manutenzione: il calcio funziona lo stesso con gol e tiri in porta, e gli xG torneranno da soli quando il sito sarà di nuovo online.
 - **Voti dei giocatori**: nessuna fonte gratuita li fornisce in modo affidabile, quindi non ci sono.
 - **Quote**: per il calcio vengono dalla media dei bookmaker di football-data.co.uk, per l'NBA da ESPN. Per la Formula 1 i prezzi del mercato di previsione Polymarket (gratuito, pubblico): non è un bookmaker, ma dà un termine di paragone per vittoria, podio, pole e testa a testa. Per il tennis non ci sono quote.
-- **Formula 1**: la diretta di OpenF1 è a pagamento, quindi durante le sessioni l'ordine arriva dal tabellone di ESPN (letto dal telefono e dal Worker per gli avvisi). Niente foto dei piloti: numero sul colore della scuderia.
+- **Formula 1**: la diretta di OpenF1 è a pagamento, quindi durante le sessioni l'ordine arriva dal tabellone di ESPN (letto dal telefono e dal Worker per gli avvisi). Foto dei piloti da Wikipedia; dove manca, il numero sul colore della scuderia.
 - **Orari**: GitHub a volte ritarda o salta le esecuzioni programmate. Se serve, si può affiancare un orario di Cloudflare che le avvia.
 - **Niente dati in diretta**: solo prima e dopo le partite.

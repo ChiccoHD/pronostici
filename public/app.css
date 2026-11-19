@@ -1774,3 +1774,13 @@ html, body { overflow-anchor: none; }
 .f1fx.ses .f1fx-gp b { font-size: 14.5px; }
 .f1fx-lab { font-size: 11px; font-weight: 700; color: var(--ink-3); align-self: center; margin-right: 2px; }
 .f1-on { display: inline-block; padding: 2px 6px; border-radius: 6px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 800; }
+/* foto dei piloti F1 */
+.f1-num { position: relative; overflow: visible; }
+.f1-num.ph { color: transparent !important; background: color-mix(in srgb, var(--tc) 35%, var(--soft)); box-shadow: inset 0 0 0 2px var(--tc); }
+.f1-num.ph img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); border-radius: inherit; object-fit: cover; object-position: 50% 18%; }
+.f1-num.ph i { position: absolute; right: -4px; bottom: -4px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 5px; background: var(--tc); color: #fff;
+  font: 800 9px/15px var(--font); font-style: italic; text-align: center; box-shadow: 0 0 0 1.5px var(--card); }
+.f1-num.ph.xs i { display: none; }
+.f1-num.big.ph i { min-width: 24px; height: 22px; font-size: 13px; line-height: 22px; border-radius: 7px; right: -6px; bottom: -6px; }
+.f1-num.big { width: 72px; height: 72px; border-radius: 50%; }
+.f1-fav .f1-num { width: 44px; height: 44px; border-radius: 50%; }

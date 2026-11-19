@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-19", t: "Foto dei piloti", items: [
+    "F1: ogni pilota ha la sua foto (da Wikipedia) con il numero sul colore della scuderia, nell'elenco dei piloti, nei testa a testa e nella sua pagina." ] },
   { d: "2026-11-19", t: "F1 più ricca e il tuo profilo", items: [
     "F1, nuova scheda Settori: miglior tempo in ogni settore, giro ideale e velocità in rettilineo per piloti e scuderie, dall'ultima sessione del weekend (prima del weekend, dalle qualifiche dell'anno scorso).",
     "F1, Testa a testa: per ogni sfida la quota equa del modello e, quando c'è, la quota del mercato Polymarket; sezione \"Sfide quotate\" e \"Contro il compagno su questa pista\" (qualifica e gara, dal 2018).",

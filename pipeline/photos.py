@@ -159,6 +159,29 @@ def tennis_photo(name: str, pid, today_d: date) -> str | None:
     return url or ""
 
 
+F1_DRIVER = "Q10841764"        # pilota di Formula 1 (Wikidata)
+F1_BUDGET = {"n": 30}
+
+
+def f1_photo(name: str, today_d: date) -> str | None:
+    """Foto di un pilota di F1 da Wikipedia (Wikidata, mestiere "pilota di Formula 1"). "" = nessuna foto; None = non controllato."""
+    if not ENABLED or not name or _wd_down:
+        return None
+    today = today_d.isoformat()
+    c = _load().setdefault("f1", {})
+    e = c.get(name)
+    if e and (e.get("u") or (date.fromisoformat(today) - date.fromisoformat(e["d"])).days < RETRY_DAYS):
+        return e.get("u") or ""
+    if F1_BUDGET["n"] <= 0:
+        return None
+    F1_BUDGET["n"] -= 1
+    r = wikidata.person_photo(name, F1_DRIVER)
+    if r is False:
+        return None
+    c[name] = {"u": r, "d": today}
+    return r or ""
+
+
 def url_for(pid) -> str | None:
     """Foto già trovata per un calciatore (solo dalla memoria, senza richieste)."""
     if not ENABLED:

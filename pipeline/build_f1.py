@@ -7,7 +7,7 @@ import unicodedata
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 
-from . import store
+from . import photos, store
 from .config import CACHE, PUBLIC_DATA
 from .models import f1 as F
 from .models.common import r
@@ -223,6 +223,17 @@ def build(today: date):
         for y in x["results"]:
             drivers_info[y["id"]] = {"id": y["id"], "name": y["name"], "code": y["code"], "num": y["num"], "nat": y.get("nat"),
                                      "flag": NAT_FLAG.get(y.get("nat") or ""), "team": y["team"], "team_name": y.get("team_name")}
+    # foto dei piloti (Wikipedia), ricordate in data/cache/photos.json
+    for i in drivers_info.values():
+        if any(i["id"] == s["id"] for s in stand["drivers"]) or i["id"] in {y["id"] for y in last_race["results"]}:
+            try:
+                i["photo"] = photos.f1_photo(i["name"], today) or None
+            except Exception:
+                log.exception("Foto %s", i["name"])
+    try:
+        photos.save()
+    except Exception:
+        log.exception("Foto F1")
     all_races = hist + races
     _profiles(races, year, stand, drivers_info, colors, R, all_races)
 
@@ -325,7 +336,7 @@ def _profiles(races, year, stand, info, colors, R, all_races=None):
     for s in stand["drivers"]:
         p = per.get(s["id"], per.default_factory())
         i = info.get(s["id"], {})
-        drivers.append({**{k: i.get(k) for k in ("id", "name", "code", "num", "nat", "flag")}, "id": s["id"], "name": s["name"],
+        drivers.append({**{k: i.get(k) for k in ("id", "name", "code", "num", "nat", "flag", "photo")}, "id": s["id"], "name": s["name"],
                         "team": s["team"], "team_name": s["team_name"], "color": colors.get(s["team"]), "pos": s["pos"], "points": s["points"],
                         "wins": s["wins"], "podiums": p["podiums"], "poles": p["poles"], "starts": p["starts"], "dnf": p["dnf"],
                         "avg_fin": r(statistics.mean(p["fin"]), 1) if p["fin"] else None, "avg_q": r(statistics.mean(p["q"]), 1) if p["q"] else None,
@@ -497,6 +508,7 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
         s = st_pos.get(e["id"], {})
         form = [y for y in reversed(cur) for y in [next((z for z in y["results"] if z["id"] == e["id"]), None)] if y][:6]
         drivers.append({"id": e["id"], "name": i["name"], "short": _last(i["name"]), "code": i.get("code"), "num": i.get("num"), "flag": i.get("flag"),
+                        "photo": i.get("photo"),
                         "team": e["team"], "team_name": team_names.get(e["team"], e["team"]), "color": colors.get(e["team"], "#888888"),
                         "grid": grid.get(e["id"]) if grid else None, "champ_pos": s.get("pos"), "points": s.get("points"),
                         "win": r(x["win"], 4), "podium": r(x["podium"], 3), "top6": r(x["top6"], 3), "top10": r(x["top10"], 3), "dnf": r(x["dnf"], 3),

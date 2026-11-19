@@ -1,14 +1,18 @@
 "use strict";
 /* Pronostici — Formula 1: riquadro nell'elenco, scheda del GP, pagina del pilota, classifiche e diretta.
    Dati in data/events/f1-<anno>-<round>.json e data/leagues/f1.json (scritti da pipeline/build_f1.py).
-   Usa funzioni di app.js (esc, pct, odd, sec, tabsView, star, favKey, ring...). Niente foto dei piloti: numero sul colore della squadra. */
+   Usa funzioni di app.js (esc, pct, odd, sec, tabsView, star, favKey, ring...). Foto dei piloti da Wikipedia, con il numero sul colore della squadra (senza foto, solo il numero). */
 
 const F1_RED = "#e10600";
 const COMPOUND = { Morbide: ["S", "#e8322b"], Medie: ["M", "#f2c318"], Dure: ["H", "#e9e9e9"], Intermedie: ["I", "#3fae49"], "Da bagnato": ["W", "#2b74c9"] };
 const f1c = c => usable(c) ? c : (c && lum(c) != null ? c : "#6b7280");
 const f1Href = id => `#/pilota/${encodeURIComponent(id)}`;
-/* numero del pilota sul colore della squadra (al posto della foto) */
-const f1Num = (x, cls = "") => `<span class="f1-num ${cls}" style="--tc:${f1c(x.color)};color:${onColor(f1c(x.color))}">${esc(x.num || x.code || "?")}</span>`;
+/* foto del pilota (Wikipedia) sul colore della squadra, con il numero; senza foto resta il numero */
+const f1Num = (x, cls = "") => {
+  const ph = x.photo && (typeof PHOTOS_ON === "undefined" || PHOTOS_ON);
+  return `<span class="f1-num ${cls} ${ph ? "ph" : ""}" style="--tc:${f1c(x.color)};color:${onColor(f1c(x.color))}">${esc(x.num || x.code || "?")}${ph
+    ? `<img src="${esc(x.photo)}" alt="" loading="lazy" decoding="async" onerror="const p=this.parentNode;p.classList.remove('ph');p.querySelector('i')?.remove();this.remove()"><i>${esc(x.num || "")}</i>` : ""}</span>`;
+};
 function f1When(iso) {
   const d = new Date(iso);
   return `${d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", timeZone: TZ })}, ${d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}`;
@@ -384,7 +388,7 @@ async function showDriver(id) {
   const last = sec("Ultime gare", `<div class="f1-chart">${(x.last || []).slice().reverse().map(r => { const p = r.st === "Finished" || /Lap/.test(r.st || "") ? r.pos : null;
       return `<span title="${esc(r.gp)}"><i style="height:${p ? Math.max(6, 100 - (p - 1) * 4.5) : 4}%;background:${p ? c : "var(--ink-3)"}"></i><b>${p ?? "R"}</b></span>`; }).join("")}</div>
     <div class="rows games">${(x.last || []).map(r => `<div class="r"><span class="l">R${r.r} ${esc(r.gp)}</span><span class="v">${r.grid ? `<small class="faint">dal ${r.grid}°</small> ` : ""}${f1Pos(r.st === "Finished" || /Lap/.test(r.st || "") ? r.pos : null)}</span></div>`).join("")}</div>`, "", "F1 ultime");
-  $app.innerHTML = backBtn("Indietro") + head + next + duel + career + last + `<p class="note">Niente foto dei piloti: il numero sul colore della scuderia. Dati da Jolpica (archivio Ergast).</p>`;
+  $app.innerHTML = backBtn("Indietro") + head + next + duel + career + last + `<p class="note">Dati da Jolpica (archivio Ergast), foto da Wikipedia.</p>`;
 }
 
 /* classifiche del mondiale (dentro Classifiche, voce Formula 1) */

@@ -495,18 +495,26 @@ function todayWidget() {
       .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
       .filter(it => it.cat !== "Punti F1" && Date.parse(it.date) > Date.now());
     const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"], ["f1", "🏎️", "F1", "#e10600"]];
+    // giorno scelto nel calendario: le migliori di quel giorno, con gli stessi orari dell'elenco sotto
+    const pick = /^\d{4}-\d{2}-\d{2}$/.test(state.day) && state.day !== today ? state.day : null;
+    const hour = d => +new Date(d).toLocaleString("it-IT", { hour: "2-digit", hourCycle: "h23", timeZone: TZ });
+    const onDay = d => isoDay(d) === pick;
     // per ogni sport la migliore di oggi (fino al mattino dopo); se oggi non c'è più niente, la migliore del primo giorno in cui si gioca
     const bestOf = k => {
       const all = pool.filter(it => it.sport === k);
+      if (pick) return all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0];
       const now = all.filter(it => tonight(it.date));
       if (now.length) return now.sort((a, b) => b.p - a.p)[0];
       const first = all.map(it => isoDay(it.date)).sort()[0];
       return all.filter(it => isoDay(it.date) === first).sort((a, b) => b.p - a.p)[0];
     };
     const tops = SP.map(([k, ic, name, c]) => [bestOf(k), ic, name, c]).filter(x => x[0]);
-    const when = it => tonight(it.date) ? `${isoDay(it.date) === today ? "" : "🌙 "}${fmtTime(it.date, it.time_valid)}`
+    const when = it => pick ? fmtTime(it.date, it.time_valid) : tonight(it.date) ? `${isoDay(it.date) === today ? "" : "🌙 "}${fmtTime(it.date, it.time_valid)}`
       : `${new Date(it.date).toLocaleDateString("it-IT", { weekday: "short", timeZone: TZ })} ${fmtTime(it.date, it.time_valid)}`;
-    if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori di oggi</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
+    const dayName = !pick ? "di oggi" : pick === isoDay(Date.now() + 864e5) ? "di domani"
+      : `di ${new Date(`${pick}T12:00:00Z`).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", timeZone: TZ })}`;
+    if (pick && pick < today) bests = "";     // giorno passato: niente migliori (le giocate restano solo per le partite da giocare)
+    else if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori ${esc(dayName)}</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
       const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
       return `<a class="twb" href="#/e/${encodeURIComponent(it.event)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
         <span class="twb-sp"><i>${ic}</i>${name}</span>

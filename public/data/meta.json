@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T16:52+00:00",
+ "updated": "2026-11-19T16:55+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -286,7 +286,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-19T16:52+00:00"
+   "aggiornato": "2026-11-19T16:55+00:00"
   },
   "archivio": {
    "partite": 309,
@@ -301,8 +301,8 @@
   "f1": {
    "gp_in_arrivo": 3,
    "gare_in_storico": 90,
-   "jolpica_2018": "21 gare",
-   "jolpica_2019": "21 gare",
+   "jolpica_2020": "17 gare",
+   "jolpica_2021": "22 gare",
    "storico_dal": 2018,
    "modello": {
     "n": 17,
@@ -315,8 +315,8 @@
    "mercato_21": "101 prezzi",
    "mercato_22": "101 prezzi",
    "mercato_23": "101 prezzi",
-   "openf1_richieste": 4,
-   "aggiornato": "2026-11-19T16:52+00:00"
+   "openf1_richieste": 0,
+   "aggiornato": "2026-11-19T16:55+00:00"
   }
  }
 }

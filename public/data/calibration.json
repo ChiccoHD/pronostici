@@ -1,1 +1,1 @@
-{"updated":"2026-11-19T00:57+00:00","sports":{"soccer":{"n":182,"t_fit":0.8,"t":0.924,"logloss":0.8266,"logloss_tarata":0.8221},"nba":{"n":50,"t":1.0,"nota":"servono almeno 60 partite concluse"},"tennis":{"n":59,"t":1.0,"nota":"servono almeno 60 partite concluse"}}}
+{"updated":"2026-11-19T03:43+00:00","sports":{"soccer":{"n":187,"t_fit":0.78,"t":0.916,"logloss":0.827,"logloss_tarata":0.8219},"nba":{"n":59,"t":1.0,"nota":"servono almeno 60 partite concluse"},"tennis":{"n":59,"t":1.0,"nota":"servono almeno 60 partite concluse"}}}

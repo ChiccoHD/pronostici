@@ -111,7 +111,9 @@ def f1(d):
         if x.get("top10", 0) < 0.97:
             out.append({**b, "book": None, "cat": "Punti F1", "label": f"{x['short']} nei primi 10", "p": x["top10"]})
         if not (d.get("gp") or {}).get("quali_done") and x.get("pole") is not None:
-            out.append({**b, "book": bk("pole"), "cat": "Pole F1", "label": f"{x['short']} in pole", "p": x["pole"]})
+            # la pole si decide in qualifica: la giocata ha l'orario della qualifica, non della gara
+            q_at = next((s["date"] for s in (d.get("gp") or {}).get("sessions") or [] if s.get("k") == "Q"), None)
+            out.append({**b, **({"date": q_at} if q_at else {}), "book": bk("pole"), "cat": "Pole F1", "label": f"{x['short']} in pole", "p": x["pole"]})
     H = d.get("h2h") or []
     ix = {x["id"]: i for i, x in enumerate(D)}
     seen = set()

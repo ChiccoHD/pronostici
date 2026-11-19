@@ -34,6 +34,16 @@ def _events() -> list[dict]:
     return out
 
 
+MIN_VOLUME = 100       # dollari scambiati sul singolo mercato
+
+
+def _vol(m) -> float:
+    try:
+        return float(m.get("volumeNum") or m.get("volume") or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _yes(m) -> float | None:
     try:
         oc, pr = json.loads(m.get("outcomes") or "[]"), json.loads(m.get("outcomePrices") or "[]")
@@ -69,7 +79,8 @@ def gp_markets(race_name: str, race_date: str) -> dict | None:
         end = (e.get("endDate") or "")[:10]
         if end and race_date and end < race_date[:10]:
             continue
-        mk = [m for m in e.get("markets") or [] if m.get("active", True) and not m.get("closed")]
+        # solo mercati con scambi veri: quelli appena aperti e mai scambiati stanno fermi a 0,5 e non dicono niente
+        mk = [m for m in e.get("markets") or [] if m.get("active", True) and not m.get("closed") and _vol(m) >= MIN_VOLUME]
         if not mk:
             continue
         out["events"] += 1

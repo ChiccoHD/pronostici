@@ -396,27 +396,37 @@ function dayChipLabel(key) {
 /* filtri compatti: scorrendo in giù resta solo la riga dei giorni, in piccolo; tornando su ricompaiono sport e stato.
    L'altezza persa resta come margine sotto i filtri: l'elenco non si sposta e la pagina non "salta" avanti e indietro. */
 (function compactFilters() {
-  let lastY = scrollY, up = 0;
+  // onY = altezza a cui i filtri si sono compattati: si riaprono solo tornando sopra quel punto (o risalendo un bel po').
+  // Prima si decideva dalla posizione del segnaposto, che si sposta proprio quando i filtri cambiano altezza:
+  // con elenchi corti i filtri si aprivano e chiudevano di continuo e la pagina restava bloccata.
+  let lastY = scrollY, up = 0, onY = null, quietUntil = 0;
   const set = on => {
     const f = document.querySelector("#list-main .filters");
     if (!f || document.body.classList.contains("fcompact") === on) return;
+    quietUntil = performance.now() + 250;     // gli eventi causati dal cambio di altezza non contano
     if (on) {
       const full = f.offsetHeight;
       document.body.classList.add("fcompact");
       f.style.marginBottom = `${Math.max(0, full - f.offsetHeight)}px`;
+      onY = scrollY;
     } else {
       document.body.classList.remove("fcompact");
       f.style.marginBottom = "";
+      onY = null;
     }
   };
   addEventListener("scroll", () => {
     const mark = document.getElementById("f-mark"), y = scrollY;
-    if (!mark) { document.body.classList.remove("fcompact"); lastY = y; return; }
-    const head = document.querySelector(".top")?.offsetHeight || 52;
-    const past = mark.getBoundingClientRect().top < head - 60;
-    if (!past) { set(false); up = 0; }
-    else if (y > lastY) { up = 0; set(true); }
-    else { up += lastY - y; if (up > 120) set(false); }
+    if (!mark) { document.body.classList.remove("fcompact"); onY = null; lastY = y; return; }
+    if (performance.now() < quietUntil) { lastY = y; return; }
+    const on = document.body.classList.contains("fcompact");
+    if (!on) {
+      const head = document.querySelector(".top")?.offsetHeight || 52;
+      const room = document.documentElement.scrollHeight - innerHeight;   // con un elenco corto non serve compattare
+      if (y > lastY && mark.getBoundingClientRect().top < head - 60 && room > 600) { up = 0; set(true); }
+    } else if (y < onY - 40) { set(false); up = 0; }
+    else if (y < lastY) { up += lastY - y; if (up > 160) { set(false); up = 0; } }
+    else up = 0;
     lastY = y;
   }, { passive: true });
 })();
@@ -483,9 +493,19 @@ function todayWidget() {
     // la migliore di oggi per ogni sport: la giocata più probabile, senza doppia chance e linee scontate (Over 1,5…)
     const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
       .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
-      .filter(it => tonight(it.date) && Date.parse(it.date) > Date.now());
+      .filter(it => it.cat !== "Punti F1" && Date.parse(it.date) > Date.now());
     const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"], ["f1", "🏎️", "F1", "#e10600"]];
-    const tops = SP.map(([k, ic, name, c]) => [pool.filter(it => it.sport === k).sort((a, b) => b.p - a.p)[0], ic, name, c]).filter(x => x[0]);
+    // per ogni sport la migliore di oggi (fino al mattino dopo); se oggi non c'è più niente, la migliore del primo giorno in cui si gioca
+    const bestOf = k => {
+      const all = pool.filter(it => it.sport === k);
+      const now = all.filter(it => tonight(it.date));
+      if (now.length) return now.sort((a, b) => b.p - a.p)[0];
+      const first = all.map(it => isoDay(it.date)).sort()[0];
+      return all.filter(it => isoDay(it.date) === first).sort((a, b) => b.p - a.p)[0];
+    };
+    const tops = SP.map(([k, ic, name, c]) => [bestOf(k), ic, name, c]).filter(x => x[0]);
+    const when = it => tonight(it.date) ? `${isoDay(it.date) === today ? "" : "🌙 "}${fmtTime(it.date, it.time_valid)}`
+      : `${new Date(it.date).toLocaleDateString("it-IT", { weekday: "short", timeZone: TZ })} ${fmtTime(it.date, it.time_valid)}`;
     if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori di oggi</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
       const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
       return `<a class="twb" href="#/e/${encodeURIComponent(it.event)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
@@ -494,7 +514,7 @@ function todayWidget() {
         <span class="twb-bars">${[1, 2, 3, 4].map(i => `<i class="${i <= tier ? "on" : ""}"></i>`).join("")}</span>
         <b class="twb-l">${esc(it.label)}</b>
         <small class="twb-m">${esc(it.match)}</small>
-        <span class="twb-f"><span>${isoDay(it.date) === today ? "" : "🌙 "}${esc(fmtTime(it.date, it.time_valid))}</span><span title="quota equa">q. <b>${odd(it.p)}</b></span></span></a>`;
+        <span class="twb-f"><span>${esc(when(it))}</span><span title="quota equa">q. <b>${odd(it.p)}</b></span></span></a>`;
     }).join("")}</div>`;
   } else if (!todayWidget.loading) {
     todayWidget.loading = true;

@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-19", t: "Correzioni", items: [
+    "Elenco: con poche partite (es. solo tennis o basket) la pagina restava bloccata mentre scorrevi; ora scorre normalmente.",
+    "Le migliori di oggi: c'è sempre una carta per ogni sport (anche tennis e F1). Se per oggi non resta niente, mostra la migliore del primo giorno in cui si gioca, con il giorno accanto all'orario." ] },
   { d: "2026-11-19", t: "Foto dei piloti", items: [
     "F1: ogni pilota ha la sua foto (da Wikipedia) con il numero sul colore della scuderia, nell'elenco dei piloti, nei testa a testa e nella sua pagina." ] },
   { d: "2026-11-19", t: "F1 più ricca e il tuo profilo", items: [

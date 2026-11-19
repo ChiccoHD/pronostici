@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T18:54+00:00",
+ "updated": "2026-11-19T21:05+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -87,7 +87,7 @@
     "espn": "ok",
     "espn_tabellini": "99 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 94, TheSportsDB 52, Wikipedia 216, ESPN 18, da controllare 179"
+    "foto_giocatori": "senza foto 104, TheSportsDB 61, Wikipedia 216, ESPN 18, da controllare 160"
    },
    "scozia": {
     "football-data": "ok",
@@ -160,7 +160,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 205, Wikipedia 62, ESPN 15"
    },
-   "aggiornato": "2026-11-19T18:53+00:00"
+   "aggiornato": "2026-11-19T21:03+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -174,7 +174,7 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 222,
-   "aggiornato": "2026-11-19T18:54+00:00"
+   "aggiornato": "2026-11-19T21:05+00:00"
   },
   "tennis": {
    "atp": {
@@ -182,10 +182,10 @@
     "espn": "3 incontri in programma"
    },
    "wta": {
-    "storico": "12438 incontri (+0)",
+    "storico": "12440 incontri (+2)",
     "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-19T18:54+00:00"
+   "aggiornato": "2026-11-19T21:05+00:00"
   },
   "coppe": {
    "uomini": {
@@ -242,10 +242,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "169 giocate, 12 giorni controllati",
-    "partite_storico": 169
+    "espn_uefa.wchampions": "171 giocate, 12 giorni controllati",
+    "partite_storico": 171
    },
-   "aggiornato": "2026-11-19T18:53+00:00"
+   "aggiornato": "2026-11-19T21:04+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -282,21 +282,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-19T18:54+00:00"
+   "aggiornato": "2026-11-19T21:04+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-19T18:54+00:00"
+   "esiti": "4 nuovi esiti, 3 calendari letti",
+   "aggiornato": "2026-11-19T21:05+00:00"
   },
   "archivio": {
-   "partite": 310,
-   "nuove": 0
+   "partite": 314,
+   "nuove": 4
   },
   "taratura": {
-   "soccer": "x0.92 su 187 partite",
+   "soccer": "x0.92 su 189 partite",
    "nba": "x1.07 su 62 partite",
-   "tennis": "x0.96 su 61 partite",
-   "partite_ritoccate": 407
+   "tennis": "x0.97 su 63 partite",
+   "partite_ritoccate": 405
   },
   "f1": {
    "gp_in_arrivo": 3,
@@ -310,11 +310,11 @@
     "logloss_uniform": 3.091,
     "brier_podium": 0.0838
    },
-   "mercato_21": "17 prezzi",
+   "mercato_21": "18 prezzi",
    "mercato_22": "nessuno",
    "mercato_23": "nessuno",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-19T18:46+00:00"
+   "aggiornato": "2026-11-19T21:05+00:00"
   }
  }
 }

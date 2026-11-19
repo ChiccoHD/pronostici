@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T16:56+00:00",
+ "updated": "2026-11-19T17:06+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -286,7 +286,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-19T16:56+00:00"
+   "aggiornato": "2026-11-19T17:06+00:00"
   },
   "archivio": {
    "partite": 309,
@@ -301,7 +301,6 @@
   "f1": {
    "gp_in_arrivo": 3,
    "gare_in_storico": 90,
-   "jolpica_2022": "22 gare",
    "storico_dal": 2018,
    "modello": {
     "n": 17,
@@ -315,7 +314,7 @@
    "mercato_22": "nessuno",
    "mercato_23": "nessuno",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-19T16:56+00:00"
+   "aggiornato": "2026-11-19T17:06+00:00"
   }
  }
 }

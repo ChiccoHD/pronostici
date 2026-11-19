@@ -62,11 +62,14 @@ function f1View(d) {
   </div>`;
 
   // Gara: un pilota per riga, con la giocata scelta nel selettore
+  const MK = d.market || {};
+  const mkOf = (k, x) => (MK[k] || {})[x.id];
   const raceRow = k => (x, i) => {
-    const p = x[k];
+    const p = x[k], mp = mkOf(k, x);
     return `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}
       <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}${x.grid ? ` · griglia ${x.grid}°` : ""}</small></a>
-      <span class="f1-bar"><i style="width:${Math.round((p || 0) * 100)}%"></i></span><b class="f1-p">${pct(p)}</b>
+      <span class="f1-bar"><i style="width:${Math.round((p || 0) * 100)}%"></i>${mp != null ? `<em style="left:${Math.min(99, mp * 100)}%" title="mercato"></em>` : ""}</span>
+      <b class="f1-p">${pct(p)}${mp != null ? `<small>merc. ${pct(mp)}</small>` : `<small>q. ${odd(p)}</small>`}</b>
       ${label[k] ? star(favKey(label[k](x), p)) : `<span class="star-sp"></span>`}</div>`;
   };
   // i primi 10 subito, gli altri sotto "Tutti i piloti"
@@ -77,9 +80,27 @@ function f1View(d) {
   const paneFor = k => { const keep = D.slice(); D.splice(0, D.length, ...ord(k)); const h = `<div data-segpane="f1g:${k}" ${k !== "win" ? "hidden" : ""}>${raceRows(k)}</div>`; D.splice(0, D.length, ...keep); return h; };
   const teamBars = `<div class="bars">${(d.teams || []).map(t => `<div class="bar f1-tb" style="--tc:${f1c(t.color)}"><i style="width:${Math.round(t.win * 100)}%"></i>
     <span>${esc(t.name)}</span><b>${pct(t.win)}</b></div>`).join("")}</div>`;
+  // modello contro mercato (Polymarket): le differenze più grandi, con quota equa e quota del mercato
+  const vs = [];
+  for (const x of D) for (const [k, l] of [["win", label.win], ["podium", label.podium], ["pole", label.pole]]) {
+    const mp = mkOf(k, x), p = x[k];
+    if (mp != null && p != null && mp > 0.012) vs.push({ l: l(x), p, mp, x });
+  }
+  for (const [ia, ib, pa] of MK.h2h || []) {
+    const A = byId[ia], B = byId[ib], ix0 = D.indexOf(A), ix1 = D.indexOf(B);
+    const p = d.h2h?.[ix0]?.[ix1];
+    if (A && B && p != null) vs.push(p >= pa ? { l: `${A.short} davanti a ${B.short}`, p, mp: pa, x: A } : { l: `${B.short} davanti a ${A.short}`, p: 1 - p, mp: 1 - pa, x: B });
+  }
+  vs.sort((a, b) => (b.p - b.mp) - (a.p - a.mp));
+  const vsHtml = vs.length ? sec("Modello contro mercato", `<div class="f1-vs">${vs.filter(v => v.p - v.mp >= 0.03).slice(0, 8).map(v => `<div class="f1-vsr" style="--tc:${f1c(v.x.color)}">
+      ${f1Num(v.x, "xs")}<span class="f1-vsl"><b>${esc(v.l)}</b><small>modello ${pct(v.p)} · mercato ${pct(v.mp)}</small></span>
+      <span class="f1-q"><b>${odd(v.mp)}</b><small>quota merc.</small></span><span class="f1-q eq"><b>${odd(v.p)}</b><small>quota equa</small></span>${star(favKey(v.l, v.p, v.mp))}</div>`).join("")
+      || `<p class="note">Nessuna differenza grande: modello e mercato sono d'accordo.</p>`}</div>
+      <p class="note">Giocate a cui il modello dà più probabilità del mercato di previsione Polymarket (prezzi pubblici, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
   const gara = sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
-      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
+      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). ${MK.win ? "Sotto la percentuale quella del mercato Polymarket (la tacca sulla barra)." : "q. = quota equa secondo il modello."} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
+    + vsHtml
     + sec("Scuderia vincente", teamBars, "", "F1 scuderia")
     + sec("Posizione attesa", `<div class="rows">${ord("exp_pos").reverse().slice(0, 22).map(x => `<div class="r"><span class="l">${f1Num(x, "xs")} ${esc(x.short)}</span><span class="v">${num(x.exp_pos)}°</span></div>`).join("")}</div>
       <p class="note">Media delle simulazioni (ritiri contati in fondo).</p>`, "", "F1 posizione attesa");
@@ -111,18 +132,40 @@ function f1View(d) {
   const ix = Object.fromEntries(D.map((x, i) => [x.id, i]));
   const mates = [];
   for (const x of D) { const m = D.find(y => y.team === x.team && y.id !== x.id); if (m && !mates.some(([a, b]) => b.id === x.id)) mates.push([x, m]); }
+  const mkPair = (a, b) => { for (const [ia, ib, pa, v] of MK.h2h || []) { if (ia === a.id && ib === b.id) return [pa, v]; if (ia === b.id && ib === a.id) return [1 - pa, v]; } return null; };
   const duel = (a, b) => {
     const p = H[ix[a.id]]?.[ix[b.id]];
     if (p == null) return "";
     const [w, l, q] = p >= .5 ? [a, b, p] : [b, a, 1 - p];
-    return `<div class="f1-duel"><span class="f1-dn" style="--tc:${f1c(a.color)}">${f1Num(a, "sm")}<b>${esc(a.short)}</b></span>
+    const m = mkPair(w, l);
+    return `<div class="f1-duelw"><div class="f1-duel"><span class="f1-dn" style="--tc:${f1c(a.color)}">${f1Num(a, "sm")}<b>${esc(a.short)}</b></span>
       <span class="f1-dbar"><i style="flex:${p};background:${f1c(a.color)}"></i><i style="flex:${1 - p};background:${f1c(b.color)}"></i><em>${pct(p)}</em><em>${pct(1 - p)}</em></span>
-      <span class="f1-dn r" style="--tc:${f1c(b.color)}"><b>${esc(b.short)}</b>${f1Num(b, "sm")}</span>${star(favKey(`${w.short} davanti a ${l.short}`, q))}</div>`;
+      <span class="f1-dn r" style="--tc:${f1c(b.color)}"><b>${esc(b.short)}</b>${f1Num(b, "sm")}</span>${star(favKey(`${w.short} davanti a ${l.short}`, q, m?.[0]))}</div>
+      <div class="f1-dq">${esc(w.short)} davanti: quota equa <b>${odd(q)}</b>${m ? ` · mercato ${pct(m[0])} (quota <b>${odd(m[0])}</b>)` : ""} · ${esc(l.short)} davanti: <b>${odd(1 - q)}</b></div></div>`;
   };
   const opts = D.map(x => `<option value="${esc(x.id)}">${esc(x.short)} (${esc(x.team_name)})</option>`).join("");
+  // sfide quotate dal mercato (non tra compagni)
+  const mkDuels = (MK.h2h || []).map(([ia, ib]) => [byId[ia], byId[ib]]).filter(([a, b]) => a && b && a.team !== b.team);
+  // compagni su questa pista (dal 2018): posizioni guadagnate (negativo) o perse sul compagno
+  const MC = d.mates_circuit || [];
+  const mcPane = k => {
+    const rows = MC.filter(m => m[k] != null && byId[m.id]).sort((a, b) => a[k] - b[k]);
+    if (!rows.length) return `<p class="note">Nessun dato.</p>`;
+    const mx = Math.max(1, ...rows.map(m => Math.abs(m[k])));
+    return `<div class="f1-div">${rows.map(m => { const x = byId[m.id], v = m[k], w = Math.abs(v) / mx * 50;
+      return `<a class="f1-dr" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}"><span class="f1-dc">${esc(x.code || x.short)}</span>
+        <span class="f1-dtrack"><i style="${v < 0 ? `right:50%;width:${w}%` : `left:50%;width:${w}%`}"></i></span>
+        <b class="${v < 0 ? "good" : v > 0 ? "bad" : ""}">${v > 0 ? "+" : ""}${num(v)}</b><small>${m[k + "n"]}×</small></a>`; }).join("")}</div>`;
+  };
+  const C0 = d.circuit || {};
+  const mcHtml = MC.length ? sec("Contro il compagno su questa pista", `<div class="f1-segrow">${seg("f1mc", [["q", "Qualifica"], ["r", "Gara"]], "q")}</div>
+      <div data-segpane="f1mc:q">${mcPane("q")}</div><div data-segpane="f1mc:r" hidden>${mcPane("r")}</div>
+      <p class="note">Media delle posizioni di distacco dal compagno di squadra di quel momento, edizione per edizione${C0.since ? ` (dal ${C0.since})` : ""}. Più a sinistra = lo batte; il numero a destra = edizioni contate.</p>`, "", "F1 compagni pista") : "";
   const h2h = sec("Scegli due piloti", `<div class="f1-pick"><select id="f1-a">${opts}</select><span>contro</span><select id="f1-b">${opts}</select></div><div id="f1-duel">${D[1] ? duel(D[0], D[1]) : ""}</div>
       <p class="note">Chi arriva davanti all'altro (se uno si ritira, vince chi resta in gara). Stima dalle simulazioni della gara.</p>`, "", "F1 h2h scelta")
-    + sec("Compagni di squadra", mates.map(([a, b]) => duel(a, b)).join(""), "", "F1 compagni");
+    + (mkDuels.length ? sec("Sfide quotate", mkDuels.map(([a, b]) => duel(a, b)).join("") + `<p class="note">Le sfide che il mercato Polymarket quota per questo GP, con la stima del modello.</p>`, "", "F1 sfide mercato") : "")
+    + sec("Compagni di squadra", mates.map(([a, b]) => duel(a, b)).join(""), "", "F1 compagni")
+    + mcHtml;
 
   // Gomme e strategia (edizioni passate da OpenF1)
   const S = d.strategy;
@@ -143,6 +186,29 @@ function f1View(d) {
       ${S.sc_rate != null ? `<p class="note">Safety car in almeno una edizione su ${S.editions.length}: stima per questa gara <b>${pct(S.sc_rate)}</b>.</p>` : ""}`, "", "F1 edizioni");
   if (!gomme) gomme = `<div class="empty"><b>Strategie non ancora disponibili</b>Arrivano dai dati delle edizioni passate (OpenF1), un po' alla volta.</div>`;
 
+  // Giro e settori (OpenF1): ultima sessione del weekend, altrimenti le qualifiche dell'edizione scorsa
+  const LP = d.laps;
+  let giri = "";
+  if (LP?.rows?.length) {
+    const fmtT = t => { if (t == null) return "–"; const m = Math.floor(t / 60), s = t - m * 60; return m ? `${m}:${s.toFixed(3).padStart(6, "0")}` : `${s.toFixed(3)}s`; };
+    const team = rows => { const by = {}; for (const r of rows) { const k = r.team || r.code; if (!by[k]) by[k] = { ...r, code: r.team }; else for (const f of ["s1", "s2", "s3", "lap", "ideal"]) if (r[f] != null && (by[k][f] == null || r[f] < by[k][f])) by[k][f] = r[f];
+      if (r.st != null && (by[k].st == null || r.st > by[k].st)) by[k].st = r.st; } return Object.values(by); };
+    const pane = (k, who) => {
+      const src = who === "t" ? team(LP.rows) : LP.rows, hi = k === "st";
+      const rows = src.filter(r => r[k] != null).sort((a, b) => hi ? b[k] - a[k] : a[k] - b[k]);
+      if (!rows.length) return `<p class="note">Dato non disponibile per questa sessione.</p>`;
+      const best = rows[0][k], worst = rows[rows.length - 1][k], span = Math.abs(worst - best) || 1;
+      return `<div class="f1-lb">${rows.map((r, i) => { const w = 100 - Math.abs(r[k] - best) / span * 70;
+        return `<div class="f1-lr" style="--tc:${f1c(r.color)}"><span class="f1-lc">${esc(who === "t" ? r.team : r.code || "")}</span><span class="f1-lt"><i style="width:${w}%"></i>
+          <em>${hi ? `${r[k]} km/h` : fmtT(r[k])}${i && !hi ? ` <small>+${(r[k] - best).toFixed(3)}</small>` : ""}</em></span></div>`; }).join("")}</div>`;
+    };
+    const ks = [["s1", "S1"], ["s2", "S2"], ["s3", "S3"], ["ideal", "Ideale"], ["lap", "Giro"], ["st", "Velocità"]];
+    giri = sec("Giro e settori", `<div class="f1-segrow">${seg("f1lw", [["p", "Piloti"], ["t", "Scuderie"]], "p")}</div>
+        <div class="f1-segrow">${seg("f1lk", ks, "s2")}</div>
+        ${["p", "t"].map(w => `<div data-segpane="f1lw:${w}" ${w !== "p" ? "hidden" : ""}>${ks.map(([k]) => `<div data-segpane="f1lk:${k}" ${k !== "s2" ? "hidden" : ""}>${pane(k, w)}</div>`).join("")}</div>`).join("")}
+        <p class="note">${LP.kind === "weekend" ? `Da <b>${esc(LP.session)}</b> di questo weekend` : `Dalle <b>qualifiche ${LP.year}</b> su questa pista (il weekend non è ancora iniziato)`}: miglior tempo per settore, giro ideale (somma dei migliori settori) e velocità massima alla speed trap, che dice chi è più veloce in rettilineo. Dati OpenF1.</p>`, "", "F1 settori");
+  } else giri = `<div class="empty"><b>Tempi non ancora disponibili</b>Arrivano dopo la prima sessione del weekend (OpenF1).</div>`;
+
   // Meteo
   const W = d.weather || {};
   const wIcon = w => w.rain_p >= .5 ? "🌧️" : w.rain_p >= .25 ? "🌦️" : w.cloud >= 70 ? "☁️" : w.cloud >= 30 ? "⛅" : "☀️";
@@ -156,13 +222,15 @@ function f1View(d) {
   const C = d.circuit || {};
   const cRows = [...D].filter(x => x.circuit?.starts).sort((a, b) => (a.circuit.avg ?? 99) - (b.circuit.avg ?? 99)).slice(0, 10);
   const circ = sec(esc(G.circuit || "Circuito"), `<div class="tp-tiles f1-ct">
-      <div class="tp-tile"><b>${C.editions ?? "–"}</b><span>edizioni analizzate</span></div>
-      <div class="tp-tile"><b>${C.pole_win_rate != null ? pct(C.pole_win_rate) : "–"}</b><span>vinte dalla pole</span></div>
+      <div class="tp-tile"><b>${C.all_editions ?? C.editions ?? "–"}</b><span>edizioni${C.since ? ` dal ${C.since}` : ""}</span></div>
+      <div class="tp-tile"><b>${C.pole_win_all != null ? pct(C.pole_win_all) : C.pole_win_rate != null ? pct(C.pole_win_rate) : "–"}</b><span>vinte dalla pole</span></div>
+      ${C.laps ? `<div class="tp-tile"><b>${C.laps}</b><span>giri</span></div>` : ""}
+      ${C.pit_loss ? `<div class="tp-tile"><b>${num(C.pit_loss, 1)}s</b><span>tempo nella corsia box</span></div>` : ""}
       <div class="tp-tile"><b>${C.dnf_rate != null ? pct(C.dnf_rate) : "–"}</b><span>ritiri per pilota</span></div>
       <div class="tp-tile"><b>${C.grid_weight != null ? (C.grid_weight >= .6 ? "alta" : C.grid_weight >= .45 ? "media" : "bassa") : "–"}</b><span>importanza della griglia</span></div></div>
       <p class="note">Importanza della griglia: quanto l'ordine d'arrivo assomiglia a quello di partenza qui (sorpassi difficili = alta).</p>`, "", "F1 circuito")
-    + (C.winners?.length ? sec("Albo recente", `<div class="rows">${C.winners.map(w => `<div class="r"><span class="l"><b>${w.season}</b> ${esc(w.winner)} <small class="faint">${esc(w.team || "")}</small></span>
-      <span class="v faint">${w.from_grid ? `dal ${w.from_grid}° posto` : ""}</span></div>`).join("")}</div>`, "", "F1 albo") : "")
+    + ((C.albo || C.winners)?.length ? sec("Albo d'oro", `<div class="rows">${(C.albo || C.winners).map(w => `<div class="r"><span class="l"><b>${w.season}</b> ${esc(w.winner)} <small class="faint">${esc(w.team || "")}</small></span>
+      <span class="v faint">${w.from_grid ? `dal ${w.from_grid}° posto` : ""}${w.pole ? ` · pole ${esc(lastName(w.pole))}` : ""}</span></div>`).join("")}</div>`, "", "F1 albo") : "")
     + (cRows.length ? sec("Piloti su questa pista", `<div class="rows">${cRows.map(x => `<a class="r" href="${f1Href(x.id)}"><span class="l">${f1Num(x, "xs")} ${esc(x.short)}</span>
       <span class="v">${x.circuit.wins ? `🏆 ${x.circuit.wins} · ` : ""}${x.circuit.podiums ? `${x.circuit.podiums} ${x.circuit.podiums === 1 ? "podio" : "podi"} · ` : ""}media ${num(x.circuit.avg)}° <small class="faint">(${x.circuit.starts})</small></span></a>`).join("")}</div>`, "", "F1 piloti pista") : "");
 
@@ -176,7 +244,7 @@ function f1View(d) {
   const rel = M.n ? `<p class="note">Verifica del modello su ${M.n} gare passate: sul vincitore sbaglia meno di un tiro a caso (log-loss ${num(M.logloss_winner, 2)} contro ${num(M.logloss_uniform, 2)}). Le percentuali restano stime: in F1 contano incidenti, strategie e meteo.</p>` : "";
 
   return head + `<div id="f1-live"></div>` + tabsView("f1", [["gara", "Gara", gara + rel], ["quali", G.sprint ? "Qualifica e Sprint" : "Qualifica", quali], ["h2h", "Testa a testa", h2h],
-    ["gomme", "Gomme", gomme], ["meteo", "Meteo", meteo], ["circ", "Circuito", circ], ["piloti", "Piloti", forma]]);
+    ["giri", "Settori", giri], ["gomme", "Gomme", gomme], ["meteo", "Meteo", meteo], ["circ", "Circuito", circ], ["piloti", "Piloti", forma]]);
 }
 
 function f1Result(d, byId) {
@@ -198,7 +266,8 @@ function wireF1(d) {
       const p = H[ix[A.id]][ix[B.id]], [w, l, q] = p >= .5 ? [A, B, p] : [B, A, 1 - p];
       box.innerHTML = `<div class="f1-duel"><span class="f1-dn">${f1Num(A, "sm")}<b>${esc(A.short)}</b></span>
         <span class="f1-dbar"><i style="flex:${p};background:${f1c(A.color)}"></i><i style="flex:${1 - p};background:${f1c(B.color)}"></i><em>${pct(p)}</em><em>${pct(1 - p)}</em></span>
-        <span class="f1-dn r"><b>${esc(B.short)}</b>${f1Num(B, "sm")}</span>${star(favKey(`${w.short} davanti a ${l.short}`, q))}</div>`;
+        <span class="f1-dn r"><b>${esc(B.short)}</b>${f1Num(B, "sm")}</span>${star(favKey(`${w.short} davanti a ${l.short}`, q))}</div>
+        <div class="f1-dq">${esc(w.short)} davanti: quota equa <b>${odd(q)}</b> · ${esc(l.short)} davanti: <b>${odd(1 - q)}</b></div>`;
     };
     a.onchange = b.onchange = draw;
   }
@@ -290,12 +359,15 @@ async function showDriver(id) {
         <p><a class="tp-act" href="#/e/${encodeURIComponent(e.id)}" style="display:inline-flex">Apri il GP ›</a></p>`, f1When(d.date), "F1 prossimo GP");
     } catch { /* niente */ }
   }
+  const K = x.career;
+  const career = K ? sec(`Carriera dal ${K.since}`, `<div class="f1-stops">${[[K.starts, "GP"], [K.wins, "vittorie"], [K.podiums, "podi"], [K.poles, "pole"], [num(K.points, 0), "punti"]]
+      .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("")}</div>${K.best ? `<p class="note">Miglior risultato: ${K.best}°.</p>` : ""}`, "", "F1 carriera") : "";
   const duel = mate && x.mate ? sec("Contro il compagno", `<div class="f1-mate"><div><b>${x.mate.race[0]}-${x.mate.race[1]}</b><span>in gara</span></div><div><b>${x.mate.quali[0]}-${x.mate.quali[1]}</b><span>in qualifica</span></div></div>
       <p class="note">Quante volte ${esc(lastName(x.name))} è arrivato davanti a <a href="${f1Href(mate.id)}" style="color:var(--rosa);font-weight:600">${esc(lastName(mate.name))}</a> in questa stagione.</p>`, "", "F1 compagno") : "";
   const last = sec("Ultime gare", `<div class="f1-chart">${(x.last || []).slice().reverse().map(r => { const p = r.st === "Finished" || /Lap/.test(r.st || "") ? r.pos : null;
       return `<span title="${esc(r.gp)}"><i style="height:${p ? Math.max(6, 100 - (p - 1) * 4.5) : 4}%;background:${p ? c : "var(--ink-3)"}"></i><b>${p ?? "R"}</b></span>`; }).join("")}</div>
     <div class="rows games">${(x.last || []).map(r => `<div class="r"><span class="l">R${r.r} ${esc(r.gp)}</span><span class="v">${r.grid ? `<small class="faint">dal ${r.grid}°</small> ` : ""}${f1Pos(r.st === "Finished" || /Lap/.test(r.st || "") ? r.pos : null)}</span></div>`).join("")}</div>`, "", "F1 ultime");
-  $app.innerHTML = backBtn("Indietro") + head + next + duel + last + `<p class="note">Niente foto dei piloti: il numero sul colore della scuderia. Dati da Jolpica (archivio Ergast).</p>`;
+  $app.innerHTML = backBtn("Indietro") + head + next + duel + career + last + `<p class="note">Niente foto dei piloti: il numero sul colore della scuderia. Dati da Jolpica (archivio Ergast).</p>`;
 }
 
 /* classifiche del mondiale (dentro Classifiche, voce Formula 1) */

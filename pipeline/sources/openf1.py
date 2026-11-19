@@ -56,3 +56,42 @@ def session_data(session_key: int, budget: list[int]) -> dict | None:
         out[ep] = js
     store.save(path, out)
     return out
+
+
+def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict | None:
+    """Giri di una sessione riassunti per pilota: giro migliore, migliori settori, giro ideale, velocità alla speed trap.
+    keep=False per una sessione appena finita (si riprova al giro dopo, quando i dati sono completi)."""
+    path = CACHE / "f1" / "laps" / f"{session_key}.json"
+    old = store.load(path)
+    if old is not None:
+        return old
+    if budget[0] < 2:
+        return None
+    budget[0] -= 2
+    laps = _get("laps", {"session_key": session_key})
+    drv = _get("drivers", {"session_key": session_key}) or []
+    if not laps:
+        return None
+    info = {x.get("driver_number"): x for x in drv}
+    per = {}
+    for l in laps:
+        n = l.get("driver_number")
+        p = per.setdefault(n, {"num": n, "code": (info.get(n) or {}).get("name_acronym"), "team": (info.get(n) or {}).get("team_name"),
+                               "colour": (info.get(n) or {}).get("team_colour"), "lap": None, "s1": None, "s2": None, "s3": None, "st": None, "laps": 0})
+        p["laps"] += 1
+        for k, src in (("s1", "duration_sector_1"), ("s2", "duration_sector_2"), ("s3", "duration_sector_3"), ("lap", "lap_duration")):
+            v = l.get(src)
+            if v and v > 5 and (p[k] is None or v < p[k]):
+                p[k] = round(v, 3)
+        st = l.get("st_speed")
+        if st and 150 < st < 400 and (p["st"] is None or st > p["st"]):
+            p["st"] = st
+    rows = []
+    for p in per.values():
+        if p["s1"] and p["s2"] and p["s3"]:
+            p["ideal"] = round(p["s1"] + p["s2"] + p["s3"], 3)
+        rows.append(p)
+    out = {"rows": rows}
+    if keep:
+        store.save(path, out)
+    return out

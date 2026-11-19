@@ -57,11 +57,7 @@ function showMe() {
   } catch { /* niente */ }
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
 
-  document.getElementById("me-name")?.addEventListener("click", async () => {
-    const v = await askText("Come ti chiami?", load("name", ""), { ok: "Salva", hint: "Lo vedi solo tu, in cima a questa pagina." });
-    if (v == null) return;
-    save("name", v.trim().slice(0, 24)); showMe();
-  });
+  document.getElementById("me-name")?.addEventListener("click", avatarSheet);
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
   document.getElementById("me-backup")?.addEventListener("click", makeBackupLink);
   document.getElementById("me-export").onclick = () => {
@@ -87,7 +83,7 @@ function showMe() {
 
 /* ------------------------------------------------------------------ backup in un link (niente server: i dati stanno nel link, compressi) */
 
-const BACKUP_KEYS = ["p_slips", "p_favs", "p_myteams", "p_follow", "p_notif", "p_name", "p_theme", "p_sport", "p_news_seen", "p_shut"];
+const BACKUP_KEYS = ["p_slips", "p_favs", "p_myteams", "p_follow", "p_notif", "p_name", "p_avatar", "p_theme", "p_sport", "p_news_seen", "p_shut"];
 const b64u = {
   enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
   dec: s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0)),
@@ -100,6 +96,7 @@ async function makeBackupLink() {
   try {
     const data = {};
     for (const k of BACKUP_KEYS) { const v = localStorage.getItem(k); if (v != null) data[k] = v; }
+    if ((data.p_avatar || "").length > 2000) delete data.p_avatar;   // la foto personale resta sul telefono: allungherebbe troppo il link
     let enc;
     if ("CompressionStream" in window) {
       const buf = await zip(JSON.stringify({ v: 1, at: new Date().toISOString(), data }), "in");
@@ -167,11 +164,11 @@ function meHero(teams, openSlips, won, lost, closed) {
   const streakTxt = streak >= 2 ? ` · ${streak} ${last === "win" ? "prese" : "perse"} di fila ${last === "win" ? "🔥" : "🧊"}` : "";
   const tile = (n, l) => `<div class="mh-tile"><b>${typeof n === "number" ? `<span data-count="${n}">${n}</span>` : n}</b><span>${l}</span></div>`;
   return `<section class="me-hero">
-    <div class="mh-top"><button type="button" class="mh-av" id="me-name" aria-label="Cambia il tuo nome">${esc(name ? initials(name) : "🙂")}</button>
+    <div class="mh-top"><button type="button" class="mh-av ${avatarCls()}" id="me-name" aria-label="Cambia nome e immagine">${avatarHtml(name)}<i class="mh-edit" aria-hidden="true">✎</i></button>
       <div class="mh-hi"><small>${hi}${name ? "," : ""}</small><b>${esc(name || "La tua area")}</b><span>${esc(sub)}${streakTxt}</span></div></div>
     <div class="mh-tiles">${tile(teams.length, teams.length === 1 ? "seguita" : "seguite")}${tile(`<span data-count="${won.length}">${won.length}</span><small>/${won.length + lost.length}</small>`, "schedine vinte")}
       ${tile(closed.length ? `<span data-count="${Math.round(100 * w / closed.length)}">${Math.round(100 * w / closed.length)}</span><small>%</small>` : "–", closed.length ? `prese su ${closed.length}` : "giocate prese")}</div>
-    ${name ? "" : `<p class="mh-tip">Tocca la faccina per dire come ti chiami</p>`}
+    ${name ? "" : `<p class="mh-tip">Tocca la faccina per scegliere nome e immagine</p>`}
   </section>`;
 }
 
@@ -397,4 +394,79 @@ function infoStatus() {
       ${parts.map(([k, v]) => `<div class="status-line"><span>${esc(k.replace(/_/g, " "))}</span><span class="${/errore|non raggiungibile/i.test(flat(v)) || k === "errore" ? "err" : ""}">${esc(flat(v))}</span></div>`).join("")}</details>`;
   }).join("");
   return sec("Stato dei dati", `<p class="note" style="margin-top:0">Ultimo aggiornamento ${META?.updated ? esc(ago(META.updated)) : "non ancora eseguito"}. Prossimi verso le ${UPDATE_TIMES}.</p>${rows}`, "", "Info stato");
+}
+
+/* ------------------------------------------------------------------ immagine del profilo (solo su questo telefono, p_avatar) */
+/* { t: "img", src: dataURL } foto personale ridotta | { t: "url", src } logo di una squadra o di un campionato | { t: "emoji", v, bg } */
+function myAvatar() { try { return JSON.parse(localStorage.getItem("p_avatar") || "null"); } catch { return null; } }
+function avatarCls() { const a = myAvatar(); return a ? `av-${a.t}` : ""; }
+function avatarHtml(name = load("name", "")) {
+  const a = myAvatar();
+  if (a?.t === "img" || a?.t === "url") return `<img src="${esc(a.src)}" alt="" onerror="this.remove()">`;
+  if (a?.t === "emoji") return `<span class="av-em" style="--avbg:${esc(a.bg || "#0a9b5a")}">${esc(a.v)}</span>`;
+  return esc(name ? initials(name) : "🙂");
+}
+const AV_EMOJI = [["⚽", "#16a34a"], ["🏀", "#ea7a1a"], ["🎾", "#9aa51a"], ["🏎️", "#e10600"], ["🏆", "#d4a017"], ["🔥", "#e5484d"], ["⭐", "#6d5dfc"], ["🦁", "#c27c0e"],
+  ["🐺", "#475569"], ["🦅", "#1d4ed8"], ["🍀", "#15803d"], ["🎯", "#be123c"], ["😎", "#0891b2"], ["👑", "#a16207"], ["🚀", "#7c3aed"], ["💎", "#0ea5e9"]];
+const AV_FLAGS = ["🇮🇹", "🇪🇸", "🇬🇧", "🇩🇪", "🇫🇷", "🇵🇹", "🇳🇱", "🇧🇷", "🇦🇷", "🇺🇸", "🇯🇵", "🇨🇭", "🇧🇪", "🇭🇷", "🇷🇸", "🇲🇽"];
+const AV_LEAGUES = ["serie-a", "premier-league", "la-liga", "bundesliga", "ligue-1", "champions", "europa-league", "brasileirao"];
+
+/* riduce la foto scelta a un quadrato di 192 px (taglio centrale), così sta comoda nel telefono */
+function avatarFromFile(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const S = 192, c = document.createElement("canvas"); c.width = c.height = S;
+      const k = Math.min(im.naturalWidth, im.naturalHeight), sx = (im.naturalWidth - k) / 2, sy = (im.naturalHeight - k) / 2;
+      const x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(im, sx, sy, k, k, 0, 0, S, S);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL("image/jpeg", .82));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error("immagine")); };
+    im.src = url;
+  });
+}
+
+function avatarSheet() {
+  const name = load("name", ""), cur = myAvatar();
+  const teams = myTeams().filter(t => t.logo);
+  const opt = (data, inner, cls = "") => `<button type="button" class="av-opt ${cls}" data-av='${esc(JSON.stringify(data))}'>${inner}</button>`;
+  const lg = AV_LEAGUES.filter(k => LEAGUE_LOGO[k]).map(k => opt({ t: "url", src: `${LG}500/${LEAGUE_LOGO[k]}.png` }, img(`${LG}500/${LEAGUE_LOGO[k]}.png`, "", ""), "logo")).join("")
+    + opt({ t: "url", src: "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png" }, img("https://a.espncdn.com/i/teamlogos/leagues/500/nba.png", ""), "logo");
+  const { el, close } = openSheet(`<h3 class="sheet-t">Il tuo profilo</h3>
+    <div class="av-head"><span class="mh-av big ${avatarCls()}">${avatarHtml(name)}</span>
+      <label class="av-name">Nome<input class="sheet-in" id="av-name" type="text" maxlength="24" value="${esc(name)}" placeholder="Come ti chiami?"></label></div>
+    <div class="av-acts"><label class="btn-main av-up">📷 Usa una tua foto<input type="file" accept="image/*" id="av-file" hidden></label>
+      ${cur ? `<button type="button" class="btn-main alt" data-av="null">Togli l'immagine</button>` : ""}</div>
+    <div class="av-scroll">
+    ${teams.length ? `<h4 class="av-h">Le tue squadre</h4><div class="av-grid">${teams.map(t => opt({ t: "url", src: t.logo }, img(t.logo, ""), "logo")).join("")}</div>` : ""}
+    <h4 class="av-h">Campionati</h4><div class="av-grid">${lg}</div>
+    <h4 class="av-h">Simboli</h4><div class="av-grid">${AV_EMOJI.map(([v, bg]) => opt({ t: "emoji", v, bg }, `<span class="av-em" style="--avbg:${bg}">${v}</span>`)).join("")}</div>
+    <h4 class="av-h">Bandiere</h4><div class="av-grid">${AV_FLAGS.map(v => opt({ t: "emoji", v, bg: "#e5e7eb" }, `<span class="av-em" style="--avbg:#e5e7eb">${v}</span>`)).join("")}</div>
+    </div>
+    <p class="sheet-p">Nome e immagine restano solo su questo telefono.</p>
+    <div class="sheet-acts"><button type="button" class="btn-main alt" data-no>Annulla</button><button type="button" class="btn-main" data-yes>Salva</button></div>`, { label: "Il tuo profilo" });
+  let pick = cur;
+  const preview = () => { const h = el.querySelector(".av-head .mh-av"); const keep = localStorage.getItem("p_avatar");
+    try { pick ? localStorage.setItem("p_avatar", JSON.stringify(pick)) : localStorage.removeItem("p_avatar"); h.className = `mh-av big ${avatarCls()}`; h.innerHTML = avatarHtml(el.querySelector("#av-name").value.trim()); }
+    finally { keep == null ? localStorage.removeItem("p_avatar") : localStorage.setItem("p_avatar", keep); } };
+  el.querySelectorAll("[data-av]").forEach(b => b.onclick = () => {
+    pick = JSON.parse(b.dataset.av);
+    el.querySelectorAll(".av-opt").forEach(x => x.classList.toggle("on", x === b));
+    preview();
+  });
+  el.querySelector("#av-name").oninput = preview;
+  el.querySelector("#av-file").onchange = async ev => {
+    const f = ev.target.files?.[0];
+    if (!f) return;
+    try { pick = { t: "img", src: await avatarFromFile(f) }; preview(); }
+    catch { toast("Questa immagine non si apre: provane un'altra"); }
+  };
+  el.querySelector("[data-no]").onclick = close;
+  el.querySelector("[data-yes]").onclick = () => {
+    save("name", el.querySelector("#av-name").value.trim().slice(0, 24));
+    try { pick ? localStorage.setItem("p_avatar", JSON.stringify(pick)) : localStorage.removeItem("p_avatar"); }
+    catch { toast("Spazio pieno sul telefono: immagine non salvata"); }
+    close(); showMe();
+  };
 }

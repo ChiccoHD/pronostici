@@ -11,13 +11,16 @@ from . import store
 from .config import CACHE, PUBLIC_DATA
 from .models import f1 as F
 from .models.common import r
-from .sources import jolpica, openf1, openmeteo
+from .sources import jolpica, openf1, openmeteo, polymarket
 
 log = logging.getLogger("f1")
 SEASONS_BACK = 3          # 2023-2025 più quella in corso
 AHEAD_DAYS = 21           # GP in elenco: quelli dei prossimi 21 giorni
 KEEP_DAYS = 3
 OPENF1_BUDGET = 48        # richieste a OpenF1 per giro (il resto al giro dopo: la cache resta)
+HIST_FROM = 2018          # stagioni più vecchie solo per statistiche (circuito, compagni, carriera), non per il modello
+HIST_PER_RUN = 2          # stagioni vecchie scaricate al massimo per giro (poi restano in cache)
+ALL_SESSIONS: list[dict] = []   # tutte le sessioni OpenF1 lette in questo giro (prove, qualifiche, gare)
 
 GP_IT = {"Australian": "d'Australia", "Chinese": "di Cina", "Japanese": "del Giappone", "Bahrain": "del Bahrein", "Saudi Arabian": "d'Arabia Saudita",
          "Miami": "di Miami", "Emilia Romagna": "dell'Emilia-Romagna", "Monaco": "di Monaco", "Spanish": "di Spagna", "Barcelona-Catalunya": "di Barcellona",
@@ -63,8 +66,11 @@ def _last(name: str) -> str:
 def _openf1_races(years, status) -> list[dict]:
     """Sessioni di gara (e sprint) OpenF1 degli anni scelti."""
     out = []
+    ALL_SESSIONS.clear()
     for y in years:
         for s in openf1.sessions(y) or []:
+            if not s.get("is_cancelled"):
+                ALL_SESSIONS.append(s)
             if s.get("session_name") in ("Race", "Sprint") and not s.get("is_cancelled"):
                 out.append(s)
     return out
@@ -160,6 +166,18 @@ def build(today: date):
         races += jolpica.season(y, completed=y < year, status=status)["races"]
     races = [x for x in races if x["results"]]
     status["gare_in_storico"] = len(races)
+    # stagioni vecchie (dal 2018) solo per le statistiche: poche per giro, poi restano in cache
+    hist, fetched = [], 0
+    for y in range(HIST_FROM, year - SEASONS_BACK):
+        cached = (CACHE / "f1" / f"jolpica_{y}.json").exists()
+        if not cached and fetched >= HIST_PER_RUN:
+            continue
+        fetched += not cached
+        try:
+            hist += [x for x in jolpica.season(y, completed=True, status=status)["races"] if x["results"]]
+        except Exception:
+            log.exception("Jolpica %s", y)
+    status["storico_dal"] = min([x["season"] for x in hist], default=year - SEASONS_BACK)
     if not races:
         return [], {}, status
 
@@ -205,11 +223,12 @@ def build(today: date):
         for y in x["results"]:
             drivers_info[y["id"]] = {"id": y["id"], "name": y["name"], "code": y["code"], "num": y["num"], "nat": y.get("nat"),
                                      "flag": NAT_FLAG.get(y.get("nat") or ""), "team": y["team"], "team_name": y.get("team_name")}
-    _profiles(races, year, stand, drivers_info, colors, R)
+    all_races = hist + races
+    _profiles(races, year, stand, drivers_info, colors, R, all_races)
 
     for gp in upcoming:
         try:
-            ev = _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, drivers_info, of_sessions, budget, stand, bt, status)
+            ev = _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, drivers_info, of_sessions, budget, stand, bt, status, all_races)
             if ev:
                 index.append(ev)
         except Exception:
@@ -221,7 +240,51 @@ def build(today: date):
     return index, rel, status
 
 
-def _profiles(races, year, stand, info, colors, R):
+def _career(all_races) -> dict:
+    """Numeri di carriera dal 2018 (o dalla prima stagione in cache): gare, vittorie, podi, pole, punti."""
+    c = defaultdict(lambda: {"starts": 0, "wins": 0, "podiums": 0, "poles": 0, "points": 0.0, "best": None, "since": None})
+    for x in all_races:
+        q1 = next((q["id"] for q in x.get("quali") or [] if q["pos"] == 1), None)
+        if q1:
+            c[q1]["poles"] += 1
+        for y in x["results"]:
+            p = c[y["id"]]
+            p["starts"] += 1
+            p["points"] += y["points"]
+            p["since"] = min(p["since"] or x["season"], x["season"])
+            if y["classified"]:
+                p["wins"] += y["pos"] == 1
+                p["podiums"] += y["pos"] <= 3
+                p["best"] = min(p["best"] or 99, y["pos"])
+    return c
+
+
+def _mate_circuit(all_races, circuit) -> dict:
+    """Su questa pista, quante posizioni ogni pilota ha guadagnato (negativo) o perso sul compagno di squadra, in qualifica e in gara."""
+    out = defaultdict(lambda: {"q": [], "r": [], "years": []})
+    for x in all_races:
+        if x["circuit"] != circuit:
+            continue
+        qp = {z["id"]: z["pos"] for z in x.get("quali") or []}
+        by = defaultdict(list)
+        for y in x["results"]:
+            by[y["team"]].append(y)
+        for ys in by.values():
+            if len(ys) != 2:
+                continue
+            a, b = ys
+            for me, ot in ((a, b), (b, a)):
+                o = out[me["id"]]
+                o["years"].append(x["season"])
+                if qp.get(me["id"]) and qp.get(ot["id"]):
+                    o["q"].append(qp[me["id"]] - qp[ot["id"]])
+                if me["classified"] and ot["classified"]:
+                    o["r"].append(me["pos"] - ot["pos"])
+    return out
+
+
+def _profiles(races, year, stand, info, colors, R, all_races=None):
+    car = _career(all_races or races)
     cur = [x for x in races if x["season"] == year]
     per = defaultdict(lambda: {"starts": 0, "wins": 0, "podiums": 0, "points": 0.0, "dnf": 0, "poles": 0, "fin": [], "q": [], "last": []})
     for x in sorted(cur, key=lambda x: x["round"]):
@@ -266,7 +329,8 @@ def _profiles(races, year, stand, info, colors, R):
                         "team": s["team"], "team_name": s["team_name"], "color": colors.get(s["team"]), "pos": s["pos"], "points": s["points"],
                         "wins": s["wins"], "podiums": p["podiums"], "poles": p["poles"], "starts": p["starts"], "dnf": p["dnf"],
                         "avg_fin": r(statistics.mean(p["fin"]), 1) if p["fin"] else None, "avg_q": r(statistics.mean(p["q"]), 1) if p["q"] else None,
-                        "last": p["last"][-10:][::-1], "mate": mates.get(s["id"]), "rating": r(R.get(s["id"], {}).get("race"), 3)})
+                        "last": p["last"][-10:][::-1], "mate": mates.get(s["id"]), "rating": r(R.get(s["id"], {}).get("race"), 3),
+                        "career": {**car[s["id"]], "points": r(car[s["id"]]["points"], 0)} if s["id"] in car else None})
     teams = [{**t, "color": colors.get(t["id"])} for t in stand["teams"]]
     store.save(PUBLIC_DATA / "leagues" / "f1.json", {"key": "f1", "name": "Formula 1", "sport": "f1", "season": year,
                                                       "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
@@ -290,7 +354,84 @@ def _index_entry(d) -> dict:
             **({"final": d["final"]} if d.get("final") else {})}
 
 
-def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, info, of_sessions, budget, stand, bt, status):
+def _laps_block(gp, year, race_iso, drivers, budget) -> dict | None:
+    """Giro e settori: l'ultima sessione già finita del weekend; se non c'è, le qualifiche dell'edizione scorsa."""
+    now = datetime.now(timezone.utc)
+    names = {"Practice 1": "Prove libere 1", "Practice 2": "Prove libere 2", "Practice 3": "Prove libere 3", "Sprint Qualifying": "Qualifiche sprint",
+             "Sprint Shootout": "Qualifiche sprint", "Qualifying": "Qualifiche", "Sprint": "Sprint", "Race": "Gara"}
+    def same_gp(s):
+        loc, cty = _norm(gp.get("locality")), _norm(gp.get("country"))
+        return _norm(s.get("location")) == loc or _norm(s.get("circuit_short_name")) == loc or _norm(s.get("country_name")) == cty
+    race_t = datetime.fromisoformat(race_iso.replace("Z", "+00:00"))
+    week = [s for s in ALL_SESSIONS if same_gp(s) and s.get("year") == year and s.get("session_name") in names
+            and abs((datetime.fromisoformat(s["date_start"]) - race_t).days) <= 4
+            and datetime.fromisoformat(s.get("date_end") or s["date_start"]) < now - timedelta(minutes=20)]
+    pick, kind = None, "weekend"
+    if week:
+        pick = max(week, key=lambda s: s["date_start"])
+    else:
+        past = [s for s in ALL_SESSIONS if same_gp(s) and s.get("session_name") == "Qualifying" and s.get("year", year) < year]
+        pick, kind = (max(past, key=lambda s: s["date_start"]) if past else None), "past"
+    if not pick:
+        return None
+    ended = datetime.fromisoformat(pick.get("date_end") or pick["date_start"])
+    js = openf1.laps_summary(pick["session_key"], budget, keep=ended < now - timedelta(hours=2))
+    if not js or not js.get("rows"):
+        return None
+    by_num = {str(x.get("num")): x for x in drivers}
+    by_code = {x.get("code"): x for x in drivers}
+    rows = []
+    for p in js["rows"]:
+        x = by_code.get(p.get("code")) if kind == "past" else (by_num.get(str(p["num"])) or by_code.get(p.get("code")))
+        if not x and kind == "weekend":
+            continue
+        rows.append({"id": x["id"] if x else None, "code": p.get("code") or (x or {}).get("code"), "team": (x or {}).get("team_name") or p.get("team"),
+                     "color": (x or {}).get("color") or ("#" + p["colour"] if p.get("colour") else None),
+                     **{k: p.get(k) for k in ("lap", "s1", "s2", "s3", "ideal", "st", "laps")}})
+    rows = [x for x in rows if x.get("lap") or x.get("ideal")]
+    if len(rows) < 6:
+        return None
+    return {"session": names.get(pick["session_name"], pick["session_name"]), "year": pick.get("year"), "kind": kind, "rows": rows}
+
+
+def _market(gp, race_iso, drivers) -> dict | None:
+    """Polymarket (mercato di previsione gratuito): probabilità per vittoria, podio, pole e testa a testa, abbinate ai piloti."""
+    m = polymarket.gp_markets(gp["name"], race_iso)
+    if not m:
+        return None
+    full = {polymarket.norm(x["name"]): x["id"] for x in drivers}
+    last = {}
+    for x in drivers:
+        last.setdefault(polymarket.norm(x["short"]), []).append(x["id"])
+    def who(n):
+        k = polymarket.norm(n)
+        if k in full:
+            return full[k]
+        for nm, i in full.items():          # "Kimi Antonelli" contro "Andrea Kimi Antonelli"
+            if k and (nm.endswith(" " + k) or k.split(" ")[-1] == nm.split(" ")[-1] and len(last.get(nm.split(" ")[-1], [])) == 1):
+                return i
+        ids = last.get(k.split(" ")[-1] if k else "", [])
+        return ids[0] if len(ids) == 1 else None
+    out = {"src": "Polymarket", "at": datetime.now(timezone.utc).isoformat(timespec="minutes")}
+    for k in ("win", "podium", "pole", "fl"):
+        v = {who(n): p for n, p in m[k].items()}
+        v.pop(None, None)
+        if v:
+            out[k] = v
+    h = []
+    for a, b, pa, vol in m["h2h"]:
+        ia, ib = who(a), who(b)
+        if ia and ib and ia != ib:
+            h.append([ia, ib, pa, vol])
+    if h:
+        out["h2h"] = h
+    for k in ("sc", "red"):
+        if m.get(k) is not None:
+            out[k] = m[k]
+    return out if len(out) > 2 else None
+
+
+def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, info, of_sessions, budget, stand, bt, status, all_races=None):
     rnd = gp["round"]
     eid = f"f1-{year}-{rnd:02d}"
     race_iso = gp["sessions"]["Race"]
@@ -375,5 +516,32 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
          "drivers": drivers, "h2h": h2h, "teams": teams, "sprint": sprint, "circuit": prof, "strategy": strat, "pit": pit_rows,
          "weather": wx, "rain": r(rain, 2), "model": {k: bt.get(k) for k in ("n", "logloss_winner", "logloss_uniform", "brier_podium")},
          "markets": {"win": [x["win"] for x in drivers[:3]], "sc": (strat or {}).get("sc_rate")}, "final": final}
+    # statistiche in più: compagni su questa pista, albo lungo, giri della gara, perdita ai box, settori, mercato
+    hist = all_races or races
+    mc = _mate_circuit(hist, gp["circuit"])
+    ids = {x["id"] for x in drivers}
+    d["mates_circuit"] = [{"id": i, "q": r(statistics.mean(v["q"]), 2) if v["q"] else None, "qn": len(v["q"]), "qs": sum(v["q"]),
+                           "r": r(statistics.mean(v["r"]), 2) if v["r"] else None, "rn": len(v["r"]), "rs": sum(v["r"])}
+                          for i, v in mc.items() if i in ids and (v["q"] or v["r"])]
+    eds = sorted([x for x in hist if x["circuit"] == gp["circuit"] and (x["season"], x["round"]) < (year, rnd)], key=lambda x: -x["season"])
+    if eds:
+        d["circuit"] = {**(d["circuit"] or {}), "albo": [{"season": x["season"], "winner": x["results"][0]["name"], "team": x["results"][0].get("team_name"),
+                                                         "from_grid": x["results"][0].get("grid"),
+                                                         "pole": next((q["name"] for q in x.get("quali") or [] if q["pos"] == 1), None)} for x in eds[:10]],
+                        "laps": eds[0]["results"][0].get("laps"), "since": eds[-1]["season"], "all_editions": len(eds),
+                        "pole_win_all": r(sum(1 for x in eds if x["results"][0].get("grid") == 1) / len(eds), 3)}
+    lanes = [p["lane"] for _, dd in datas for p in dd.get("pit") or [] if p.get("lane") and 12 < p["lane"] < 45]
+    if lanes:
+        d["circuit"]["pit_loss"] = r(statistics.median(lanes), 1)
+    if not done:
+        try:
+            d["laps"] = _laps_block(gp, year, race_iso, drivers, budget)
+        except Exception:
+            log.exception("Giri F1")
+        try:
+            d["market"] = _market(gp, race_iso, drivers)
+            status[f"mercato_{rnd}"] = f"{sum(len(v) for k, v in (d['market'] or {}).items() if isinstance(v, (dict, list)))} prezzi" if d["market"] else "nessuno"
+        except Exception:
+            log.exception("Mercato F1")
     store.save(PUBLIC_DATA / "events" / f"{eid}.json", d)
     return _index_entry(d)

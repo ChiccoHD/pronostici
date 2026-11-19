@@ -329,7 +329,9 @@ async function boot() {
       if (META.updated) document.getElementById("updated").innerHTML = `<b>${esc(ago(META.updated))}</b>aggiornato`;
       // dati nuovi: ridisegna solo le pagine "elenco", senza disturbare chi sta leggendo una scheda o compilando
       const v = location.hash.replace(/^#\/?/, "").split("/")[0];
-      if (changed && ["", "migliori"].includes(v)) { const y = window.scrollY; BEST = null; route(); window.scrollTo(0, y); }
+      // chi sta scorrendo non viene riportato su: l'elenco si ridisegna tenendo ferma la partita che ha davanti
+      if (changed && v === "") showListKeepScroll();
+      else if (changed && v === "migliori") { BEST = null; if (window.scrollY < 60) route(); }
     }).catch(() => document.getElementById("updated")?.classList.remove("syncing"));
   }
   if (META.updated) {
@@ -624,7 +626,17 @@ function runSearch() {
   }
   box.innerHTML = `<p class="note" style="margin:4px 2px 10px">${found.length} ${found.length === 1 ? "partita trovata" : "partite trovate"}</p>` + html;
 }
-function showListKeepScroll() { const y = window.scrollY; showList(); window.scrollTo(0, y); }
+/* ridisegna l'elenco senza spostare quello che si sta guardando: prende come riferimento la prima partita visibile
+   e dopo il ridisegno la rimette alla stessa altezza (prima tornava su se cambiava l'altezza dei riquadri sopra) */
+function showListKeepScroll() {
+  const head = document.querySelector(".top")?.offsetHeight || 0, y = window.scrollY;
+  const a = y > 40 ? [...document.querySelectorAll("#app a.fx, #list-side a.fx")].find(x => x.getBoundingClientRect().bottom > head + 8) : null;
+  const key = a?.getAttribute("href"), off = a ? a.getBoundingClientRect().top : 0;
+  showList();
+  if (y <= 40) return;
+  const b = key && [...document.querySelectorAll("#app a.fx, #list-side a.fx")].find(x => x.getAttribute("href") === key);
+  window.scrollTo(0, b ? window.scrollY + b.getBoundingClientRect().top - off : y);
+}
 
 function groupName(e) {
   if (e.sport === "tennis") return e.league_name.replace(" · ", " – ");

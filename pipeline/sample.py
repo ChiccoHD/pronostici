@@ -470,6 +470,8 @@ def _install_f1_fakes():
         out = []
         for x in F1DATA["seasons"].get(y, {}).get("races", []):
             gp = next(g for g in F1_GP if g[1] == x["circuit"])
+            out.append({"session_key": 900000 + y * 100 + x["round"], "session_name": "Qualifying", "location": gp[3], "circuit_short_name": gp[3],
+                        "country_name": gp[4], "year": y, "date_start": x["date"] + "T10:00:00+00:00", "date_end": x["date"] + "T11:00:00+00:00"})
             out.append({"session_key": y * 100 + x["round"], "session_name": "Race", "location": gp[3], "circuit_short_name": gp[3],
                         "country_name": gp[4], "year": y, "date_start": x["date"] + "T13:00:00+00:00", "date_end": x["date"] + "T15:00:00+00:00", "meeting_key": y * 100 + x["round"]})
         return out
@@ -497,6 +499,24 @@ def _install_f1_fakes():
                 "drivers": [{"num": nums[d["id"]], "code": d["code"], "team": d["team_name"], "colour": {"mercedes": "27F4D2", "ferrari": "E8002D", "mclaren": "FF8000", "red_bull": "3671C6"}.get(d["team"], "888888"), "last": d["name"].split()[-1]} for d in F1DATA["drivers"]],
                 "session_result": [{"driver_number": nums[z["id"]], "position": z["pos"], "dnf": not z["classified"]} for z in x["results"]]}
     openf1.session_data = sdata
+    def laps(key, budget, keep=True):
+        rr = random.Random(key)
+        rows = []
+        for i, d in enumerate(F1DATA["drivers"]):
+            s = [round(28 + rr.uniform(0, 1.2) - d["force"] * .15, 3), round(34 + rr.uniform(0, 1.4) - d["force"] * .2, 3), round(30 + rr.uniform(0, 1) - d["force"] * .1, 3)]
+            rows.append({"num": int(d["num"]), "code": d["code"], "team": d["team_name"], "colour": "888888", "s1": s[0], "s2": s[1], "s3": s[2],
+                         "ideal": round(sum(s), 3), "lap": round(sum(s) + rr.uniform(.05, .4), 3), "st": rr.randint(318, 345), "laps": rr.randint(8, 24)})
+        return {"rows": rows}
+    openf1.laps_summary = laps
+    from .sources import polymarket
+    def pm(name, date_):
+        rr = random.Random(name)
+        ds = F1DATA["drivers"]
+        return {"win": {d["name"]: round(max(.005, rr.uniform(0, .25) * (d["force"] + 1) / 3), 3) for d in ds},
+                "podium": {d["name"]: round(min(.9, rr.uniform(0, .6) * (d["force"] + 1) / 2), 3) for d in ds[:12]},
+                "pole": {}, "fl": {}, "h2h": [[ds[i]["name"].split()[-1], ds[i + 1]["name"].split()[-1], round(rr.uniform(.3, .7), 3), rr.randint(100, 9000)] for i in range(0, 12, 2)],
+                "sc": .62, "red": .12, "events": 4}
+    polymarket.gp_markets = pm
     def fc(lat, lon):
         start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
         times = [(start + timedelta(hours=h)).strftime("%Y-%m-%dT%H:00") for h in range(16 * 24)]

@@ -101,15 +101,17 @@ def tennis(d):
 def f1(d):
     """Formula 1: vittoria, podio, punti, pole e sfide tra compagni di squadra."""
     out, D = [], d.get("drivers") or []
+    M = d.get("market") or {}       # mercato di previsione (Polymarket): solo come confronto
     base = {**_base(d), "match": d["home"]["name"]}
     for x in D:
-        b = {**base, "color": x.get("color"), "tag": x.get("code"), "book": None}
-        out.append({**b, "cat": "Vincente F1", "label": f"{x['short']} vince il GP", "p": x["win"]})
-        out.append({**b, "cat": "Podio F1", "label": f"{x['short']} sul podio", "p": x["podium"]})
+        b = {**base, "color": x.get("color"), "tag": x.get("code")}
+        bk = lambda k: (M.get(k) or {}).get(x["id"])
+        out.append({**b, "book": bk("win"), "cat": "Vincente F1", "label": f"{x['short']} vince il GP", "p": x["win"]})
+        out.append({**b, "book": bk("podium"), "cat": "Podio F1", "label": f"{x['short']} sul podio", "p": x["podium"]})
         if x.get("top10", 0) < 0.97:
-            out.append({**b, "cat": "Punti F1", "label": f"{x['short']} nei primi 10", "p": x["top10"]})
+            out.append({**b, "book": None, "cat": "Punti F1", "label": f"{x['short']} nei primi 10", "p": x["top10"]})
         if not (d.get("gp") or {}).get("quali_done") and x.get("pole") is not None:
-            out.append({**b, "cat": "Pole F1", "label": f"{x['short']} in pole", "p": x["pole"]})
+            out.append({**b, "book": bk("pole"), "cat": "Pole F1", "label": f"{x['short']} in pole", "p": x["pole"]})
     H = d.get("h2h") or []
     ix = {x["id"]: i for i, x in enumerate(D)}
     seen = set()
@@ -120,9 +122,27 @@ def f1(d):
         seen.add((x["id"], mate["id"]))
         p = H[ix[x["id"]]][ix[mate["id"]]]
         a, b2 = (x, mate) if p >= 0.5 else (mate, x)
-        out.append({**base, "color": a.get("color"), "tag": a.get("code"), "book": None, "cat": "Testa a testa F1",
+        out.append({**base, "color": a.get("color"), "tag": a.get("code"), "book": _h2h_book(M, a["id"], b2["id"]), "cat": "Testa a testa F1",
+                    "label": f"{a['short']} davanti a {b2['short']}", "p": max(p, 1 - p)})
+    # sfide quotate dal mercato tra piloti di squadre diverse
+    by = {x["id"]: x for x in D}
+    for ia, ib, pa, _v in M.get("h2h") or []:
+        if ia not in by or ib not in by or by[ia]["team"] == by[ib]["team"] or not H:
+            continue
+        p = H[ix[ia]][ix[ib]]
+        a, b2 = (by[ia], by[ib]) if p >= 0.5 else (by[ib], by[ia])
+        out.append({**base, "color": a.get("color"), "tag": a.get("code"), "book": _h2h_book(M, a["id"], b2["id"]), "cat": "Testa a testa F1",
                     "label": f"{a['short']} davanti a {b2['short']}", "p": max(p, 1 - p)})
     return out
+
+
+def _h2h_book(M, a, b):
+    for ia, ib, pa, _v in M.get("h2h") or []:
+        if (ia, ib) == (a, b):
+            return pa
+        if (ia, ib) == (b, a):
+            return round(1 - pa, 4)
+    return None
 
 
 ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",

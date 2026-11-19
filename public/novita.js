@@ -1,6 +1,13 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-19", t: "F1 più ricca e il tuo profilo", items: [
+    "F1, nuova scheda Settori: miglior tempo in ogni settore, giro ideale e velocità in rettilineo per piloti e scuderie, dall'ultima sessione del weekend (prima del weekend, dalle qualifiche dell'anno scorso).",
+    "F1, Testa a testa: per ogni sfida la quota equa del modello e, quando c'è, la quota del mercato Polymarket; sezione \"Sfide quotate\" e \"Contro il compagno su questa pista\" (qualifica e gara, dal 2018).",
+    "F1, Gara: accanto a ogni percentuale quella del mercato e la sezione \"Modello contro mercato\" con le giocate dove il modello vede più valore.",
+    "F1, Circuito: giri, tempo perso nella corsia box, albo d'oro più lungo con chi partiva in pole. Pagina del pilota con i numeri di carriera.",
+    "Tu: tocca la faccina per scegliere un'immagine del profilo: una tua foto, il logo di una squadra che segui o di un campionato, un simbolo o una bandiera.",
+    "Elenco: quando arrivano dati nuovi mentre scorri, la pagina non torna più in cima." ] },
   { d: "2026-11-18", t: "Arriva la Formula 1", items: [
     "Nuovo sport F1: ogni GP con le probabilità di vittoria, podio, punti, ritiro e pole per tutti i piloti (20.000 gare simulate dal passo in gara e in qualifica delle ultime stagioni).",
     "Nella scheda del GP: programma del weekend, Sprint, testa a testa tra due piloti a scelta e tra compagni di squadra, scuderia vincente.",

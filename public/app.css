@@ -1694,3 +1694,67 @@ html, body { overflow-anchor: none; }
 .std.f1s .std-t small { margin-left: 4px; white-space: nowrap; font-size: 11px; }
 .f1-lv { border: 1.5px solid color-mix(in srgb, #e5484d 40%, transparent); }
 .f1-lv h2 .pulse-dot { position: static; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+/* ------------------------------------------------------------ immagine del profilo (me.js) */
+.mh-av { position: relative; display: grid; place-items: center; overflow: visible; padding: 0; }
+.mh-av > img, .mh-av > .av-em { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.mh-av.av-url > img { object-fit: contain; background: #fff; padding: 7px; box-sizing: border-box; }
+.av-em { display: grid; place-items: center; background: var(--avbg, #0a9b5a); font-size: 26px; line-height: 1; }
+.mh-av .av-em { font-size: 27px; }
+.mh-edit { position: absolute; right: -3px; bottom: -3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: #111; font: 700 11px/20px var(--font); font-style: normal; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.av-head { display: flex; align-items: center; gap: 14px; margin: 4px 0 12px; }
+.av-head .mh-av.big { width: 72px; height: 72px; flex: none; border-radius: 50%; background: var(--go); color: #fff; font-size: 26px; font-weight: 800; border: 0; }
+.av-head .mh-av.big.av-url { background: #fff; box-shadow: 0 0 0 1px var(--rule-strong); }
+.av-name { flex: 1; display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.av-name .sheet-in { margin: 0; }
+.av-acts { display: flex; gap: 8px; margin-bottom: 6px; }
+.av-acts > * { flex: 1; text-align: center; cursor: pointer; }
+.av-scroll { max-height: 38vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; overscroll-behavior: contain; }
+.av-h { margin: 12px 0 6px; font-size: 12px; font-weight: 800; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; }
+.av-opt { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; padding: 0; background: var(--soft); cursor: pointer; overflow: hidden; display: grid; place-items: center; }
+.av-opt img { width: 72%; height: 72%; object-fit: contain; }
+.av-opt .av-em { width: 100%; height: 100%; font-size: 22px; }
+.av-opt.on { border-color: var(--go); box-shadow: 0 0 0 2px color-mix(in srgb, var(--go) 35%, transparent); }
+.av-opt.logo { background: #fff; box-shadow: inset 0 0 0 1px var(--rule); }
+/* F1: mercato, sfide, compagni su pista, settori */
+.f1-p { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.f1-p small { font-size: 10px; font-weight: 600; color: var(--ink-3); white-space: nowrap; }
+.f1-row { grid-template-columns: 18px 26px minmax(0, 1.2fr) minmax(36px, 1fr) 52px 30px; }
+.f1-bar { position: relative; overflow: visible; }
+.f1-bar i { overflow: hidden; }
+.f1-bar em { position: absolute; top: -3px; width: 3px; height: 14px; border-radius: 2px; background: var(--ink); transform: translateX(-1px); }
+.f1-vs { display: flex; flex-direction: column; }
+.f1-vsr { display: grid; grid-template-columns: 22px minmax(0, 1fr) 50px 50px 30px; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule); }
+.f1-vsr:first-child { border-top: 0; }
+.f1-vsr .f1-num { margin: 0; }
+.f1-vsl { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.f1-vsl b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f1-vsl small { font-size: 11px; color: var(--ink-3); }
+.f1-q { display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border-radius: 8px; background: var(--soft); line-height: 1.1; }
+.f1-q b { font-size: 13.5px; }
+.f1-q small { font-size: 9.5px; color: var(--ink-3); white-space: nowrap; }
+.f1-q.eq { background: var(--go-bg); }
+.f1-q.eq b { color: var(--go-ink); }
+.f1-duelw { border-top: 1px solid var(--rule); padding-bottom: 6px; }
+.f1-duelw:first-child { border-top: 0; }
+.f1-duelw .f1-duel { border-top: 0; padding-bottom: 3px; }
+.f1-dq { font-size: 11.5px; color: var(--ink-3); padding-left: 2px; }
+.f1-dq b { color: var(--ink); }
+.f1-div { display: flex; flex-direction: column; gap: 4px; }
+.f1-dr { --tc: #888; display: grid; grid-template-columns: 38px 1fr 40px 24px; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
+.f1-dc { font-size: 12px; font-weight: 800; }
+.f1-dtrack { position: relative; height: 16px; background: linear-gradient(90deg, transparent calc(50% - 1px), var(--rule-strong) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)); }
+.f1-dtrack i { position: absolute; top: 2px; bottom: 2px; background: var(--tc); border-radius: 3px; }
+.f1-dr b { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.f1-dr b.good { color: var(--go-ink); }
+.f1-dr b.bad { color: var(--loss); }
+.f1-dr small { font-size: 10.5px; color: var(--ink-3); }
+.f1-lb { display: flex; flex-direction: column; gap: 4px; }
+.f1-lr { --tc: #888; display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 6px; }
+.f1-lc { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f1-lt { position: relative; height: 22px; }
+.f1-lt i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--tc); opacity: .9; }
+.f1-lt em { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font: 800 12px/1 var(--font); font-style: normal; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); white-space: nowrap; }
+.f1-lt em small { font-weight: 600; opacity: .9; }
+.f1-segrow .seg { overflow-x: auto; scrollbar-width: none; max-width: 100%; }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T15:54+00:00",
+ "updated": "2026-11-19T16:02+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -87,7 +87,7 @@
     "espn": "ok",
     "espn_tabellini": "99 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 58, TheSportsDB 30, Wikipedia 216, ESPN 18, da controllare 237"
+    "foto_giocatori": "senza foto 66, TheSportsDB 34, Wikipedia 216, ESPN 18, da controllare 225"
    },
    "scozia": {
     "football-data": "ok",
@@ -160,7 +160,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 205, Wikipedia 62, ESPN 15"
    },
-   "aggiornato": "2026-11-19T15:52+00:00"
+   "aggiornato": "2026-11-19T16:00+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -174,7 +174,7 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 222,
-   "aggiornato": "2026-11-19T15:54+00:00"
+   "aggiornato": "2026-11-19T16:01+00:00"
   },
   "tennis": {
    "atp": {
@@ -185,7 +185,7 @@
     "storico": "12437 incontri (+0)",
     "espn": "5 incontri in programma"
    },
-   "aggiornato": "2026-11-19T15:54+00:00"
+   "aggiornato": "2026-11-19T16:01+00:00"
   },
   "coppe": {
    "uomini": {
@@ -245,7 +245,7 @@
     "espn_uefa.wchampions": "169 giocate, 12 giorni controllati",
     "partite_storico": 169
    },
-   "aggiornato": "2026-11-19T15:53+00:00"
+   "aggiornato": "2026-11-19T16:01+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -282,11 +282,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-19T15:54+00:00"
+   "aggiornato": "2026-11-19T16:01+00:00"
   },
   "risultati": {
    "esiti": "1 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-19T15:54+00:00"
+   "aggiornato": "2026-11-19T16:02+00:00"
   },
   "archivio": {
    "partite": 309,
@@ -310,7 +310,7 @@
     "brier_podium": 0.0838
    },
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-19T03:43+00:00"
+   "aggiornato": "2026-11-19T16:02+00:00"
   }
  }
 }

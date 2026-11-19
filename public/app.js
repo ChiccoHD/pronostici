@@ -472,6 +472,7 @@ function tonight(date) {
   if (k !== isoDay(Date.now() + 864e5)) return false;
   return +new Date(date).toLocaleString("it-IT", { hour: "2-digit", hourCycle: "h23", timeZone: TZ }) < 8;
 }
+const GOOD_PICK = 0.65;   // sotto questa probabilità una giocata di stasera non vale la carta "migliore": si guarda al giorno dopo
 function todayWidget() {
   const today = isoDay(Date.now()), cards = [];
   let bests = "";
@@ -504,9 +505,13 @@ function todayWidget() {
       const all = pool.filter(it => it.sport === k);
       if (pick) return all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0];
       const now = all.filter(it => tonight(it.date));
-      if (now.length) return now.sort((a, b) => b.p - a.p)[0];
-      const first = all.map(it => isoDay(it.date)).sort()[0];
-      return all.filter(it => isoDay(it.date) === first).sort((a, b) => b.p - a.p)[0];
+      const top = now.sort((a, b) => b.p - a.p)[0];
+      if (top && top.p >= GOOD_PICK) return top;
+      // stasera resta poco (o solo giocate deboli): meglio la migliore del primo giorno con partite, con il giorno accanto
+      const first = all.filter(it => !tonight(it.date)).map(it => isoDay(it.date)).sort()[0];
+      if (!first) return top;
+      const nx = all.filter(it => isoDay(it.date) === first).sort((a, b) => b.p - a.p)[0];
+      return top && top.p >= nx.p ? top : nx;
     };
     const tops = SP.map(([k, ic, name, c]) => [bestOf(k), ic, name, c]).filter(x => x[0]);
     const when = it => pick ? fmtTime(it.date, it.time_valid) : tonight(it.date) ? `${isoDay(it.date) === today ? "" : "🌙 "}${fmtTime(it.date, it.time_valid)}`

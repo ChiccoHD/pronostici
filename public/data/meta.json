@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T21:05+00:00",
+ "updated": "2026-11-19T22:30+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -87,7 +87,7 @@
     "espn": "ok",
     "espn_tabellini": "99 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 104, TheSportsDB 61, Wikipedia 216, ESPN 18, da controllare 160"
+    "foto_giocatori": "senza foto 158, TheSportsDB 84, Wikipedia 216, ESPN 18, da controllare 83"
    },
    "scozia": {
     "football-data": "ok",
@@ -160,7 +160,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 205, Wikipedia 62, ESPN 15"
    },
-   "aggiornato": "2026-11-19T21:03+00:00"
+   "aggiornato": "2026-11-19T22:28+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -174,18 +174,18 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 222,
-   "aggiornato": "2026-11-19T21:05+00:00"
+   "aggiornato": "2026-11-19T22:30+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7751 incontri (+0)",
-    "espn": "3 incontri in programma"
+    "storico": "7752 incontri (+1)",
+    "espn": "2 incontri in programma"
    },
    "wta": {
-    "storico": "12440 incontri (+2)",
+    "storico": "12440 incontri (+0)",
     "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-19T21:05+00:00"
+   "aggiornato": "2026-11-19T22:30+00:00"
   },
   "coppe": {
    "uomini": {
@@ -242,10 +242,10 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "171 giocate, 12 giorni controllati",
-    "partite_storico": 171
+    "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
+    "partite_storico": 174
    },
-   "aggiornato": "2026-11-19T21:04+00:00"
+   "aggiornato": "2026-11-19T22:29+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -282,21 +282,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-19T21:04+00:00"
+   "aggiornato": "2026-11-19T22:29+00:00"
   },
   "risultati": {
-   "esiti": "4 nuovi esiti, 3 calendari letti",
-   "aggiornato": "2026-11-19T21:05+00:00"
+   "esiti": "4 nuovi esiti, 2 calendari letti",
+   "aggiornato": "2026-11-19T22:30+00:00"
   },
   "archivio": {
-   "partite": 314,
+   "partite": 318,
    "nuove": 4
   },
   "taratura": {
-   "soccer": "x0.92 su 189 partite",
+   "soccer": "x0.91 su 192 partite",
    "nba": "x1.07 su 62 partite",
-   "tennis": "x0.97 su 63 partite",
-   "partite_ritoccate": 405
+   "tennis": "x0.96 su 64 partite",
+   "partite_ritoccate": 404
   },
   "f1": {
    "gp_in_arrivo": 3,

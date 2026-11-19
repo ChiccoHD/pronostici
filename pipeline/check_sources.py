@@ -376,8 +376,55 @@ def f1_check():
         out(f"- summary chiavi: {list((summ or {}).keys())}")
 
 
+def f1_extra_check():
+    """F1: mercati di previsione gratuiti (Polymarket, Kalshi) per vincitore e testa a testa; giri e settori OpenF1; Jolpica 2018."""
+    import json
+    out("## F1 — Polymarket")
+    G = "https://gamma-api.polymarket.com"
+    for path, par in (("public-search", {"q": "Las Vegas Grand Prix"}), ("public-search", {"q": "F1 head to head"}), ("public-search", {"q": "Leclerc Hamilton"}),
+                      ("events", {"closed": "false", "limit": 50, "tag_slug": "f1"}), ("events", {"closed": "false", "limit": 50, "tag_slug": "formula1"}),
+                      ("events", {"closed": "false", "limit": 50, "tag_slug": "formula-1"})):
+        js = http.get_json(f"{G}/{path}", par, delay=1.5)
+        evs = js.get("events") if isinstance(js, dict) else js
+        evs = evs or []
+        check(f"Polymarket {path} {par}", bool(evs), f"({len(evs)}) " + " | ".join(f"{e.get('title')} [{len(e.get('markets') or [])} mercati, chiuso={e.get('closed')}]" for e in evs[:12]))
+        for e in evs[:2]:
+            for m in (e.get("markets") or [])[:3]:
+                out(f"  - {m.get('question')} esiti={m.get('outcomes')} prezzi={m.get('outcomePrices')} volume={m.get('volume')} slug={m.get('slug')}")
+    out("## F1 — Kalshi")
+    K = "https://api.elections.kalshi.com/trade-api/v2"
+    js = http.get_json(f"{K}/series", {"category": "Sports"}, delay=1.5) or {}
+    ser = [s for s in js.get("series") or [] if any(w in (s.get("title") or "").lower() for w in ("f1", "formula", "grand prix"))]
+    check("Kalshi serie F1", bool(ser), " | ".join(f"{s.get('ticker')}: {s.get('title')}" for s in ser[:15]))
+    for s in ser[:4]:
+        ev = http.get_json(f"{K}/events", {"series_ticker": s["ticker"], "status": "open", "with_nested_markets": "true"}, delay=1.5) or {}
+        for e in (ev.get("events") or [])[:2]:
+            out(f"  - {s['ticker']} {e.get('title')}: " + "; ".join(f"{m.get('yes_sub_title') or m.get('subtitle')}={m.get('last_price')}/{m.get('yes_ask')}" for m in (e.get("markets") or [])[:6]))
+    out("## F1 — OpenF1 giri e settori")
+    O = "https://api.openf1.org/v1"
+    ses = http.get_json(f"{O}/sessions", {"year": 2026}, delay=1.5) or []
+    done = [s for s in ses if s.get("date_end", "") < date.today().isoformat()]
+    last = ses[-8:]
+    out(f"- ultime sessioni 2026: {[(s.get('session_key'), s.get('location'), s.get('session_name'), s.get('date_start')) for s in last]}")
+    if done:
+        q = next((s for s in reversed(done) if s.get("session_name") == "Qualifying"), done[-1])
+        laps = http.get_json(f"{O}/laps", {"session_key": q["session_key"]}, delay=2.0) or []
+        check(f"OpenF1 laps {q.get('location')} {q.get('session_name')}", bool(laps), f"({len(laps)} righe) {json.dumps(laps[:1], ensure_ascii=False)[:600]}")
+        cd = http.get_json(f"{O}/car_data", {"session_key": q["session_key"], "driver_number": 1, "speed>=": 330}, delay=2.0) or []
+        check("OpenF1 car_data (velocità >= 330)", bool(cd), f"({len(cd)} righe)")
+    out("## F1 — Jolpica stagioni vecchie")
+    for y in (2018, 2021):
+        js = http.get_json(f"https://api.jolpi.ca/ergast/f1/{y}/qualifying.json", {"limit": 5}, delay=1.2)
+        check(f"Jolpica {y} qualifiche", bool(js), f"totale {((js or {}).get('MRData') or {}).get('total')}")
+
+
 def main():
     import sys
+    if "f1extra" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        f1_extra_check()
+        _write()
+        return
     if "f1" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         f1_check()

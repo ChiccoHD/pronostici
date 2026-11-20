@@ -482,6 +482,12 @@ def f1_extra_check():
         check(f"OpenF1 laps {q.get('location')} {q.get('session_name')}", bool(laps), f"({len(laps)} righe) {json.dumps(laps[:1], ensure_ascii=False)[:600]}")
         cd = http.get_json(f"{O}/car_data", {"session_key": q["session_key"], "driver_number": 1, "speed>=": 330}, delay=2.0) or []
         check("OpenF1 car_data (velocità >= 330)", bool(cd), f"({len(cd)} righe)")
+    out("## F1 — Las Vegas, Prove libere 1 (11413)")
+    rc = http.get_json(f"{O}/race_control", {"session_key": 11413}, delay=2.0) or []
+    for m in rc[-25:]:
+        out(f"  - {str(m.get('date'))[11:19]} {m.get('category')} {m.get('flag')} {m.get('message')}")
+    lp = http.get_json(f"{O}/laps", {"session_key": 11413}, delay=2.0) or []
+    out(f"- giri: {len(lp)}, con tempo: {sum(1 for l in lp if l.get('lap_duration'))}")
     out("## F1 — Jolpica stagioni vecchie")
     for y in (2018, 2021):
         js = http.get_json(f"https://api.jolpi.ca/ergast/f1/{y}/qualifying.json", {"limit": 5}, delay=1.2)

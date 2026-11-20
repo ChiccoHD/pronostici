@@ -12,6 +12,13 @@ KEEP_DAYS = 180
 
 def _row(e: dict) -> dict | None:
     f = e.get("final") or {}
+    if e.get("sport") == "f1":
+        # F1: i tre favoriti di prima del via (cognome, vittoria, podio) e i primi tre all'arrivo
+        top = (e.get("f1") or {}).get("top") or []
+        if not f.get("names") or not top:
+            return None
+        return {"id": e["id"], "d": e["date"][:16], "s": "f1", "l": "f1", "ln": "Formula 1", "h": e["home"], "a": e.get("away", ""),
+                "fp": [[t[0], round(t[3], 3), round(t[4], 3)] for t in top], "w": f["names"][:3]}
     if f.get("void") or f.get("h") is None:
         return None
     r = {"id": e["id"], "d": e["date"][:16], "s": e["sport"], "l": e["league"], "ln": e.get("league_name", ""),

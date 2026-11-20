@@ -1,6 +1,17 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-20", t: "Undici miglioramenti", items: [
+    "F1: il pronostico della gara tiene conto del passo nelle prove libere del weekend (provato su 17 GP del 2026: previsioni migliori). In Gara la sezione «Passo nelle prove libere».",
+    "F1: «Strategia più probabile» in Gomme (soste, mescole, giro della prima sosta, costo della sosta) e, in Testa a testa, il confronto dei due piloti sessione per sessione.",
+    "Info → Archivio: «Per tipo di giocata», quante volte esce la scelta del modello per 1X2, doppia chance, Under/Over, Goal, vincente, punti e game totali, F1.",
+    "Tu: storico con barre per sport, dove vai meglio o peggio del previsto e quante schedine salvate hai vinto.",
+    "Costruisci la multipla: quote obiettivo fino a 50, filtro per tipo di giocata e preferenza per le giocate dove il modello vede valore sui bookmaker.",
+    "Notifiche → Altri avvisi: «Giocata della schedina a rischio», quando durante la partita una giocata scende sotto la soglia che scegli (20–50%).",
+    "Scheda della partita a tema con i colori delle due squadre e gli stemmi grandi in trasparenza.",
+    "Tennis: tabellone del torneo con i turni e la stima di chi vince il torneo (dalla scheda di ogni incontro).",
+    "Scorciatoie: tieni premuta l'icona dell'app (Android) per aprire subito Migliori, Diretta, Multipla o Tu.",
+    "Calcio: provata la correzione per la stanchezza (poco riposo tra due partite): non migliora i pronostici, quindi non è stata aggiunta." ] },
   { d: "2026-11-20", t: "Meteo della gara in vista", items: [
     "F1: il meteo della gara (temperatura e pioggia) è nel riquadro in alto del GP; nella scheda Meteo la gara viene per prima, le sessioni già corse in fondo." ] },
   { d: "2026-11-20", t: "Giornate, classifiche e schedina della giornata", items: [

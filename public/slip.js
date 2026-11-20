@@ -3,8 +3,13 @@
 
 /* ------------------------------------------------------------------ costruisci la multipla */
 
-const MP = { target: Number(load("mp_target", "3")), sport: load("mp_sport", "all"), when: load("mp_when", "2") };
-const MP_TARGETS = [1.5, 2, 3, 5, 10];
+const MP = { target: Number(load("mp_target", "3")), sport: load("mp_sport", "all"), when: load("mp_when", "2"), kind: load("mp_kind", "all") };
+const MP_TARGETS = [1.5, 2, 3, 5, 10, 20, 50];
+/* tipi di giocata per filtrare le proposte (categorie di migliori.json) */
+const MP_KINDS = [["all", "Qualsiasi"], ["esito", "Esiti"], ["gol", "Gol e punti"], ["giocatori", "Giocatori"], ["f1", "F1"]];
+const MP_KIND_OF = { "Esito 1X2": "esito", "Doppia chance": "esito", "Vincente NBA": "esito", "Vincente tennis": "esito", "Gol": "gol", "Angoli": "gol",
+  "Punti totali": "gol", "Game nel tennis": "gol", "Marcatori": "giocatori", "Punti": "giocatori", "Rimbalzi": "giocatori", "Assist": "giocatori", "Triple": "giocatori",
+  "Punti + rimbalzi + assist": "giocatori", "Vincente F1": "f1", "Podio F1": "f1", "Punti F1": "f1", "Pole F1": "f1", "Testa a testa F1": "f1" };
 const MP_WHEN = [["1", "Oggi"], ["2", "Entro domani"], ["3", "3 giorni"], ["all", "Tutte"]];
 
 /* quanto fidarsi di una giocata: dove modello e bookmaker sono d'accordo la stima è più solida;
@@ -26,6 +31,7 @@ function mpCandidates() {
     const t = new Date(it.date).getTime();
     if (t < now + 5 * 60e3 || t > endDay) continue;
     if (MP.sport !== "all" && it.sport !== MP.sport) continue;
+    if (MP.kind !== "all" && MP_KIND_OF[c.name] !== MP.kind) continue;
     if (it.p < 0.3 || it.p > 0.97) continue;
     const k = `${it.event}|${it.label}`;
     if (seen.has(k)) continue;
@@ -46,7 +52,10 @@ function mpPropose(cands, target, k) {
     for (const c of cands) {
       if (used.has(c.event)) continue;
       const miss = Math.abs(Math.log(c.p / need));
-      const score = miss * 3 + (1 - c.tr);
+      // a parità di quota la probabilità di vincere è la stessa: si preferiscono le giocate più affidabili
+      // e quelle dove il modello vede valore rispetto ai bookmaker (probabilità più alta della loro)
+      const value = c.book != null ? Math.max(-0.1, Math.min(0.15, c.p - c.book)) : 0;
+      const score = miss * 3 + (1 - c.tr) - value * 4;
       if (score < bestScore) { bestScore = score; best = c; }
     }
     if (!best) return null;
@@ -69,6 +78,7 @@ async function showMultipla() {
     <section class="sec mp-ctrl">
       <div class="mp-lab">Quota che vuoi raggiungere</div><div class="mp-chips">${MP_TARGETS.map(t => chip("target", t, odd(1 / t), MP.target)).join("")}</div>
       <div class="mp-lab">Sport</div><div class="mp-chips">${SPORTS.map(s => chip("sport", s.key, s.label, MP.sport)).join("")}</div>
+      <div class="mp-lab">Tipo di giocata</div><div class="mp-chips">${MP_KINDS.map(([v, l]) => chip("kind", v, l, MP.kind)).join("")}</div>
       <div class="mp-lab">Partite</div><div class="mp-chips">${MP_WHEN.map(([v, l]) => chip("when", v, l, MP.when)).join("")}</div>
     </section>`;
   if (!props.length) html += `<div class="empty"><b>Nessuna combinazione adatta</b>Con questi filtri non ci sono abbastanza giocate su partite diverse. Prova con più giorni, tutti gli sport o un'altra quota.</div>`;

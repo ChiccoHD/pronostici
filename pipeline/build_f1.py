@@ -539,11 +539,20 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
     fc = openmeteo.forecast(gp["lat"], gp["lon"]) if not done else None
     wx = _weather(gp, fc)
     rain = (wx or {}).get("Race", {}).get("rain_p") or 0.0
-    sim = F.simulate(entrants, R, team_r, dnf_rate, prof, scale, grid=grid, rain=rain if rain >= 0.3 else 0.0)
+    # prove libere del weekend: tempi di ogni sessione (per la scheda) e passo, che sposta un po' i rating di gara
+    wk, pace = {}, {}
+    if not done:
+        try:
+            wk = _weekend_sessions(gp, year, race_iso, [dict(i) for i in info.values()], budget)
+            pace = F.practice_pace([v["rows"] for k, v in wk.items() if k in ("FP1", "FP2", "FP3") and v.get("rows")])
+        except Exception:
+            log.exception("Prove libere F1")
+    R_use = F.practice_adjust(R, pace, F.PRACTICE_W)
+    sim = F.simulate(entrants, R_use, team_r, dnf_rate, prof, scale, grid=grid, rain=rain if rain >= 0.3 else 0.0)
     # sprint (se in programma e non ancora corsa)
     sprint = None
     if "Sprint" in gp["sessions"] and not (done and done.get("sprint")):
-        ss = F.simulate(entrants, R, team_r, dnf_rate, {**prof, "dnf_factor": prof["dnf_factor"] * 0.5}, scale * 0.95, sims=8000, with_h2h=False)
+        ss = F.simulate(entrants, R_use, team_r, dnf_rate, {**prof, "dnf_factor": prof["dnf_factor"] * 0.5}, scale * 0.95, sims=8000, with_h2h=False)
         sprint = [{"id": x["id"], "win": r(x["win"], 3), "top3": r(x["podium"], 3), "top8": r(x["top8"], 3)} for x in ss["drivers"]]
     # edizioni passate: gomme, soste, safety car (OpenF1)
     past = [s for s in _match_sessions(of_sessions, gp) if s["date_end"] < race_iso.replace("Z", "")]
@@ -615,7 +624,15 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
     if not done:
         try:
             d["laps"] = _laps_block(gp, year, race_iso, drivers, budget)
-            d["sessions_laps"] = _weekend_sessions(gp, year, race_iso, drivers, budget)
+            byid = {x["id"]: x for x in drivers}
+            for v in wk.values():
+                for rw in v.get("rows") or []:
+                    x = byid.get(rw.get("id"))
+                    if x:
+                        rw["color"], rw["team"] = x.get("color"), x.get("team_name")
+            d["sessions_laps"] = wk
+            if pace and F.PRACTICE_W:
+                d["practice"] = {"w": F.PRACTICE_W, "pace": {k: round(v, 2) for k, v in pace.items()}}
         except Exception:
             log.exception("Giri F1")
         try:

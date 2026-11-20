@@ -63,3 +63,14 @@ penalità per il rientro dopo più di 45 giorni, per più di 3 incontri in 7 gio
 Sull'ultimo anno la scelta migliore (rientro: ATP 70, WTA 40 punti Elo; stanchezza ATP 10) migliora la log loss di meno di 0,001
 (ATP 0,6411 → 0,6403; WTA 0,6377 → 0,6372); su un periodo diverso (maggio–novembre 2025) il guadagno sparisce
 (ATP 0,6570 → 0,6571; WTA 0,6622 → 0,6621). Non le usiamo: nella scheda si vedono come informazione ("Condizione").
+
+## Calcio: riposo corto tra due partite (novembre 2026)
+Prova su 3.802 partite di 8 campionati (Premier, Championship, Serie A, LaLiga, Bundesliga, Ligue 1, Eredivisie, Portogallo), stagione 2025/26 e inizio 2026/27, ogni partita prevista con i soli dati di prima. Riposo contato tra due partite di campionato (le coppe non sono nei dati storici).
+- Squadre con 3 giorni di riposo o meno (719 casi): 1.023 gol fatti contro 966 attesi (rapporto 1,06); con riposo normale 1,02. Nessun calo.
+- Correggere i gol attesi con poco riposo non migliora il 1X2 (log-loss 0,9977 senza correzione, 0,9976 con +4%, peggiora con correzioni negative).
+- Decisione: nessuna correzione per la fatica nel modello. Da rifare se si aggiungono le partite di coppa allo storico.
+
+## F1: prove libere nel pronostico della gara (novembre 2026)
+Prova su 17 GP del 2026 (Verifica fonti, modo `f1pratica`): rating di gara spostato in base al passo nelle prove libere del weekend (scarto dal migliore sul giro secco e, con peso 1,5, nelle serie lunghe), punteggio standard × peso × 0,1.
+- Log-loss del vincitore: 1,885 senza prove; 1,841 (peso 0,5), 1,809 (1), 1,783 (1,5), 1,774 (2), 1,790 (3), 1,815 (4). Brier del podio da 0,0829 a 0,0798.
+- Decisione: peso 1,5 (`PRACTICE_W` in `models/f1.py`), un po' sotto l'ottimo per non adattarsi troppo a 17 gare. Le prove si usano solo prima della gara; dopo la qualifica conta anche la griglia.

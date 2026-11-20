@@ -128,6 +128,9 @@ function f1View(d) {
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
       <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sul mercato di previsione Polymarket, per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
     + vsHtml
+    + (d.practice?.pace ? sec("Passo nelle prove libere", `<div class="rows">${Object.entries(d.practice.pace).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id, z]) => { const x = byId[id] || { short: id };
+        return `<div class="r"><span class="l">${x.num ? f1Num(x, "xs") : ""}${esc(x.short)}</span><span class="v"><b class="${z > 0.3 ? "good" : z < -0.3 ? "bad" : ""}">${z > 0 ? "+" : ""}${num(z, 1)}</b></span></div>`; }).join("")}</div>
+      <p class="note">Le percentuali della gara tengono conto anche del passo di questo weekend (giro secco e simulazioni con tanta benzina): su 17 GP del 2026 il pronostico è migliorato così. Positivo = più veloce della media.</p>`, "", "F1 passo prove") : "")
     + sec("Scuderia vincente", teamBars, "", "F1 scuderia")
     + sec("Posizione attesa", `<div class="rows">${ord("exp_pos").reverse().slice(0, 22).map(x => `<div class="r"><span class="l">${f1Num(x, "xs")} ${esc(x.short)}</span><span class="v">${num(x.exp_pos)}°</span></div>`).join("")}</div>
       <p class="note">Media delle simulazioni (ritiri contati in fondo).</p>`, "", "F1 posizione attesa");
@@ -199,6 +202,25 @@ function f1View(d) {
   const comp = c => { const [l, col] = COMPOUND[c] || ["?", "#999"]; return `<i class="tyre" style="--ty:${col}">${l}</i>`; };
   const seqHtml = s => s.split(" → ").map(c => comp(c)).join(`<span class="tyre-ar">›</span>`);
   let gomme = "";
+  // strategia più probabile: la sequenza di gomme più usata qui e se una sola sosta basta con la durata media delle gomme
+  if (S?.sequences?.length) {
+    const [seq, nn] = S.sequences[0], tot = S.sequences.reduce((a, [, n]) => a + n, 0);
+    const stops = seq.split(" → ").length - 1, laps = d.circuit?.laps;
+    const lens = Object.values(S.stint || {}).map(v => v.avg).sort((a, b) => b - a);
+    const oneOk = laps && lens.length >= 2 ? lens[0] + lens[1] >= laps : null;
+    const fs = S.first_stop;
+    // passo gara di questo weekend: chi è andato più forte nelle simulazioni con tanta benzina
+    const lr = Object.values(d.sessions_laps || {}).flatMap(x => x.rows || []).filter(r => r.long);
+    const bestLong = {};
+    for (const r of lr) if (!bestLong[r.id] || r.long < bestLong[r.id].long) bestLong[r.id] = r;
+    const lrTop = Object.values(bestLong).sort((a, b) => a.long - b.long).slice(0, 3);
+    gomme += sec("Strategia più probabile", `<div class="f1-strat"><div class="tyres big">${seqHtml(seq)}</div>
+        <p><b>${stops === 1 ? "Una sosta" : stops === 2 ? "Due soste" : `${stops} soste`}</b>: la scelta di ${pct(nn / tot)} dei piloti nelle ultime edizioni${fs ? `, prima sosta di solito verso il giro ${fs[1]} (tra il ${fs[0]} e il ${fs[2]})` : ""}.</p>
+        ${oneOk != null ? `<p>${oneOk ? "Con la durata media delle gomme qui, una sola sosta basta per arrivare in fondo" : "La durata media delle gomme qui non basta per una sola sosta: è probabile che ne servano due"} (${laps} giri).</p>` : ""}
+        ${d.circuit?.pit_loss ? `<p>Ogni sosta costa circa <b>${num(d.circuit.pit_loss, 1)} s</b> nella corsia box${S.sc_rate != null ? `; con safety car (${pct(S.sc_rate)}) la sosta costa meno e può cambiare i piani` : ""}.</p>` : ""}
+        ${lrTop.length ? `<p>Miglior passo gara nelle prove di questo weekend: ${lrTop.map(r => `<b>${esc(r.code)}</b>`).join(", ")}.</p>` : ""}</div>
+      <p class="note">Ricavata dalle gare passate su questa pista e dalle prove del weekend: le squadre possono cambiare idea con il meteo o una safety car.</p>`, "", "F1 strategia");
+  }
   if (S) {
     gomme += sec("Soste ai box", `<div class="f1-stops">${["1", "2", "3+"].map(k => `<div><b>${pct(S.stops?.[k])}</b><span>${k === "1" ? "una sosta" : k === "2" ? "due soste" : "tre o più"}</span></div>`).join("")}</div>
       ${S.stops_avg != null ? `<p class="note">Media ${num(S.stops_avg)} soste per chi arriva al traguardo${S.first_stop ? `; prima sosta tra il giro ${S.first_stop[0]} e il ${S.first_stop[2]} (di solito verso il ${S.first_stop[1]}°)` : ""}.</p>` : ""}`, `${S.editions?.length || 0} edizioni`, "F1 soste")
@@ -299,12 +321,14 @@ function wireF1(d) {
       const A = D[ix[a.value]], B = D[ix[b.value]];
       if (!A || !B || A.id === B.id) { box.innerHTML = `<p class="note">Scegli due piloti diversi.</p>`; return; }
       const p = H[ix[A.id]][ix[B.id]], [w, l, q] = p >= .5 ? [A, B, p] : [B, A, 1 - p];
+      const wk = f1WeekendCompare(d, A, B);
       box.innerHTML = `<div class="f1-duel"><span class="f1-dn">${f1Num(A, "sm")}<b>${esc(A.short)}</b></span>
         <span class="f1-dbar"><i style="flex:${p};background:${f1c(A.color)}"></i><i style="flex:${1 - p};background:${f1c(B.color)}"></i><em>${pct(p)}</em><em>${pct(1 - p)}</em></span>
         <span class="f1-dn r"><b>${esc(B.short)}</b>${f1Num(B, "sm")}</span>${star(favKey(`${w.short} davanti a ${l.short}`, q))}</div>
-        <div class="f1-dq">${esc(w.short)} davanti: quota equa <b>${odd(q)}</b> · ${esc(l.short)} davanti: <b>${odd(1 - q)}</b></div>`;
+        <div class="f1-dq">${esc(w.short)} davanti: quota equa <b>${odd(q)}</b> · ${esc(l.short)} davanti: <b>${odd(1 - q)}</b></div>${wk}`;
     };
     a.onchange = b.onchange = draw;
+    draw();
   }
   f1Live(d);
 }
@@ -521,4 +545,18 @@ function f1SessionSheet(d, k) {
     el.querySelectorAll("[data-seg=f1ss] [data-v]").forEach(x => x.setAttribute("aria-pressed", x === b));
     el.querySelectorAll("[data-segpane^='f1ss:']").forEach(p => p.hidden = p.dataset.segpane !== `f1ss:${b.dataset.v}`);
   });
+}
+
+/* confronto di due piloti in tutte le sessioni del weekend: giro, settori, velocità, passo gara */
+function f1WeekendCompare(d, A, B) {
+  const SL = d.sessions_laps || {}, ses = (d.gp?.sessions || []).filter(s => SL[s.k]?.rows?.length);
+  if (!ses.length) return `<p class="note">Il confronto sessione per sessione arriva dopo le prime prove del weekend.</p>`;
+  const f = t => t == null ? "–" : t >= 60 ? `${Math.floor(t / 60)}:${(t % 60).toFixed(3).padStart(6, "0")}` : t.toFixed(3);
+  const cell = (a, b, k, hi) => { const va = a?.[k], vb = b?.[k]; const wa = va != null && vb != null && (hi ? va > vb : va < vb), wb = va != null && vb != null && (hi ? vb > va : vb < va);
+    return `<td class="${wa ? "w" : ""}">${k === "st" ? va ?? "–" : f(va)}</td><td class="${wb ? "w" : ""}">${k === "st" ? vb ?? "–" : f(vb)}</td>`; };
+  const rows = ses.map(s => { const a = SL[s.k].rows.find(r => r.id === A.id), b = SL[s.k].rows.find(r => r.id === B.id);
+    const ks = [["lap", "Giro"], ["s1", "S1"], ["s2", "S2"], ["s3", "S3"], ["st", "Velocità"], ["long", "Passo"]].filter(([k]) => a?.[k] != null || b?.[k] != null);
+    return ks.map(([k, l], i) => `<tr>${i === 0 ? `<th rowspan="${ks.length}" class="f1-wkh">${esc(s.name)}</th>` : ""}<td class="f1-wkl">${l}</td>${cell(a, b, k, k === "st")}</tr>`).join(""); }).join("");
+  return `<div class="f1-wk"><table><tr><th></th><th></th><th style="color:${f1c(A.color)}">${esc(A.code || A.short)}</th><th style="color:${f1c(B.color)}">${esc(B.code || B.short)}</th></tr>${rows}</table>
+    <p class="note">Il weekend dei due piloti sessione per sessione: in verde chi è andato meglio. Passo = giro tipico nelle simulazioni di gara.</p></div>`;
 }

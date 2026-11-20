@@ -370,3 +370,26 @@ async function matchTable(d) {
   return sec(L.groups ? `Classifica del girone` : `Classifica ${esc(L.name || "")}`, `<div class="mtable">${groups.map(block).join("")}</div>
     <a class="mt-all" href="#/classifiche/${encodeURIComponent(lk)}">Tutta la classifica ›</a>`, gap, "Classifica");
 }
+
+/* ------------------------------------------------------------------ tabellone di un torneo di tennis (data/tennis/tornei.json) */
+async function showTournament(tour, name) {
+  $app.innerHTML = backBtn("Indietro") + `<p class="muted" style="padding:16px 4px">Caricamento…</p>`;
+  let js = null;
+  try { js = await getJSON("data/tennis/tornei.json"); } catch { js = null; }
+  if (!location.hash.startsWith("#/torneo")) return;
+  const t = (js?.tournaments || []).find(x => x.tour === tour && x.name === name);
+  if (!t) { $app.innerHTML = backBtn("Indietro") + `<div class="empty"><b>Tabellone non disponibile</b>Arriva con il prossimo aggiornamento dei dati.</div>`; return; }
+  const ln = n => esc(lastName(n));
+  const href = n => playerHref(tour, n);
+  const title = `<div class="tt-list">${t.title.map((p, i) => `<a class="tt-row" href="${href(p.name)}"><span class="f1-rk">${i + 1}</span><b>${esc(p.name)}</b>
+      <span class="f1-bar"><i style="width:${Math.round(p.p / t.title[0].p * 100)}%"></i></span><b class="f1-p">${pct(p.p)}</b></a>`).join("")}</div>
+    <p class="note">Stima indicativa: per ogni giocatore la probabilità media di battere gli altri ${t.alive} ancora in gara, per i turni che mancano (l'ordine esatto del tabellone non è nei dati).${t.group ? " Torneo con girone: si contano tutti i partecipanti finché il girone non è finito." : ""}</p>`;
+  const RN = { "Group Stage": "Girone", "Round Robin": "Girone", "Round 1": "Primo turno", "Round 2": "Secondo turno", "Round 3": "Terzo turno", "Round of 16": "Ottavi",
+    "Quarterfinal": "Quarti", "Quarterfinals": "Quarti", "Semifinal": "Semifinali", "Semifinals": "Semifinali", "Final": "Finale", "Round of 32": "Sedicesimi", "Round of 64": "Trentaduesimi", "Qualifying": "Qualificazioni" };
+  const rounds = t.rounds.slice().reverse().map(r => sec(esc(RN[r.name] || r.name), r.m.map(m => m.w
+    ? `<div class="tt-m done"><span class="w">${ln(m.w)}</span><span class="sc">${(m.sets || []).map(s => s.join("-")).join(" ")}</span><span>${ln(m.l)}</span></div>`
+    : `<${m.id ? `a href="#/e/${encodeURIComponent(m.id)}"` : "div"} class="tt-m"><span>${ln(m.a)}${m.p != null ? ` <small>${pct(m.p)}</small>` : ""}</span><span class="sc">${m.d ? esc(fmtTime(m.d)) : "–"}</span>
+        <span>${m.p != null ? `<small>${pct(1 - m.p)}</small> ` : ""}${ln(m.b)}</span></${m.id ? "a" : "div"}>`).join(""), `${r.m.length}`, `torneo ${r.name}`)).join("");
+  $app.innerHTML = backBtn("Indietro") + `<h1 class="page-h">${esc(t.name)}</h1><p class="muted" style="margin:-6px 4px 10px">${t.tour.toUpperCase()} · ${esc(t.surface || "")}</p>`
+    + sec("Chi vince il torneo", title, `${t.alive} in gara`, "torneo vincitore") + rounds;
+}

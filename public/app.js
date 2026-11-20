@@ -376,6 +376,7 @@ function route() {
   if (view === "confronta") { const p = location.hash.replace(/^#\/?/, "").split("/"); return showCompare(p[1], p[2]); }
   if (view === "condividi" && arg) return showShared(arg);
   if (view === "ripristina" && arg) return showRestore(arg);
+  if (view === "torneo" && arg) { const [, , tour, name] = location.hash.split("/"); return showTournament(decodeURIComponent(tour), decodeURIComponent(name || "")); }
   if (view === "tennista" && arg) { const [, , tour, name] = location.hash.split("/"); return showPlayer(decodeURIComponent(tour), decodeURIComponent(name || "")); }
   if (view === "pilota" && arg) return showDriver(decodeURIComponent(arg));
   if (view === "classifiche") return showStandings(arg && decodeURIComponent(arg));
@@ -897,7 +898,10 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     const c = probs.length === 3 ? [cH, "var(--ink-3)", cA][i] : [cH, cA][i];
     return `<span style="flex:${Math.max(p, 0.04)};background:${c};color:${probs.length === 3 && i === 1 ? "var(--card)" : onColor(c)}">${p >= 0.12 ? `${esc(labels[i])} ${pct(p)}` : ""}</span>`;
   }).join("");
-  return `<div class="board tc" style="--ch:${cH};--ca:${cA}">
+  // calcio e basket: scheda a tema con i colori delle due squadre e gli stemmi grandi in trasparenza
+  const themed = d.sport !== "tennis";
+  const wm = themed ? `<span class="bw bw-h" aria-hidden="true">${d.home.logo ? img(d.home.logo, "") : ""}</span><span class="bw bw-a" aria-hidden="true">${d.away.logo ? img(d.away.logo, "") : ""}</span>` : "";
+  return `<div class="board tc ${themed ? "tc2" : ""}" style="--ch:${cH};--ca:${cA}">${wm}
     <div class="board-meta"><span class="bm-txt"><b>${esc(d.league_name)}</b><span>${esc(when)}</span></span>
       ${typeof bellBtn === "function" && !d.final ? bellBtn({ id: d.id, sport: d.sport, date: d.date, home: d.home.name, away: d.away.name, league_name: d.league_name }) : ""}</div>
     <div class="board-vs">${team(d.home, subH, cH)}<div class="board-mid">vs</div>${team(d.away, subA, cA)}</div>
@@ -1359,7 +1363,8 @@ function tennisView(d) {
     + `<p class="note">Game di servizio tenuti, stima: ${ln(d.home.name)} ${pct(m.hold[0])}, ${ln(d.away.name)} ${pct(m.hold[1])}.</p>`;
   const gioc = sec("Confronto", tennisPlayers(d, cH, cA)) + sec("Testa a testa", tennisH2h(d), d.h2h.n ? `${d.h2h.a}–${d.h2h.b}` : "");
   const forma = sec("Forma recente", tennisForm(d, cH, cA), seg("form", [[5, "5"], [10, "10"], [15, "15"]], 5)) + sec("Ultimi incontri", tennisLast(d));
-  s += tabsView("tennis", [["esito", "Esito", esito], ["game", "Game", game], ["forma", "Forma", forma], ["gioc", "Giocatori", gioc],
+  const torneo = d.tournament ? `<a class="std-link" href="#/torneo/${encodeURIComponent(d.league)}/${encodeURIComponent(d.tournament)}">🏆 Tabellone del torneo e chi lo vince<span>›</span></a>` : "";
+  s += torneo + tabsView("tennis", [["esito", "Esito", esito], ["game", "Game", game], ["forma", "Forma", forma], ["gioc", "Giocatori", gioc],
     ["mod", "Affidabilità", sec("Quanto fidarsi", reliabilityBlock(d.reliability))]]);
   return s;
 }
@@ -1684,6 +1689,20 @@ function playedHtml() {
     for (const f of done) { const k = kindOf(f); const o = kinds.get(k) || { n: 0, w: 0, e: 0 }; o.n++; o.w += f.result === "win"; o.e += f.p; kinds.set(k, o); }
     const kRows = [...kinds].sort((a, b) => b[1].n - a[1].n).map(([k, o]) =>
       `<div class="r"><span class="l">${esc(k)} <span class="faint">${o.n} ${o.n === 1 ? "giocata" : "giocate"}</span></span><span class="v num">${o.w} ${o.w === 1 ? "vinta" : "vinte"} <span class="faint">su ${o.n}, ${Math.round(100 * o.w / o.n)}% · stima ${Math.round(100 * o.e / o.n)}%</span></span></div>`).join("");
+    // per sport, dove va peggio del previsto, schedine salvate chiuse
+    const SPN = { soccer: "Calcio", nba: "Basket", tennis: "Tennis", f1: "F1" };
+    const bySp = new Map();
+    for (const f of done) { const k = f.sport || "soccer"; const o = bySp.get(k) || { n: 0, w: 0, e: 0 }; o.n++; o.w += f.result === "win"; o.e += f.p; bySp.set(k, o); }
+    const spBars = [...bySp].sort((a, b) => b[1].n - a[1].n).map(([k, o]) => { const r = o.w / o.n, e = o.e / o.n;
+      return `<div class="me-bar"><span>${SPORT_ICON[k] || ""} ${esc(SPN[k] || k)} <small>${o.w}/${o.n}</small></span><span class="me-track"><i style="width:${Math.round(r * 100)}%"></i><em style="left:${Math.round(e * 100)}%"></em></span><b class="${r >= e - .03 ? "good" : "bad"}">${pct(r)}</b></div>`; }).join("");
+    const worst = [...kinds].filter(([, o]) => o.n >= 3).map(([k, o]) => [k, o, o.w - o.e]).sort((a, b) => a[2] - b[2])[0];
+    const best = [...kinds].filter(([, o]) => o.n >= 3).map(([k, o]) => [k, o, o.w - o.e]).sort((a, b) => b[2] - a[2])[0];
+    const closed = mySlips().filter(s => s.legs.length && s.legs.every(l => l.result));
+    const won = closed.filter(s => s.legs.every(l => l.result === "win"));
+    const bestWin = won.map(s => s.legs.reduce((a, l) => a / Math.max(l.p, .01), 1)).sort((a, b) => b - a)[0];
+    const insight = [worst && worst[2] < -0.5 ? `Vai peggio del previsto su <b>${esc(worst[0])}</b> (${worst[1].w} prese su ${worst[1].n}, il modello ne aspettava ${num(worst[1].e, 1)}).` : "",
+      best && best[2] > 0.5 ? `Vai meglio del previsto su <b>${esc(best[0])}</b> (${best[1].w} su ${best[1].n}).` : "",
+      closed.length ? `Schedine salvate chiuse: <b>${won.length}</b> vinte su ${closed.length}${bestWin ? `, la più alta vinta a quota equa ${odd(1 / bestWin)}` : ""}.` : ""].filter(Boolean).join(" ");
     const verdict = done.length < 15 ? "Sono ancora poche giocate per dire se ti va meglio o peggio del previsto."
       : w >= exp + Math.sqrt(exp) ? "Ne hai prese più di quante ne prevedeva il modello."
       : w <= exp - Math.sqrt(exp) ? "Ne hai prese meno di quante ne prevedeva il modello."
@@ -1692,6 +1711,8 @@ function playedHtml() {
     html += sec("Storico delle giocate", `<div class="slip-nums"><div>${ring(w / done.length, w / done.length >= .5)}<span>prese: ${w} su ${done.length}</span></div>
       <div class="big-odd"><b>${exp.toFixed(1).replace(".", ",")}</b><span>quelle che il modello si aspettava</span></div></div>
       <p class="note">${verdict} Ogni giocata delle schedine conta una volta; la stima è quella del momento in cui l'hai aggiunta.</p>
+      ${spBars ? `<h3 class="lb-h3">Per sport</h3><div class="me-bars">${spBars}</div><p class="note">La barra è quanto hai preso, la tacca quanto prevedeva il modello.</p>` : ""}
+      ${insight ? `<p class="prose me-ins">${insight}</p>` : ""}
       <h3 class="lb-h3">Per tipo di giocata</h3><div class="rows">${kRows}</div>
       <details class="more"><summary>Le ultime ${recent.length}${older.length ? ` (più ${older.length} precedenti)` : ""}</summary>${recent.map(f => slipRow(f, now)).join("")}${older.map(f => slipRow(f, now)).join("")}</details>
       <button type="button" class="link-btn" id="slip-clear-hist">Cancella lo storico</button>`, `${done.length} chiuse`, "Tu storico");

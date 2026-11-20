@@ -259,7 +259,8 @@ let ARCHIVE = null, ARCH_SPORT = "all", ARCH_DAYS = 7;
 let CALIB = null;
 async function infoArchive() {
   if (!ARCHIVE) { try { ARCHIVE = await getJSON("data/archive.json"); } catch { ARCHIVE = { rows: [] }; } }
-  const rows = (ARCHIVE.rows || []).filter(r => ARCH_SPORT === "all" || r.s === ARCH_SPORT);
+  const rowsAll = (ARCHIVE.rows || []).filter(r => ARCH_SPORT === "all" || r.s === ARCH_SPORT);
+  const rows = rowsAll.filter(r => r.p);          // le righe della F1 hanno un formato a parte (fp, w)
   if (!(ARCHIVE.rows || []).length) return sec("Archivio", `<p class="note" style="margin:0">L'archivio si riempie man mano che le partite finiscono.</p>`, "", "Archivio");
   const top = r => r.p.indexOf(Math.max(...r.p));
   const out = r => r.s === "tennis" ? (r.r[2] ?? (r.r[0] > r.r[1] ? 0 : 1)) : r.p.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
@@ -307,10 +308,11 @@ async function infoArchive() {
     return fixtureDone(e).replace(/href="[^"]*"/, 'href="javascript:void 0"');
   };
   const sportBtn = (k, l) => `<button type="button" class="nt-chip" data-ar-sport="${k}" aria-pressed="${ARCH_SPORT === k}">${l}</button>`;
-  return `<div class="mk-grid" style="margin-top:10px">${sportBtn("all", "Tutto")}${sportBtn("soccer", "Calcio")}${sportBtn("nba", "Basket")}${sportBtn("tennis", "Tennis")}</div>`
+  return `<div class="mk-grid" style="margin-top:10px">${sportBtn("all", "Tutto")}${sportBtn("soccer", "Calcio")}${sportBtn("nba", "Basket")}${sportBtn("tennis", "Tennis")}${sportBtn("f1", "F1")}</div>`
     + sec("In sintesi", `<div class="ar-grid">${box("Pronostico più probabile", hitTop)}${box("Quando il modello è sicuro", strong, " · favorita al 60% o più")}
         ${o25.length ? box("Over/Under 2,5", o25, " · quando è al 60% o più") : ""}${gg.length ? box("Goal/No Goal", gg, " · quando è al 60% o più") : ""}</div>
       <p class="note">Ultimi ${Math.round((Date.now() - Date.parse(rows[rows.length - 1]?.d + "Z")) / 864e5) + 1 || 0} giorni, ${rows.length} partite concluse. Le percentuali restano stime: servono tante partite perché questi numeri diventino stabili.</p>`, "", "Archivio sintesi")
+    + archMarkets(rowsAll)
     + sec("Quanto mantiene le promesse", `<div class="rows">${bands.filter(b => b.n).map(b => `<div class="r"><span class="l">Diceva <b>${Math.round(b.lo * 100)}–${Math.min(100, Math.round(b.hi * 100))}%</b> <span class="faint">(${b.n} partite, in media ${pct(b.avg)})</span></span><span class="v"><b class="${b.real >= b.avg - 0.05 ? "good" : "bad"}">${pct(b.real)}</b> uscite</span></div>`).join("")}</div>
       <p class="note">Se il modello è ben tarato, la colonna a destra somiglia alla percentuale che dava.</p>`, "", "Archivio calibrazione")
     + (monthRows.length ? sec("Mese per mese", `<div class="rows">${monthRows.join("")}</div><p class="note">Quante volte è uscito l'esito più probabile secondo il modello, rispetto alla probabilità che gli dava in media.</p>`, "", "Archivio mesi") : "")
@@ -469,4 +471,41 @@ function avatarSheet() {
     catch { toast("Spazio pieno sul telefono: immagine non salvata"); }
     close(); showMe();
   };
+}
+
+/* bilancio per tipo di giocata: per ogni mercato la scelta del modello, quante volte è uscita e quante se ne aspettava */
+function archMarkets(rows) {
+  const M = new Map();
+  const add = (sp, k, hit, p) => { const key = `${sp}|${k}`; const o = M.get(key) || { sp, k, n: 0, w: 0, e: 0 }; o.n++; o.w += hit ? 1 : 0; o.e += p; M.set(key, o); };
+  for (const r of rows) {
+    if (r.s === "f1") {
+      if (!r.fp?.length || !r.w?.length) continue;
+      add("f1", "Vincitore (il favorito)", r.fp[0][0] === r.w[0], r.fp[0][1]);
+      add("f1", "Podio (il favorito)", r.w.slice(0, 3).includes(r.fp[0][0]), r.fp[0][2]);
+      continue;
+    }
+    const P = r.p, mx = Math.max(...P), ti = P.indexOf(mx);
+    const out = r.s === "tennis" ? (r.r[2] ?? (r.r[0] > r.r[1] ? 0 : 1)) : P.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
+    if (r.s === "soccer") {
+      add("soccer", "1X2 (il segno più probabile)", ti === out, mx);
+      const lo = P.indexOf(Math.min(...P));
+      add("soccer", "Doppia chance (le due più probabili)", out !== lo, 1 - P[lo]);
+      if (r.o != null) add("soccer", "Under/Over 2,5", (r.o >= .5) === (r.r[0] + r.r[1] > 2.5), Math.max(r.o, 1 - r.o));
+      if (r.g != null) add("soccer", "Goal/No Goal", (r.g >= .5) === (r.r[0] > 0 && r.r[1] > 0), Math.max(r.g, 1 - r.g));
+    } else {
+      add(r.s, "Vincente", ti === out, mx);
+      if (r.t) { const tot = r.s === "tennis" ? r.tg : r.r[0] + r.r[1];
+        if (tot != null) add(r.s, r.s === "tennis" ? "Game totali" : "Punti totali", (r.t[1] >= .5) === (tot > r.t[0]), Math.max(r.t[1], 1 - r.t[1])); }
+    }
+  }
+  if (!M.size) return "";
+  const SPN = { soccer: "Calcio", nba: "Basket", tennis: "Tennis", f1: "F1" };
+  const list = [...M.values()].filter(o => o.n >= 3).sort((a, b) => a.sp.localeCompare(b.sp) || b.n - a.n);
+  if (!list.length) return "";
+  const body = list.map(o => { const real = o.w / o.n, exp = o.e / o.n, diff = real - exp;
+    return `<div class="r"><span class="l"><b>${esc(o.k)}</b> <span class="faint">${SPN[o.sp]} · ${o.n} partite · prevista ${pct(exp)}</span></span>
+      <span class="v"><b class="${Math.abs(diff) <= .04 ? "" : diff > 0 ? "good" : "bad"}">${pct(real)}</b> presa</span></div>`; }).join("");
+  const best = list.filter(o => o.n >= 10).sort((a, b) => (b.w / b.n - b.e / b.n) - (a.w / a.n - a.e / a.n))[0];
+  return sec("Per tipo di giocata", `<div class="rows">${body}</div>
+    <p class="note">Per ogni tipo di giocata la scelta più probabile del modello: quante volte è uscita (a destra) e quante se ne aspettava in media («prevista»). In verde dove va meglio del previsto, in rosso dove peggio.${best ? ` Finora rende di più su <b>${esc(best.k)}</b> (${SPN[best.sp]}).` : ""}</p>`, "", "Archivio mercati");
 }

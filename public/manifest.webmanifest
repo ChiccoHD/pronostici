@@ -1,7 +1,7 @@
 {
   "name": "Pronostici",
   "short_name": "Pronostici",
-  "description": "Statistiche e probabilità per calcio, NBA e tennis",
+  "description": "Statistiche e probabilità per calcio, NBA, tennis e Formula 1",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f3f5f7",
@@ -11,5 +11,11 @@
     {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"},
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Le migliori di oggi", "short_name": "Migliori", "url": "./#/migliori", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "In diretta", "short_name": "Diretta", "url": "./#/live", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Costruisci la multipla", "short_name": "Multipla", "url": "./#/multipla", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Le mie schedine", "short_name": "Tu", "url": "./#/tu", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
   ]
 }

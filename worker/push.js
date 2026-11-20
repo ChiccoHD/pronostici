@@ -3,6 +3,7 @@
 // confronta con il minuto prima e manda gol, espulsioni, fine tempo/quarto/set/game e fine partita.
 import { newVapidKeys, sendPush } from "./webpush.js";
 import { judge } from "./judge.js";
+import { liveChance } from "./risk.js";
 
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports";
 const MAX_BOARDS = 30;              // tabelloni letti al massimo per minuto
@@ -13,7 +14,7 @@ export const DEFAULT_PREFS = {
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
   f1: { on: true, mode: "mine", start: true, quali: true, end: true },
-  general: { slips: true, lineup: true, gap: true, daily: false },
+  general: { slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3 },
 };
 const gen = s => ({ ...DEFAULT_PREFS.general, ...(s.prefs?.general || {}) });
 
@@ -268,6 +269,28 @@ export class Push {
   }
 
   /* esito delle schedine salvate: appena una giocata è persa, oppure quando sono finite tutte */
+  /* giocata a rischio: durante la partita la probabilità di una giocata di una schedina salvata scende sotto la soglia scelta */
+  async slipRisk(subs, events, snaps, outbox) {
+    const byId = new Map(events.map(e => [e.id, e]));
+    for (const [key, s] of subs) {
+      const g = gen(s);
+      if (!g.risk) continue;
+      const thr = Math.min(0.6, Math.max(0.1, Number(g.riskp) || 0.3));
+      for (const sl of s.mine?.slips || []) for (const l of sl.legs) {
+        const e = byId.get(l.event), snap = snaps[l.event];
+        if (!e || !snap || snap.st !== "in") continue;
+        const p = liveChance(l.label, e, snap);
+        if (p == null || p >= thr || p <= 0.001) continue;      // già persa: ci pensa l'avviso di fine schedina
+        const k = `rk:${key.slice(4)}:${sl.id}:${l.event}:${l.label}`.slice(0, 500);
+        if (await this.store.get(k)) continue;
+        await this.store.put(k, { t: Date.now() });
+        const when = e.sport === "soccer" ? `${snap.min}'` : snap.det || "";
+        outbox.push({ key, s, payload: { title: `⚠️ ${sl.name}: giocata a rischio`, body: `"${l.label}" ora è al ${Math.round(p * 100)}% · ${snap.hn} ${snap.h}-${snap.a} ${snap.an}${when ? `, ${when}` : ""}`,
+          tag: `risk-${sl.id}-${l.event}`, url: `#/e/${l.event}` } });
+      }
+    }
+  }
+
   async slipResults(subs, events, snaps, outbox, now) {
     const byId = new Map(events.map(e => [e.id, e]));
     for (const [key, s] of subs) {
@@ -390,7 +413,7 @@ export class Push {
     }
     // partite delle schedine salvate: si leggono per sapere l'esito (gli avvisi di gol ecc. solo se seguite)
     const slipPoll = new Set();
-    for (const [, s] of subs) if (gen(s).slips) for (const sl of s.mine?.slips || []) for (const l of sl.legs) slipPoll.add(l.event);
+    for (const [, s] of subs) if (gen(s).slips || gen(s).risk) for (const sl of s.mine?.slips || []) for (const l of sl.legs) slipPoll.add(l.event);
     // il tennis si segue sempre (per la cronaca game per game); il resto solo se qualcuno lo segue
     const watched = live.filter(e => (followers.has(e.id) || slipPoll.has(e.id) || e.sport === "tennis") && (e.sport === "soccer" ? Date.parse(e.date) <= now + 5 * 60e3 || followers.has(e.id) : true));
     status.watched = watched.length;
@@ -458,6 +481,7 @@ export class Push {
     }
     await this.store.put({ ...Object.fromEntries(ids.map(id => ["st:" + id, snaps[id]])), ...logs });
     await this.slipResults(subs, events, snaps, outbox, now);
+    await this.slipRisk(subs, events, snaps, outbox).catch(err => status.errors.push(`rischio: ${err?.message || err}`));
     return this.finish(outbox, keys, status, now, t0);
   }
 

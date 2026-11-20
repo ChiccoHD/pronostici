@@ -1,5 +1,6 @@
 """Tennis: storico e incontri in programma da ESPN (tabelloni completi dei tornei), Elo per superficie."""
 import logging
+import math
 from datetime import date, datetime, timedelta, timezone
 
 from . import config, photos, store
@@ -69,8 +70,61 @@ def _history(tour: str, today: date, status: dict) -> list[dict]:
     return sorted(matches.values(), key=lambda m: (m["date"], m["id"]))
 
 
+ROUND_ORDER = ["Qualifying", "Group Stage", "Round Robin", "Round 1", "Round of 128", "Round 2", "Round of 64", "Round 3", "Round of 32", "Round 4",
+               "Round of 16", "Quarterfinal", "Quarterfinals", "Semifinal", "Semifinals", "Final"]
+
+
+def _round_key(name: str) -> int:
+    n = (name or "").strip()
+    for i, k in enumerate(ROUND_ORDER):
+        if n.lower() == k.lower():
+            return i
+    return 50 if "final" in n.lower() else 5
+
+
+def _tournaments(tour, todo, results, elo, today, index) -> list[dict]:
+    """Tabellone di ogni torneo in corso: turni giocati e in programma, chi è ancora in gara e la stima di chi vince il torneo.
+    La stima non conosce l'ordine esatto del tabellone: per ogni giocatore moltiplica la probabilità media di battere
+    gli altri rimasti, per il numero di turni che mancano (indicativa)."""
+    out = []
+    by_t = {}
+    for m in todo:
+        by_t.setdefault(m["tournament"], []).append(m)
+    start = (today - timedelta(days=16)).isoformat()
+    for name, ups in by_t.items():
+        done = [r for r in results if r.get("tournament") == name and r["date"] >= start]
+        surface = surface_of(name, ups[0].get("location"), (ups[0].get("date") or "")[:10])
+        idx = {e["id"].split("-")[-1]: e for e in index if e["sport"] == "tennis" and e["league"] == tour}
+        rounds = {}
+        for r in done:
+            rounds.setdefault(r.get("round") or "Turno", []).append({"w": r["w"], "l": r["l"], "sets": r.get("sets"), "d": r["date"]})
+        for m in ups:
+            a, b = m["players"]
+            e = idx.get(str(m["id"]))
+            rounds.setdefault(m.get("round") or "Turno", []).append({"a": a["name"], "b": b["name"], "d": m.get("date"),
+                                                                     "id": e["id"] if e else None, "p": e["main"][0] if e else None})
+        losers = {r["l"] for r in done}
+        group = any("group" in (k or "").lower() or "robin" in (k or "").lower() for k in rounds)
+        alive = sorted({p["name"] for m in ups for p in m["players"]} | ({r["w"] for r in done} - losers if not group else set()))
+        if group:    # girone all'italiana: nessuno è eliminato finché non finisce il girone
+            alive = sorted({p["name"] for m in ups for p in m["players"]} | {r["w"] for r in done} | {r["l"] for r in done})
+        left = max(1, math.ceil(math.log2(max(2, len(alive))))) if not group else 3
+        strength = {}
+        for p in alive:
+            others = [q for q in alive if q != p]
+            avg = sum(elo.prob(p, q, surface) for q in others) / max(1, len(others))
+            strength[p] = avg ** left
+        tot = sum(strength.values()) or 1
+        title = sorted(({"name": p, "p": round(v / tot, 4)} for p, v in strength.items()), key=lambda x: -x["p"])[:12]
+        out.append({"tour": tour, "name": name, "surface": surface, "group": group,
+                    "rounds": [{"name": k, "m": v} for k, v in sorted(rounds.items(), key=lambda kv: _round_key(kv[0]))],
+                    "title": title, "alive": len(alive)})
+    return out
+
+
 def build(today: date):
     index, reliability, status_all = [], {}, {}
+    tours_out = []
     now = datetime.now(timezone.utc)
     for tour in ("atp", "wta"):
         status = {}
@@ -141,10 +195,18 @@ def build(today: date):
                               "bo": m["best_of"]})
             store.save(PUBLIC_DATA / "tennis" / f"{tour}.json", {"tour": tour, "updated": now.isoformat(timespec="minutes"),
                                                                  "players": profiles})
+            try:
+                tours_out.extend(_tournaments(tour, todo, results, elo, today, index))
+            except Exception:
+                log.exception("Tabellone %s", tour)
             status_all[tour] = status
         except Exception as ex:
             log.exception("Tennis %s", tour)
             status_all[tour] = {**status, "errore": f"{type(ex).__name__}: {ex}"}
+    try:
+        store.save(PUBLIC_DATA / "tennis" / "tornei.json", {"updated": now.isoformat(timespec="minutes"), "tournaments": tours_out})
+    except Exception:
+        log.exception("Tabelloni non salvati")
     try:
         photos.save()
     except Exception:

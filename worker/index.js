@@ -46,7 +46,7 @@ async function notifiche(env) {
   if (!r.ok) return;
   const idx = await r.json();
   const events = (idx.events || []).filter(e => e.espn || e.sport === "f1").map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away,
-    league: e.league, league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null,
+    league: e.league, league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null, extra: e.extra || null,
     ...(e.f1 ? { f1: { sessions: e.f1.sessions } } : {}) }));
   if (f1Due(events, Date.now())) await avvia(env, "f1").catch(e => console.log("Avvio F1:", e?.message || e));
   await pushObject(env).fetch("https://push/api/push/tick", { method: "POST", body: JSON.stringify({ events }) });

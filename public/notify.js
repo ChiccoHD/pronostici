@@ -10,7 +10,7 @@ const NOTIF_DEFAULT = {
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
   f1: { on: true, mode: "mine", start: true, quali: true, end: true },
-  general: { on: true, slips: true, lineup: true, gap: true, daily: false },
+  general: { on: true, slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3 },
 };
 const NOTIF_OPTS = {
   soccer: ["Calcio", [["start", "Inizio partita"], ["goal", "Gol"], ["red", "Espulsioni"], ["ht", "Fine primo tempo"], ["end", "Fine partita"]]],
@@ -149,7 +149,7 @@ const NT_SHORT = {
   nba: ["Basket", [["start", "Inizio"], ["qstart", "Inizio di ogni quarto"], ["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"]]],
   tennis: ["Tennis", [["start", "Inizio"], ["setstart", "Inizio di ogni set"], ["set", "Fine di ogni set"], ["game", "Ogni game"], ["end", "Risultato finale"]]],
   f1: ["Formula 1", [["start", "Partenza (gara e Sprint)"], ["quali", "Pole position"], ["end", "Vincitore e podio"]]],
-  general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"]]],
+  general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["risk", "Giocata della schedina a rischio"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"]]],
 };
 function notifSection() {
   const s = notifState();
@@ -241,6 +241,9 @@ function ntSheet(sp, after) {
   const { el, close } = openSheet(`<div class="nt-sh-h" style="--ic:${c}"><span class="nt-tile-ic">${ic}</span><h3 class="sheet-t">${title}</h3></div>
     <div class="nt-presets"><button type="button" data-pre="ess">Essenziali</button><button type="button" data-pre="all">Tutti</button><button type="button" data-pre="none">Nessuno</button></div>
     <div class="nt-opts">${rows()}</div>
+    ${sp === "general" ? `<div class="nt-risk"><span>Avvisa quando una giocata scende sotto il</span><div class="mp-chips">${[0.2, 0.3, 0.4, 0.5].map(v =>
+      `<button type="button" data-riskp="${v}" aria-pressed="${Math.abs((p().riskp ?? 0.3) - v) < 0.01}">${Math.round(v * 100)}%</button>`).join("")}</div>
+      <small>Durante la partita, per le schedine salvate (calcio: esiti, gol e combo; basket: vincente).</small></div>` : ""}
     <button type="button" class="btn-main" data-done style="width:100%;margin-top:12px">Fatto</button>`, { label: `Notifiche ${title}`, onClose: after });
   const apply = keys => {
     const s = notifState();
@@ -255,6 +258,12 @@ function ntSheet(sp, after) {
   el.querySelector('[data-pre="all"]').onclick = () => apply(opts.map(([k]) => k));
   el.querySelector('[data-pre="none"]').onclick = () => apply([]);
   el.querySelector("[data-done]").onclick = () => close();
+  el.querySelectorAll("[data-riskp]").forEach(b => b.onclick = () => {
+    const s = notifState(); s.prefs.general.riskp = Number(b.dataset.riskp); s.prefs.general.risk = true; s.prefs.general.on = true;
+    saveNotif(s); notifySync();
+    el.querySelectorAll("[data-riskp]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    const box = el.querySelector('[data-nt-k="risk"]'); if (box) box.checked = true;
+  });
 }
 
 // all'apertura dell'app: rinnova l'iscrizione con le partite "mie" aggiornate

@@ -190,7 +190,7 @@ def backtest(races: list[dict], seasons=(2026,)) -> dict:
             "logloss_uniform": r(math.log(n_ent), 3), "brier_podium": r(best[1], 4)}
 
 
-PRACTICE_W = 0.0   # peso del passo nelle prove libere sul rating di gara: scelto da practice_test (0 = non usato)
+PRACTICE_W = 1.5   # peso del passo nelle prove libere: prova su 17 GP 2026 (Verifica fonti, modo f1pratica), ottimo 2.0, preso un po' più prudente
 
 
 def practice_pace(sessions: list[list[dict]]) -> dict:

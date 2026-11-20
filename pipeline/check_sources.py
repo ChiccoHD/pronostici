@@ -383,6 +383,17 @@ def f1_extra_check():
     js = http.get_json("https://site.api.espn.com/apis/site/v2/sports/soccer/ita.2/scoreboard", delay=1.0) or {}
     lg = (js.get("leagues") or [{}])[0]
     check("Serie B logos", bool(lg.get("logos")), f"id={lg.get('id')} {[(l.get('href'), l.get('rel')) for l in lg.get('logos') or []]}")
+    import requests
+    for u in ("https://a.espncdn.com/i/leaguelogos/soccer/500/99.png", "https://a.espncdn.com/i/leaguelogos/soccer/500/3931.png",
+              "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/99.png", "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png&w=80&h=80"):
+        try:
+            r = requests.get(u, timeout=20)
+            out(f"- {u}: {r.status_code} {r.headers.get('content-type')} {len(r.content)} byte")
+        except Exception as e:
+            out(f"- {u}: errore {e}")
+    for t in ("Serie B", "Serie B (Italy)"):
+        js = http.get_json("https://en.wikipedia.org/w/api.php", {"action": "query", "titles": t, "prop": "pageimages", "piprop": "original", "format": "json"}, delay=1.0) or {}
+        out(f"- Wikipedia {t}: {[p.get('original', {}).get('source') for p in (js.get('query') or {}).get('pages', {}).values()]}")
     out("## F1 — Polymarket, tutti i mercati aperti")
     G = "https://gamma-api.polymarket.com"
     allev = []

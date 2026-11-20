@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T14:26+00:00",
+ "updated": "2026-11-20T15:41+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -96,7 +96,7 @@
     "espn": "ok",
     "espn_tabellini": "75 partite",
     "partite_in_arrivo": 14,
-    "foto_giocatori": "TheSportsDB 70, ESPN 20, Wikipedia 175, senza foto 14, da controllare 192"
+    "foto_giocatori": "TheSportsDB 98, ESPN 20, Wikipedia 175, senza foto 17, da controllare 161"
    },
    "belgio": {
     "football-data": "ok",
@@ -156,7 +156,7 @@
     "partite_in_arrivo": 8,
     "foto_giocatori": "da controllare 205, Wikipedia 62, ESPN 15"
    },
-   "aggiornato": "2026-11-20T13:36+00:00"
+   "aggiornato": "2026-11-20T15:40+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -170,18 +170,18 @@
    },
    "partite_in_arrivo": 32,
    "partite_stagione": 226,
-   "aggiornato": "2026-11-20T13:37+00:00"
+   "aggiornato": "2026-11-20T15:41+00:00"
   },
   "tennis": {
    "atp": {
-    "storico": "7752 incontri (+0)",
-    "espn": "2 incontri in programma"
+    "storico": "7753 incontri (+1)",
+    "espn": "1 incontri in programma"
    },
    "wta": {
     "storico": "12441 incontri (+0)",
     "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-20T13:38+00:00"
+   "aggiornato": "2026-11-20T15:41+00:00"
   },
   "coppe": {
    "uomini": {
@@ -241,7 +241,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-20T13:37+00:00"
+   "aggiornato": "2026-11-20T15:40+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -278,11 +278,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-20T13:37+00:00"
+   "aggiornato": "2026-11-20T15:41+00:00"
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-20T14:26+00:00"
+   "aggiornato": "2026-11-20T15:41+00:00"
   },
   "archivio": {
    "partite": 332,
@@ -292,7 +292,7 @@
    "soccer": "x0.94 su 200 partite",
    "nba": "x1.07 su 66 partite",
    "tennis": "x0.96 su 66 partite",
-   "partite_ritoccate": 0
+   "partite_ritoccate": 414
   },
   "f1": {
    "gp_in_arrivo": 3,
@@ -310,7 +310,7 @@
    "mercato_22": "nessuno",
    "mercato_23": "nessuno",
    "openf1_richieste": 2,
-   "aggiornato": "2026-11-20T14:26+00:00"
+   "aggiornato": "2026-11-20T15:41+00:00"
   }
  }
 }

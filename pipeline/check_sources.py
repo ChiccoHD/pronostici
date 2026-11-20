@@ -529,7 +529,7 @@ def f1_practice_test():
         out("- troppo pochi GP per decidere")
         return
     res = {}
-    for w in (0.0, 0.15, 0.3, 0.5, 0.75, 1.0):
+    for w in (0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0):
         ll = br = 0.0
         for x, pace in data:
             R, team, dnf = F.ratings(races, (x["season"], x["round"]), half_life=hl)

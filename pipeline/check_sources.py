@@ -376,6 +376,41 @@ def f1_check():
         out(f"- summary chiavi: {list((summ or {}).keys())}")
 
 
+def _png_stats(b: bytes) -> str:
+    """Quanto è visibile un PNG: pixel non trasparenti e loro luminosità media (senza librerie)."""
+    import struct, zlib
+    pos, idat, w = 8, b"", 0
+    while pos < len(b):
+        n, t = struct.unpack(">I4s", b[pos:pos + 8])
+        data = b[pos + 8:pos + 8 + n]
+        if t == b"IHDR":
+            w, h, depth, ctype = struct.unpack(">IIBB", data[:10])
+        elif t == b"IDAT":
+            idat += data
+        pos += 12 + n
+    if depth != 8 or ctype not in (2, 6):
+        return f"formato {depth}/{ctype}"
+    bpp = 4 if ctype == 6 else 3
+    raw, stride, prev, px = zlib.decompress(idat), w * bpp, bytearray(w * bpp), []
+    i = 0
+    for _ in range(h):
+        f, line = raw[i], bytearray(raw[i + 1:i + 1 + stride]); i += 1 + stride
+        for x in range(stride):
+            a = line[x - bpp] if x >= bpp else 0
+            up, c = prev[x], prev[x - bpp] if x >= bpp else 0
+            if f == 1: line[x] = (line[x] + a) & 255
+            elif f == 2: line[x] = (line[x] + up) & 255
+            elif f == 3: line[x] = (line[x] + (a + up) // 2) & 255
+            elif f == 4:
+                p = a + up - c; pa, pb, pc = abs(p - a), abs(p - up), abs(p - c)
+                line[x] = (line[x] + (a if pa <= pb and pa <= pc else up if pb <= pc else c)) & 255
+        px += [line[j:j + bpp] for j in range(0, stride, bpp)]
+        prev = line
+    vis = [p for p in px if bpp == 3 or p[3] > 40]
+    lum = sum(0.3 * p[0] + 0.59 * p[1] + 0.11 * p[2] for p in vis) / max(1, len(vis))
+    return f"{w}x{h}, visibili {len(vis)}/{len(px)}, luminosità media {lum:.0f}/255"
+
+
 def f1_extra_check():
     """F1: mercati di previsione gratuiti (Polymarket, Kalshi) per vincitore e testa a testa; giri e settori OpenF1; Jolpica 2018."""
     import json
@@ -391,6 +426,13 @@ def f1_extra_check():
             out(f"- {u}: {r.status_code} {r.headers.get('content-type')} {len(r.content)} byte")
         except Exception as e:
             out(f"- {u}: errore {e}")
+    try:
+        r = requests.get("https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/99.png&w=80&h=80", timeout=20)
+        out(f"- colori del logo 99: {_png_stats(r.content)}")
+        r = requests.get("https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500/12.png&w=80&h=80", timeout=20)
+        out(f"- colori del logo 12 (Serie A, per confronto): {_png_stats(r.content)}")
+    except Exception as e:
+        out(f"- colori del logo: errore {e}")
     for t in ("Serie B", "Serie B (Italy)"):
         js = http.get_json("https://en.wikipedia.org/w/api.php", {"action": "query", "titles": t, "prop": "pageimages", "piprop": "original", "format": "json"}, delay=1.0) or {}
         out(f"- Wikipedia {t}: {[p.get('original', {}).get('source') for p in (js.get('query') or {}).get('pages', {}).values()]}")

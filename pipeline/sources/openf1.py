@@ -63,7 +63,8 @@ def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict
     keep=False per una sessione appena finita (si riprova al giro dopo, quando i dati sono completi)."""
     path = CACHE / "f1" / "laps" / f"{session_key}.json"
     old = store.load(path)
-    if old is not None:
+    # OpenF1 pubblica i giri a poco a poco: un riassunto con pochi tempi (salvato troppo presto) si riscarica
+    if old is not None and _good(old):
         return old
     if budget[0] < 2:
         return None
@@ -98,6 +99,11 @@ def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict
             p["long"], p["long_n"] = round(t[len(t) // 2], 3), len(t)
         rows.append(p)
     out = {"rows": rows}
-    if keep:
+    if keep and _good(out):
         store.save(path, out)
     return out
+
+
+def _good(js: dict) -> bool:
+    """Almeno 10 piloti con un giro cronometrato: sotto, i dati della sessione non sono ancora completi."""
+    return sum(1 for p in js.get("rows") or [] if p.get("lap")) >= 10

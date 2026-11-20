@@ -236,6 +236,22 @@ def build(today: date):
         log.exception("Foto F1")
     all_races = hist + races
     _profiles(races, year, stand, drivers_info, colors, R, all_races)
+    # calendario della stagione (le "giornate" della F1): GP corsi con podio e pole, GP in arrivo con la data
+    try:
+        done = {x["round"]: x for x in races if x["season"] == year}
+        cal = []
+        for g in jolpica.schedule(year) if sched and sched[0].get("season") != year else sched:
+            x = done.get(g["round"])
+            cal.append({"round": g["round"], "name": gp_name(g["name"]), "flag": FLAG.get(g.get("country")), "date": g["sessions"].get("Race"),
+                        "circuit": g.get("circuit_name"), "id": f"f1-{year}-{g['round']:02d}",
+                        **({"podium": [_last(y["name"]) for y in x["results"][:3]], "winner_team": x["results"][0].get("team_name"),
+                            "pole": next((_last(q["name"]) for q in x.get("quali") or [] if q["pos"] == 1), None)} if x else {})})
+        path = PUBLIC_DATA / "leagues" / "f1.json"
+        L = store.load(path, {})
+        L["calendar"] = cal
+        store.save(path, L)
+    except Exception:
+        log.exception("Calendario F1")
 
     for gp in upcoming:
         try:

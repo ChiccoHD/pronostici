@@ -329,6 +329,28 @@ def _public_player(p: dict) -> dict:
     return out
 
 
+def rounds_of(events: list[dict], season_from) -> list[dict]:
+    """Giornate dal calendario ESPN della stagione. ESPN non dà il numero della giornata: ogni partita va nella prima
+    giornata in cui nessuna delle due squadre ha già giocato (così anche i recuperi tornano nella giornata giusta)."""
+    sf = season_from.isoformat()
+    used: dict[str, set] = {}
+    out: dict[int, list] = {}
+    for e in sorted(events, key=lambda e: e["date"]):
+        if e["date"][:10] < sf or e.get("status") in ("Canceled", "Postponed") and not e.get("completed"):
+            continue
+        h, a = str(e["home"].get("id") or e["home"]["name"]), str(e["away"].get("id") or e["away"]["name"])
+        uh, ua = used.setdefault(h, set()), used.setdefault(a, set())
+        k = 1
+        while k in uh or k in ua:
+            k += 1
+        uh.add(k); ua.add(k)
+        done = e.get("completed")
+        out.setdefault(k, []).append([e["date"], h, a, int(e["home"]["score"]) if done and e["home"].get("score") is not None else None,
+                                      int(e["away"]["score"]) if done and e["away"].get("score") is not None else None, e["id"],
+                                      e["home"].get("short") or e["home"]["name"], e["away"].get("short") or e["away"]["name"]])
+    return [{"n": k, "m": out[k]} for k in sorted(out)]
+
+
 def league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table):
     """Scrive public/data/leagues/<campionato>.json (classifica e squadre) e i ritmi dei giocatori per le coppe."""
     sf = season_from.isoformat()
@@ -374,4 +396,12 @@ def league_page(key, lg, matches, events, matcher, lines, completed_by_team, sea
     store.save(PLAYER_BASE, base_cache)
     store.save(PUBLIC_DATA / "leagues" / f"{key}.json", {
         "key": key, "name": lg["name"], "sport": "soccer", "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
-        "table": rows, "teams": teams})
+        "table": rows, "teams": teams, "rounds": _safe_rounds(events, season_from)})
+
+
+def _safe_rounds(events, season_from):
+    try:
+        return rounds_of(events, season_from)
+    except Exception:
+        log.exception("Giornate")
+        return []

@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-20", t: "Giornate, classifiche e schedina della giornata", items: [
+    "Classifiche: il campionato si sceglie da un pulsante con ricerca (anche per paese o sport) e gruppi; sotto restano gli ultimi visti.",
+    "Nuova scheda Giornate in ogni campionato di calcio: risultati e partite in programma giornata per giornata. Per la F1 c'è il Calendario della stagione con podio e pole di ogni GP.",
+    "Costruisci la multipla → Per giornata: scegli campionato e giornata, quante partite e il tipo (le più sicure, 1X2, doppia chance, Under/Over, Goal, combo, risultato esatto) e l'app compone la schedina. Si arriva anche dalle Giornate.",
+    "Logo della Serie B tornato visibile con il tema scuro." ] },
   { d: "2026-11-20", t: "F1: sessioni, quote e tema del paese", items: [
     "Nella scheda del GP tocca una sessione (prove libere, qualifiche, Sprint, gara): classifica dei tempi, settori migliori in viola, velocità in rettilineo e passo gara dalle simulazioni con tanta benzina.",
     "Quote del mercato Polymarket anche per il giro più veloce delle prove libere, la pole, la scuderia vincente, oltre a vincitore, podio e testa a testa.",

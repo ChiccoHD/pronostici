@@ -401,12 +401,18 @@ async function showDriver(id) {
 
 /* classifiche del mondiale (dentro Classifiche, voce Formula 1) */
 function f1Standings(L) {
-  const D = L.drivers || [], T = L.teams || [];
-  return sec("Piloti", `<div class="std f1s"><div class="std-r head"><span>#</span><span>Pilota</span><span>V</span><span>Pt</span></div>
-      ${D.map(x => `<a class="std-r" href="${f1Href(x.id)}"><span>${x.pos}</span><span class="std-t">${f1Num(x, "xs")}<b>${esc(x.name)}</b><small class="faint">${esc(x.team_name)}</small></span><span>${x.wins}</span><span><b>${num(x.points, 0)}</b></span></a>`).join("")}</div>`, `stagione ${L.season}`, "F1 piloti")
-    + sec("Costruttori", `<div class="std f1s"><div class="std-r head"><span>#</span><span>Scuderia</span><span>V</span><span>Pt</span></div>
-      ${T.map(t => `<div class="std-r"><span>${t.pos}</span><span class="std-t"><span class="tdot" style="background:${f1c(t.color)}"></span><b>${esc(t.name)}</b></span><span>${t.wins}</span><span><b>${num(t.points, 0)}</b></span></div>`).join("")}</div>`, "", "F1 costruttori")
-    + `<p class="note">Classifica ufficiale del mondiale da Jolpica. Tocca un pilota per la sua pagina.</p>`;
+  const D = L.drivers || [], T = L.teams || [], C = L.calendar || [];
+  const piloti = `<div class="std f1s"><div class="std-r head"><span>#</span><span>Pilota</span><span>V</span><span>Pt</span></div>
+      ${D.map(x => `<a class="std-r" href="${f1Href(x.id)}"><span>${x.pos}</span><span class="std-t">${f1Num(x, "xs")}<b>${esc(x.name)}</b><small class="faint">${esc(x.team_name)}</small></span><span>${x.wins}</span><span><b>${num(x.points, 0)}</b></span></a>`).join("")}</div>`;
+  const costr = `<div class="std f1s"><div class="std-r head"><span>#</span><span>Scuderia</span><span>V</span><span>Pt</span></div>
+      ${T.map(t => `<div class="std-r"><span>${t.pos}</span><span class="std-t"><span class="tdot" style="background:${f1c(t.color)}"></span><b>${esc(t.name)}</b></span><span>${t.wins}</span><span><b>${num(t.points, 0)}</b></span></div>`).join("")}</div>`;
+  const evs = new Set((INDEX?.events || []).map(e => e.id));
+  const cal = C.map(g => { const link = evs.has(g.id) ? `#/e/${encodeURIComponent(g.id)}` : null;
+    return `<${link ? `a href="${link}"` : "div"} class="f1-cal ${g.podium ? "done" : ""}"><span class="f1-calr">R${g.round}</span><span class="f1flag">${g.flag || "🏁"}</span>
+      <span class="f1-calt"><b>${esc(g.name)}</b><small>${g.podium ? `🏆 ${esc(g.podium[0])}${g.winner_team ? ` (${esc(g.winner_team)})` : ""} · ${esc(g.podium.slice(1).join(", "))}${g.pole ? ` · pole ${esc(g.pole)}` : ""}` : esc(g.date ? f1When(g.date) : "")}</small></span>
+      ${link ? "<i>›</i>" : ""}</${link ? "a" : "div"}>`; }).join("");
+  return tabsView("f1std", [["piloti", "Piloti", piloti], ["costr", "Costruttori", costr]].concat(C.length ? [["cal", "Calendario", cal + `<p class="note">Ogni GP corso con podio e pole; tocca quelli in arrivo per il pronostico.</p>`]] : []))
+    + `<p class="note">Classifica ufficiale del mondiale da Jolpica (stagione ${L.season}). Tocca un pilota per la sua pagina.</p>`;
 }
 
 /* esito delle giocate F1 in schedina e nelle schedine salvate, dal risultato scritto nei dati */

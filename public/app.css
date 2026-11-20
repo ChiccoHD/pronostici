@@ -1806,3 +1806,43 @@ html, body { overflow-anchor: none; }
 .f1-ss.head .f1-s3 i { background: none; }
 .f1-s3 i.pb { background: #8e44ad; color: #fff; }
 .f1-row:has(.f1-mk) { grid-template-columns: 18px 26px minmax(0, 1.7fr) minmax(28px, .7fr) 52px 30px; }
+
+/* ------------------------------------------------------------ Classifiche: scelta del campionato e giornate (teams.js) */
+.tbl-pick { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.tbl-cur { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; box-shadow: var(--shadow); }
+.tbl-cur b { flex: 1; text-align: left; font-size: 16px; font-weight: 800; }
+.tbl-cur span { font-size: 12.5px; font-weight: 700; color: var(--go-ink); }
+.tbl-cur img, .tbl-cur .lg-flag { width: 26px; height: 26px; }
+.tbl-recent:empty { display: none; }
+.std-list { max-height: 56vh; overflow-y: auto; overscroll-behavior: contain; margin: 4px -4px 0; padding: 0 4px 8px; }
+.std-gl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.std-item { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 12px; background: var(--soft); color: var(--ink); text-decoration: none; font-size: 13.5px; min-width: 0; }
+.std-item b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.std-item img { width: 22px; height: 22px; object-fit: contain; flex: none; }
+.std-item.on { box-shadow: inset 0 0 0 2px var(--go); }
+.std-item[hidden], .std-g[hidden] { display: none; }
+.rnd-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 8px; }
+.rnd-nav button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); font-size: 22px; font-weight: 700; cursor: pointer; }
+.rnd-nav b { font-size: 17px; font-weight: 800; }
+.rnd-day { margin: 12px 2px 4px; font-size: 12px; font-weight: 800; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; }
+.rnd-m { display: grid; grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr); align-items: center; gap: 6px; padding: 10px 8px; border-radius: 12px; background: var(--card); margin-bottom: 5px; color: var(--ink); text-decoration: none; box-shadow: var(--shadow); }
+.rnd-t { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rnd-m .rnd-t:last-child { flex-direction: row-reverse; text-align: right; }
+.rnd-t b { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rnd-t .tlogo { width: 22px; height: 22px; flex: none; }
+.rnd-s { text-align: center; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rnd-s b { font-weight: 600; color: var(--ink-2); }
+.rnd-s b.w { font-weight: 900; color: var(--ink); }
+.rnd-s small { font-size: 13px; font-weight: 700; color: var(--go-ink); }
+.f1-cal { display: grid; grid-template-columns: 30px 24px minmax(0, 1fr) 12px; align-items: center; gap: 8px; padding: 10px 6px; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; }
+.f1-cal:first-child { border-top: 0; }
+.f1-calr { font-size: 12px; font-weight: 800; color: var(--ink-3); }
+.f1-calt { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.f1-calt b { font-size: 14px; }
+.f1-calt small { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f1-cal:not(.done) .f1-calt small { color: var(--go-ink); font-weight: 700; }
+.f1-cal i { font-style: normal; color: var(--ink-3); }
+.mp-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--soft); margin: 4px 0 12px; }
+.mp-modes a { text-align: center; padding: 9px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--ink-2); text-decoration: none; }
+.mp-modes a.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.rs-sel { width: 100%; font: inherit; font-size: 14.5px; font-weight: 700; padding: 10px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); margin-bottom: 4px; }

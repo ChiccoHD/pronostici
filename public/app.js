@@ -43,7 +43,9 @@ const LEAGUE_LOGO = {
 const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "f1": "🏎️" };
 function leagueMark(key, sport) {
   if (LEAGUE_LOGO[key]) { const id = LEAGUE_LOGO[key];
-    return `<span class="lgm">${img(`${LG}500/${id}.png`, "lg-l")}${img(`${LG}500-dark/${id}.png`, "lg-d")}</span>`; }
+    // la versione per il tema scuro non esiste per tutti (es. Serie B): se manca si usa quella normale
+    return `<span class="lgm">${img(`${LG}500/${id}.png`, "lg-l")}<img class="lg-d" src="${LG}500-dark/${id}.png" alt="" loading="lazy" decoding="async"
+      onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${LG}500/${id}.png'}else this.remove()"></span>`; }
   if (key === "nba") return `<span class="lgm">${img("https://a.espncdn.com/i/teamlogos/leagues/500/nba.png", "lg-l")}${img("https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500-dark/nba.png&w=80&h=80&transparent=true", "lg-d")}</span>`;
   if (LEAGUE_FLAG[key]) return `<span class="lgm flag">${LEAGUE_FLAG[key]}</span>`;
   if (key === "atp" || key === "wta") return `<span class="lgm tour ${key}">${key.toUpperCase()}</span>`;
@@ -368,6 +370,7 @@ function route() {
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfoHub(arg);
   if (view === "live") { state.status = "live"; location.replace("#/"); return; }   // il Live ora è un filtro dell'elenco
+  if (view === "multipla" && arg === "giornata") return showRoundSlip();
   if (view === "multipla") return showMultipla();
   if (view === "cerca") return showSearch();
   if (view === "confronta") { const p = location.hash.replace(/^#\/?/, "").split("/"); return showCompare(p[1], p[2]); }

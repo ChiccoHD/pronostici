@@ -33,14 +33,23 @@ async function showStandings(key) {
   key = all.some(([k]) => k === key) ? key : load("table", "serie-a");
   if (!all.some(([k]) => k === key)) key = "serie-a";
   save("table", key);
-  const chips = `<div class="leagues tbl-leagues" role="group" aria-label="Campionato">${all.map(([k, l]) =>
-    `<a href="#/classifiche/${k}" class="chip-a" aria-pressed="${k === key}">${leagueMark(k)}${esc(l)}</a>`).join("")}</div>`;
+  // scelta del campionato: pulsante con quello aperto + gli ultimi visti; tutti gli altri in una finestra con ricerca e gruppi
+  let prev = [];
+  try { prev = JSON.parse(localStorage.getItem("p_table_recent") || "[]"); } catch { prev = []; }
+  const recent = [key, ...(Array.isArray(prev) ? prev : []).filter(k => k !== key && all.some(([x]) => x === k))].slice(0, 5);
+  try { localStorage.setItem("p_table_recent", JSON.stringify(recent)); } catch { /* niente */ }
+  const nameOf = k => (all.find(([x]) => x === k) || [k, k])[1];
+  const chips = `<div class="tbl-pick"><button type="button" class="tbl-cur" id="tbl-open">${leagueMark(key)}<b>${esc(nameOf(key))}</b><span>Cambia ▾</span></button>
+    <div class="leagues tbl-leagues tbl-recent" role="group" aria-label="Ultimi visti">${recent.slice(1).map(k =>
+    `<a href="#/classifiche/${k}" class="chip-a">${leagueMark(k)}${esc(nameOf(k))}</a>`).join("")}</div></div>`;
+  STD_ALL = all;
   $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + `<p class="muted" style="padding:16px 4px">Caricamento…</p>`;
   $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   const L = await leagueData(key);
   if (!location.hash.startsWith("#/classifiche")) return;
   if (key === "f1" && L?.drivers?.length) {
     $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + f1Standings(L);
+    wire("f1std");
     $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
     return;
   }
@@ -74,8 +83,72 @@ async function showStandings(key) {
       `${L.table[0]?.p ?? 0} giornate`, `Classifica ${key}`)
       + `<p class="note">G partite giocate, DR differenza reti. Forma: ultime 5, la più recente a destra. La classifica è calcolata dai risultati: penalizzazioni e criteri di parità ufficiali possono cambiare qualche posizione.</p>`;
   }
-  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + body + (L.groups ? "" : `<p class="note">Tocca una squadra per la sua pagina.</p>`);
-  $app.querySelector('.tbl-leagues [aria-pressed="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+  const rounds = L.rounds?.length ? roundsBox(key, L) : "";
+  $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + tabsView("std", [["tab", "Classifica", body + (L.groups ? "" : `<p class="note">Tocca una squadra per la sua pagina.</p>`)]].concat(rounds ? [["gio", "Giornate", rounds]] : []));
+  if (rounds) { wire("std"); wireRounds(key, L); }
+}
+
+/* finestra con tutti i campionati: ricerca e gruppi (con tanti campionati la fila di bottoni diventava scomoda) */
+let STD_ALL = [];
+const STD_GROUPS = [["Italia", ["serie-a", "serie-b"]], ["Grandi campionati europei", ["premier-league", "la-liga", "bundesliga", "ligue-1"]],
+  ["Altri campionati europei", ["championship", "eredivisie", "super-lig", "scozia", "belgio", "primeira-liga", "eliteserien"]],
+  ["Americhe e Asia", ["mls", "brasileirao", "argentina", "j1"]], ["Basket", ["nba"]], ["Motori", ["f1"]]];
+const STD_KW = { "serie-a": "italia calcio", "serie-b": "italia calcio cadetteria", "premier-league": "inghilterra england premier calcio", "championship": "inghilterra england calcio",
+  "la-liga": "spagna liga calcio", "bundesliga": "germania calcio", "ligue-1": "francia calcio", "eredivisie": "olanda paesi bassi calcio", "super-lig": "turchia calcio",
+  "scozia": "scozia premiership calcio", "belgio": "belgio pro league calcio", "primeira-liga": "portogallo calcio", "eliteserien": "norvegia calcio",
+  "mls": "usa stati uniti america calcio", "j1": "giappone j league calcio", "brasileirao": "brasile serie a calcio", "argentina": "argentina liga profesional calcio",
+  "nba": "basket pallacanestro usa", "f1": "formula 1 f1 motori auto piloti costruttori" };
+function standingsSheet() {
+  const nameOf = k => (STD_ALL.find(([x]) => x === k) || [k, k])[1];
+  const known = new Set(STD_GROUPS.flatMap(([, ks]) => ks));
+  const groups = [...STD_GROUPS.map(([g, ks]) => [g, ks.filter(k => STD_ALL.some(([x]) => x === k))]), ["Nazionali", STD_ALL.map(([k]) => k).filter(k => !known.has(k))]].filter(([, ks]) => ks.length);
+  const cur = load("table", "");
+  const { el, close } = openSheet(`<h3 class="sheet-t">Classifiche</h3>
+    <input class="sheet-in" id="std-q" type="search" placeholder="Cerca campionato, paese o sport" autocomplete="off">
+    <div class="std-list">${groups.map(([g, ks]) => `<div class="std-g" data-g><h4 class="av-h">${esc(g)}</h4><div class="std-gl">${ks.map(k =>
+      `<a href="#/classifiche/${k}" class="std-item ${k === cur ? "on" : ""}" data-s="${esc(sfold(`${nameOf(k)} ${k} ${g} ${STD_KW[k] || "nazionali calcio"}`))}">${leagueMark(k)}<b>${esc(nameOf(k))}</b></a>`).join("")}</div></div>`).join("")}<p class="muted std-none" hidden>Nessun campionato trovato.</p></div>`, { label: "Scegli la classifica" });
+  const q = el.querySelector("#std-q");
+  q.oninput = () => { const v = sfold(q.value.trim());
+    el.querySelectorAll(".std-item").forEach(a => a.hidden = v && !a.dataset.s.includes(v));
+    el.querySelectorAll("[data-g]").forEach(g => g.hidden = ![...g.querySelectorAll(".std-item")].some(a => !a.hidden));
+    el.querySelector(".std-none").hidden = [...el.querySelectorAll(".std-item")].some(a => !a.hidden); };
+  el.querySelectorAll(".std-item").forEach(a => a.onclick = () => close());
+}
+document.addEventListener("click", e => { if (e.target.closest?.("#tbl-open")) standingsSheet(); });
+
+/* giornate: risultati e partite in programma, una giornata alla volta (dal calendario ESPN della stagione) */
+function roundsBox(key, L) {
+  const R = L.rounds;
+  const now = Date.now();
+  const cur = R.find(r => r.m.some(m => m[3] == null && Date.parse(m[0]) > now - 3 * 3600e3)) || R[R.length - 1];
+  return `<div class="rnd-nav"><button type="button" data-rnd="-1" aria-label="Giornata precedente">‹</button><b id="rnd-t"></b><button type="button" data-rnd="1" aria-label="Giornata successiva">›</button></div>
+    <div id="rnd-box" data-cur="${R.indexOf(cur)}"></div>
+    <a class="std-link" href="#/multipla/giornata" data-rs-from="${esc(key)}">🎯 Fai una schedina con questa giornata<span>›</span></a>
+    <p class="note">Giornate ricostruite dal calendario della stagione: ogni partita sta nella prima giornata libera per entrambe le squadre, così i recuperi tornano al loro posto. Tocca una partita in programma per il pronostico.</p>`;
+}
+function wireRounds(key, L) {
+  const box = document.getElementById("rnd-box");
+  if (!box) return;
+  const R = L.rounds, T = L.teams || {};
+  const evs = new Set((INDEX?.events || []).map(e => e.id));
+  const draw = i => {
+    i = Math.max(0, Math.min(R.length - 1, i));
+    box.dataset.cur = i;
+    const r = R[i];
+    document.getElementById("rnd-t").textContent = `Giornata ${r.n}`;
+    const days = new Map();
+    for (const m of [...r.m].sort((a, b) => a[0].localeCompare(b[0]))) { const k = isoDay(m[0]); if (!days.has(k)) days.set(k, []); days.get(k).push(m); }
+    box.innerHTML = [...days].map(([d, ms]) => `<div class="rnd-day">${esc(new Date(d + "T12:00:00Z").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: TZ }))}</div>
+      ${ms.map(([dt, h, a, hg, ag, id, hn, an]) => {
+        const th = T[h] || {}, ta = T[a] || {}, played = hg != null, link = !played && evs.has(id) ? `#/e/${encodeURIComponent(id)}` : th.id ? teamHref(key, h) : null;
+        const tm = (t, n) => `<span class="rnd-t">${t.logo ? img(t.logo, "tlogo") : ""}<b>${esc(t.short || n)}</b></span>`;
+        return `<${link ? `a href="${link}"` : "div"} class="rnd-m ${played ? "done" : ""}">${tm(th, hn)}
+          <span class="rnd-s">${played ? `<b class="${hg > ag ? "w" : ""}">${hg}</b>–<b class="${ag > hg ? "w" : ""}">${ag}</b>` : `<small>${fmtTime(dt)}</small>`}</span>${tm(ta, an)}</${link ? "a" : "div"}>`;
+      }).join("")}`).join("");
+  };
+  document.querySelectorAll("[data-rnd]").forEach(b => b.onclick = () => draw(+box.dataset.cur + +b.dataset.rnd));
+  document.querySelector("[data-rs-from]")?.addEventListener("click", () => { RS.league = key; RS.round = R[+box.dataset.cur]?.n ?? null; save("rs_league", key); });
+  draw(+box.dataset.cur);
 }
 
 /* ------------------------------------------------------------------ pagina squadra */

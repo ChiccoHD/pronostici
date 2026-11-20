@@ -65,6 +65,7 @@ async function showMultipla() {
   const props = [2, 3, 4].map(k => mpPropose(cands, MP.target, k)).filter(Boolean);
   const chip = (group, v, l, cur) => `<button data-mp="${group}" data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`;
   let html = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1>
+    <div class="mp-modes"><a class="on" href="#/multipla">Per quota</a><a href="#/multipla/giornata">Per giornata</a></div>
     <section class="sec mp-ctrl">
       <div class="mp-lab">Quota che vuoi raggiungere</div><div class="mp-chips">${MP_TARGETS.map(t => chip("target", t, odd(1 / t), MP.target)).join("")}</div>
       <div class="mp-lab">Sport</div><div class="mp-chips">${SPORTS.map(s => chip("sport", s.key, s.label, MP.sport)).join("")}</div>
@@ -111,6 +112,81 @@ async function showMultipla() {
     if (!n) toast("Erano già tutte nella schedina");
     if (typeof showSlipSheet === "function") showSlipSheet();     // la schedina si apre qui sotto, senza cambiare pagina
   });
+}
+
+/* ------------------------------------------------------------------ schedina di una giornata */
+/* Scegli campionato e giornata, quante partite e che tipo di giocata: per ogni partita prende la giocata più probabile
+   di quel tipo (dai file delle partite), poi tiene le partite più sicure. Le etichette sono quelle della scheda della partita,
+   così l'esito si controlla da solo come per le altre giocate. */
+const RS_TYPES = [["mix", "Le più sicure"], ["1x2", "1X2"], ["dc", "Doppia chance"], ["ou", "Under/Over"], ["gg", "Goal/No Goal"], ["combo", "Combo"], ["exact", "Risultato esatto"]];
+const RS = { league: load("rs_league", "serie-a"), round: null, n: Number(load("rs_n", 4)), type: load("rs_type", "mix") };
+function rsCands(d, type) {
+  const m = d.markets || {}, H = d.home.short || d.home.name, A = d.away.short || d.away.name, out = [];
+  const add = (t, label, p) => { if (p != null && p < 0.985) out.push({ t, label, p }); };
+  if (m["1x2"]) { add("1x2", `${H} vince`, m["1x2"][0]); add("1x2", "Pareggio", m["1x2"][1]); add("1x2", `${A} vince`, m["1x2"][2]); }
+  for (const [k, p] of Object.entries(m.dc || {})) add("dc", { "1X": `${H} o pareggio`, "X2": `${A} o pareggio`, "12": "Una delle due vince" }[k] || k, p);
+  for (const l of ["1.5", "2.5", "3.5"]) if (m.ou?.[l] != null) { const L = l.replace(".", ","); add("ou", `Over ${L}`, m.ou[l]); add("ou", `Under ${L}`, 1 - m.ou[l]); }
+  if (m.btts != null) { add("gg", "Goal, segnano entrambe", m.btts); add("gg", "No Goal", 1 - m.btts); }
+  for (const [k, p] of Object.entries(m.combo || {})) add("combo", k, p);
+  if (m.exact?.[0]) add("exact", m.exact[0].score, m.exact[0].p);
+  return type === "mix" ? out.filter(c => c.t !== "exact") : out.filter(c => c.t === type);
+}
+async function showRoundSlip() {
+  $app.innerHTML = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1><p class="muted" style="padding:16px 4px">Caricamento…</p>`;
+  const leagues = TABLE_LEAGUES.filter(([k]) => k !== "nba");
+  if (!leagues.some(([k]) => k === RS.league)) RS.league = "serie-a";
+  const L = await leagueData(RS.league);
+  if (!location.hash.startsWith("#/multipla/giornata")) return;
+  const R = L?.rounds || [];
+  const next = R.find(r => r.m.some(m => m[3] == null && Date.parse(m[0]) > Date.now())) || R[R.length - 1];
+  if (RS.round == null || !R.some(r => r.n === RS.round)) RS.round = next?.n ?? null;
+  const round = R.find(r => r.n === RS.round);
+  const chip = (g, v, l, cur) => `<button data-rs="${g}" data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`;
+  let html = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1>
+    <div class="mp-modes"><a href="#/multipla">Per quota</a><a class="on" href="#/multipla/giornata">Per giornata</a></div>
+    <section class="sec mp-ctrl">
+      <div class="mp-lab">Campionato</div><select class="rs-sel" id="rs-league">${leagues.map(([k, l]) => `<option value="${k}" ${k === RS.league ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      <div class="mp-lab">Giornata</div><select class="rs-sel" id="rs-round">${R.filter(r => r.m.some(m => m[3] == null)).map(r => `<option value="${r.n}" ${r.n === RS.round ? "selected" : ""}>Giornata ${r.n} · ${esc(fmtShort(r.m[0][0]))}</option>`).join("") || `<option>Nessuna giornata da giocare</option>`}</select>
+      <div class="mp-lab">Quante partite</div><div class="mp-chips">${[2, 3, 4, 5, 6, 8, 10].map(n => chip("n", n, String(n), RS.n)).join("")}</div>
+      <div class="mp-lab">Tipo di giocata</div><div class="mp-chips">${RS_TYPES.map(([v, l]) => chip("type", v, l, RS.type)).join("")}</div>
+    </section><div id="rs-out"><p class="muted" style="padding:8px 4px">Calcolo…</p></div>`;
+  $app.innerHTML = html;
+  $app.querySelector("#rs-league").onchange = e => { RS.league = e.target.value; RS.round = null; save("rs_league", RS.league); showRoundSlip(); };
+  $app.querySelector("#rs-round").onchange = e => { RS.round = Number(e.target.value); showRoundSlip(); };
+  $app.querySelectorAll("[data-rs]").forEach(b => b.onclick = () => { const g = b.dataset.rs; RS[g] = g === "n" ? Number(b.dataset.v) : b.dataset.v; save("rs_" + g, b.dataset.v); showRoundSlip(); });
+  const out = $app.querySelector("#rs-out");
+  if (!round) { out.innerHTML = `<div class="empty"><b>Giornate non disponibili</b>Arrivano con il prossimo aggiornamento dei dati.</div>`; return; }
+  // partite della giornata che hanno già il pronostico (di solito quelle dei prossimi 7-10 giorni)
+  const ev = round.m.filter(m => m[3] == null && Date.parse(m[0]) > Date.now())
+    .map(m => (INDEX?.events || []).find(e => e.league === RS.league && e.id.endsWith(`-${m[5]}`))).filter(Boolean);
+  if (!ev.length) { out.innerHTML = `<div class="empty"><b>Pronostici non ancora pronti</b>Per questa giornata le percentuali arrivano qualche giorno prima delle partite.</div>`; return; }
+  const files = await Promise.all(ev.map(e => getJSON(`data/events/${encodeURIComponent(e.id)}.json`).catch(() => null)));
+  if (!location.hash.startsWith("#/multipla/giornata")) return;
+  const best = files.filter(Boolean).map(d => { const c = rsCands(d, RS.type).sort((a, b) => b.p - a.p)[0]; return c && { ...c, d }; }).filter(Boolean)
+    .sort((a, b) => b.p - a.p).slice(0, RS.n);
+  const legs = best.map(b => ({ event: b.d.id, match: `${b.d.home.name} – ${b.d.away.name}`, date: b.d.date, time_valid: b.d.time_valid, league_name: b.d.league_name, sport: "soccer",
+    label: b.label, p: b.p, book: null }));
+  const prod = legs.reduce((a, l) => a * l.p, 1);
+  out.innerHTML = `<section class="sec mp-prop"><h2>${legs.length} ${legs.length === 1 ? "giocata" : "giocate"}<small>quota equa ${odd(prod)}</small></h2>
+      <div class="slip-nums"><div>${ring(prod, prod >= .5)}<span>probabilità stimata che escano tutte</span></div><div class="big-odd"><b>${odd(prod)}</b><span>quota equa</span></div></div>
+      ${legs.map(it => `<div class="pk mp-leg">${ring(it.p, it.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(it.event)}"><b>${esc(it.label)}</b>
+        <span>${esc(it.match)}, ${esc(fmtDay(it.date).rel || fmtShort(it.date))} ${esc(fmtTime(it.date, it.time_valid))}</span><span class="mp-tr">quota equa ${odd(it.p)}</span></a>${star(favKey(it.label, it.p, null, it))}</div>`).join("")}
+      <button type="button" class="btn-main" id="rs-save">Salva come schedina</button>
+      <button type="button" class="btn-main alt" id="rs-add">Aggiungi alla schedina in costruzione</button></section>
+    ${legs.length < RS.n ? `<p class="note">Solo ${legs.length} partite della giornata hanno già il pronostico: le altre arrivano più avanti.</p>` : ""}
+    <p class="note">Per ogni partita la giocata più probabile del tipo scelto, poi le ${RS.n} partite più sicure. Più partite e giocate più difficili (risultato esatto, combo) alzano la quota ma abbassano molto la probabilità. Restano stime, non certezze; il bookmaker paga meno della quota equa.</p>`;
+  out.querySelector("#rs-save").onclick = async () => {
+    const name = await askText("Nome della schedina", `${(TABLE_LEAGUES.find(([k]) => k === RS.league) || ["", ""])[1]} · giornata ${RS.round}`, { hint: "La ritrovi in Tu, dove l'app segna da sola com'è andata." });
+    if (name === null) return;
+    saveAsSlip(legs, name.trim() || undefined);
+    toast("Schedina salvata: la trovi in Tu");
+  };
+  out.querySelector("#rs-add").onclick = () => {
+    const list = favs();
+    for (const it of legs) { const key = `${it.event}|${it.label}`; if (!list.some(f => f.key === key)) list.push({ key, ...it, added: new Date().toISOString() }); }
+    saveFavs(list);
+    if (typeof showSlipSheet === "function") showSlipSheet();
+  };
 }
 
 /* ------------------------------------------------------------------ condividi la schedina */

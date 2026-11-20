@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-20", t: "F1: sessioni, quote e tema del paese", items: [
+    "Nella scheda del GP tocca una sessione (prove libere, qualifiche, Sprint, gara): classifica dei tempi, settori migliori in viola, velocità in rettilineo e passo gara dalle simulazioni con tanta benzina.",
+    "Quote del mercato Polymarket anche per il giro più veloce delle prove libere, la pole, la scuderia vincente, oltre a vincitore, podio e testa a testa.",
+    "Più chiaro: sotto ogni pilota «mercato X% · q.» è la probabilità e la quota del mercato; accanto alla percentuale del modello c'è la sua quota equa.",
+    "La scheda del GP prende i colori della bandiera del paese che lo ospita.",
+    "La F1 si aggiorna da sola a ogni giro di dati e in più dopo ogni sessione del weekend (meteo, tempi, quote, griglia): prima restava ferma." ] },
   { d: "2026-11-19", t: "Correzioni", items: [
     "Elenco: con poche partite (es. solo tennis o basket) la pagina restava bloccata mentre scorrevi; ora scorre normalmente.",
     "Le migliori di oggi: c'è sempre una carta per ogni sport (anche tennis e F1). Se per oggi non resta niente, mostra la migliore del primo giorno in cui si gioca, con il giorno accanto all'orario.",

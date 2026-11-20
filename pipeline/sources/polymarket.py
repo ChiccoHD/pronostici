@@ -34,7 +34,8 @@ def _events() -> list[dict]:
     return out
 
 
-MIN_VOLUME = 100       # dollari scambiati sul singolo mercato
+MIN_VOLUME = 100       # dollari scambiati sul singolo mercato (per i prezzi fermi a 0,5)
+MIN_EVENT_VOLUME = 200 # dollari scambiati in tutto l'evento
 
 
 def _vol(m) -> float:
@@ -71,7 +72,7 @@ def gp_markets(race_name: str, race_date: str) -> dict | None:
     except Exception:
         log.exception("Polymarket")
         return None
-    out = {"win": {}, "podium": {}, "pole": {}, "fl": {}, "h2h": [], "sc": None, "red": None, "events": 0}
+    out = {"win": {}, "podium": {}, "pole": {}, "fl": {}, "fp1": {}, "fp2": {}, "fp3": {}, "team_win": {}, "team_pole": {}, "h2h": [], "sc": None, "red": None, "events": 0}
     for e in evs:
         title = norm(e.get("title"))
         if not any(k in title for k in keys) or "sprint" in title:
@@ -79,15 +80,24 @@ def gp_markets(race_name: str, race_date: str) -> dict | None:
         end = (e.get("endDate") or "")[:10]
         if end and race_date and end < race_date[:10]:
             continue
-        # solo mercati con scambi veri: quelli appena aperti e mai scambiati stanno fermi a 0,5 e non dicono niente
-        mk = [m for m in e.get("markets") or [] if m.get("active", True) and not m.get("closed") and _vol(m) >= MIN_VOLUME]
+        # solo mercati con scambi veri: un evento senza volume, o un mercato mai scambiato fermo a 0,5, non dice niente
+        allm = [m for m in e.get("markets") or [] if m.get("active", True) and not m.get("closed")]
+        if sum(_vol(m) for m in allm) < MIN_EVENT_VOLUME:
+            continue
+        mk = [m for m in allm if not (0.49 <= (_yes(m) or 0) <= 0.51 and _vol(m) < MIN_VOLUME)]
         if not mk:
             continue
         out["events"] += 1
-        kind = ("h2h" if "head" in title else "podium" if "podium" in title else "pole" if "pole" in title
+        prac = re.search(r"practice (\d)", title)
+        kind = (f"fp{prac.group(1)}" if prac and "fastest" in title
+                else "team_pole" if "constructor" in title and "pole" in title
+                else "team_win" if "constructor" in title and ("1st" in title or "winner" in title or "win" in title)
+                else None if "constructor" in title
+                else "h2h" if "head" in title or "finish higher" in title else "podium" if "podium" in title else "pole" if "pole" in title
                 else "fl" if "fastest lap" in title else "sc" if "safety car" in title else "red" if "red flag" in title
                 else "win" if "winner" in title or "win " in title else None)
-        if kind in ("win", "podium", "pole", "fl"):
+        if kind in ("win", "podium", "pole", "fl", "fp1", "fp2", "fp3", "team_win", "team_pole"):
+            out.setdefault(kind, {})
             for m in mk:
                 p, who = _yes(m), _who(m)
                 if p is not None and who:

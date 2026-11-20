@@ -1784,3 +1784,25 @@ html, body { overflow-anchor: none; }
 .f1-num.big.ph i { min-width: 24px; height: 22px; font-size: 13px; line-height: 22px; border-radius: 7px; right: -6px; bottom: -6px; }
 .f1-num.big { width: 72px; height: 72px; border-radius: 50%; }
 .f1-fav .f1-num { width: 44px; height: 44px; border-radius: 50%; }
+/* F1: tema per paese, sessioni cliccabili, finestra della sessione, mercato */
+.f1-board.themed::after { display: none; }
+.f1-board.themed::before { content: ""; position: absolute; inset: 0; background: var(--flag); opacity: .2; pointer-events: none; z-index: 0;
+  -webkit-mask-image: linear-gradient(200deg, #000 0%, rgba(0,0,0,.55) 45%, transparent 85%); mask-image: linear-gradient(200deg, #000 0%, rgba(0,0,0,.55) 45%, transparent 85%); }
+[data-theme="dark"] .f1-board.themed::before { opacity: .26; }
+.f1-board > * { position: relative; z-index: 1; }
+.f1-ses { font: inherit; text-align: left; border: 0; cursor: pointer; }
+.f1-ses.has { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--go) 60%, transparent); opacity: 1; }
+.f1-ses i { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--go-ink); margin-top: 1px; }
+.f1-mk { margin-top: 1px; white-space: nowrap; font-size: 10.5px; font-weight: 600; color: var(--ink-3); }
+.f1-ssbox { max-height: 52vh; overflow-y: auto; overscroll-behavior: contain; margin: 0 -4px; padding: 0 4px; }
+.f1-ss { --tc: #888; display: grid; grid-template-columns: 20px 26px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--rule); }
+.f1-ss.head { border-top: 0; padding: 0 0 2px; font-size: 10.5px; color: var(--ink-3); font-weight: 700; }
+.f1-ss:has(.f1-s3) { grid-template-columns: 20px 26px minmax(0, 1fr) 156px; }
+.f1-st { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.f1-st b { font-size: 13.5px; }
+.f1-st small { font-size: 10.5px; color: var(--ink-3); }
+.f1-s3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; font-variant-numeric: tabular-nums; }
+.f1-s3 i { font-style: normal; font-size: 11.5px; font-weight: 700; text-align: center; padding: 3px 0; border-radius: 5px; background: var(--soft); }
+.f1-ss.head .f1-s3 i { background: none; }
+.f1-s3 i.pb { background: #8e44ad; color: #fff; }
+.f1-row:has(.f1-mk) { grid-template-columns: 18px 26px minmax(0, 1.7fr) minmax(28px, .7fr) 52px 30px; }

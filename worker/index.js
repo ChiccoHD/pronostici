@@ -13,7 +13,16 @@ const WORKFLOW = "aggiorna-dati.yml";
 // Orari UTC dell'aggiornamento, gli stessi del workflow: in Italia d'inverno 7:17, 10:47, 13:47, 16:47, 19:47, 23:17
 const UPDATE = [[6, 17], [22, 17], [9, 47], [12, 47], [15, 47], [18, 47]];
 
-async function avvia(env) {
+/* F1: dopo ogni sessione del weekend un aggiornamento solo della F1 (tempi, settori, meteo, mercato, griglia).
+   75 minuti dopo l'inizio delle prove e delle qualifiche, 150 dopo gara e Sprint (il risultato ufficiale arriva più tardi). */
+const F1_AFTER = { FP1: [75], FP2: [75], FP3: [75], SQ: [75], Q: [75, 180], Sprint: [90], Race: [150, 300] };
+function f1Due(events, now) {
+  const m = Math.floor(now / 60000);
+  return events.some(e => e.sport === "f1" && (e.f1?.sessions || []).some(s =>
+    (F1_AFTER[s.k] || []).some(after => Math.floor((Date.parse(s.date) + after * 60000) / 60000) === m)));
+}
+
+async function avvia(env, solo) {
   if (!env.GITHUB_TOKEN) { console.log("Timer: manca il segreto GITHUB_TOKEN, aggiornamento non avviato"); return; }
   const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
     method: "POST",
@@ -24,7 +33,7 @@ async function avvia(env) {
       "User-Agent": "pronostici-timer",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ref: "main" }),
+    body: JSON.stringify(solo ? { ref: "main", inputs: { solo } } : { ref: "main" }),
   });
   console.log(r.ok ? "Timer: aggiornamento avviato" : `Timer: GitHub ha risposto ${r.status} ${await r.text()}`);
 }
@@ -39,6 +48,7 @@ async function notifiche(env) {
   const events = (idx.events || []).filter(e => e.espn || e.sport === "f1").map(e => ({ id: e.id, sport: e.sport, espn: e.espn, date: e.date, home: e.home, away: e.away,
     league: e.league, league_name: e.league_name, final: e.final || null, main: e.main, book: e.book || null,
     ...(e.f1 ? { f1: { sessions: e.f1.sessions } } : {}) }));
+  if (f1Due(events, Date.now())) await avvia(env, "f1").catch(e => console.log("Avvio F1:", e?.message || e));
   await pushObject(env).fetch("https://push/api/push/tick", { method: "POST", body: JSON.stringify({ events }) });
   // alle 9 (ora italiana): le migliori giocate del giorno, a chi le ha chieste
   const rome = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());

@@ -29,8 +29,8 @@ function f1SessionFixture(e) {
   let info = "";
   if ((s.k === "Q" || s.k === "SQ") && F.pole_top?.length) info = `<div class="f1fx-top"><span class="f1fx-lab">Pole</span>${F.pole_top.map(([n, code, c, p]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || n)}<b>${pct(p)}</b></span>`).join("")}</div>`;
   else if (s.k === "Sprint" && F.sprint_top?.length) info = `<div class="f1fx-top"><span class="f1fx-lab">Vince</span>${F.sprint_top.map(([n, code, c, p]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || n)}<b>${pct(p)}</b></span>`).join("")}</div>`;
-  else info = `<div class="fx-sub"><span>${st === "done" ? "Settori e velocità nella scheda del GP" : "Settori e velocità a fine sessione"}</span></div>`;
-  return `<a class="fx f1fx ses ${st === "done" ? "done" : ""}" href="#/e/${encodeURIComponent(e.id)}">
+  else info = `<div class="fx-sub"><span>${st === "done" ? "Tocca per tempi, settori, velocità e passo gara" : "Tempi, settori e velocità a fine sessione"}</span></div>`;
+  return `<a class="fx f1fx ses ${st === "done" ? "done" : ""}" data-ses="${esc(s.k)}" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-time">${st === "live" ? `<span class="f1-on">ORA</span>` : fmtTime(e.date)}${st === "done" ? "<small>finita</small>" : ""}</div>
     <div class="fx-mid"><div class="f1fx-gp"><span class="f1flag">${SES_ICON[s.k] || "🏎️"}</span><b>${esc(s.name)}</b></div>
       <div class="f1fx-sub">${e.home_flag || ""} ${esc(e.home)} · Round ${F.round ?? "–"}</div>${info}</div>
@@ -68,11 +68,13 @@ function f1View(d) {
   // intestazione: GP, circuito, programma del weekend e i tre favoriti
   const podium = D.slice(0, 3).map((x, i) => `<a class="f1-fav ${i === 0 ? "lead" : ""}" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}">
     ${f1Num(x)}<b>${esc(x.short)}</b><small>${esc(x.team_name)}</small>${ring(x.win, i === 0)}<span>vittoria</span></a>`).join("");
+  const SL = d.sessions_laps || {};
   const sched = (G.sessions || []).map(s => {
-    const past = Date.parse(s.date) < Date.now() - 2 * 3600e3, now = !past && Date.parse(s.date) < Date.now();
-    return `<span class="f1-ses ${past ? "past" : ""} ${now ? "now" : ""} ${s.k === "Race" ? "race" : ""}"><b>${esc(s.name)}</b>${esc(f1When(s.date))}</span>`;
+    const past = Date.parse(s.date) < Date.now() - 2 * 3600e3, now = !past && Date.parse(s.date) < Date.now(), has = !!SL[s.k] || !!(d.market || {})[F1_MK_SES[s.k]];
+    return `<button type="button" class="f1-ses ${past ? "past" : ""} ${now ? "now" : ""} ${s.k === "Race" ? "race" : ""} ${has ? "has" : ""}" data-ses="${esc(s.k)}">
+      <b>${esc(s.name)}</b>${esc(f1When(s.date))}${SL[s.k] ? `<i>📊 tempi</i>` : has ? `<i>📈 quote</i>` : ""}</button>`;
   }).join("");
-  const head = `<div class="board f1-board">
+  const head = `<div class="board f1-board ${f1Theme(G.country) ? "themed" : ""}" style="${f1Theme(G.country) ? `--flag:${f1Theme(G.country)}` : ""}">
     <div class="board-meta"><span class="bm-txt"><b>Formula 1 · Round ${G.round ?? ""}</b><span>${esc(G.locality || "")}, ${esc(G.country || "")}</span></span>
       ${typeof bellBtn === "function" && !fin ? bellBtn({ id: d.id, sport: "f1", date: d.date, home: d.home.name, away: d.away.short || "", league_name: "Formula 1" }) : ""}</div>
     <div class="f1-title"><span class="f1flag big">${G.flag || "🏁"}</span><div><h1>${esc(G.name || d.home.name)}</h1><small>${esc(G.circuit || "")}</small></div></div>
@@ -88,9 +90,10 @@ function f1View(d) {
   const raceRow = k => (x, i) => {
     const p = x[k], mp = mkOf(k, x);
     return `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}
-      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}${x.grid ? ` · griglia ${x.grid}°` : ""}</small></a>
-      <span class="f1-bar"><i style="width:${Math.round((p || 0) * 100)}%"></i>${mp != null ? `<em style="left:${Math.min(99, mp * 100)}%" title="mercato"></em>` : ""}</span>
-      <b class="f1-p">${pct(p)}${mp != null ? `<small>merc. ${pct(mp)}</small>` : `<small>q. ${odd(p)}</small>`}</b>
+      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}${x.grid ? ` · griglia ${x.grid}°` : ""}</small>${mp != null ? `<span class="f1-mk" title="Probabilità e quota sul mercato Polymarket">mercato ${pct(mp)} · q. ${odd(mp)}</span>` : ""}</a>
+      <span class="f1-bar"><i style="width:${Math.round((p || 0) * 100)}%"></i></span>
+      <b class="f1-p">${pct(p)}<small>q. ${odd(p)}</small></b>
+
       ${label[k] ? star(favKey(label[k](x), p)) : `<span class="star-sp"></span>`}</div>`;
   };
   // i primi 10 subito, gli altri sotto "Tutti i piloti"
@@ -99,8 +102,9 @@ function f1View(d) {
   const ord = k => [...D].sort((a, b) => (b[k] ?? 0) - (a[k] ?? 0));
   // ordino le righe per la giocata scelta
   const paneFor = k => { const keep = D.slice(); D.splice(0, D.length, ...ord(k)); const h = `<div data-segpane="f1g:${k}" ${k !== "win" ? "hidden" : ""}>${raceRows(k)}</div>`; D.splice(0, D.length, ...keep); return h; };
-  const teamBars = `<div class="bars">${(d.teams || []).map(t => `<div class="bar f1-tb" style="--tc:${f1c(t.color)}"><i style="width:${Math.round(t.win * 100)}%"></i>
-    <span>${esc(t.name)}</span><b>${pct(t.win)}</b></div>`).join("")}</div>`;
+  const teamBars = `<div class="bars">${(d.teams || []).map(t => { const m = (MK.team_win || {})[t.team];
+    return `<div class="bar f1-tb" style="--tc:${f1c(t.color)}"><i style="width:${Math.round(t.win * 100)}%"></i>
+    <span>${esc(t.name)}${m != null ? `<small> · mercato ${pct(m)}</small>` : ""}</span><b>${pct(t.win)}</b></div>`; }).join("")}</div>`;
   // modello contro mercato (Polymarket): le differenze più grandi, con quota equa e quota del mercato
   const vs = [];
   for (const x of D) for (const [k, l] of [["win", label.win], ["podium", label.podium], ["pole", label.pole]]) {
@@ -120,7 +124,7 @@ function f1View(d) {
       <p class="note">Giocate a cui il modello dà più probabilità del mercato di previsione Polymarket (prezzi pubblici, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
   const gara = sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
-      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). ${MK.win ? "Sotto la percentuale quella del mercato Polymarket (la tacca sulla barra)." : "q. = quota equa secondo il modello."} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
+      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sul mercato di previsione Polymarket, per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
     + vsHtml
     + sec("Scuderia vincente", teamBars, "", "F1 scuderia")
     + sec("Posizione attesa", `<div class="rows">${ord("exp_pos").reverse().slice(0, 22).map(x => `<div class="r"><span class="l">${f1Num(x, "xs")} ${esc(x.short)}</span><span class="v">${num(x.exp_pos)}°</span></div>`).join("")}</div>
@@ -135,9 +139,9 @@ function f1View(d) {
   } else {
     const pl = [...D].filter(x => x.pole != null).sort((a, b) => b.pole - a.pole);
     quali = sec("Pole position", `<div class="f1-tab">${pl.slice(0, 12).map((x, i) => `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}
-      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}</small></a>
-      <span class="f1-bar"><i style="width:${Math.round(x.pole * 100)}%"></i></span><b class="f1-p">${pct(x.pole)}</b>${star(favKey(label.pole(x), x.pole))}</div>`).join("")}</div>
-      <p class="note">Stima dal passo in qualifica delle ultime gare, con più peso a quelle recenti.</p>`, "", "F1 pole");
+      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}</small>${mkOf("pole", x) != null ? `<span class="f1-mk">mercato ${pct(mkOf("pole", x))} · q. ${odd(mkOf("pole", x))}</span>` : ""}</a>
+      <span class="f1-bar"><i style="width:${Math.round(x.pole * 100)}%"></i></span><b class="f1-p">${pct(x.pole)}<small>q. ${odd(x.pole)}</small></b>${star(favKey(label.pole(x), x.pole, mkOf("pole", x)))}</div>`).join("")}</div>
+      <p class="note">Stima dal passo in qualifica delle ultime gare, con più peso a quelle recenti.${MK.pole ? " «mercato» = Polymarket, per confronto." : ""}</p>`, "", "F1 pole");
   }
   const flap = [...D].filter(x => x.fl != null).sort((a, b) => b.fl - a.fl).slice(0, 6);
   quali += sec("Giro più veloce", `<div class="bars">${flap.map(x => `<div class="bar f1-tb" style="--tc:${f1c(x.color)}"><i style="width:${Math.round(x.fl * 100)}%"></i><span>${esc(x.short)}<small>${esc(x.team_name)}</small></span><b>${pct(x.fl)}</b></div>`).join("")}</div>`, "", "F1 giro veloce");
@@ -276,7 +280,11 @@ function f1Result(d, byId) {
   return `<div class="f1-podium">${order.join("")}</div>${f.pole ? `<p class="note" style="text-align:center">Pole: ${esc(f.pole)}${f.fl ? ` · giro veloce: ${esc(f.fl)}` : ""}</p>` : ""}`;
 }
 
+let F1_OPEN_SES = null;   // sessione da aprire subito (tocco su una riga di sessione nell'elenco)
+document.addEventListener("click", ev => { const a = ev.target.closest?.("a.f1fx.ses[data-ses]"); if (a) F1_OPEN_SES = a.dataset.ses; }, true);
 function wireF1(d) {
+  document.querySelectorAll(".f1-sched [data-ses]").forEach(b => b.onclick = () => f1SessionSheet(d, b.dataset.ses));
+  if (F1_OPEN_SES) { const k = F1_OPEN_SES; F1_OPEN_SES = null; if ((d.sessions_laps || {})[k]) setTimeout(() => f1SessionSheet(d, k), 250); }
   const a = document.getElementById("f1-a"), b = document.getElementById("f1-b"), box = document.getElementById("f1-duel");
   if (a && b && d.drivers?.[1]) {
     b.value = d.drivers[1].id;
@@ -418,4 +426,81 @@ function f1Settle() {
   let b = false;
   if (typeof mySlips === "function") { const sl = mySlips(); b = sl.flatMap(s => s.legs).map(set).some(Boolean); if (b) saveMySlips(sl); }
   return a || b;
+}
+
+/* ------------------------------------------------------------------ tema della scheda in base al paese del GP (colori della bandiera) */
+const F1_FLAGS = {
+  "Stati Uniti": "repeating-linear-gradient(180deg,#b22234 0 12px,#fff 12px 24px) right/62% 100% no-repeat, radial-gradient(circle,#fff 1.4px,transparent 1.8px) 0 0/13px 13px, #3c3b6e",
+  "Regno Unito": "linear-gradient(90deg,transparent 44%,#c8102e 44% 56%,transparent 56%), linear-gradient(0deg,transparent 40%,#c8102e 40% 60%,transparent 60%), linear-gradient(90deg,transparent 40%,#fff 40% 60%,transparent 60%), linear-gradient(0deg,transparent 34%,#fff 34% 66%,transparent 66%), linear-gradient(33deg,transparent 46%,#fff 46% 54%,transparent 54%), linear-gradient(-33deg,transparent 46%,#fff 46% 54%,transparent 54%), #012169",
+  "Giappone": "radial-gradient(circle at 78% 40%,#bc002d 0 60px,transparent 61px), #fff",
+  "Canada": "linear-gradient(90deg,#d52b1e 0 25%,#fff 25% 75%,#d52b1e 75%)",
+  "Brasile": "radial-gradient(circle at 76% 45%,#002776 0 34px,transparent 35px), conic-gradient(from 45deg at 76% 45%,#fedf00 0 25%,transparent 0 50%,#fedf00 0 75%,transparent 0) , #009b3a",
+  "Qatar": "linear-gradient(90deg,#fff 0 30%,#8a1538 30%)",
+  "Emirati Arabi": "linear-gradient(90deg,#ef3340 0 25%,transparent 25%), linear-gradient(180deg,#00843d 0 33%,#fff 33% 66%,#000 66%)",
+  "Bahrein": "linear-gradient(90deg,#fff 0 28%,#ce1126 28%)",
+  "Arabia Saudita": "#006c35",
+  "Monaco": "linear-gradient(180deg,#ce1126 0 50%,#fff 50%)",
+  "Italia": "linear-gradient(90deg,#009246 0 33.3%,#fff 33.3% 66.6%,#ce2b37 66.6%)",
+  "Spagna": "linear-gradient(180deg,#aa151b 0 25%,#f1bf00 25% 75%,#aa151b 75%)",
+  "Messico": "linear-gradient(90deg,#006847 0 33.3%,#fff 33.3% 66.6%,#ce1126 66.6%)",
+  "Australia": "radial-gradient(circle,#fff 1.6px,transparent 2px) 0 0/22px 22px, #012169",
+  "Cina": "radial-gradient(circle at 18% 30%,#ffde00 0 14px,transparent 15px), #de2910",
+  "Austria": "linear-gradient(180deg,#ed2939 0 33.3%,#fff 33.3% 66.6%,#ed2939 66.6%)",
+  "Belgio": "linear-gradient(90deg,#000 0 33.3%,#fae042 33.3% 66.6%,#ed2939 66.6%)",
+  "Ungheria": "linear-gradient(180deg,#ce2939 0 33.3%,#fff 33.3% 66.6%,#477050 66.6%)",
+  "Olanda": "linear-gradient(180deg,#ae1c28 0 33.3%,#fff 33.3% 66.6%,#21468b 66.6%)",
+  "Azerbaigian": "linear-gradient(180deg,#0092bc 0 33.3%,#e4002b 33.3% 66.6%,#00af66 66.6%)",
+  "Singapore": "linear-gradient(180deg,#ef3340 0 50%,#fff 50%)",
+  "Argentina": "linear-gradient(180deg,#74acdf 0 33.3%,#fff 33.3% 66.6%,#74acdf 66.6%)",
+  "Portogallo": "linear-gradient(90deg,#006600 0 40%,#ff0000 40%)",
+  "Germania": "linear-gradient(180deg,#000 0 33.3%,#dd0000 33.3% 66.6%,#ffce00 66.6%)",
+  "Francia": "linear-gradient(90deg,#002395 0 33.3%,#fff 33.3% 66.6%,#ed2939 66.6%)",
+};
+const f1Theme = country => F1_FLAGS[country] || "";
+const F1_MK_SES = { FP1: "fp1", FP2: "fp2", FP3: "fp3", Q: "pole", Race: "win" };
+
+/* finestra di una sessione: classifica dei tempi, settori, velocità, passo lungo */
+function f1SessionSheet(d, k) {
+  const S0 = (d.sessions_laps || {})[k], ses = (d.gp?.sessions || []).find(s => s.k === k);
+  const MKS = (d.market || {})[F1_MK_SES[k]];
+  const S = S0 || (MKS ? { rows: [] } : null);
+  if (!S) {
+    const t = ses ? Date.parse(ses.date) : 0;
+    toast(t > Date.now() ? `${ses?.name || "Sessione"}: si corre ${f1When(ses.date)}` : "Tempi in arrivo: OpenF1 li pubblica circa un'ora dopo la fine");
+    return;
+  }
+  const byId = Object.fromEntries((d.drivers || []).map(x => [x.id, x]));
+  const rows = S.rows.map(r => ({ ...r, x: byId[r.id] || { code: r.code, color: r.color, num: "" } }));
+  const fmtT = t => { if (t == null) return "–"; const m = Math.floor(t / 60), s = t - m * 60; return m ? `${m}:${s.toFixed(3).padStart(6, "0")}` : s.toFixed(3); };
+  const best = f => Math.min(...rows.map(r => r[f]).filter(v => v != null));
+  const who = r => `${r.x.num ? f1Num(r.x, "sm") : ""}<span class="f1-who"><b>${esc(r.x.short || r.code || "")}</b><small>${esc(r.team || r.x.team_name || "")}</small></span>`;
+  const sorted = (f, hi) => rows.filter(r => r[f] != null).sort((a, b) => hi ? b[f] - a[f] : a[f] - b[f]);
+  const tempi = sorted("lap").map((r, i, a) => `<div class="f1-ss" style="--tc:${f1c(r.color)}"><span class="f1-rk">${i + 1}</span>${who(r)}
+      <span class="f1-st"><b>${fmtT(r.lap)}</b><small>${i ? `+${(r.lap - a[0].lap).toFixed(3)}` : `${r.laps} giri`}</small></span></div>`).join("");
+  const b1 = best("s1"), b2 = best("s2"), b3 = best("s3");
+  const sett = `<div class="f1-ss head"><span></span><span></span><span class="f1-s3"><i>S1</i><i>S2</i><i>S3</i></span></div>` + sorted("ideal").map((r, i) => `<div class="f1-ss" style="--tc:${f1c(r.color)}">
+      <span class="f1-rk">${i + 1}</span>${who(r)}<span class="f1-s3">${[["s1", b1], ["s2", b2], ["s3", b3]].map(([f, b]) => `<i class="${r[f] === b ? "pb" : ""}">${r[f] != null ? r[f].toFixed(3) : "–"}</i>`).join("")}</span></div>`).join("");
+  const vel = sorted("st", true).map((r, i) => `<div class="f1-ss" style="--tc:${f1c(r.color)}"><span class="f1-rk">${i + 1}</span>${who(r)}<span class="f1-st"><b>${r.st} km/h</b></span></div>`).join("");
+  const lr = sorted("long");
+  const passo = lr.length ? lr.map((r, i, a) => `<div class="f1-ss" style="--tc:${f1c(r.color)}"><span class="f1-rk">${i + 1}</span>${who(r)}
+      <span class="f1-st"><b>${fmtT(r.long)}</b><small>${i ? `+${(r.long - a[0].long).toFixed(3)} · ` : ""}${r.long_n} giri</small></span></div>`).join("")
+    : `<p class="note">Nessun pilota ha fatto abbastanza giri lenti e regolari (simulazione di gara) in questa sessione.</p>`;
+  // quote del mercato per questa sessione (giro più veloce nelle prove, pole in qualifica, vincitore in gara)
+  let quote = "";
+  if (MKS) {
+    const est = { pole: "pole", win: "win" }[F1_MK_SES[k]] || "pole";   // nelle prove: stima dal passo sul giro secco (come la pole)
+    const list = (d.drivers || []).filter(x => MKS[x.id] != null).sort((a, b) => MKS[b.id] - MKS[a.id]);
+    quote = list.map(x => `<div class="f1-ss" style="--tc:${f1c(x.color)}"><span class="f1-rk"></span>${f1Num(x, "sm")}<span class="f1-who"><b>${esc(x.short)}</b><small>${esc(x.team_name)}</small></span>
+      <span class="f1-st"><b>q. ${odd(MKS[x.id])}</b><small>mercato ${pct(MKS[x.id])} · stima ${pct(x[est])}</small></span></div>`).join("")
+      + `<p class="note">Quote del mercato di previsione Polymarket (${F1_MK_SES[k].startsWith("fp") ? "chi fa il giro più veloce della sessione" : F1_MK_SES[k] === "pole" ? "chi prende la pole" : "chi vince"}). «stima» = ${F1_MK_SES[k].startsWith("fp") ? "probabilità di pole del modello, il passo sul giro secco più vicino: nelle prove contano molto i programmi delle squadre" : "probabilità del modello"}. Restano stime.</p>`;
+  }
+  const tabs = (S0 ? [["t", "Tempi", tempi], ["s", "Settori", sett], ["v", "Velocità", vel], ["p", "Passo gara", passo]] : []).concat(quote ? [["q", "Quote", quote]] : []);
+  const { el } = openSheet(`<h3 class="sheet-t">${esc(ses?.name || k)}</h3><p class="sheet-p" style="margin-top:-6px">${esc(d.home.name)}${ses ? ` · ${esc(f1When(ses.date))}` : ""}</p>
+    <div class="f1-segrow">${seg("f1ss", tabs.map(([a, b]) => [a, b]), tabs[0][0])}</div>
+    <div class="f1-ssbox">${tabs.map(([a, , h], i) => `<div data-segpane="f1ss:${a}" ${i ? "hidden" : ""}>${h}</div>`).join("")}</div>
+    ${S0 ? `<p class="note">Tempi dai giri registrati da OpenF1. In viola il miglior settore della sessione. Passo gara = giro tipico nelle serie lunghe con tanta benzina (in prova). In qualifica l'ordine ufficiale può cambiare per penalità.</p>` : ""}`, { label: ses?.name || "Sessione" });
+  el.querySelectorAll("[data-seg=f1ss] [data-v]").forEach(b => b.onclick = () => {
+    el.querySelectorAll("[data-seg=f1ss] [data-v]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    el.querySelectorAll("[data-segpane^='f1ss:']").forEach(p => p.hidden = p.dataset.segpane !== `f1ss:${b.dataset.v}`);
+  });
 }

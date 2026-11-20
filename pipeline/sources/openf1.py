@@ -73,8 +73,10 @@ def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict
     if not laps:
         return None
     info = {x.get("driver_number"): x for x in drv}
-    per = {}
+    per, times = {}, {}
     for l in laps:
+        if l.get("lap_duration") and not l.get("is_pit_out_lap"):
+            times.setdefault(l.get("driver_number"), []).append(l["lap_duration"])
         n = l.get("driver_number")
         p = per.setdefault(n, {"num": n, "code": (info.get(n) or {}).get("name_acronym"), "team": (info.get(n) or {}).get("team_name"),
                                "colour": (info.get(n) or {}).get("team_colour"), "lap": None, "s1": None, "s2": None, "s3": None, "st": None, "laps": 0})
@@ -90,6 +92,10 @@ def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict
     for p in per.values():
         if p["s1"] and p["s2"] and p["s3"]:
             p["ideal"] = round(p["s1"] + p["s2"] + p["s3"], 3)
+        # passo lungo: giri tra il 102% e il 110% del proprio migliore (prove con tanta benzina), almeno 5
+        t = sorted(x for x in times.get(p["num"], []) if p["lap"] and p["lap"] * 1.02 <= x <= p["lap"] * 1.10)
+        if len(t) >= 5:
+            p["long"], p["long_n"] = round(t[len(t) // 2], 3), len(t)
         rows.append(p)
     out = {"rows": rows}
     if keep:

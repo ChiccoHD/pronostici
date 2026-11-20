@@ -468,6 +468,16 @@ def _install_f1_fakes():
     jolpica.standings = standings
     def ses(y):
         out = []
+        names = {"FP1": "Practice 1", "FP2": "Practice 2", "FP3": "Practice 3", "SQ": "Sprint Qualifying", "Sprint": "Sprint", "Q": "Qualifying"}
+        for g in F1DATA["sched"]:
+            if g["season"] != y:
+                continue
+            gp = next(x for x in F1_GP if x[1] == g["circuit"])
+            for i, (k, t) in enumerate(g["sessions"].items()):
+                if k in names:
+                    out.append({"session_key": 800000 + g["round"] * 10 + i, "session_name": names[k], "location": gp[3], "circuit_short_name": gp[3],
+                                "country_name": gp[4], "year": y, "date_start": t.replace("Z", ":00+00:00") if t.count(":") == 1 else t.replace("Z", "+00:00"),
+                                "date_end": t.replace("Z", ":00+00:00") if t.count(":") == 1 else t.replace("Z", "+00:00")})
         for x in F1DATA["seasons"].get(y, {}).get("races", []):
             gp = next(g for g in F1_GP if g[1] == x["circuit"])
             out.append({"session_key": 900000 + y * 100 + x["round"], "session_name": "Qualifying", "location": gp[3], "circuit_short_name": gp[3],
@@ -514,7 +524,9 @@ def _install_f1_fakes():
         ds = F1DATA["drivers"]
         return {"win": {d["name"]: round(max(.005, rr.uniform(0, .25) * (d["force"] + 1) / 3), 3) for d in ds},
                 "podium": {d["name"]: round(min(.9, rr.uniform(0, .6) * (d["force"] + 1) / 2), 3) for d in ds[:12]},
-                "pole": {}, "fl": {}, "h2h": [[ds[i]["name"].split()[-1], ds[i + 1]["name"].split()[-1], round(rr.uniform(.3, .7), 3), rr.randint(100, 9000)] for i in range(0, 12, 2)],
+                "pole": {d["name"]: round(rr.uniform(.01, .2), 3) for d in ds[:10]}, "fl": {},
+                "fp1": {d["name"]: round(rr.uniform(.01, .2), 3) for d in ds[:10]}, "fp2": {}, "fp3": {},
+                "team_win": {"Mercedes": .3, "Ferrari": .22, "McLaren F1 Team": .18}, "team_pole": {}, "h2h": [[ds[i]["name"].split()[-1], ds[i + 1]["name"].split()[-1], round(rr.uniform(.3, .7), 3), rr.randint(100, 9000)] for i in range(0, 12, 2)],
                 "sc": .62, "red": .12, "events": 4}
     polymarket.gp_markets = pm
     def fc(lat, lon):

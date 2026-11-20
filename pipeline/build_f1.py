@@ -380,18 +380,26 @@ def _laps_block(gp, year, race_iso, drivers, budget) -> dict | None:
     week = [s for s in ALL_SESSIONS if same_gp(s) and s.get("year") == year and s.get("session_name") in names
             and abs((datetime.fromisoformat(s["date_start"]) - race_t).days) <= 4
             and datetime.fromisoformat(s.get("date_end") or s["date_start"]) < now - timedelta(minutes=20)]
-    pick, kind = None, "weekend"
-    if week:
-        pick = max(week, key=lambda s: s["date_start"])
+    # prova prima la sessione più recente del weekend; se OpenF1 non ha ancora i giri, quella prima, poi le qualifiche dell'anno scorso
+    past = sorted([s for s in ALL_SESSIONS if same_gp(s) and s.get("session_name") == "Qualifying" and s.get("year", year) < year], key=lambda s: s["date_start"])
+    cands = [(s, "weekend") for s in sorted(week, key=lambda s: s["date_start"], reverse=True)] + ([(past[-1], "past")] if past else [])
+    for pick, kind in cands:
+        ended = datetime.fromisoformat(pick.get("date_end") or pick["date_start"])
+        js = openf1.laps_summary(pick["session_key"], budget, keep=ended < now - timedelta(hours=2))
+        if js and len(js.get("rows") or []) >= 6:
+            break
     else:
-        past = [s for s in ALL_SESSIONS if same_gp(s) and s.get("session_name") == "Qualifying" and s.get("year", year) < year]
-        pick, kind = (max(past, key=lambda s: s["date_start"]) if past else None), "past"
-    if not pick:
         return None
-    ended = datetime.fromisoformat(pick.get("date_end") or pick["date_start"])
-    js = openf1.laps_summary(pick["session_key"], budget, keep=ended < now - timedelta(hours=2))
-    if not js or not js.get("rows"):
+    out = _laps_rows(js, kind, drivers)
+    if not out:
         return None
+    return {"session": names.get(pick["session_name"], pick["session_name"]), "year": pick.get("year"), "kind": kind, "rows": out}
+
+
+SES_K = {"Practice 1": "FP1", "Practice 2": "FP2", "Practice 3": "FP3", "Sprint Qualifying": "SQ", "Sprint Shootout": "SQ", "Qualifying": "Q", "Sprint": "Sprint", "Race": "Race"}
+
+
+def _laps_rows(js, kind, drivers):
     by_num = {str(x.get("num")): x for x in drivers}
     by_code = {x.get("code"): x for x in drivers}
     rows = []
@@ -401,11 +409,31 @@ def _laps_block(gp, year, race_iso, drivers, budget) -> dict | None:
             continue
         rows.append({"id": x["id"] if x else None, "code": p.get("code") or (x or {}).get("code"), "team": (x or {}).get("team_name") or p.get("team"),
                      "color": (x or {}).get("color") or ("#" + p["colour"] if p.get("colour") else None),
-                     **{k: p.get(k) for k in ("lap", "s1", "s2", "s3", "ideal", "st", "laps")}})
+                     **{k: p.get(k) for k in ("lap", "s1", "s2", "s3", "ideal", "st", "laps", "long", "long_n")}})
     rows = [x for x in rows if x.get("lap") or x.get("ideal")]
-    if len(rows) < 6:
-        return None
-    return {"session": names.get(pick["session_name"], pick["session_name"]), "year": pick.get("year"), "kind": kind, "rows": rows}
+    return rows if len(rows) >= 6 else None
+
+
+def _weekend_sessions(gp, year, race_iso, drivers, budget) -> dict:
+    """Tutte le sessioni già finite del weekend (prove, qualifiche, Sprint, gara): tempi per pilota, da aprire nella scheda."""
+    now = datetime.now(timezone.utc)
+    race_t = datetime.fromisoformat(race_iso.replace("Z", "+00:00"))
+    loc, cty = _norm(gp.get("locality")), _norm(gp.get("country"))
+    out = {}
+    for s in sorted(ALL_SESSIONS, key=lambda s: s["date_start"]):
+        k = SES_K.get(s.get("session_name"))
+        if not k or s.get("year") != year or not (_norm(s.get("location")) == loc or _norm(s.get("circuit_short_name")) == loc or _norm(s.get("country_name")) == cty):
+            continue
+        if abs((datetime.fromisoformat(s["date_start"]) - race_t).days) > 4:
+            continue
+        ended = datetime.fromisoformat(s.get("date_end") or s["date_start"])
+        if ended > now - timedelta(minutes=20):
+            continue
+        js = openf1.laps_summary(s["session_key"], budget, keep=ended < now - timedelta(hours=2))
+        rows = _laps_rows(js, "weekend", drivers) if js else None
+        if rows:
+            out[k] = {"rows": rows}
+    return out
 
 
 def _market(gp, race_iso, drivers) -> dict | None:
@@ -427,8 +455,24 @@ def _market(gp, race_iso, drivers) -> dict | None:
         ids = last.get(k.split(" ")[-1] if k else "", [])
         return ids[0] if len(ids) == 1 else None
     out = {"src": "Polymarket", "at": datetime.now(timezone.utc).isoformat(timespec="minutes")}
-    for k in ("win", "podium", "pole", "fl"):
-        v = {who(n): p for n, p in m[k].items()}
+    for k in ("win", "podium", "pole", "fl", "fp1", "fp2", "fp3"):
+        v = {who(n): p for n, p in (m.get(k) or {}).items()}
+        v.pop(None, None)
+        if v:
+            out[k] = v
+    # scuderie: nomi del mercato ("Red Bull Racing", "Alpine") → id della squadra
+    teams = {}
+    for x in drivers:
+        teams.setdefault(x["team"], x.get("team_name") or x["team"])
+    def team(n):
+        k = polymarket.norm(n).replace(" f1 team", "").replace(" racing", "").replace(" team", "").strip()
+        for tid, tn in teams.items():
+            a = polymarket.norm(tn)
+            if a and (a == k or a in k or k in a or polymarket.norm(tid.replace("_", " ")) == k):
+                return tid
+        return None
+    for k in ("team_win", "team_pole"):
+        v = {team(n): p for n, p in (m.get(k) or {}).items()}
         v.pop(None, None)
         if v:
             out[k] = v
@@ -551,6 +595,7 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
     if not done:
         try:
             d["laps"] = _laps_block(gp, year, race_iso, drivers, budget)
+            d["sessions_laps"] = _weekend_sessions(gp, year, race_iso, drivers, budget)
         except Exception:
             log.exception("Giri F1")
         try:

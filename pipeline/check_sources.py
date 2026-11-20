@@ -379,8 +379,24 @@ def f1_check():
 def f1_extra_check():
     """F1: mercati di previsione gratuiti (Polymarket, Kalshi) per vincitore e testa a testa; giri e settori OpenF1; Jolpica 2018."""
     import json
-    out("## F1 — Polymarket")
+    out("## Logo Serie B (ESPN)")
+    js = http.get_json("https://site.api.espn.com/apis/site/v2/sports/soccer/ita.2/scoreboard", delay=1.0) or {}
+    lg = (js.get("leagues") or [{}])[0]
+    check("Serie B logos", bool(lg.get("logos")), f"id={lg.get('id')} {[(l.get('href'), l.get('rel')) for l in lg.get('logos') or []]}")
+    out("## F1 — Polymarket, tutti i mercati aperti")
     G = "https://gamma-api.polymarket.com"
+    allev = []
+    for off in (0, 100, 200):
+        js = http.get_json(f"{G}/events", {"tag_slug": "f1", "closed": "false", "limit": 100, "offset": off}, delay=1.5)
+        if not isinstance(js, list):
+            break
+        allev += js
+        if len(js) < 100:
+            break
+    for e in allev:
+        mk = e.get("markets") or []
+        vol = sum(float(m.get("volume") or 0) for m in mk)
+        out(f"- {e.get('title')} | fine {str(e.get('endDate'))[:10]} | {len(mk)} mercati | volume {vol:.0f} | es: {(mk[0].get('question') if mk else '')}")
     for path, par in (("public-search", {"q": "Las Vegas Grand Prix"}), ("public-search", {"q": "F1 head to head"}), ("public-search", {"q": "Leclerc Hamilton"}),
                       ("events", {"closed": "false", "limit": 50, "tag_slug": "f1"}), ("events", {"closed": "false", "limit": 50, "tag_slug": "formula1"}),
                       ("events", {"closed": "false", "limit": 50, "tag_slug": "formula-1"})):
@@ -394,9 +410,10 @@ def f1_extra_check():
     out("## F1 — Kalshi")
     K = "https://api.elections.kalshi.com/trade-api/v2"
     js = http.get_json(f"{K}/series", {"category": "Sports"}, delay=1.5) or {}
-    ser = [s for s in js.get("series") or [] if any(w in (s.get("title") or "").lower() for w in ("f1", "formula", "grand prix"))]
-    check("Kalshi serie F1", bool(ser), " | ".join(f"{s.get('ticker')}: {s.get('title')}" for s in ser[:15]))
-    for s in ser[:4]:
+    ser = [s for s in js.get("series") or [] if any(w in (s.get("title") or "").lower() for w in ("f1", "formula", "grand prix"))
+           or (s.get("ticker") or "").startswith("KXF1")]
+    check("Kalshi serie F1", bool(ser), " | ".join(f"{s.get('ticker')}: {s.get('title')}" for s in ser[:40]))
+    for s in ser[:14]:
         ev = http.get_json(f"{K}/events", {"series_ticker": s["ticker"], "status": "open", "with_nested_markets": "true"}, delay=1.5) or {}
         for e in (ev.get("events") or [])[:2]:
             out(f"  - {s['ticker']} {e.get('title')}: " + "; ".join(f"{m.get('yes_sub_title') or m.get('subtitle')}={m.get('last_price')}/{m.get('yes_ask')}" for m in (e.get("markets") or [])[:6]))

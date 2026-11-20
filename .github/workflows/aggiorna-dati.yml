@@ -14,9 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       solo:
-        description: "Sport da aggiornare (calcio,coppe,nazionali,nba,tennis)"
+        description: "Sport da aggiornare (calcio,coppe,nazionali,nba,tennis,f1)"
         required: false
-        default: "calcio,coppe,nazionali,nba,tennis"
+        default: "calcio,coppe,nazionali,nba,tennis,f1"
 
 permissions:
   contents: write

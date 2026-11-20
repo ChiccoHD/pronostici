@@ -6,7 +6,7 @@ const NOVITA = [
     "Nuova scheda Giornate in ogni campionato di calcio: risultati e partite in programma giornata per giornata. Per la F1 c'è il Calendario della stagione con podio e pole di ogni GP.",
     "Costruisci la multipla → Per giornata: scegli campionato e giornata, quante partite e il tipo (le più sicure, 1X2, doppia chance, Under/Over, Goal, combo, risultato esatto) e l'app compone la schedina. Si arriva anche dalle Giornate.",
     "Logo della Serie B tornato visibile con il tema scuro.",
-    "F1: i tempi di una sessione scaricati quando erano ancora incompleti (come le Prove libere 1 di Las Vegas) ora si riscaricano da soli." ] },
+    "F1: i tempi di una sessione scaricati quando erano ancora incompleti (come le Prove libere 1 di Las Vegas) ora si riscaricano da soli. Se una sessione resta quasi senza tempi (pista bagnata, interruzioni) l'app lo dice." ] },
   { d: "2026-11-20", t: "F1: sessioni, quote e tema del paese", items: [
     "Nella scheda del GP tocca una sessione (prove libere, qualifiche, Sprint, gara): classifica dei tempi, settori migliori in viola, velocità in rettilineo e passo gara dalle simulazioni con tanta benzina.",
     "Quote del mercato Polymarket anche per il giro più veloce delle prove libere, la pole, la scuderia vincente, oltre a vincitore, podio e testa a testa.",

@@ -72,7 +72,7 @@ function f1View(d) {
   const sched = (G.sessions || []).map(s => {
     const past = Date.parse(s.date) < Date.now() - 2 * 3600e3, now = !past && Date.parse(s.date) < Date.now(), has = !!SL[s.k] || !!(d.market || {})[F1_MK_SES[s.k]];
     return `<button type="button" class="f1-ses ${past ? "past" : ""} ${now ? "now" : ""} ${s.k === "Race" ? "race" : ""} ${has ? "has" : ""}" data-ses="${esc(s.k)}">
-      <b>${esc(s.name)}</b>${esc(f1When(s.date))}${SL[s.k] ? `<i>📊 tempi</i>` : has ? `<i>📈 quote</i>` : ""}</button>`;
+      <b>${esc(s.name)}</b>${esc(f1When(s.date))}${SL[s.k]?.few ? `<i>🌧️ pochi giri</i>` : SL[s.k] ? `<i>📊 tempi</i>` : has ? `<i>📈 quote</i>` : ""}</button>`;
   }).join("");
   const head = `<div class="board f1-board ${f1Theme(G.country) ? "themed" : ""}" style="${f1Theme(G.country) ? `--flag:${f1Theme(G.country)}` : ""}">
     <div class="board-meta"><span class="bm-txt"><b>Formula 1 · Round ${G.round ?? ""}</b><span>${esc(G.locality || "")}, ${esc(G.country || "")}</span></span>
@@ -467,7 +467,13 @@ const F1_MK_SES = { FP1: "fp1", FP2: "fp2", FP3: "fp3", Q: "pole", Race: "win" }
 
 /* finestra di una sessione: classifica dei tempi, settori, velocità, passo lungo */
 function f1SessionSheet(d, k) {
-  const S0 = (d.sessions_laps || {})[k], ses = (d.gp?.sessions || []).find(s => s.k === k);
+  const SX = (d.sessions_laps || {})[k], ses = (d.gp?.sessions || []).find(s => s.k === k);
+  if (SX?.few && !(d.market || {})[F1_MK_SES[k]]) {
+    openSheet(`<h3 class="sheet-t">${esc(ses?.name || k)}</h3><p class="sheet-p">${esc(d.home.name)}${ses ? ` · ${esc(f1When(ses.date))}` : ""}</p>
+      <div class="empty"><b>Quasi nessun tempo in questa sessione</b>Solo ${SX.laps} giri in tutto e ${SX.timed} con un tempo valido: di solito succede con pista bagnata o interruzioni. Niente classifica da mostrare.</div>`, { label: ses?.name || "Sessione" });
+    return;
+  }
+  const S0 = SX?.few ? null : SX;
   const MKS = (d.market || {})[F1_MK_SES[k]];
   const S = S0 || (MKS ? { rows: [] } : null);
   if (!S) {

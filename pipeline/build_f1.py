@@ -449,6 +449,10 @@ def _weekend_sessions(gp, year, race_iso, drivers, budget) -> dict:
         rows = _laps_rows(js, "weekend", drivers) if js else None
         if rows:
             out[k] = {"rows": rows}
+        elif js and js.get("rows") and ended < now - timedelta(hours=3):
+            # sessione finita da ore ma quasi senza tempi (pista bagnata, bandiera rossa): lo diciamo invece di tacere
+            out[k] = {"rows": [], "few": True, "laps": sum(p.get("laps") or 0 for p in js["rows"]),
+                      "timed": sum(1 for p in js["rows"] if p.get("lap"))}
     return out
 
 

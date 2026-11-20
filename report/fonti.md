@@ -22,7 +22,7 @@
 - F1 Drivers' Champion: 3rd Place | fine 2026-12-06 | 14 mercati | volume 1112 | es: Will Kimi Antonelli finish third in the 2026 F1 Drivers' Championship?
 - F1 Drivers' Champion: 4th Place | fine 2026-12-06 | 14 mercati | volume 1064 | es: Will Kimi Antonelli finish fourth in the 2026 F1 Drivers' Championship?
 - F1 Drivers' Champion: 5th Place | fine 2026-12-06 | 14 mercati | volume 910 | es: Will Kimi Antonelli finish fifth in the 2026 F1 Drivers' Championship?
-- Las Vegas Grand Prix: Driver Winner | fine 2026-11-29 | 29 mercati | volume 17291 | es: Will Pierre Gasly win the 2026 F1 Las Vegas Grand Prix?
+- Las Vegas Grand Prix: Driver Winner | fine 2026-11-29 | 29 mercati | volume 17516 | es: Will Pierre Gasly win the 2026 F1 Las Vegas Grand Prix?
 - Las Vegas Grand Prix: Which Constructor Scores 1st? | fine 2026-11-29 | 12 mercati | volume 122 | es: Will Alpine have the highest constructor score at the 2026 F1 Las Vegas Grand Prix?
 - Las Vegas Grand Prix: Driver Pole Position | fine 2026-11-28 | 29 mercati | volume 4964 | es: Will Pierre Gasly get pole position at the 2026 F1 Las Vegas Grand Prix?
 - Las Vegas Grand Prix: Constructor Pole Position | fine 2026-11-28 | 12 mercati | volume 115 | es: Will Alpine get pole position at the 2026 F1 Las Vegas Grand Prix?
@@ -82,10 +82,10 @@
   - Hamilton vs. Russell esiti=["Hamilton", "Russell "] prezzi=["0", "1"] volume=5923.64588 slug=hamilton-vs-russell
   - Leclerc vs. Verstappen esiti=["Leclerc", "Verstappen"] prezzi=["1", "0"] volume=5313.474261 slug=leclerc-vs-verstappen
 - ✅ **Polymarket events {'closed': 'false', 'limit': 50, 'tag_slug': 'f1'}** (50) Will Alix Earle attend an F1 race in 2026? [1 mercati, chiuso=False] | Which countries will host an F1 race in 2026? [3 mercati, chiuso=False] | F1: Will Carlos Sainz finish ahead of Fernando Alonso in the 2026 Drivers' Championship? [1 mercati, chiuso=False] | Will the 2026 F1 Abu Dhabi Grand Prix take place? [1 mercati, chiuso=False] | Singapore Grand Prix: Head-to-Head [23 mercati, chiuso=False] | Will there be a safety car during the 2026 F1 United States Grand Prix? [1 mercati, chiuso=False] | Will there be a red flag during the 2026 F1 United States Grand Prix? [1 mercati, chiuso=False] | Mexican Grand Prix: Head-to-Head [23 mercati, chiuso=False] | Brazilian Grand Prix: Head-to-Head [23 mercati, chiuso=False] | F1 Drivers' Champion: 2nd Place [14 mercati, chiuso=False] | F1 Drivers' Champion: 3rd Place [14 mercati, chiuso=False] | F1 Drivers' Champion: 4th Place [14 mercati, chiuso=False]
-  - Will Alix Earle attend an F1 race in 2026? esiti=["Yes", "No"] prezzi=["0.615", "0.385"] volume=4161.192524 slug=will-alix-earle-attend-an-f1-race-in-2026-20260728202933346
+  - Will Alix Earle attend an F1 race in 2026? esiti=["Yes", "No"] prezzi=["0.6", "0.4"] volume=4161.192524 slug=will-alix-earle-attend-an-f1-race-in-2026-20260728202933346
   - Will an F1 race be held in Qatar in 2026? esiti=["Yes", "No"] prezzi=["0.898", "0.102"] volume=1459.424089 slug=will-an-f1-race-be-held-in-qatar-in-2026
   - Will an F1 race be held in Saudi Arabia in 2026? esiti=["Yes", "No"] prezzi=["0.0315", "0.9685"] volume=521.078679 slug=will-an-f1-race-be-held-in-saudi-arabia-in-2026
-  - Will an F1 race be held in the United Arab Emirates in 2026? esiti=["Yes", "No"] prezzi=["0.86", "0.14"] volume=1832.744795 slug=will-an-f1-race-be-held-in-the-united-arab-emirates-in-2026
+  - Will an F1 race be held in the United Arab Emirates in 2026? esiti=["Yes", "No"] prezzi=["0.875", "0.125"] volume=1832.744795 slug=will-an-f1-race-be-held-in-the-united-arab-emirates-in-2026
 - ✅ **Polymarket events {'closed': 'false', 'limit': 50, 'tag_slug': 'formula1'}** (50) F1: Action of the Year [33 mercati, chiuso=False] | Will Max Verstappen retire from F1 in 2026? [1 mercati, chiuso=False] | Will Alix Earle attend an F1 race in 2026? [1 mercati, chiuso=False] | Which countries will host an F1 race in 2026? [3 mercati, chiuso=False] | F1: Will Carlos Sainz finish ahead of Fernando Alonso in the 2026 Drivers' Championship? [1 mercati, chiuso=False] | Will the 2026 F1 Abu Dhabi Grand Prix take place? [1 mercati, chiuso=False] | Singapore Grand Prix: Head-to-Head [23 mercati, chiuso=False] | Will there be a safety car during the 2026 F1 United States Grand Prix? [1 mercati, chiuso=False] | Will there be a red flag during the 2026 F1 United States Grand Prix? [1 mercati, chiuso=False] | Mexican Grand Prix: Head-to-Head [23 mercati, chiuso=False] | Brazilian Grand Prix: Head-to-Head [23 mercati, chiuso=False] | F1 Drivers' Champion: 2nd Place [14 mercati, chiuso=False]
   - Will Alexander Albon win the 2026 Action of the Year? esiti=["Yes", "No"] prezzi=["0.0025", "0.9975"] volume=3648.3843840000004 slug=will-alexander-albon-win-the-2026-action-of-the-year
   - Will Fernando Alonso win the 2026 Action of the Year? esiti=["Yes", "No"] prezzi=["0.0025", "0.9975"] volume=23848.034533 slug=will-fernando-alonso-win-the-2026-action-of-the-year
@@ -93,20 +93,47 @@
   - Will Max Verstappen retire from F1 in 2026? esiti=["Yes", "No"] prezzi=["0.021", "0.979"] volume=34558.978669000004 slug=will-max-verstappen-retire-from-f1-in-2026
 - ❌ **Polymarket events {'closed': 'false', 'limit': 50, 'tag_slug': 'formula-1'}** (0) 
 ## F1 — Kalshi
-- ✅ **Kalshi serie F1** KXF1CONSTRUCTORS: Formula 1 Constructors | KXF1NEXTTEAM: F1 Next Team | KXF1WINMARGIN: F1 Win Margin | KXF1FP1FASTLAP: F1 Free Practice 1 Fastest Lap | KXF1CHINA: F1 team from China | KXF1OCCUR: Formula 1 Event Occurrence | KXF1ACTION: FIA Action of the Year Award | KXF1FASTESTLAP: F1 Fastest Lap | KXF1TOP10: F1 Top 10 Finishers | KXF1CHAMPCLINCH: F1CHAMPCLINCH | KXF1POLEPOSITION: Qualify in Pole Position | KXF1RACETOPX: F1 Race Top Finishers | KXF1FPFASTLAP: F1 Free Practice Fastest Lap | KXF1FASTLAP: F1 Fastest Lap | KXF1: Formula 1 | KXF1DELAY: F1 Delay | KXF1SPRINTPOLE: F1 Sprint Qualifying Pole Position | KXF1SPRINTFASTLAP: F1 Sprint Race Fastest Lap | KXF1RACESPRINT: F1 Sprint Race | KXF1TOP5: F1 Top 5 Finishers | KXF1RACE: F1 Race | KXF1RACETOP5: F1 Race Top 5 Finishers | KXF1TOPCONSTRUCTOR: F1 Top Constructor | KXF1RETIRE: F1 Retire | KXAFRICAF1: Africa F1 grand prix | KXF1H2H: F1 Head-to-Head | KXF1BIGGESTMOVER: F1 Biggest Mover | KXF1RACEPODIUM: F1 Race Podium Finisher | KXUSAF1: 4th USA F1 race | KXF1RACETOP10: F1 Race Top 10 Finishers | KXF1EXACTFINISH: F1 Driver Championship Exact Finish | KXF1QUALIFY: Formula 1 Qualify | KXF1FASTPIT: F1 Fastest Pit Stop | KXF1SPRINTTOP5: F1 Sprint Race Top 5 Finishers | KXF1FP3FASTLAP: F1 Free Practice 3 Fastest Lap | KXF1SPRINTTOP10: F1 Sprint Race Top 10 Finishers | KXF1FP2FASTLAP: F1 Free Practice 2 Fastest Lap | KXF1SPRINTTOPCONSTRUCTOR: F1 Sprint Race Top Constructor | KXF1H2HLOTP: F1: Leader of the Pack | KXF1POLE: F1 Pole Position
-  - KXF1NEXTTEAM Max Verstappen's Next F1 Team: Alpine=None/None; Aston Martin=None/None; Audi=None/None; Cadillac=None/None; Ferrari=None/None; Haas F1 Team=None/None
-  - KXF1WINMARGIN Main Race Winning Margin: Las Vegas Grand Prix: Under 2.500 seconds=None/None; 2.500–4.999 seconds=None/None; 5.000–9.999 seconds=None/None; 10.000 seconds or more=None/None
-  - KXF1FP1FASTLAP Las Vegas Grand Prix Free Practice 1: Fastest Lap: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
-  - KXF1CHINA F1 Team from China before 2027: Before 2027=None/None
+- ✅ **Kalshi serie F1** KXF1OCCUR: Formula 1 Event Occurrence | KXF1CHAMPCLINCH: F1CHAMPCLINCH | KXF1CONSTRUCTORS: Formula 1 Constructors | KXF1SPRINTPOLE: F1 Sprint Qualifying Pole Position | KXF1RACETOP10: F1 Race Top 10 Finishers | KXF1FP2FASTLAP: F1 Free Practice 2 Fastest Lap | KXF1RACE: F1 Race | KXF1FASTPIT: F1 Fastest Pit Stop | KXF1SPRINTFASTLAP: F1 Sprint Race Fastest Lap | KXF1ACTION: FIA Action of the Year Award | KXF1SPRINTTOPCONSTRUCTOR: F1 Sprint Race Top Constructor | KXF1BIGGESTMOVER: F1 Biggest Mover | KXF1: Formula 1 | KXF1EXACTFINISH: F1 Driver Championship Exact Finish | KXAFRICAF1: Africa F1 grand prix | KXF1SPRINTTOP10: F1 Sprint Race Top 10 Finishers | KXF1QUALIFY: Formula 1 Qualify | KXF1RACEPODIUM: F1 Race Podium Finisher | KXF1TOPCONSTRUCTOR: F1 Top Constructor | KXF1FASTLAP: F1 Fastest Lap | KXF1SPRINTTOP5: F1 Sprint Race Top 5 Finishers | KXUSAF1: 4th USA F1 race | KXF1TOP10: F1 Top 10 Finishers | KXF1FASTESTLAP: F1 Fastest Lap | KXF1POLE: F1 Pole Position | KXF1RACETOPX: F1 Race Top Finishers | KXF1FP3FASTLAP: F1 Free Practice 3 Fastest Lap | KXF1POLEPOSITION: Qualify in Pole Position | KXF1RACESPRINT: F1 Sprint Race | KXF1H2HLOTP: F1: Leader of the Pack | KXF1RACETOP5: F1 Race Top 5 Finishers | KXF1FPFASTLAP: F1 Free Practice Fastest Lap | KXF1H2H: F1 Head-to-Head | KXF1CHINA: F1 team from China | KXF1WINMARGIN: F1 Win Margin | KXF1NEXTTEAM: F1 Next Team | KXF1RETIRE: F1 Retire | KXF1DELAY: F1 Delay | KXF1TOP5: F1 Top 5 Finishers | KXF1FP1FASTLAP: F1 Free Practice 1 Fastest Lap
   - KXF1OCCUR Will an F1 Grand Prix take place in Qatar before November 30, 2026?: Yes=None/None
   - KXF1OCCUR Will an F1 Grand Prix race take place in Abu Dhabi before December 7, 2026?: Yes=None/None
+  - KXF1FP2FASTLAP Las Vegas Grand Prix Free Practice 2: Fastest Lap: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
+  - KXF1RACE Las Vegas Grand Prix Main Race Winner: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
+  - KXF1FASTPIT Las Vegas Grand Prix Main Race: Fastest Pit Stop: Ferrari=None/None; Red Bull Racing=None/None; Cadillac=None/None; Audi=None/None; Williams=None/None; Aston Martin=None/None
   - KXF1ACTION F1 Action of the Year Award Winner: Andrea Kimi Antonelli=None/None; Max Verstappen=None/None; Nico Hulkenberg=None/None; Fernando Alonso=None/None; Lewis Hamilton=None/None; Esteban Ocon=None/None
-  - KXF1TOP10 Las Vegas Grand Prix Main Race: Top 10 Finishers: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
-  - KXF1FASTLAP Las Vegas Grand Prix Main Race: Fastest Lap: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
+  - KXF1BIGGESTMOVER Las Vegas Grand Prix Main Race: Biggest Mover: Lewis Hamilton=None/None; Max Verstappen=None/None; Valtteri Bottas=None/None; Sergio Perez=None/None; Nico Hulkenberg=None/None; Carlos Sainz Jr.=None/None
+  - KXF1EXACTFINISH 2026 F1 Championship Final Driver Standings: 4th Place Finisher: Max Verstappen=None/None; Lewis Hamilton=None/None; George Russell=None/None; Charles Leclerc=None/None; Lando Norris=None/None
+  - KXF1EXACTFINISH 2026 F1 Championship Final Driver Standings: 5th Place Finisher: Max Verstappen=None/None; Lewis Hamilton=None/None; George Russell=None/None; Charles Leclerc=None/None; Lando Norris=None/None
 ## F1 — OpenF1 giri e settori
 - ultime sessioni 2026: [(11423, 'Lusail', 'Practice 3', '2026-11-28T14:30:00+00:00'), (11424, 'Lusail', 'Qualifying', '2026-11-28T18:00:00+00:00'), (11428, 'Lusail', 'Race', '2026-11-29T16:00:00+00:00'), (11429, 'Yas Marina', 'Practice 1', '2026-12-04T09:30:00+00:00'), (11430, 'Yas Marina', 'Practice 2', '2026-12-04T13:00:00+00:00'), (11431, 'Yas Marina', 'Practice 3', '2026-12-05T10:30:00+00:00'), (11432, 'Yas Marina', 'Qualifying', '2026-12-05T14:00:00+00:00'), (11436, 'Yas Marina', 'Race', '2026-12-06T13:00:00+00:00')]
 - ✅ **OpenF1 laps São Paulo Qualifying** (391 righe) [{"meeting_key": 1299, "session_key": 11408, "driver_number": 77, "lap_number": 1, "date_start": null, "duration_sector_1": null, "duration_sector_2": 59.438, "duration_sector_3": 34.641, "i1_speed": 192, "i2_speed": 156, "is_pit_out_lap": true, "lap_duration": null, "segments_sector_1": [2064, 2064, 2064, 2064, 2064, 2064, 2051], "segments_sector_2": [2049, 2049, 2049, 2051, 2051, 2051, 2051, 2051], "segments_sector_3": [2051, 2051, 2051, 2051, 2064, 2064, 2064], "st_speed": null}]
 - ❌ **OpenF1 car_data (velocità >= 330)** (0 righe)
+## F1 — Las Vegas, Prove libere 1 (11413)
+  - 00:25:01 Other None WET TRACK
+  - 00:25:04 Other None LOW GRIP DELTA ACTIVE
+  - 00:25:06 Other None LOW GRIP CONDITIONS
+  - 00:25:09 Other None OVERTAKE DISABLED
+  - 00:30:00 SessionStatus None SESSION STARTED
+  - 00:30:00 Flag GREEN GREEN LIGHT - PIT EXIT OPEN
+  - 00:48:41 Other None TRACK SURFACE SLIPPERY IN TRACK SECTOR 18
+  - 00:48:42 Flag CLEAR CLEAR IN TRACK SECTOR 18
+  - 01:00:14 Other None TRACK SURFACE SLIPPERY IN TRACK SECTOR 20
+  - 01:00:17 Flag CLEAR CLEAR IN TRACK SECTOR 20
+  - 01:04:26 Other None CAR 23 (ALB) LAP DELETED - TRACK LIMITS AT TURN 14 LAP 2 17:03:48 (PIT)
+  - 01:06:44 Other None TRACK SURFACE SLIPPERY IN TRACK SECTOR 7
+  - 01:06:47 Flag CLEAR CLEAR IN TRACK SECTOR 7
+  - 01:08:12 Other None TRACK SURFACE SLIPPERY IN TRACK SECTOR 12
+  - 01:08:17 Flag CLEAR CLEAR IN TRACK SECTOR 12
+  - 01:17:39 Other None CAR 27 (HUL) LAP DELETED - TRACK LIMITS AT TURN 14 LAP 2 17:17:06 (PIT)
+  - 01:30:00 SessionStatus None SESSION FINISHED
+  - 01:30:00 Flag CHEQUERED CHEQUERED FLAG
+  - 01:31:17 Other None FIRST CAR TO TAKE THE FLAG - CAR 10 (GAS)
+  - 01:38:01 Flag DOUBLE YELLOW DOUBLE YELLOW IN TRACK SECTOR 10
+  - 01:38:01 Flag YELLOW YELLOW IN TRACK SECTOR 9
+  - 01:46:07 Flag DOUBLE YELLOW DOUBLE YELLOW IN TRACK SECTOR 14
+  - 01:46:11 Flag DOUBLE YELLOW DOUBLE YELLOW IN TRACK SECTOR 18
+  - 01:46:14 Flag YELLOW YELLOW IN TRACK SECTOR 17
+  - 01:46:15 Flag YELLOW YELLOW IN TRACK SECTOR 13
+- giri: 20, con tempo: 1
 ## F1 — Jolpica stagioni vecchie
 - ✅ **Jolpica 2018 qualifiche** totale 420
 - ✅ **Jolpica 2021 qualifiche** totale 439

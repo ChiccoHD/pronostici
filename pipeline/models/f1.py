@@ -188,3 +188,36 @@ def backtest(races: list[dict], seasons=(2026,)) -> dict:
     n_ent = 22
     return {"n": len(tests), "scale": best[2], "half_life": best[3], "logloss_winner": r(best[0], 3),
             "logloss_uniform": r(math.log(n_ent), 3), "brier_podium": r(best[1], 4)}
+
+
+PRACTICE_W = 0.0   # peso del passo nelle prove libere sul rating di gara: scelto da practice_test (0 = non usato)
+
+
+def practice_pace(sessions: list[list[dict]]) -> dict:
+    """Passo nelle prove del weekend, da righe {id, lap, long}: per ogni pilota lo scarto (in %) dal migliore,
+    sul giro secco e sul passo lungo, poi trasformato in punteggio standard (positivo = più veloce della media)."""
+    acc = defaultdict(list)
+    for rows in sessions:
+        laps = [r["lap"] for r in rows if r.get("lap")]
+        longs = [r["long"] for r in rows if r.get("long")]
+        b, bl = (min(laps) if laps else None), (min(longs) if longs else None)
+        for r in rows:
+            if not r.get("id"):
+                continue
+            if b and r.get("lap") and r["lap"] < b * 1.07:
+                acc[r["id"]].append((r["lap"] / b - 1) * 100)
+            if bl and r.get("long") and r["long"] < bl * 1.05:
+                acc[r["id"]].append((r["long"] / bl - 1) * 100 * 1.5)    # il passo lungo dice di più sulla gara
+    gap = {i: sum(v) / len(v) for i, v in acc.items() if v}
+    if len(gap) < 8:
+        return {}
+    m = sum(gap.values()) / len(gap)
+    sd = (sum((g - m) ** 2 for g in gap.values()) / len(gap)) ** 0.5 or 1.0
+    return {i: max(-2.5, min(2.5, -(g - m) / sd)) for i, g in gap.items()}
+
+
+def practice_adjust(R: dict, pace: dict, w: float) -> dict:
+    """Rating con il passo delle prove: race += w * 0.1 * punteggio (0.1 = circa la distanza tra due squadre vicine)."""
+    if not pace or not w:
+        return R
+    return {i: {**v, "race": v["race"] + w * 0.1 * pace.get(i, 0.0)} for i, v in R.items()}

@@ -494,8 +494,66 @@ def f1_extra_check():
         check(f"Jolpica {y} qualifiche", bool(js), f"totale {((js or {}).get('MRData') or {}).get('total')}")
 
 
+def f1_practice_test():
+    """Prova sui GP 2026: il passo delle prove libere migliora la previsione della gara? Confronta pesi diversi."""
+    import json, math
+    from .sources import jolpica, openf1
+    from .models import f1 as F
+    out("## F1 — prove libere nel pronostico (GP 2026)")
+    st = {}
+    races = []
+    for y in (2023, 2024, 2025, 2026):
+        races += [x for x in jolpica.season(y, completed=True, status=st)["races"] if x["results"]]
+    bt = json.load(open(config.CACHE / "f1" / "backtest.json")) if (config.CACHE / "f1" / "backtest.json").exists() else {}
+    scale, hl = (bt.get("result") or bt).get("scale", 8.0), (bt.get("result") or bt).get("half_life", 5.0)
+    ses = openf1.sessions(2026) or []
+    budget = [140]
+    tests = sorted([x for x in races if x["season"] == 2026], key=lambda x: x["round"])[3:]
+    data = []
+    for x in tests:
+        rd = x["date"]
+        loc = None
+        near = [s for s in ses if s.get("session_name") in ("Practice 1", "Practice 2", "Practice 3")
+                and abs((date.fromisoformat(s["date_start"][:10]) - date.fromisoformat(rd)).days) <= 4]
+        rows = []
+        code = {y.get("code"): y["id"] for y in x["results"]}
+        for s in near:
+            js = openf1.laps_summary(s["session_key"], budget, keep=True)
+            if js:
+                rows.append([{**r, "id": code.get(r.get("code"))} for r in js["rows"]])
+        pace = F.practice_pace(rows)
+        if pace:
+            data.append((x, pace))
+    out(f"- GP con le prove: {len(data)} su {len(tests)} (richieste OpenF1 rimaste {budget[0]})")
+    if len(data) < 6:
+        out("- troppo pochi GP per decidere")
+        return
+    res = {}
+    for w in (0.0, 0.15, 0.3, 0.5, 0.75, 1.0):
+        ll = br = 0.0
+        for x, pace in data:
+            R, team, dnf = F.ratings(races, (x["season"], x["round"]), half_life=hl)
+            R = F.practice_adjust(R, pace, w)
+            ent = [{"id": y["id"], "team": y["team"]} for y in x["results"]]
+            sim = F.simulate(ent, R, team, dnf, {"grid_weight": 0.55, "dnf_factor": 1.0}, scale, sims=4000, with_h2h=False)
+            win = {d["id"]: d["win"] for d in sim["drivers"]}
+            pod = {d["id"]: d["podium"] for d in sim["drivers"]}
+            ll += -math.log(max(win.get(x["results"][0]["id"], 0.001), 0.001))
+            top3 = {y["id"] for y in x["results"][:3]}
+            br += sum((pod[i] - (1 if i in top3 else 0)) ** 2 for i in pod) / len(pod)
+        res[w] = (ll / len(data), br / len(data))
+        out(f"- peso {w}: log-loss vincitore {ll / len(data):.3f}, Brier podio {br / len(data):.4f}")
+    best = min(res, key=lambda w: res[w][0] + 20 * res[w][1])
+    out(f"- **migliore: peso {best}** (senza prove: {res[0.0][0]:.3f} / {res[0.0][1]:.4f})")
+
+
 def main():
     import sys
+    if "f1pratica" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        f1_practice_test()
+        _write()
+        return
     if "f1extra" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         f1_extra_check()

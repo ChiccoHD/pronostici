@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-20", t: "Meteo della gara in vista", items: [
+    "F1: il meteo della gara (temperatura e pioggia) è nel riquadro in alto del GP; nella scheda Meteo la gara viene per prima, le sessioni già corse in fondo." ] },
   { d: "2026-11-20", t: "Giornate, classifiche e schedina della giornata", items: [
     "Classifiche: il campionato si sceglie da un pulsante con ricerca (anche per paese o sport) e gruppi; sotto restano gli ultimi visti.",
     "Nuova scheda Giornate in ogni campionato di calcio: risultati e partite in programma giornata per giornata. Per la F1 c'è il Calendario della stagione con podio e pole di ogni GP.",

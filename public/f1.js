@@ -18,6 +18,7 @@ function f1When(iso) {
   return `${d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", timeZone: TZ })}, ${d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}`;
 }
 const f1Pos = p => p == null ? `<i class="f1p dnf" title="ritirato">R</i>` : `<i class="f1p ${p === 1 ? "p1" : p <= 3 ? "p3" : p <= 10 ? "p10" : ""}">${p}</i>`;
+const f1WIcon = w => w.rain_p >= .5 ? "🌧️" : w.rain_p >= .25 ? "🌦️" : w.cloud >= 70 ? "☁️" : w.cloud >= 30 ? "⛅" : "☀️";
 const f1Next = s => (s || []).find(x => Date.parse(x.date) > Date.now() - 90 * 60e3);
 
 /* ------------------------------------------------------------------ elenco */
@@ -80,7 +81,8 @@ function f1View(d) {
     <div class="f1-title"><span class="f1flag big">${G.flag || "🏁"}</span><div><h1>${esc(G.name || d.home.name)}</h1><small>${esc(G.circuit || "")}</small></div></div>
     <div class="f1-sched">${sched}</div>
     ${fin ? f1Result(d, byId) : `<div class="f1-favs">${podium}</div>`}
-    <div class="board-foot">${d.rain != null ? `<span>🌧️ pioggia in gara ${pct(d.rain)}</span>` : ""}${d.markets?.sc != null ? `<span>🚨 safety car ${pct(d.markets.sc)}</span>` : ""}
+    <div class="board-foot">${d.weather?.Race ? `<span>${f1WIcon(d.weather.Race)} gara: ${num(d.weather.Race.temp, 0)}° · pioggia ${pct(d.weather.Race.rain_p)}</span>`
+      : d.rain != null ? `<span>🌧️ pioggia in gara ${pct(d.rain)}</span>` : ""}${d.markets?.sc != null ? `<span>🚨 safety car ${pct(d.markets.sc)}</span>` : ""}
       ${G.quali_done ? `<span>griglia già decisa</span>` : nx ? `<span>prossima: ${esc(nx.name)}</span>` : ""}</div>
   </div>`;
 
@@ -237,8 +239,12 @@ function f1View(d) {
   // Meteo
   const W = d.weather || {};
   const wIcon = w => w.rain_p >= .5 ? "🌧️" : w.rain_p >= .25 ? "🌦️" : w.cloud >= 70 ? "☁️" : w.cloud >= 30 ? "⛅" : "☀️";
-  const meteo = Object.keys(W).length ? sec("Previsioni per sessione", `<div class="f1-wx">${(G.sessions || []).filter(s => W[s.k]).map(s => { const w = W[s.k];
-      return `<div class="f1-w ${s.k === "Race" ? "race" : ""}"><span class="wi">${wIcon(w)}</span><b>${esc(s.name)}</b><small>${esc(f1When(s.date))}</small>
+  // prima la gara, in grande; le sessioni già corse in fondo e attenuate
+  const wses = (G.sessions || []).filter(s => W[s.k]);
+  const wpast = s => Date.parse(s.date) < Date.now() - 2 * 3600e3;
+  const wsorted = [...wses.filter(s => s.k === "Race"), ...wses.filter(s => s.k !== "Race" && !wpast(s)), ...wses.filter(s => s.k !== "Race" && wpast(s))];
+  const meteo = Object.keys(W).length ? sec("Previsioni per sessione", `<div class="f1-wx">${wsorted.map(s => { const w = W[s.k];
+      return `<div class="f1-w ${s.k === "Race" ? "race" : ""} ${wpast(s) ? "past" : ""}"><span class="wi">${wIcon(w)}</span><b>${esc(s.name)}${wpast(s) ? " · già corsa" : ""}</b><small>${esc(f1When(s.date))}</small>
         <span class="wt">${num(w.temp, 0)}°</span><span>pioggia <b>${pct(w.rain_p)}</b>${w.rain_mm ? ` · ${num(w.rain_mm)} mm` : ""}</span><span>vento ${num(w.wind, 0)} km/h</span></div>`; }).join("")}</div>
       <p class="note">Da Open-Meteo, aggiornate a ogni giro di dati. Con pioggia probabile il modello rende la gara più aperta.</p>`, "", "F1 meteo")
     : `<div class="empty"><b>Previsioni non ancora disponibili</b>Arrivano quando mancano meno di due settimane.</div>`;

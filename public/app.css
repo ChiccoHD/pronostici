@@ -1846,3 +1846,6 @@ html, body { overflow-anchor: none; }
 .mp-modes a { text-align: center; padding: 9px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--ink-2); text-decoration: none; }
 .mp-modes a.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
 .rs-sel { width: 100%; font: inherit; font-size: 14.5px; font-weight: 700; padding: 10px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); margin-bottom: 4px; }
+.f1-w.race { grid-column: 1 / -1; }
+.f1-w.race .wt { font-size: 30px; }
+.f1-w.past { opacity: .55; }

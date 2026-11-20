@@ -6,7 +6,8 @@ const NOVITA = [
     "Le migliori di oggi: c'è sempre una carta per ogni sport (anche tennis e F1). Se per oggi non resta niente, mostra la migliore del primo giorno in cui si gioca, con il giorno accanto all'orario.",
     "Le migliori seguono il giorno scelto nel calendario: tocchi sabato e vedi le migliori di sabato per ogni sport.",
     "La sera, se per oggi restano solo giocate deboli (sotto il 65%), la carta mostra la migliore del giorno dopo.",
-    "F1: le giocate sulla pole hanno l'orario della qualifica, così compaiono nel giorno giusto del calendario." ] },
+    "F1: le giocate sulla pole hanno l'orario della qualifica, così compaiono nel giorno giusto del calendario.",
+    "Le migliori di un giorno scelto mostrano uno sport solo se c'è una giocata forte (almeno 65%): niente più pole al 23% come \"migliore\"." ] },
   { d: "2026-11-19", t: "Foto dei piloti", items: [
     "F1: ogni pilota ha la sua foto (da Wikipedia) con il numero sul colore della scuderia, nell'elenco dei piloti, nei testa a testa e nella sua pagina." ] },
   { d: "2026-11-19", t: "F1 più ricca e il tuo profilo", items: [

@@ -503,7 +503,8 @@ function todayWidget() {
     // per ogni sport la migliore di oggi (fino al mattino dopo); se oggi non c'è più niente, la migliore del primo giorno in cui si gioca
     const bestOf = k => {
       const all = pool.filter(it => it.sport === k);
-      if (pick) return all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0];
+      // giorno scelto: la carta c'è solo se quel giorno c'è una giocata forte (es. il sabato della F1 ha solo la pole, mai sicura)
+      if (pick) { const b = all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0]; return b && b.p >= GOOD_PICK ? b : null; }
       const now = all.filter(it => tonight(it.date));
       const top = now.sort((a, b) => b.p - a.p)[0];
       if (top && top.p >= GOOD_PICK) return top;

@@ -279,7 +279,7 @@ function slipState(sl) {
   if (sl.legs.every(f => f.result === "win")) return { cls: "win", txt: "Vinta" };
   const now = Date.now();
   if (sl.legs.some(f => new Date(f.date).getTime() <= now)) return { cls: "on", txt: "In corso" };
-  return { cls: "", txt: "Da giocare" };
+  return { cls: sl.played ? "played" : "", txt: sl.played ? "Giocata" : "Da giocare" };
 }
 
 /* giocata chiusa: risultato finale e una frase chiara (presa / persa e perché) */
@@ -305,6 +305,7 @@ function closedLegHtml(f) {
   return `<span class="slip-live lvw ${f.result}"><span class="lv2"><span class="lv-min done">Finita</span>${score ? `<b class="lv-score">${esc(score)}</b>` : ""}</span><span class="lv-say ${f.result}">${esc(say)}</span></span>`;
 }
 
+let SLIP_KEEP_OPEN = null;   // schedina appena modificata: resta aperta dopo il ridisegno
 function slipCard(sl) {
   const st = slipState(sl), prod = sl.legs.reduce((a, f) => a * f.p, 1), now = Date.now();
   const won = sl.legs.filter(f => f.result === "win").length;
@@ -315,16 +316,29 @@ function slipCard(sl) {
       : new Date(f.date).getTime() <= now && now - new Date(f.date).getTime() < 4 * 864e5 ? `<span class="slip-live" data-slip-event="${esc(f.event)}" data-slip-label="${esc(f.label)}">Controllo com'è andata…</span>` : "";
     return `<div class="pk slip">${ring(f.p, f.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(f.event)}"><b>${esc(f.label)}</b><span>${esc(f.match)}, ${esc(when)}</span>${res}</a></div>`;
   };
-  return `<details class="sec saved-slip st-${st.cls}" data-slip-id="${esc(sl.id)}" ${st.cls === "on" ? "open" : ""}>
+  return `<details class="sec saved-slip st-${st.cls}" data-slip-id="${esc(sl.id)}" ${st.cls === "on" || sl.id === SLIP_KEEP_OPEN ? "open" : ""}>
     <summary><span class="ss-badge ${st.cls}">${st.txt}</span><b>${esc(sl.name)}</b>
-      <small>${sl.legs.length} giocate · ${won ? `${won} prese · ` : ""}quota equa ${odd(prod)}${quota ? ` · sul sito ${num(quota, 2)}` : ""}</small></summary>
+      <small>${sl.legs.length} giocate · ${won ? `${won} prese · ` : ""}quota equa ${odd(prod)}${quota ? ` · sul sito ${num(quota, 2)}` : ""}${sl.played && stake ? ` · puntati ${num(stake, 2)} €` : ""}</small></summary>
     ${st.cls === "on" ? `<div class="ss-chance" data-slip-chance="${esc(sl.id)}" hidden></div>` : ""}
     ${sl.legs.map(leg).join("")}
-    <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
-      <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
-    ${quota && stake ? `<p class="note">${st.cls === "win" ? `Vincita: <b>${num(quota * stake, 2)} €</b>` : st.cls === "lose" ? `Persi ${num(stake, 2)} €` : `Vincita possibile: <b>${num(quota * stake, 2)} €</b>`}. ${quota && prod ? `Il modello la stima al ${pct(prod)}, quota equa ${odd(prod)}: ${quota > 1 / prod ? "il sito paga più della quota equa." : "il sito paga meno della quota equa."}` : ""}</p>` : ""}
+    <div class="ss-play">
+      <p class="ss-play-h">${sl.played ? "✓ Hai segnato di averla giocata" : "L'app non scommette: la giochi sul tuo sito, poi qui segni quota e puntata per tenere il conto."}</p>
+      <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
+        <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
+      <p class="note ss-calc" data-ss-calc data-prod="${prod}" data-st="${st.cls}">${slipMoneyText(quota, stake, prod, st.cls)}</p>
+      ${["win", "lose"].includes(st.cls) ? "" : `<button type="button" class="btn-main ${sl.played ? "alt" : ""}" data-ss-play>${sl.played ? "Aggiorna quota e puntata" : "✓ Segna come giocata"}</button>`}
+    </div>
     <div class="ss-acts"><button type="button" class="link-btn" data-ss-replay>🔁 Rigioca</button><button type="button" class="link-btn" data-ss-share>Condividi link</button><button type="button" class="link-btn" data-ss-img>Immagine</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
   </details>`;
+}
+
+/* testo sotto quota e puntata: vincita possibile e confronto con la quota equa del modello (si aggiorna mentre scrivi) */
+function slipMoneyText(quota, stake, prod, cls) {
+  if (!quota && !stake) return "Scrivi la quota che ti dà il sito e quanto punti.";
+  const parts = [];
+  if (quota && stake) parts.push(cls === "win" ? `Vincita: <b>${num(quota * stake, 2)} €</b>.` : cls === "lose" ? `Persi ${num(stake, 2)} €.` : `Vincita possibile: <b>${num(quota * stake, 2)} €</b> (guadagno ${num(quota * stake - stake, 2)} €).`);
+  if (quota && prod) parts.push(`Il modello la stima al ${pct(prod)}, quota equa ${odd(prod)}: ${quota > 1 / prod ? "il sito paga <b>più</b> della quota equa." : "il sito paga <b>meno</b> della quota equa."}`);
+  return parts.join(" ");
 }
 
 function slipsSection() {
@@ -347,8 +361,20 @@ function wireSlips() {
     const id = card.dataset.slipId;
     const upd = fn => { const list = mySlips(); const sl = list.find(s => s.id === id); if (sl) { fn(sl, list); saveMySlips(list); } };
     const val = el => { const v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) && v > 0 ? v : null; };
-    card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); refreshSlips(); });
-    card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); refreshSlips(); });
+    const oi = card.querySelector("[data-ss-odds]"), si = card.querySelector("[data-ss-stake]"), calc = card.querySelector("[data-ss-calc]");
+    // il conto si aggiorna mentre scrivi; si salva uscendo dal campo o con il pulsante
+    const live = () => { if (calc) calc.innerHTML = slipMoneyText(oi && val(oi), si && val(si), Number(calc.dataset.prod), calc.dataset.st); };
+    oi?.addEventListener("input", live); si?.addEventListener("input", live);
+    oi?.addEventListener("change", e => upd(sl => sl.odds = val(e.target)));
+    si?.addEventListener("change", e => upd(sl => sl.stake = val(e.target)));
+    card.querySelector("[data-ss-play]")?.addEventListener("click", () => {
+      const q = oi && val(oi), s = si && val(si);
+      if (!q || !s) { toast(!q ? "Scrivi la quota che ti dà il sito (es. 3,50)" : "Scrivi quanto hai puntato (es. 5)"); (!q ? oi : si)?.focus(); return; }
+      upd(sl => { sl.odds = q; sl.stake = s; sl.played = new Date().toISOString(); });
+      SLIP_KEEP_OPEN = id;
+      toast(`Segnata come giocata: ${num(s, 2)} € a quota ${num(q, 2)}`);
+      refreshSlips();
+    });
     card.querySelector("[data-ss-replay]")?.addEventListener("click", () => replaySlip(id));
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
     card.querySelector("[data-ss-img]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlipImage(sl.legs, sl.name); });

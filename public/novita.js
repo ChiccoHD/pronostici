@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-21", t: "Segna la schedina come giocata", items: [
+    "Nelle schedine salvate (in Tu) scrivi quota e puntata del tuo sito: il conto della vincita si aggiorna mentre scrivi. Poi tocca «✓ Segna come giocata»: la schedina diventa «Giocata» e il bilancio in euro la conta quando finisce. L'app non scommette: la giocata la fai sul tuo sito." ] },
   { d: "2026-11-21", t: "Rigioca una schedina", items: [
     "In Tu, ogni schedina salvata ha «🔁 Rigioca»: scegli le giocate da rimettere nella schedina. Se la partita è già stata giocata, l'app usa la prossima partita delle stesse squadre con la stessa giocata e la probabilità aggiornata." ] },
   { d: "2026-11-20", t: "Undici miglioramenti", items: [

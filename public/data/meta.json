@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21T00:25+00:00",
+ "updated": "2026-11-21T01:49+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -281,18 +281,18 @@
    "aggiornato": "2026-11-21T00:23+00:00"
   },
   "risultati": {
-   "esiti": "1 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-21T00:25+00:00"
+   "esiti": "2 nuovi esiti, 2 calendari letti",
+   "aggiornato": "2026-11-21T01:49+00:00"
   },
   "archivio": {
-   "partite": 342,
-   "nuove": 1
+   "partite": 344,
+   "nuove": 2
   },
   "taratura": {
-   "soccer": "x0.95 su 206 partite",
+   "soccer": "x0.95 su 207 partite",
    "nba": "x1.07 su 66 partite",
-   "tennis": "x0.95 su 70 partite",
-   "partite_ritoccate": 410
+   "tennis": "x0.95 su 71 partite",
+   "partite_ritoccate": 0
   },
   "f1": {
    "gp_in_arrivo": 3,
@@ -310,7 +310,7 @@
    "mercato_22": "nessuno",
    "mercato_23": "nessuno",
    "openf1_richieste": 2,
-   "aggiornato": "2026-11-21T00:25+00:00"
+   "aggiornato": "2026-11-21T01:49+00:00"
   }
  }
 }

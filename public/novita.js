@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-21", t: "Multigol, A-League e schedina giocata più chiara", items: [
+    "Calcio: oltre al Multigol totale ci sono il Multigol della squadra di casa e di quella ospite (0-1, 1-2, 1-3, 2-3, 2-4), nella scheda (Gol), in Migliori, nella schedina della giornata e con l'esito controllato da solo.",
+    "Nuovo campionato: A-League australiana (pronostici, classifica, giornate e diretta).",
+    "Schedina giocata: in Tu diventa un riquadro con quota, puntata e vincita; «Modifica» riapre i campi. Il riquadro Schedine in home conta a parte quelle già giocate." ] },
   { d: "2026-11-21", t: "Segna la schedina come giocata", items: [
     "Nelle schedine salvate (in Tu) scrivi quota e puntata del tuo sito: il conto della vincita si aggiorna mentre scrivi. Poi tocca «✓ Segna come giocata»: la schedina diventa «Giocata» e il bilancio in euro la conta quando finisce. L'app non scommette: la giocata la fai sul tuo sito." ] },
   { d: "2026-11-21", t: "Rigioca una schedina", items: [

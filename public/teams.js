@@ -4,7 +4,7 @@
 
 const TABLE_LEAGUES = [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"],
   ["ligue-1", "Ligue 1"], ["serie-b", "Serie B"], ["championship", "Championship"], ["eredivisie", "Eredivisie"], ["super-lig", "Süper Lig"],
-  ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["nba", "NBA"]];
+  ["scozia", "Scozia"], ["belgio", "Belgio"], ["primeira-liga", "Portogallo"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["a-league", "Australia"], ["nba", "NBA"]];
 const LEAGUE_DATA = new Map();
 /* nazionali con classifica a gironi (file scritto dalla pipeline solo se la competizione è in corso) */
 const NAT_TABLE_KEYS = ["nations-league", "qual-mondiali", "qual-mondiali-sudamerica", "qual-mondiali-concacaf", "qual-mondiali-asia",
@@ -92,11 +92,11 @@ async function showStandings(key) {
 let STD_ALL = [];
 const STD_GROUPS = [["Italia", ["serie-a", "serie-b"]], ["Grandi campionati europei", ["premier-league", "la-liga", "bundesliga", "ligue-1"]],
   ["Altri campionati europei", ["championship", "eredivisie", "super-lig", "scozia", "belgio", "primeira-liga", "eliteserien"]],
-  ["Americhe e Asia", ["mls", "brasileirao", "argentina", "j1"]], ["Basket", ["nba"]], ["Motori", ["f1"]]];
+  ["Americhe, Asia e Oceania", ["mls", "brasileirao", "argentina", "j1", "a-league"]], ["Basket", ["nba"]], ["Motori", ["f1"]]];
 const STD_KW = { "serie-a": "italia calcio", "serie-b": "italia calcio cadetteria", "premier-league": "inghilterra england premier calcio", "championship": "inghilterra england calcio",
   "la-liga": "spagna liga calcio", "bundesliga": "germania calcio", "ligue-1": "francia calcio", "eredivisie": "olanda paesi bassi calcio", "super-lig": "turchia calcio",
   "scozia": "scozia premiership calcio", "belgio": "belgio pro league calcio", "primeira-liga": "portogallo calcio", "eliteserien": "norvegia calcio",
-  "mls": "usa stati uniti america calcio", "j1": "giappone j league calcio", "brasileirao": "brasile serie a calcio", "argentina": "argentina liga profesional calcio",
+  "mls": "usa stati uniti america calcio", "j1": "giappone j league calcio", "brasileirao": "brasile serie a calcio", "argentina": "argentina liga profesional calcio", "a-league": "australia a-league aleague oceania calcio",
   "nba": "basket pallacanestro usa", "f1": "formula 1 f1 motori auto piloti costruttori" };
 function standingsSheet() {
   const nameOf = k => (STD_ALL.find(([x]) => x === k) || [k, k])[1];

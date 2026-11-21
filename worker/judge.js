@@ -53,6 +53,7 @@ export function judge(label, f, ev) {
   if (L === "Goal, segnano entrambe" || L === "Goal") return yes(H > 0 && A > 0);
   if (L === "No Goal") return yes(!(H > 0 && A > 0));
   if ((m = L.match(/^Multigol (\d+)-(\d+)$/))) return yes(H + A >= +m[1] && H + A <= +m[2]);
+  if ((m = L.match(/^Multigol (.+) (\d+)-(\d+)$/))) { const s = side(m[1], ev); if (!s) return null; const g = s === "home" ? H : A; return yes(g >= +m[2] && g <= +m[3]); }
   if (L === "Pareggio") return yes(H === A);
   if (L === "Una delle due vince") return yes(H !== A);
   if (f.periods?.[0]?.length) {

@@ -25,6 +25,7 @@ SOCCER_LEAGUES = {
     "mls": {"name": "MLS", "country": "Stati Uniti", "espn": "usa.1", "kind": "fdnew", "fdnew": ("USA", "MLS"), "season": "cal"},
     "eliteserien": {"name": "Eliteserien", "country": "Norvegia", "espn": "nor.1", "kind": "fdnew", "fdnew": ("NOR", "Eliteserien"), "season": "cal"},
     "brasileirao": {"name": "Brasileirão", "country": "Brasile", "espn": "bra.1", "kind": "fdnew", "fdnew": ("BRA", "Serie A"), "season": "cal"},
+    "a-league": {"name": "A-League", "country": "Australia", "espn": "aus.1", "kind": "espn", "season": "aug"},
     "argentina": {"name": "Liga Profesional", "country": "Argentina", "espn": "arg.1", "kind": "fdnew", "fdnew": ("ARG", "Liga Profesional"), "season": "cal"},
 }
 

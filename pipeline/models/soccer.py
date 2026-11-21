@@ -120,6 +120,11 @@ def markets(lh: float, la: float, ht_share: float = 0.45) -> dict:
         "btts": r(M[1:, 1:].sum()),
         "multigol": {f"{a}-{b}": r(M[(tot >= a) & (tot <= b)].sum())
                      for a, b in ((0, 1), (1, 2), (1, 3), (2, 3), (2, 4), (3, 5), (4, 6))},
+        # multigol per squadra: gol di casa / dell'ospite in un intervallo
+        "multigol_team": {
+            "home": {f"{a}-{b}": r(M[(i >= a) & (i <= b)].sum()) for a, b in ((0, 1), (1, 2), (1, 3), (2, 3), (2, 4))},
+            "away": {f"{a}-{b}": r(M[(j >= a) & (j <= b)].sum()) for a, b in ((0, 1), (1, 2), (1, 3), (2, 3), (2, 4))},
+        },
         "team_ou": {
             "home": {f"{l}": r(M[i > l].sum()) for l in (0.5, 1.5, 2.5)},
             "away": {f"{l}": r(M[j > l].sum()) for l in (0.5, 1.5, 2.5)},

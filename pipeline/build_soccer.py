@@ -55,8 +55,44 @@ def season_info(lg: dict, today: date) -> dict:
     return {"from": date(y, 7, 1), "bt_from": date(y - 1, 8, 1), "year": y}
 
 
+def _espn_rows(events: list[dict], season: str) -> list[dict]:
+    """Partite concluse ESPN nel formato dello storico di football-data (solo gol)."""
+    out = []
+    for e in events:
+        h, a = e["home"].get("score"), e["away"].get("score")
+        if e.get("completed") and h is not None and a is not None:
+            out.append({"date": e["date"][:10], "time": e["date"][11:16], "home": e["home"]["name"],
+                        "away": e["away"]["name"], "hg": float(h), "ag": float(a), "season": season})
+    return out
+
+
+_ESPN_SEASON: dict = {}
+
+
+def _espn_history(lg: dict, si: dict, today: date, status: dict) -> list[dict]:
+    """Campionati senza football-data (es. A-League): storico dai risultati ESPN.
+    La stagione scorsa si scarica una volta sola (un giorno per richiesta) e resta in cache."""
+    y = si["from"].year
+    prev_from = date(y - 1, si["from"].month, si["from"].day)
+    path = CACHE / "soccer" / f"espn_hist_{lg['espn']}_{y - 1}.json"
+    prev = store.load(path)
+    if prev is None:
+        raw = espn.scoreboard_range("soccer", lg["espn"], prev_from, si["from"] - timedelta(days=1))
+        evs = [p for p in (espn.parse_event(ev) for ev in raw) if p]
+        prev = _espn_rows(evs, str(y - 1))
+        if len(prev) >= 50:   # salvo solo se la stagione è arrivata davvero
+            store.save(path, prev)
+    cur_events = _espn_events(lg, si["from"], today, status)
+    _ESPN_SEASON[lg["espn"]] = cur_events
+    rows = prev + _espn_rows(cur_events, str(y))
+    status["storico"] = f"ESPN, {len(prev)} partite stagione scorsa + {len(rows) - len(prev)} di questa"
+    return sorted(rows, key=lambda m: m["date"])
+
+
 def history(lg: dict, today: date, status: dict) -> list[dict]:
     si = season_info(lg, today)
+    if lg.get("kind") == "espn":
+        return _espn_history(lg, si, today, status)
     if lg.get("kind") == "fdnew":
         return _fdnew_history(lg, si["from"], status)
     return _fd_history(lg["fd"], si["year"], status)
@@ -187,7 +223,7 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
             matcher = Matcher([m["home"] for m in matches] + [m["away"] for m in matches])
             n_xg = _attach_xg(matches, lg, start_year, matcher, status)
             status["xg_partite"] = n_xg
-            events = _espn_events(lg, season_from, today, status)
+            events = _ESPN_SEASON.pop(lg["espn"], None) or _espn_events(lg, season_from, today, status)
             lines = _espn_players(lg, start_year, events, status)
 
             ratings = S.fit(matches, today)

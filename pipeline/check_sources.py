@@ -633,6 +633,8 @@ def main():
     check("football-data: prossime partite con quote", bool(fx), f"({len(fx)} righe)")
     for key, lg in SOCCER_LEAGUES.items():
         out(f"\n### {lg['name']}")
+        if not lg.get("fd"):
+            continue
         rows = footballdata.season(lg["fd"], config.fd_season_code(sy))
         has_odds = sum(1 for m in rows if m.get("o1x2"))
         has_stats = sum(1 for m in rows if m.get("hc") is not None)

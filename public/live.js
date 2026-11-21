@@ -8,7 +8,7 @@ const ESPN_SITE = "https://site.api.espn.com/apis/site/v2/sports";
 const ESPN_CODE = {
   "serie-a": "ita.1", "premier-league": "eng.1", "la-liga": "esp.1", "bundesliga": "ger.1", "ligue-1": "fra.1",
   "serie-b": "ita.2", "championship": "eng.2", "eredivisie": "ned.1", "super-lig": "tur.1", "scozia": "sco.1", "belgio": "bel.1",
-  "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1", "brasileirao": "bra.1", "argentina": "arg.1",
+  "primeira-liga": "por.1", "j1": "jpn.1", "mls": "usa.1", "eliteserien": "nor.1", "brasileirao": "bra.1", "argentina": "arg.1", "a-league": "aus.1",
   "champions": "uefa.champions", "europa-league": "uefa.europa", "conference": "uefa.europa.conf",
   "champions-femminile": "uefa.wchampions",
   "nations-league": "uefa.nations", "mondiali": "fifa.world", "europei": "uefa.euro", "qual-europei": "uefa.euroq",
@@ -219,6 +219,7 @@ function scorePred(L, info) {
   if (L === "Goal" || L === "Goal, segnano entrambe") return (h, a) => h > 0 && a > 0;
   if (L === "No Goal") return (h, a) => !(h > 0 && a > 0);
   if ((m = L.match(/^Multigol (\d+)-(\d+)$/))) return (h, a) => h + a >= +m[1] && h + a <= +m[2];
+  if ((m = L.match(/^Multigol (.+) (\d+)-(\d+)$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => { const g = s === "home" ? h : a; return g >= +m[2] && g <= +m[3]; } : null; }
   if (L === "Pareggio") return (h, a) => h === a;
   if (L === "Una delle due vince") return (h, a) => h !== a;
   if ((m = L.match(/^(\d+)-(\d+)$/))) return (h, a) => h === +m[1] && a === +m[2];
@@ -608,6 +609,12 @@ function pickStatus(label, info) {
     return R("", H === 0 && A === 0 ? "Non ha ancora segnato nessuna delle due" : `Manca il gol di ${H === 0 ? sideName("home") : sideName("away")}`);
   }
   if (L === "No Goal") return H > 0 && A > 0 ? R("lose", `Persa: hanno segnato entrambe, ${score}`) : end ? R("win", `Vinta, ${score}`) : R("ok", `Per ora va bene, ${score}`);
+  if ((m = L.match(/^Multigol (.+) (\d+)-(\d+)$/)) && sideOfText(m[1])) {
+    const side = sideOfText(m[1]), c = side === "home" ? H : A, lo = +m[2], hi = +m[3], who = sideName(side);
+    if (c > hi) return R("lose", `Persa: ${who} ha già fatto ${c} gol`);
+    if (end) return c >= lo ? R("win", `Vinta: ${who} ${c} gol`) : R("lose", `Persa: ${who} solo ${c} gol`);
+    return c >= lo ? R("ok", `Per ora va bene: ${who} ${c} gol, il massimo è ${hi}`) : P(R("", `A ${who} ${lo - c === 1 ? "manca" : "mancano"} ${lo - c} gol`), c, lo, "gol");
+  }
   if ((m = L.match(/^Multigol (\d+)-(\d+)$/))) {
     const c = H + A, lo = +m[1], hi = +m[2];
     if (c > hi) return R("lose", `Persa: già ${c} gol`);

@@ -43,6 +43,15 @@ def soccer(d):
         out.append({**base, "tag": "O/U", "cat": "Gol", "label": f"Under {line.replace('.', ',')}", "p": 1 - p, "book": bk[1] if bk else None})
     out.append({**base, "tag": "GG", "cat": "Gol", "label": "Goal, segnano entrambe", "p": m["btts"], "book": None})
     out.append({**base, "tag": "NG", "cat": "Gol", "label": "No Goal", "p": 1 - m["btts"], "book": None})
+    # multigol: totale (fasce strette) e per squadra, stesse etichette della scheda della partita
+    for k in ("1-3", "2-3", "2-4", "3-5"):
+        if k in (m.get("multigol") or {}):
+            out.append({**base, "tag": "MG", "cat": "Multigol", "label": f"Multigol {k}", "p": m["multigol"][k], "book": None})
+    for side, T in (("home", H), ("away", A)):
+        for k in ("0-1", "1-2", "1-3", "2-3"):
+            p = ((m.get("multigol_team") or {}).get(side) or {}).get(k)
+            if p is not None:
+                out.append({**base, **_team(T), "cat": "Multigol", "label": f"Multigol {T['short']} {k}", "p": p, "book": None})
     for side, T in (("home", H), ("away", A)):
         for p in (d.get("players") or {}).get(side, [])[:6]:
             out.append({**base, **_team(T), "player": p["name"], "pid": p.get("pid"), **({"photo": p["photo"]} if "photo" in p else {}), "cat": "Marcatori",
@@ -147,7 +156,7 @@ def _h2h_book(M, a, b):
     return None
 
 
-ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",
+ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Multigol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",
          "Assist", "Triple", "Punti + rimbalzi + assist", "Vincente tennis", "Game nel tennis",
          "Vincente F1", "Podio F1", "Punti F1", "Pole F1", "Testa a testa F1"]
 

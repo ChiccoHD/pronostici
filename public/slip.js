@@ -7,7 +7,7 @@ const MP = { target: Number(load("mp_target", "3")), sport: load("mp_sport", "al
 const MP_TARGETS = [1.5, 2, 3, 5, 10, 20, 50];
 /* tipi di giocata per filtrare le proposte (categorie di migliori.json) */
 const MP_KINDS = [["all", "Qualsiasi"], ["esito", "Esiti"], ["gol", "Gol e punti"], ["giocatori", "Giocatori"], ["f1", "F1"]];
-const MP_KIND_OF = { "Esito 1X2": "esito", "Doppia chance": "esito", "Vincente NBA": "esito", "Vincente tennis": "esito", "Gol": "gol", "Angoli": "gol",
+const MP_KIND_OF = { "Esito 1X2": "esito", "Doppia chance": "esito", "Vincente NBA": "esito", "Vincente tennis": "esito", "Gol": "gol", "Multigol": "gol", "Angoli": "gol",
   "Punti totali": "gol", "Game nel tennis": "gol", "Marcatori": "giocatori", "Punti": "giocatori", "Rimbalzi": "giocatori", "Assist": "giocatori", "Triple": "giocatori",
   "Punti + rimbalzi + assist": "giocatori", "Vincente F1": "f1", "Podio F1": "f1", "Punti F1": "f1", "Pole F1": "f1", "Testa a testa F1": "f1" };
 const MP_WHEN = [["1", "Oggi"], ["2", "Entro domani"], ["3", "3 giorni"], ["all", "Tutte"]];
@@ -128,7 +128,7 @@ async function showMultipla() {
 /* Scegli campionato e giornata, quante partite e che tipo di giocata: per ogni partita prende la giocata più probabile
    di quel tipo (dai file delle partite), poi tiene le partite più sicure. Le etichette sono quelle della scheda della partita,
    così l'esito si controlla da solo come per le altre giocate. */
-const RS_TYPES = [["mix", "Le più sicure"], ["1x2", "1X2"], ["dc", "Doppia chance"], ["ou", "Under/Over"], ["gg", "Goal/No Goal"], ["combo", "Combo"], ["exact", "Risultato esatto"]];
+const RS_TYPES = [["mix", "Le più sicure"], ["1x2", "1X2"], ["dc", "Doppia chance"], ["ou", "Under/Over"], ["gg", "Goal/No Goal"], ["mg", "Multigol"], ["mgt", "Multigol squadra"], ["combo", "Combo"], ["exact", "Risultato esatto"]];
 const RS = { league: load("rs_league", "serie-a"), round: null, n: Number(load("rs_n", 4)), type: load("rs_type", "mix") };
 function rsCands(d, type) {
   const m = d.markets || {}, H = d.home.short || d.home.name, A = d.away.short || d.away.name, out = [];
@@ -139,7 +139,10 @@ function rsCands(d, type) {
   if (m.btts != null) { add("gg", "Goal, segnano entrambe", m.btts); add("gg", "No Goal", 1 - m.btts); }
   for (const [k, p] of Object.entries(m.combo || {})) add("combo", k, p);
   if (m.exact?.[0]) add("exact", m.exact[0].score, m.exact[0].p);
-  return type === "mix" ? out.filter(c => c.t !== "exact") : out.filter(c => c.t === type);
+  for (const [k, p] of Object.entries(m.multigol || {})) add("mg", `Multigol ${k}`, p);
+  for (const [k, p] of Object.entries(m.multigol_team?.home || {})) add("mgt", `Multigol ${H} ${k}`, p);
+  for (const [k, p] of Object.entries(m.multigol_team?.away || {})) add("mgt", `Multigol ${A} ${k}`, p);
+  return type === "mix" ? out.filter(c => !["exact", "mg", "mgt"].includes(c.t)) : out.filter(c => c.t === type);
 }
 async function showRoundSlip() {
   $app.innerHTML = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1><p class="muted" style="padding:16px 4px">Caricamento…</p>`;
@@ -321,7 +324,8 @@ function slipCard(sl) {
       <small>${sl.legs.length} giocate · ${won ? `${won} prese · ` : ""}quota equa ${odd(prod)}${quota ? ` · sul sito ${num(quota, 2)}` : ""}${sl.played && stake ? ` · puntati ${num(stake, 2)} €` : ""}</small></summary>
     ${st.cls === "on" ? `<div class="ss-chance" data-slip-chance="${esc(sl.id)}" hidden></div>` : ""}
     ${sl.legs.map(leg).join("")}
-    <div class="ss-play">
+    ${quota && stake && (sl.played || ["win", "lose"].includes(st.cls)) ? slipTicket(quota, stake, st.cls) : ""}
+    <div class="ss-play" ${quota && stake && (sl.played || ["win", "lose"].includes(st.cls)) ? "hidden" : ""}>
       <p class="ss-play-h">${sl.played ? "✓ Hai segnato di averla giocata" : "L'app non scommette: la giochi sul tuo sito, poi qui segni quota e puntata per tenere il conto."}</p>
       <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
         <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
@@ -330,6 +334,14 @@ function slipCard(sl) {
     </div>
     <div class="ss-acts"><button type="button" class="link-btn" data-ss-replay>🔁 Rigioca</button><button type="button" class="link-btn" data-ss-share>Condividi link</button><button type="button" class="link-btn" data-ss-img>Immagine</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
   </details>`;
+}
+
+/* schedina giocata: tre numeri in riga (quota, puntata, vincita) e «Modifica» per riaprire i campi */
+function slipTicket(quota, stake, cls) {
+  const win = quota * stake;
+  const third = cls === "win" ? ["Vinti", `${num(win, 2)} €`] : cls === "lose" ? ["Persi", `${num(stake, 2)} €`] : ["Vincita", `${num(win, 2)} €`];
+  return `<div class="ss-ticket ${cls}"><span><small>Quota</small><b>${num(quota, 2)}</b></span><span><small>Puntata</small><b>${num(stake, 2)} €</b></span>
+    <span class="ss-win"><small>${third[0]}</small><b>${third[1]}</b></span>${["win", "lose"].includes(cls) ? "" : `<button type="button" class="link-btn" data-ss-edit>Modifica</button>`}</div>`;
 }
 
 /* testo sotto quota e puntata: vincita possibile e confronto con la quota equa del modello (si aggiorna mentre scrivi) */
@@ -374,6 +386,10 @@ function wireSlips() {
       SLIP_KEEP_OPEN = id;
       toast(`Segnata come giocata: ${num(s, 2)} € a quota ${num(q, 2)}`);
       refreshSlips();
+    });
+    card.querySelector("[data-ss-edit]")?.addEventListener("click", () => {
+      card.querySelector(".ss-ticket")?.remove();
+      const box = card.querySelector(".ss-play"); if (box) { box.hidden = false; oi?.focus(); }
     });
     card.querySelector("[data-ss-replay]")?.addEventListener("click", () => replaySlip(id));
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });

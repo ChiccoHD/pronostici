@@ -22,7 +22,7 @@ const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
     ["primeira-liga", "Portogallo"], ["eredivisie", "Eredivisie"], ["serie-b", "Serie B"], ["championship", "Championship"],
-    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"],
+    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["a-league", "Australia"],
     ["nations-league", "Nations League"], ["mondiali", "Mondiali"], ["europei", "Europei"], ["qual-europei", "Qual. Europei"],
     ["qual-mondiali", "Qual. Mondiali"], ["qual-mondiali-sudamerica", "Qual. Mondiali Sudamerica"], ["qual-mondiali-concacaf", "Qual. Mondiali CONCACAF"],
     ["qual-mondiali-asia", "Qual. Mondiali Asia"], ["qual-mondiali-africa", "Qual. Mondiali Africa"], ["copa-america", "Copa América"],
@@ -40,7 +40,7 @@ const LEAGUE_LOGO = {
   "qual-mondiali-concacaf": 64, "qual-mondiali-asia": 62, "qual-mondiali-africa": 63, "copa-america": 83, "coppa-africa": 76,
   "qual-coppa-africa": 76, "coppa-asia": 2243, "gold-cup": 59, "concacaf-nations": 2406, "amichevoli": 53,
 };
-const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "f1": "🏎️" };
+const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "a-league": "🇦🇺", "f1": "🏎️" };
 function leagueMark(key, sport) {
   if (LEAGUE_LOGO[key]) { const id = LEAGUE_LOGO[key];
     // la versione per il tema scuro non esiste per tutti (es. Serie B): se manca si usa quella normale
@@ -491,13 +491,16 @@ function todayWidget() {
   }
   const slips = typeof mySlips === "function" ? mySlips().filter(s => !["win", "lose"].includes(slipState(s).cls)) : [];
   if (slips.length) {
-    const on = slips.filter(s => slipState(s).cls === "on").length;
-    cards.push(`<a class="tw-card tw-slip" href="#/tu"><span class="tw-k">🎟️ Schedine</span><b>${on ? `${on} in gioco` : `${slips.length} da giocare`}</b><small>${on && slips.length > on ? `e ${slips.length - on} da giocare` : "toccala per seguirle"}</small></a>`);
+    // in corso / già giocate (segnate in Tu) / ancora da giocare: la prima che c'è va in grande, le altre sotto
+    const n = c => slips.filter(s => slipState(s).cls === c).length;
+    const parts = [[n("on"), "in gioco"], [n("played"), n("played") === 1 ? "giocata" : "giocate"], [n(""), "da giocare"]].filter(x => x[0]);
+    const [first, ...rest] = parts;
+    cards.push(`<a class="tw-card tw-slip" href="#/tu"><span class="tw-k">🎟️ Schedine</span><b>${first[0]} ${first[1]}</b><small>${rest.length ? rest.map(x => `${x[0]} ${x[1]}`).join(" · ") : "toccala per seguirle"}</small></a>`);
   }
   if (BEST) {
     // la migliore di oggi per ogni sport: la giocata più probabile, senza doppia chance e linee scontate (Over 1,5…)
     const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
-      .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true)
+      .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : it.cat !== "Multigol")
       .filter(it => it.cat !== "Punti F1" && Date.parse(it.date) > Date.now());
     const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"], ["f1", "🏎️", "F1", "#e10600"]];
     // giorno scelto nel calendario: le migliori di quel giorno, con gli stessi orari dell'elenco sotto
@@ -1064,6 +1067,8 @@ function soccerView(d) {
     + sec("Under / Over", rows(m.ou, { label: k => `Over ${line(k)}`, book: ouBook }))
     + sec("Goal / No Goal", rows({ "Goal, segnano entrambe": m.btts, "No Goal": 1 - m.btts }))
     + sec("Multigol", rows(m.multigol, { label: k => `Multigol ${k}` }))
+    + (m.multigol_team ? sec(`Multigol ${esc(H.short)} (casa)`, rows(m.multigol_team.home, { label: k => `Multigol ${H.short} ${k}` }), "", "Multigol casa")
+      + sec(`Multigol ${esc(A.short)} (ospite)`, rows(m.multigol_team.away, { label: k => `Multigol ${A.short} ${k}` }), "", "Multigol ospite") : "")
     + sec(`Gol di ${esc(H.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.home).map(([k, v]) => [`${H.short} over ${line(k)}`, v])), [`${H.short} porta inviolata`]: m.clean_sheet[0] }), "", "Gol squadra di casa")
     + sec(`Gol di ${esc(A.short)}`, rows({ ...Object.fromEntries(Object.entries(m.team_ou.away).map(([k, v]) => [`${A.short} over ${line(k)}`, v])), [`${A.short} porta inviolata`]: m.clean_sheet[1] }), "", "Gol squadra ospite")
     + (d.corners ? sec("Calci d'angolo", rows(d.corners.ou, { label: k => `Over ${line(k)} angoli` }), `attesi ${num(d.corners.exp[2])}`) : "")
@@ -1534,7 +1539,7 @@ async function showBest() {
   if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
   // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance
   if (cats.length) {
-    const main = it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : true;
+    const main = it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : it.cat !== "Multigol";
     const sorted = cats.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name }))).filter(main)
       .sort((a, b) => b.p - a.p);
     const high = sorted.filter(it => it.p >= HIGH);

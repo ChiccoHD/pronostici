@@ -1,6 +1,15 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-21", t: "Sfida il modello, grafici in diretta e altre novità", items: [
+    "⚔️ Sfida il modello: nella scheda della partita scegli il tuo 1X2 prima del via. In Tu c'è la classifica «Tu contro il modello», anche campionato per campionato.",
+    "📈 Probabilità minuto per minuto: nella scheda in diretta (e a fine partita) un grafico mostra come cambiano 1, X e 2 a ogni gol; nel basket azione per azione, nel tennis game per game.",
+    "🔥 Momento della partita (calcio): chi sta spingendo, con tiri, angoli e gol a blocchi di 5 minuti dalla cronaca ESPN.",
+    "🔴 Numero sull'icona dell'app: partite seguite in corso e schedine in gioco (Android e iPhone con l'app nella schermata Home).",
+    "📅 La tua settimana in Tu: giocate prese, schedine, bilancio in euro e sfide, con immagine da condividere.",
+    "🎲 Simulatore nella Schedina: «su 100 volte passa X», la giocata più a rischio e il cambio che rende la schedina più sicura (con il pulsante Cambia).",
+    "⛅ Meteo all'ora della partita nella scheda del calcio (solo informazione, non cambia le percentuali).",
+    "🗓️ Calendario completo delle tue squadre (da Tu) e, con le notifiche attive, promemoria alle 8:30 nel giorno della partita." ] },
   { d: "2026-11-21", t: "Risultati in diretta nell'elenco", items: [
     "Nell'elenco delle partite, quelle in corso mostrano il bollino rosso «Live» lampeggiante, il minuto (o quarto, o set) e il punteggio, aggiornati ogni pochi secondi per calcio, basket e tennis. A fine partita passano da sole a «Finale». Un lampo sul punteggio segnala il gol appena arrivato. In F1 la sessione o la gara in corso ha il bollino «Live»." ] },
   { d: "2026-11-21", t: "Multigol, A-League e schedina giocata più chiara", items: [

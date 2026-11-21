@@ -101,7 +101,7 @@ def _gen_soccer():
                                        "status": "FT" if played else "Programmata",
                                        "home": {"id": str(100 + h), "name": ESPN_NAMES.get(teams[h], teams[h]), "short": teams[h], "abbr": teams[h][:3].upper(), "score": None, "color": "#%06x" % random.randint(0x202020, 0xd0d0d0), "alt": "#ffffff"},
                                        "away": {"id": str(100 + a), "name": ESPN_NAMES.get(teams[a], teams[a]), "short": teams[a], "abbr": teams[a][:3].upper(), "score": None, "color": "#%06x" % random.randint(0x202020, 0xd0d0d0), "alt": "#ffffff"},
-                                       "season_type": 1, "venue": f"Stadio {teams[h]}"})
+                                       "season_type": 1, "venue": f"Stadio {teams[h]}", "city": teams[h].split()[0], "country": lg["country"]})
                     if not played:
                         continue
                     hg, ag = int(rng.poisson(lh)), int(rng.poisson(la))
@@ -538,6 +538,10 @@ def _install_f1_fakes():
                 "precipitation": [round(rnd.random() * (1.5 if lat > 50 else 0.1), 1) for _ in times],
                 "wind_speed_10m": [round(5 + 15 * rnd.random(), 1) for _ in times], "cloud_cover": [int(100 * rnd.random()) for _ in times]}
     openmeteo.forecast = fc
+    def geo(name):
+        rnd = random.Random(name)
+        return [{"name": name, "country": None, "cc": None, "admin1": None, "lat": 40 + 15 * rnd.random(), "lon": -5 + 20 * rnd.random(), "pop": 1000}]
+    openmeteo.geocode = geo
 
 
 def _install_fakes():

@@ -99,6 +99,8 @@ def parse_event(ev: dict) -> dict | None:
             "away": teams["away"],
             "season_type": (ev.get("season") or {}).get("type"),
             "venue": (comp.get("venue") or {}).get("fullName"),
+            "city": ((comp.get("venue") or {}).get("address") or {}).get("city"),
+            "country": ((comp.get("venue") or {}).get("address") or {}).get("country"),
             "neutral": bool(comp.get("neutralSite")),
         }
         odds = (comp.get("odds") or [None])[0]

@@ -547,8 +547,121 @@ def f1_practice_test():
     out(f"- **migliore: peso {best}** (senza prove: {res[0.0][0]:.3f} / {res[0.0][1]:.4f})")
 
 
+def momentum_check():
+    """Formato di cronaca ESPN (calcio) e azioni (NBA): servono al grafico della probabilità e al momento della partita."""
+    out(f"# Verifica cronaca ESPN — {date.today().isoformat()}\n")
+    for lg in ("eng.1", "ita.1", "esp.1"):
+        evs = []
+        for back in range(0, 6):
+            evs = [e for e in (espn.scoreboard_day("soccer", lg, date.today() - timedelta(days=back)) or [])
+                   if (e.get("status") or {}).get("type", {}).get("completed")]
+            if evs:
+                break
+        if not evs:
+            check(f"{lg}: partita finita recente", False)
+            continue
+        ev = evs[0]
+        s = espn.summary("soccer", lg, ev["id"]) or {}
+        com = s.get("commentary") or []
+        check(f"{lg}: cronaca ({ev.get('name')})", bool(com), f"({len(com)} righe)")
+        for c in com[:: max(1, len(com) // 12)][:14]:
+            out(f"  - `{(c.get('time') or {}).get('displayValue')}` {str(c.get('text'))[:110]}")
+        kinds = {}
+        for c in com:
+            k = str(c.get("text", "")).split(".")[0].split(",")[0][:25]
+            kinds[k] = kinds.get(k, 0) + 1
+        out("  - inizi più frequenti: " + ", ".join(f"{k} ({v})" for k, v in sorted(kinds.items(), key=lambda x: -x[1])[:14]))
+        ke = [((k.get("type") or {}).get("type"), (k.get("team") or {}).get("displayName"), (k.get("clock") or {}).get("displayValue")) for k in s.get("keyEvents") or []]
+        out("  - keyEvents: " + "; ".join(f"{t} {tm} {c}" for t, tm, c in ke if t and ("goal" in t or "own" in t))[:600])
+    for back in range(0, 4):
+        evs = [e for e in (espn.scoreboard_day("basketball", "nba", date.today() - timedelta(days=back)) or [])
+               if (e.get("status") or {}).get("type", {}).get("completed")]
+        if evs:
+            s = espn.summary("basketball", "nba", evs[0]["id"]) or {}
+            pl = s.get("plays") or []
+            check("NBA: azioni con punteggio", bool(pl), f"({len(pl)} azioni)")
+            for p in pl[:: max(1, len(pl) // 6)][:7]:
+                out(f"  - q{(p.get('period') or {}).get('number')} {(p.get('clock') or {}).get('displayValue')} {p.get('homeScore')}-{p.get('awayScore')} {str(p.get('text'))[:60]}")
+            break
+
+
+def weather_test():
+    """Il meteo cambia i gol? Partite di questa stagione: pioggia (≥1 mm nelle due ore) e vento (≥30 km/h)
+    contro asciutto, gol rispetto alla media del campionato. Città dello stadio da ESPN, meteo passato da Open-Meteo."""
+    import json
+    from . import weather
+    from .sources import openmeteo
+    weather.MAX_GEO = 400
+    out(f"# Verifica meteo e gol — {date.today().isoformat()}\n")
+    rows = []
+    for key, lg in SOCCER_LEAGUES.items():
+        files = sorted((config.CACHE / "soccer").glob(f"espn_events_{lg['espn']}_*.json"))
+        if not files:
+            continue
+        evs = json.loads(files[-1].read_text())
+        city = {}
+        for e in evs:
+            if e.get("city"):
+                city[e["home"]["id"]] = (e["city"], e.get("country"))
+        done = [e for e in evs if e.get("completed") and e["home"].get("score") is not None and e["home"]["id"] in city and not e.get("neutral")]
+        if not done:
+            out(f"- {lg['name']}: nessuna partita con città dello stadio")
+            continue
+        mean = sum(e["home"]["score"] + e["away"]["score"] for e in done) / len(done)
+        for e in done:
+            rows.append({"lg": key, "c": city[e["home"]["id"]], "date": e["date"], "g": e["home"]["score"] + e["away"]["score"] - mean})
+        out(f"- {lg['name']}: {len(done)} partite, {len(set(city.values()))} città, media {mean:.2f} gol")
+    by_city = {}
+    for r in rows:
+        by_city.setdefault(r["c"], []).append(r)
+    wet, dry, windy, calm = [], [], [], []
+    for (c, country), rs in by_city.items():
+        p = weather.place(c, country)
+        if not p:
+            continue
+        start = min(r["date"][:10] for r in rs)
+        end = min(max(r["date"][:10] for r in rs), (date.today() - timedelta(days=2)).isoformat())
+        h = openmeteo.history(p["lat"], p["lon"], start, end)
+        if not h:
+            continue
+        idx = {t: i for i, t in enumerate(h["time"])}
+        for r in rs:
+            k = r["date"][:13] + ":00"
+            i = idx.get(k)
+            if i is None:
+                continue
+            mm = sum(x or 0 for x in h["precipitation"][i:i + 2])
+            wind = max((x or 0) for x in h["wind_speed_10m"][i:i + 2])
+            (wet if mm >= 1 else dry).append(r["g"])
+            (windy if wind >= 30 else calm).append(r["g"])
+    weather.save()
+
+    def comp(name, a, b):
+        if len(a) < 10 or len(b) < 10:
+            out(f"- {name}: troppo poche partite ({len(a)} contro {len(b)})")
+            return
+        ma, mb = sum(a) / len(a), sum(b) / len(b)
+        va = sum((x - ma) ** 2 for x in a) / (len(a) - 1)
+        vb = sum((x - mb) ** 2 for x in b) / (len(b) - 1)
+        se = (va / len(a) + vb / len(b)) ** 0.5
+        out(f"- **{name}**: {len(a)} partite contro {len(b)}; differenza {ma - mb:+.2f} gol a partita (errore ±{se:.2f}, "
+            f"{'significativa' if abs(ma - mb) > 2 * se else 'non significativa'})")
+    comp("Pioggia (≥1 mm) contro asciutto", wet, dry)
+    comp("Vento forte (≥30 km/h) contro calmo", windy, calm)
+
+
 def main():
     import sys
+    if "momento" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        momentum_check()
+        _write()
+        return
+    if "meteo" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        weather_test()
+        _write()
+        return
     if "f1pratica" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         f1_practice_test()

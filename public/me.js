@@ -9,6 +9,7 @@ function showMe() {
   const openSlips = slips.filter(s => !["win", "lose"].includes(st(s))), won = slips.filter(s => st(s) === "win"), lost = slips.filter(s => st(s) === "lose");
   const closed = meClosed();
   let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips) + meBadges(closed, slips, teams);
+  if (typeof weekSection === "function") html += weekSection();
 
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));
@@ -26,6 +27,7 @@ function showMe() {
           <b>${esc(t.short || t.name)}</b><small>${n ? `${esc(fmtDay(n.date).rel || fmtShort(n.date))} ${esc(fmtTime(n.date, n.time_valid))}<br>${esc(opp)}` : "nessuna partita a breve"}</small></a>
           <button type="button" class="me-x" data-unfollow="${i}" aria-label="Smetti di seguire ${esc(t.name)}">×</button></div>`;
       }).join("")}</div>
+      <a class="std-link" href="#/calendario"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendario completo delle tue squadre<span>›</span></a>
       <h3 class="lb-h3">Prossime partite</h3>${evs.length ? evs.slice(0, 8).map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna loro partita nei prossimi giorni.</p>`}`
     : `<p class="note">Non segui ancora nessuna squadra. Apri la pagina di una squadra (dalle <a href="#/classifiche">Classifiche</a> o toccandone il nome in una partita) o di un tennista e tocca <b>Segui</b>: qui troverai le loro prossime partite.</p>`,
     teams.length ? `${teams.length}` : "", "Tu squadre");
@@ -34,6 +36,7 @@ function showMe() {
   html += slips.length ? slipsSection() : sec("Le mie schedine", `<p class="note">Componi una schedina nella pagina Schedina e tocca <b>Salva come schedina</b>: la ritrovi qui, e l'app segna da sola se è vinta o persa.</p>
     <a class="btn-main" href="#/schedina" style="text-decoration:none">Vai alla schedina</a>`, "", "Tu schedine");
   html += playedHtml();
+  if (typeof duelSection === "function") html += duelSection();
 
   // dati sul telefono
   const bAt = load("backup_at", ""), bDays = bAt ? Math.floor((Date.now() - Date.parse(bAt)) / 864e5) : null;
@@ -56,6 +59,7 @@ function showMe() {
     }
   } catch { /* niente */ }
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
+  if (typeof wireWeek === "function") wireWeek();
 
   document.getElementById("me-name")?.addEventListener("click", avatarSheet);
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });

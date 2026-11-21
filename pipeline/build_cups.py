@@ -13,7 +13,7 @@ from .names import Matcher
 from .sources import espn, footballdata
 from .models import soccer as S
 from .build_soccer import _fd_history, espn_book, PLAYER_BASE
-from . import photos, trends
+from . import photos, trends, weather
 
 log = logging.getLogger("cups")
 
@@ -165,12 +165,14 @@ def build_men(today: date):
         n = 0
         for e in _upcoming(cup_events[key], today, config.DAYS_AHEAD["cups"]):
             d = _detail(key, cup["name"], e, nm(e["home"]), nm(e["away"]), matches, ratings, bt, share, "men")
+            weather.attach([d], {e["id"]: e}, today)
             store.save(PUBLIC_DATA / "events" / f"{d['id']}.json", d)
             index.append(_index_entry(d))
             n += 1
         status[f"in_arrivo_{key}"] = n
     if unmatched:
         status["squadre_senza_campionato"] = sorted(unmatched)
+    weather.save()
     return index, reliability, status
 
 

@@ -2,7 +2,7 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from . import config, photos, store, trends
+from . import config, photos, store, trends, weather
 from .config import CACHE, SOCCER_LEAGUES, PUBLIC_DATA
 from .names import Matcher
 from .sources import espn, footballdata, understat
@@ -266,6 +266,9 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
                 photos.attach_many(details, today, foto)
             except Exception:
                 log.exception("Foto %s", key)
+            nw = weather.attach(details, {e["id"]: e for e in events}, today)
+            if nw:
+                status["meteo"] = f"{nw} partite"
             for detail in details:
                 store.save(PUBLIC_DATA / "events" / f"{detail['id']}.json", detail)
                 index.append(_index_entry(detail))
@@ -283,6 +286,7 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
         except Exception as ex:  # un campionato che fallisce non blocca gli altri
             log.exception("Errore %s", key)
             status_all[key] = {**status, "errore": f"{type(ex).__name__}: {ex}"}
+    weather.save()
     return index, reliability, status_all
 
 

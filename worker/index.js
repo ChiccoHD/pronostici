@@ -53,6 +53,13 @@ async function notifiche(env) {
   // alle 9 (ora italiana): le migliori giocate del giorno, a chi le ha chieste
   const rome = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const part = t => rome.find(p => p.type === t)?.value;
+  // alle 8:30: promemoria per le squadre seguite che giocano oggi
+  if (part("hour") === "08" && part("minute") === "30") {
+    const day = `${part("year")}-${part("month")}-${part("day")}`;
+    const today = (idx.events || []).filter(e => !e.final && e.sport !== "f1" && new Date(e.date).toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }) === day && new Date(e.date) > new Date())
+      .map(e => ({ id: e.id, date: e.date, home: e.home, away: e.away, main: e.main, league_name: e.league_name }));
+    await pushObject(env).fetch("https://push/api/push/matchday", { method: "POST", body: JSON.stringify({ events: today, day }) });
+  }
   if (part("hour") === "09" && part("minute") === "00") {
     const day = `${part("year")}-${part("month")}-${part("day")}`;
     const m = await env.ASSETS.fetch(new Request("https://assets.local/data/migliori.json")).then(r => r.ok ? r.json() : {}).catch(() => ({}));
@@ -68,7 +75,7 @@ export default {
   // Il sito resta fatto di soli file statici: qui arriva solo ciò che non esiste in public/.
   fetch(request, env) {
     const url = new URL(request.url);
-    if ((url.pathname.startsWith("/api/push/") && !/\/(tick|daily)$/.test(url.pathname)) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
+    if ((url.pathname.startsWith("/api/push/") && !/\/(tick|daily|matchday)$/.test(url.pathname)) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
     return env.ASSETS.fetch(request);
   },
   scheduled(event, env, ctx) {

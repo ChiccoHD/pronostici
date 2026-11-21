@@ -344,6 +344,9 @@ async function eventInfo(tg) {
     const c = s.header.competitions[0].competitors.find(x => x.homeAway === side);
     return (c?.linescores || []).map(x => statNum(x.displayValue ?? x.value));
   });
+  // per il grafico della probabilità (NBA: punteggio azione per azione) e per il momento della partita (calcio: cronaca)
+  if (tg.sport === "nba") info.allPlays = (s.plays || []).filter(p => p.homeScore != null).map(p => [p.period?.number || 1, clockSec(p.clock?.displayValue), +p.homeScore, +p.awayScore]);
+  if (tg.sport === "soccer") info.comm = (s.commentary || []).map(c => ({ m: commMin(c.time?.displayValue), t: String(c.text || "") })).filter(c => c.m != null && c.t);
   if (tg.sport === "nba") info.plays = (s.plays || []).slice(-15).reverse().map(p => ({
     text: p.text || p.shortDescription || "", q: p.period?.number || 0, clock: p.clock?.displayValue || "",
     score: `${p.homeScore ?? ""}-${p.awayScore ?? ""}`, scoring: !!p.scoringPlay,
@@ -473,6 +476,8 @@ function tennisLogHtml(id, info) {
   const n = Math.max(info.sets[0].length, sets.length);
   if (!n) return `<p class="note" style="margin:0">La cronaca comincia con il primo game.</p>`;
   const cur = info.state === "in" ? n - 1 : -1;
+  let chart = "";
+  try { chart = probTennis(id, info); } catch { /* niente */ }
   const blocks = [];
   for (let k = n - 1; k >= 0; k--) {
     const s = sets[k] || { games: [], pre: null };
@@ -488,7 +493,7 @@ function tennisLogHtml(id, info) {
     ].join("");
     blocks.push(`<div class="tl-set ${k === cur ? "cur" : ""}"><div class="tl-h">${head}</div><div class="tl-games">${pills || `<span class="faint">nessun game registrato</span>`}</div></div>`);
   }
-  return `<div class="tl-key"><span class="tg p0">${names[0]}</span><span class="tg p1">${names[1]}</span><span class="faint">punteggio del set dopo ogni game, colorato per chi l'ha vinto</span></div>${blocks.join("")}`;
+  return `<div class="tl-key"><span class="tg p0">${names[0]}</span><span class="tg p1">${names[1]}</span><span class="faint">punteggio del set dopo ogni game, colorato per chi l'ha vinto</span></div>${blocks.join("")}${chart}`;
 }
 /* pulizia delle cronache vecchie */
 try { for (const k of Object.keys(localStorage)) if (k.startsWith("p_tl_")) { const v = JSON.parse(localStorage.getItem(k)); if (!v?.ts || Date.now() - v.ts > 2 * 864e5) localStorage.removeItem(k); } } catch { /* niente */ }
@@ -892,6 +897,126 @@ function nbaPlays(info) {
   return sec("Ultime azioni", `<div class="rows plays">${top.map(row).join("")}</div>${rest.length ? `<details class="more"><summary>Altre ${rest.length}</summary><div class="rows plays">${rest.map(row).join("")}</div></details>` : ""}
     <p class="note">Descrizioni in inglese, come le scrive ESPN. Il punteggio è casa-ospite.</p>`, "le più recenti in alto", "Azioni live");
 }
+/* ------------------------------------------------------------------ grafico della probabilità e momento della partita */
+const clockSec = v => { const s = String(v || ""); if (s.includes(":")) { const [m, x] = s.split(":"); return +m * 60 + parseFloat(x); } const f = parseFloat(s); return isNaN(f) ? 0 : f; };
+const commMin = v => { const m = String(v || "").match(/(\d+)'?(?:\s*\+\s*(\d+))?/); return m ? +m[1] + (+m[2] || 0) : null; };
+/* aree impilate: per ogni punto le probabilità (somma 1) dal basso: casa, [pareggio], ospite */
+function probChart(pts, { colors, marks = [], end, ticks = [], names }) {
+  if (pts.length < 2) return "";
+  const W = 340, H = 130, X = x => (x / end) * W, Y = v => H - v * H;
+  const k = pts[0].p.length, layers = [];
+  for (let i = 0; i < k; i++) {
+    const lo = pts.map(q => q.p.slice(0, i).reduce((a, b) => a + b, 0)), hi = lo.map((v, j) => v + pts[j].p[i]);
+    const top = pts.map((q, j) => `${X(q.x).toFixed(1)},${Y(hi[j]).toFixed(1)}`).join(" ");
+    const bot = pts.map((q, j) => `${X(q.x).toFixed(1)},${Y(lo[j]).toFixed(1)}`).reverse().join(" ");
+    layers.push(`<polygon points="${top} ${bot}" fill="${colors[i]}" opacity="${i === 1 && k === 3 ? .35 : .8}"/>`);
+  }
+  const last = pts[pts.length - 1].p;
+  const mk = marks.map(m => `<line x1="${X(m.x)}" x2="${X(m.x)}" y1="0" y2="${H}" class="pc-mk"/><text x="${Math.min(W - 6, Math.max(6, X(m.x)))}" y="${m.side === "away" ? H - 4 : 11}" class="pc-mt">${esc(m.t)}</text>`).join("");
+  const tk = ticks.map(t => `<text x="${Math.min(W - 10, Math.max(8, X(t.x)))}" y="${H + 13}" class="pc-tk">${esc(t.t)}</text>`).join("");
+  return `<div class="pchart"><svg viewBox="0 -2 ${W} ${H + 18}" preserveAspectRatio="none" role="img" aria-label="Probabilità nel corso della partita">${layers.join("")}
+    <line x1="0" x2="${W}" y1="${H / 2}" y2="${H / 2}" class="pc-mid"/>${mk}${tk}</svg>
+    <div class="pc-leg">${names.map((n, i) => `<span><i style="background:${colors[i]}"></i>${esc(n)} <b>${pct(last[i])}</b></span>`).join("")}</div></div>`;
+}
+/* gol nel tempo (con il controllo sul risultato: l'autogol ESPN può essere attribuito a una delle due squadre) */
+function soccerGoals(info) {
+  const ev = (info.events || []).map(e => ({ ...e, k: evKind(e.type), m: commMin(e.clock) })).filter(e => ["goal", "pen", "own"].includes(e.k) && e.m != null && e.side);
+  const flip = s => s === "home" ? "away" : "home";
+  for (const ownFlip of [false, true]) {
+    const g = ev.map(e => ({ m: e.m, side: e.k === "own" && ownFlip ? flip(e.side) : e.side, who: (e.who || [])[0] || "" }));
+    const h = g.filter(x => x.side === "home").length, a = g.filter(x => x.side === "away").length;
+    if (h === info.H && a === info.A) return g.sort((x, y) => x.m - y.m);
+  }
+  return null;
+}
+function probSoccer(info, d) {
+  const goals = soccerGoals(info);
+  if (!goals) return "";
+  const now = info.state === "in" ? Math.max(1, minuteOf(info)) : Math.max(90, ...goals.map(g => g.m));
+  const xg = d.markets?.xg, pts = [];
+  for (let m = 0; m <= now; m++) {
+    const h = goals.filter(g => g.m <= m && g.side === "home").length, a = goals.filter(g => g.m <= m && g.side === "away").length;
+    pts.push({ x: m, p: m === 0 && d.markets?.["1x2"] ? d.markets["1x2"] : soccerLive(xg, h, a, m).win });
+  }
+  if (info.state === "post") { const r = info.H > info.A ? [1, 0, 0] : info.H < info.A ? [0, 0, 1] : [0, 1, 0]; pts.push({ x: now + 0.01, p: r }); }
+  const [cH, cA] = teamColors(d.home, d.away);
+  return sec("Probabilità minuto per minuto", probChart(pts, { colors: [cH, "var(--ink-3)", cA], end: Math.max(90, now), names: [d.home.short || d.home.name, "Pareggio", d.away.short || d.away.name],
+    marks: goals.map(g => ({ x: g.m, side: g.side, t: `⚽${g.m}'` })), ticks: [{ x: 0, t: "0'" }, { x: 45, t: "45'" }, { x: 90, t: "90'" }] })
+    + `<p class="note">Come cambiano 1, X e 2 secondo il modello: si parte dalle percentuali di prima del via e ogni gol sposta tutto. Stima, non certezza.</p>`, info.state === "in" ? "in diretta" : "finita", "Grafico probabilità");
+}
+function probNba(info, d) {
+  const P = info.allPlays || [];
+  if (P.length < 5) return "";
+  const ix = INDEX?.events.find(e => e.id === d.id);
+  const exp = ix?.exp_score ? ix.exp_score[0] - ix.exp_score[1] : 0;
+  const el = ([q, c]) => q <= 4 ? (q - 1) * 12 + (12 - c / 60) : 48 + (q - 5) * 5 + (5 - c / 60);
+  const pts = [{ x: 0, p: ix?.main ? [ix.main[0], ix.main[1]] : [.5, .5] }];
+  let lastX = -1;
+  for (const p of P) {
+    const x = el(p); if (x - lastX < 0.4 && x < 47.9) continue; lastX = x;
+    const rem = Math.max(0, 48 - x), frac = Math.max(rem / 48, 0.002);
+    const z = ((p[2] - p[3]) + exp * frac) / (13 * Math.sqrt(frac));
+    const ph = rem <= 0 && x >= 48 ? (p[2] > p[3] ? 1 : p[2] < p[3] ? 0 : .5) : normCdf(z);
+    pts.push({ x, p: [ph, 1 - ph] });
+  }
+  const [cH, cA] = teamColors(d.home, d.away), end = Math.max(48, lastX);
+  return sec("Probabilità azione per azione", probChart(pts, { colors: [cH, cA], end, names: [d.home.short || d.home.name, d.away.short || d.away.name],
+    ticks: [{ x: 0, t: "1° q." }, { x: 12, t: "2°" }, { x: 24, t: "3°" }, { x: 36, t: "4°" }] })
+    + `<p class="note">Chi vince secondo il modello, dal punteggio e dal tempo che resta. Stima, non certezza.</p>`, info.state === "in" ? "in diretta" : "finita", "Grafico probabilità");
+}
+function probTennis(id, info) {
+  const ix = INDEX?.events.find(e => e.id === id), log = TL_CACHE[id]?.log || [];
+  if (!ix?.main || !log.length) return "";
+  const bo = ix.bo || 3, [pa, pb] = tennisServe(ix.main[0], ix.league || "atp", bo);
+  const sets = tennisSets(log, info), pts = [{ x: 0, p: [ix.main[0], ix.main[1]] }];
+  let sa = 0, sb = 0, n = 0;
+  const marks = [];
+  sets.forEach((s, k) => {
+    const games = s.pre ? [{ g: s.pre }, ...s.games] : s.games;
+    for (const g of games) { n++; const p = tMatchWin(pa, pb, bo, sa, sb, g.g[0], g.g[1]); pts.push({ x: n, p: [p, 1 - p] }); }
+    const fin = games.length ? games[games.length - 1].g : null;
+    const doneSet = fin && (Math.max(...fin) >= 6 && Math.abs(fin[0] - fin[1]) >= 2 || Math.max(...fin) === 7);
+    if (doneSet) { fin[0] > fin[1] ? sa++ : sb++; marks.push({ x: n, t: `${k + 1}° set`, side: fin[0] > fin[1] ? "home" : "away" }); }
+  });
+  if (pts.length < 3) return "";
+  return `<h3 class="lb-h3">Probabilità game per game</h3>` + probChart(pts, { colors: ["#16a34a", "#2563eb"], end: n, names: [lastName(info.home.name), lastName(info.away.name)], marks });
+}
+/* momento della partita (calcio): tiri, angoli e gol dalla cronaca ESPN, a blocchi di 5 minuti */
+function momentum(info, d) {
+  const C = info.comm || [];
+  if (C.length < 8) return "";
+  const W = { shot: 1, on: 1.5, goal: 2.5, corner: 0.6 };
+  const hits = [];
+  for (const c of C) {
+    let kind = null, team = null;
+    if (/^Goal!/i.test(c.t)) kind = "goal";
+    else if (/^Attempt saved/i.test(c.t)) kind = "on";
+    else if (/^Attempt (missed|blocked)|hits the (bar|post|crossbar)/i.test(c.t)) kind = "shot";
+    else if (/^Corner,/i.test(c.t)) { kind = "corner"; team = (c.t.match(/^Corner,\s+([^.]+)\./) || [])[1]; }
+    if (!kind) continue;
+    if (!team) team = [...c.t.matchAll(/\(([^)]+)\)/g)].map(x => x[1]).find(x => sideIn(info, x));
+    const side = team && sideIn(info, team);
+    if (side) hits.push({ m: c.m, side, kind });
+  }
+  if (hits.length < 4) return "";
+  const now = info.state === "in" ? minuteOf(info) : Math.max(90, ...hits.map(h => h.m));
+  const nb = Math.ceil(Math.max(90, now) / 5), B = Array.from({ length: nb }, () => [0, 0]);
+  for (const h of hits) { const b = Math.min(nb - 1, Math.floor(Math.max(0, h.m - 1) / 5)); B[b][h.side === "home" ? 0 : 1] += W[h.kind]; }
+  const mx = Math.max(2, ...B.flat()), Wd = 340, Hh = 46, bw = Wd / nb;
+  const [cH, cA] = teamColors(d.home, d.away);
+  const bars = B.map(([h, a], i) => `<rect x="${(i * bw + 1).toFixed(1)}" y="${(Hh - Hh * h / mx).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${(Hh * h / mx).toFixed(1)}" fill="${cH}" rx="1.5"/>
+    <rect x="${(i * bw + 1).toFixed(1)}" y="${Hh + 2}" width="${(bw - 2).toFixed(1)}" height="${(Hh * a / mx).toFixed(1)}" fill="${cA}" rx="1.5"/>`).join("");
+  const goals = hits.filter(h => h.kind === "goal").map(h => `<text x="${Math.min(Wd - 6, ((h.m - 0.5) / (nb * 5)) * Wd)}" y="${h.side === "home" ? 9 : 2 * Hh}" class="pc-mt">⚽</text>`).join("");
+  const last = hits.filter(h => h.m > now - 10), cnt = (s, k) => last.filter(h => h.side === s && (k ? k.includes(h.kind) : true)).length;
+  const sH = last.filter(h => h.side === "home").reduce((a, h) => a + W[h.kind], 0), sA = last.filter(h => h.side === "away").reduce((a, h) => a + W[h.kind], 0);
+  const who = sH > sA * 1.5 && sH >= 2 ? d.home.short || d.home.name : sA > sH * 1.5 && sA >= 2 ? d.away.short || d.away.name : null;
+  const txt = info.state === "in" ? `<p class="mo-now">${who ? `🔥 Sta spingendo <b>${esc(who)}</b>` : "Partita equilibrata"} negli ultimi 10': tiri ${cnt("home", ["shot", "on", "goal"])}–${cnt("away", ["shot", "on", "goal"])}, angoli ${cnt("home", ["corner"])}–${cnt("away", ["corner"])}.</p>` : "";
+  return sec("Momento della partita", `${txt}<div class="mo-chart"><svg viewBox="0 0 ${Wd} ${2 * Hh + 2}" preserveAspectRatio="none" role="img" aria-label="Pressione delle due squadre a blocchi di 5 minuti">${bars}${goals}</svg>
+    <div class="mo-ax"><span>0'</span><span>45'</span><span>${nb * 5}'</span></div></div>
+    <div class="pc-leg"><span><i style="background:${cH}"></i>${esc(d.home.short || d.home.name)}</span><span><i style="background:${cA}"></i>${esc(d.away.short || d.away.name)}</span></div>
+    <p class="note">Pressione a blocchi di 5 minuti: tiri, tiri in porta, gol e calci d'angolo dalla cronaca ESPN.</p>`, info.state === "in" ? "in diretta" : "", "Momento live");
+}
+
 function liveDetails(info, d) {
   if (info.sport === "tennis") {
     tennisLogFetch(d.id);
@@ -900,8 +1025,9 @@ function liveDetails(info, d) {
       <p class="note">Set più recente in alto. ESPN non dà i punti dentro il game (15-30-40) né chi serve, quindi la cronaca si ferma ai game.</p>`, "", "Cronaca tennis");
   }
   const [cH, cA] = teamColors(d.home, d.away);
-  if (info.sport === "soccer") return soccerTimeline(info) + liveStats(info, cH, cA);
-  return nbaPeriods(info, cH, cA) + liveStats(info, cH, cA) + nbaPlays(info);
+  const safe = f => { try { return f(); } catch { return ""; } };
+  if (info.sport === "soccer") return safe(() => probSoccer(info, d)) + safe(() => momentum(info, d)) + soccerTimeline(info) + liveStats(info, cH, cA);
+  return safe(() => probNba(info, d)) + nbaPeriods(info, cH, cA) + liveStats(info, cH, cA) + nbaPlays(info);
 }
 
 /* ------------------------------------------------------------------ esito delle giocate nella schedina */
@@ -1007,6 +1133,7 @@ async function liveData(maxAge = 20000) {
   const data = await loadLive();
   LIVE_CACHE = { ts: Date.now(), data };
   recordFinals(data);
+  if (typeof updateAppBadge === "function") updateAppBadge();
   return data;
 }
 /* partite in corso adesso secondo ESPN (null se non ancora lette) */

@@ -14,7 +14,7 @@ export const DEFAULT_PREFS = {
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
   f1: { on: true, mode: "mine", start: true, quali: true, end: true },
-  general: { slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3 },
+  general: { slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3, matchday: true },
 };
 const gen = s => ({ ...DEFAULT_PREFS.general, ...(s.prefs?.general || {}) });
 
@@ -204,6 +204,7 @@ export class Push {
       if (path === "status") return json(await this.store.get("status") || {});
       if (path === "tick" && request.method === "POST") return json(await this.tick(await request.json()));
       if (path === "daily" && request.method === "POST") return json(await this.daily(await request.json()));
+      if (path === "matchday" && request.method === "POST") return json(await this.matchday(await request.json()));
       if (request.method !== "POST") return json({ error: "metodo" }, 405);
       const body = JSON.parse((await request.text()).slice(0, 100000) || "{}");
       if (!body.sub?.endpoint || !(/^https:\/\//.test(body.sub.endpoint) || this.env.ALLOW_HTTP)) return json({ error: "abbonamento non valido" }, 400);
@@ -329,6 +330,30 @@ export class Push {
     const subs = [...(await this.store.list({ prefix: "sub:" })).entries()].filter(([, s]) => gen(s).daily);
     const body = items.slice(0, 3).map(x => `${x.label} ${Math.round(x.p * 100)}% (${x.match})`).join(" · ");
     const outbox = subs.map(([key, s]) => ({ key, s, payload: { title: "⭐ Le migliori di oggi", body, tag: `daily-${day}`, url: "#/migliori" } }));
+    return this.finish(outbox, await this.keys(), { sent: 0, errors: [] }, Date.now(), Date.now(), false);
+  }
+
+  /* giorno della partita (8:30 ora italiana): promemoria con orario e pronostico per le squadre seguite */
+  async matchday({ events = [], day }) {
+    if (!events.length || (await this.store.get("matchday")) === day) return { sent: 0 };
+    await this.store.put("matchday", day);
+    const hhmm = d => new Date(d).toLocaleTimeString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" });
+    const sign = e => {
+      if (!e.main?.length) return "";
+      const i = e.main.indexOf(Math.max(...e.main)), lab = e.main.length === 3 ? ["1", "X", "2"][i] : i ? e.away : e.home;
+      return ` · ${lab} ${Math.round(e.main[i] * 100)}%`;
+    };
+    const outbox = [];
+    for (const [key, s] of (await this.store.list({ prefix: "sub:" })).entries()) {
+      if (!gen(s).matchday) continue;
+      const teams = new Set(s.mine?.teams || []);
+      if (!teams.size) continue;
+      const mine = events.filter(e => teams.has(norm(e.home)) || teams.has(norm(e.away))).sort((a, b) => a.date.localeCompare(b.date));
+      if (!mine.length) continue;
+      const body = mine.slice(0, 3).map(e => `${e.home} – ${e.away} alle ${hhmm(e.date)}${sign(e)}`).join("\n");
+      outbox.push({ key, s, payload: { title: mine.length === 1 ? "📅 Oggi gioca la tua squadra" : `📅 Oggi giocano ${mine.length} delle tue squadre`, body,
+        tag: `matchday-${day}`, url: mine.length === 1 ? `#/e/${encodeURIComponent(mine[0].id)}` : "#/calendario" } });
+    }
     return this.finish(outbox, await this.keys(), { sent: 0, errors: [] }, Date.now(), Date.now(), false);
   }
 

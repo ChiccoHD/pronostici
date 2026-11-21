@@ -142,7 +142,7 @@ function rsCands(d, type) {
   for (const [k, p] of Object.entries(m.multigol || {})) add("mg", `Multigol ${k}`, p);
   for (const [k, p] of Object.entries(m.multigol_team?.home || {})) add("mgt", `Multigol ${H} ${k}`, p);
   for (const [k, p] of Object.entries(m.multigol_team?.away || {})) add("mgt", `Multigol ${A} ${k}`, p);
-  return type === "mix" ? out.filter(c => !["exact", "mg", "mgt"].includes(c.t)) : out.filter(c => c.t === type);
+  return type === "all" ? out : type === "mix" ? out.filter(c => !["exact", "mg", "mgt"].includes(c.t)) : out.filter(c => c.t === type);
 }
 async function showRoundSlip() {
   $app.innerHTML = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1><p class="muted" style="padding:16px 4px">Caricamento…</p>`;

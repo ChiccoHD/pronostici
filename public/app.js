@@ -356,7 +356,7 @@ async function boot() {
 
 function route() {
   const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const navKey = ["info", "migliori", "schedina", "tu"].includes(view) ? view : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
+  const navKey = ["info", "migliori", "schedina", "tu"].includes(view) ? view : view === "calendario" ? "tu" : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.body.dataset.view = view || "home";
   window.scrollTo(0, 0);
@@ -366,6 +366,7 @@ function route() {
   if (view === "e" && arg) return showEvent(decodeURIComponent(arg));
   if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
   if (view === "tu") return showMe();
+  if (view === "calendario") return showTeamCalendar();
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfoHub(arg);
@@ -701,6 +702,7 @@ function listLive() {
     if (!here()) return;
     updateLiveCount();
     paintListLive();
+    if (typeof updateAppBadge === "function") updateAppBadge();
     const n = liveNow("all") || 0;
     listLiveTimer = setTimeout(() => { if (here() && !document.hidden) listLive(); else listLiveTimer = setTimeout(listLive, 30000); }, n ? 8000 : 30000);
   }).catch(() => { listLiveTimer = setTimeout(listLive, 30000); });
@@ -1051,6 +1053,7 @@ async function showEvent(id) {
   const rv = reviewBox(d), brd = $app.querySelector(".board");
   if (rv) brd ? brd.insertAdjacentHTML("afterend", rv) : $app.querySelector(".back")?.insertAdjacentHTML("afterend", rv);
   if (typeof eventActions === "function") { brd?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
+  if (typeof duelBox === "function") { const h = duelBox(d); if (h) { ($app.querySelector(".ev-acts") || brd)?.insertAdjacentHTML("afterend", h); wireDuel(d); } }
   // classifica con le due squadre, sotto i pulsanti (arriva un attimo dopo: il file del campionato si carica a parte)
   if (typeof matchTable === "function") matchTable(d).then(h => {
     if (!h || !$app.contains(brd)) return;
@@ -1118,13 +1121,22 @@ function reviewBox(d) {
 
 /* ------------------------------------------------------------------ calcio */
 
+/* meteo all'ora della partita (solo informazione: non entra nel modello, vedi report/taratura.md) */
+function soccerWeather(w) {
+  if (!w) return "";
+  const ic = w.mm >= 1 || w.pp >= 60 ? "🌧️" : w.pp >= 30 ? "🌦️" : w.wind >= 35 ? "💨" : "⛅";
+  const bits = [`${w.t}°`];
+  if (w.pp != null && w.pp >= 20) bits.push(`pioggia ${w.pp}%${w.mm >= 0.5 ? ` (${num(w.mm, 1)} mm)` : ""}`);
+  if (w.wind != null && w.wind >= 25) bits.push(`vento ${w.wind} km/h`);
+  return `${ic} ${esc(w.city || "")} ${bits.join(" · ")}`;
+}
 function soccerView(d) {
   const m = d.markets, b = d.book || {}, H = d.home, A = d.away;
   const [cH, cA] = teamColors(H, A);
   const pos = t => t.pos ? `${t.pos}ª in classifica, ${t.pts} punti` : "";
   const bookTxt = b["1x2"] ? `${b.provider === "media bookmaker" || !b.provider ? "Quote" : esc(b.provider)}: ${b["1x2"].map(pct).join(" / ")}` : "";
   let s = board(d, { subH: pos(H), subA: pos(A), probs: m["1x2"], labels: ["1", "X", "2"], favLabels: [`${H.short} vince`, "Pareggio", `${A.short} vince`], book: b["1x2"],
-    foot: [`Gol attesi <b class="num">${num(m.xg[0], 2)}–${num(m.xg[1], 2)}</b>`, b["1x2"] ? `Quote: ${esc(b.provider && b.provider !== "media bookmaker" ? b.provider : "media bookmaker")}` : ""] });
+    foot: [`Gol attesi <b class="num">${num(m.xg[0], 2)}–${num(m.xg[1], 2)}</b>`, soccerWeather(d.weather), b["1x2"] ? `Quote: ${esc(b.provider && b.provider !== "media bookmaker" ? b.provider : "media bookmaker")}` : ""] });
   if (d.cup === "women") s += `<div class="warn">Per la Champions femminile ci sono solo i risultati della competizione stessa: le percentuali sono indicative.</div>`;
   else if (d.cup === "national") {
     if (d.friendly) s += `<div class="warn">Amichevole: i CT cambiano spesso molti giocatori e le squadre non giocano per il risultato, quindi le percentuali sono più incerte.</div>`;
@@ -1730,8 +1742,9 @@ function showSlip() {
       <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
       <button type="button" class="btn-main alt" id="slip-img"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4.5 3.5"/></svg>Immagine</button>
       <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></div>` : ""}</section>
-    <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + toMe;
+    <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + (typeof simBox === "function" ? simBox(next) : "") + toMe;
   $app.innerHTML = html;
+  if (typeof wireSim === "function") wireSim(next, simSwapFav);
   const sv = document.getElementById("slip-save");
   if (sv) sv.onclick = async () => {
     const name = await askText("Nome della schedina", `Schedina ${mySlips().length + 1}`, { hint: "La ritrovi in Tu, dove l'app segna da sola com'è andata." });

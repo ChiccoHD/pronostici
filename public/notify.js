@@ -10,7 +10,7 @@ const NOTIF_DEFAULT = {
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
   f1: { on: true, mode: "mine", start: true, quali: true, end: true },
-  general: { on: true, slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3 },
+  general: { on: true, slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3, matchday: true },
 };
 const NOTIF_OPTS = {
   soccer: ["Calcio", [["start", "Inizio partita"], ["goal", "Gol"], ["red", "Espulsioni"], ["ht", "Fine primo tempo"], ["end", "Fine partita"]]],
@@ -149,7 +149,7 @@ const NT_SHORT = {
   nba: ["Basket", [["start", "Inizio"], ["qstart", "Inizio di ogni quarto"], ["quarter", "Fine di ogni quarto"], ["end", "Risultato finale"]]],
   tennis: ["Tennis", [["start", "Inizio"], ["setstart", "Inizio di ogni set"], ["set", "Fine di ogni set"], ["game", "Ogni game"], ["end", "Risultato finale"]]],
   f1: ["Formula 1", [["start", "Partenza (gara e Sprint)"], ["quali", "Pole position"], ["end", "Vincitore e podio"]]],
-  general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["risk", "Giocata della schedina a rischio"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"]]],
+  general: ["Altri avvisi", [["slips", "Esito delle schedine salvate"], ["risk", "Giocata della schedina a rischio"], ["lineup", "Formazioni ufficiali"], ["gap", "Modello lontano dalle quote"], ["daily", "Le migliori di oggi (ore 9)"], ["matchday", "Giorno della partita delle tue squadre (ore 8:30)"]]],
 };
 function notifSection() {
   const s = notifState();

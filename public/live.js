@@ -991,7 +991,7 @@ function momentum(info, d) {
     let kind = null, team = null;
     if (/^Goal!/i.test(c.t)) kind = "goal";
     else if (/^Attempt saved/i.test(c.t)) kind = "on";
-    else if (/^Attempt (missed|blocked)|hits the (bar|post|crossbar)/i.test(c.t)) kind = "shot";
+    else if (/^Attempt (missed|blocked)|^Penalty (saved|missed)|hits the (bar|post|crossbar)/i.test(c.t)) kind = /^Penalty saved/i.test(c.t) ? "on" : "shot";
     else if (/^Corner,/i.test(c.t)) { kind = "corner"; team = (c.t.match(/^Corner,\s+([^.]+)\./) || [])[1]; }
     if (!kind) continue;
     if (!team) team = [...c.t.matchAll(/\(([^)]+)\)/g)].map(x => x[1]).find(x => sideIn(info, x));

@@ -1924,3 +1924,13 @@ html, body { overflow-anchor: none; }
 .ss-calc { margin: 8px 0 0; }
 .ss-badge:not(.on):not(.win):not(.lose) { }
 .ss-badge.played { background: #2563eb; color: #fff; }
+
+/* risultato in diretta nell'elenco */
+.fx.live { box-shadow: inset 3px 0 0 #e5484d; }
+.lv-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #e5484d; }
+.lv-dot { width: 7px; height: 7px; border-radius: 50%; background: #e5484d; animation: pdot 1.4s infinite; display: inline-block; }
+.fx-time .fx-min { display: block; font-size: 12px; white-space: normal; overflow: visible; font-weight: 800; color: #e5484d; font-variant-numeric: tabular-nums; }
+.fx-sc.lv { color: #e5484d; font-variant-numeric: tabular-nums; }
+.fx-time .fx-begun { display: block; font-size: 10.5px; color: var(--ink-3); font-weight: 700; }
+.fx.lv-flash .fx-sc.lv { animation: lvflash 1.6s ease-out 2; }
+@keyframes lvflash { 0%, 100% { background: transparent; } 30% { background: color-mix(in srgb, #e5484d 25%, transparent); border-radius: 6px; } }

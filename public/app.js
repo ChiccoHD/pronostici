@@ -646,7 +646,8 @@ function renderList() {
   $app.querySelectorAll("[data-mk-clear]").forEach(b => b.onclick = () => { state.mk = null; showList(); });
   if (st === "live" && typeof showLive === "function") setTimeout(() => showLive({ embed: true }), 0);
   // fuori dal filtro "In diretta": una lettura ogni tanto per il numero di partite in corso e gli esiti appena arrivati
-  else if (typeof liveData === "function") liveData(60000).then(updateLiveCount).catch(() => null);
+  // fuori dal filtro "In diretta": risultato in diretta direttamente nell'elenco, riletto ogni pochi secondi
+  else listLive();
   $app.querySelectorAll("[data-group]").forEach(b => b.onclick = () => {
     const g = b.dataset.group, list = closedGroups();
     saveClosedGroups(list.includes(g) ? list.filter(x => x !== g) : [...list, g]);
@@ -688,6 +689,38 @@ function runSearch() {
 }
 /* ridisegna l'elenco senza spostare quello che si sta guardando: prende come riferimento la prima partita visibile
    e dopo il ridisegno la rimette alla stessa altezza (prima tornava su se cambiava l'altezza dei riquadri sopra) */
+/* elenco: le partite in corso mostrano punteggio e minuto; quelle finite passano a "Finale" (recordFinals).
+   Una lettura ESPN ogni 8 secondi se c'è qualcosa in corso, altrimenti ogni 30; si ferma lasciando l'elenco. */
+let listLiveTimer = null;
+function listLive() {
+  clearTimeout(listLiveTimer);
+  if (typeof liveData !== "function") return;
+  const here = () => /^#?\/?$/.test(location.hash) && state.status !== "live" && document.querySelector(".fx");
+  const anyStarted = INDEX.events.some(e => !e.final && Date.parse(e.date) < Date.now() && Date.now() - Date.parse(e.date) < 6 * 3600e3);
+  liveData(anyStarted ? 7000 : 60000).then(() => {
+    if (!here()) return;
+    updateLiveCount();
+    paintListLive();
+    const n = liveNow("all") || 0;
+    listLiveTimer = setTimeout(() => { if (here() && !document.hidden) listLive(); else listLiveTimer = setTimeout(listLive, 30000); }, n ? 8000 : 30000);
+  }).catch(() => { listLiveTimer = setTimeout(listLive, 30000); });
+}
+function paintListLive() {
+  document.querySelectorAll(".fx[data-eid]").forEach(el => {
+    const e = INDEX.events.find(x => x.id === el.dataset.eid);
+    if (!e || e.sport === "f1") return;
+    const html = fixture(e);
+    if (el.outerHTML.replace(/\s+/g, " ") === html.replace(/\s+/g, " ")) return;
+    const t = document.createElement("template"); t.innerHTML = html.trim();
+    const neu = t.content.firstElementChild;
+    // gol appena arrivato: un lampo sul punteggio
+    const old = [...el.querySelectorAll(".fx-sc")].map(x => x.textContent).join("-"), now = [...neu.querySelectorAll(".fx-sc")].map(x => x.textContent).join("-");
+    if (old && now && old !== now) neu.classList.add("lv-flash");
+    el.replaceWith(neu);
+  });
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && /^#?\/?$/.test(location.hash) && typeof state !== "undefined" && state.status !== "live") listLive(); });
+
 function showListKeepScroll() {
   const head = document.querySelector(".top")?.offsetHeight || 0, y = window.scrollY;
   const a = y > 40 ? [...document.querySelectorAll("#app a.fx, #list-side a.fx")].find(x => x.getBoundingClientRect().bottom > head + 8) : null;
@@ -756,9 +789,51 @@ function showMarketSheet() {
   el.querySelector("[data-mk-off]").onclick = () => { state.mk = null; close(); showList(); };
 }
 
+/* partita in corso secondo l'ultima lettura ESPN del telefono (null se non è in corso o non ancora letta) */
+function liveOf(id) {
+  if (typeof LIVE_CACHE === "undefined" || !LIVE_CACHE) return null;
+  const x = LIVE_CACHE.data.events.find(v => v.id === id);
+  return x && x.info.state === "in" ? x.info : null;
+}
+/* minuto / quarto / set in breve, per l'elenco */
+function liveMin(L) {
+  const d = String(L.detail || "");
+  if (L.sport === "tennis") return L.period ? `${L.period}° set` : "In corso";
+  if (/^HT$|half ?time/i.test(d)) return "Int.";
+  if (L.sport === "nba") {
+    if (/half/i.test(d)) return "Int.";
+    if (/end of/i.test(d)) return `Fine ${L.period}°q`;
+    return L.period ? `${L.period > 4 ? "Suppl." : `${L.period}° q.`} ${L.clock || ""}`.trim() : "In corso";
+  }
+  return L.clock && L.clock !== "0'" ? L.clock : d || "In corso";
+}
+function fixtureLive(e, L) {
+  const three = e.main.length === 3, labels = three ? ["1", "X", "2"] : ["1", "2"];
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
+  const H = Number(L.H), A = Number(L.A), max = Math.max(...e.main);
+  const now = Number.isFinite(H) && Number.isFinite(A) ? (H > A ? 0 : H < A ? (three ? 2 : 1) : three ? 1 : null) : null;
+  let sub = "";
+  if (e.sport === "tennis" && L.sets) {
+    const done = L.sets[0].map((g, i) => `${g}-${L.sets[1][i]}`);
+    sub = `<span>${esc(done.join(" "))}</span>`;
+  } else if (e.sport === "soccer" && L.half && L.period >= 2) sub = `<span>1° tempo ${L.half[0]}-${L.half[1]}</span>`;
+  sub += `<span>prima del via: ${labels[e.main.indexOf(max)]} al <b>${pct(max)}</b></span>`;
+  return `<a class="fx tc live" data-eid="${esc(e.id)}" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
+    <div class="fx-time"><span class="lv-badge"><i class="lv-dot"></i>Live</span><small class="fx-min">${esc(liveMin(L))}</small>${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
+    <div class="fx-mid">
+      <div class="fx-t ${now === 0 ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span><b class="fx-sc lv">${Number.isFinite(H) ? H : ""}</b></div>
+      <div class="fx-t ${now === (three ? 2 : 1) ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span class="fx-n">${esc(e.away)}</span><b class="fx-sc lv">${Number.isFinite(A) ? A : ""}</b></div>
+      <div class="fx-sub">${sub}</div>
+    </div>
+    <div class="fx-rings">${e.main.map((p, i) => `<span class="fx-ring ${now == null ? "" : i === now ? "hit" : "dim"}">${ring(p, i === now)}<small>${labels[i]}</small></span>`).join("")}</div>
+  </a>`;
+}
+
 function fixture(e) {
   if (e.sport === "f1") return f1Fixture(e);
   if (e.final) return fixtureDone(e);
+  const L = liveOf(e.id);
+  if (L) return fixtureLive(e, L);
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
   const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
@@ -774,8 +849,10 @@ function fixture(e) {
     const gap = Math.max(...e.main.map((p, i) => Math.abs(p - (e.book[i] ?? p))));
     if (gap >= 0.07) sub.push(`<span class="gap">${Math.round(gap * 100)} punti dalle quote</span>`);
   }
-  return `<a class="fx tc" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
+  // iniziata ma ESPN non l'ha ancora data in corso (o la lettura non è arrivata): lo si dice, invece del solo orario
+  const begun = Date.parse(e.date) < Date.now() && Date.now() - Date.parse(e.date) < 4 * 3600e3;
+  return `<a class="fx tc" data-eid="${esc(e.id)}" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
+    <div class="fx-time">${e.time_valid === false ? "da def." : fmtTime(e.date)}${begun ? `<small class="fx-begun">iniziata</small>` : ""}${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid">
       <div class="fx-t ${pH >= pA ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span>${esc(e.home)}</span></div>
       <div class="fx-t ${pA > pH ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span>${esc(e.away)}</span></div>
@@ -802,7 +879,7 @@ function fixtureDone(e) {
     verdict += `<span>${over ? "Over" : "Under"} 2,5 <b>${pct(over ? p : 1 - p)}</b></span>`;
   }
   if (!f.void && e.sport === "tennis" && f.sets) verdict += `<span>${f.sets[0].map((g, i) => `${g}-${f.sets[1][i]}`).join(" ")}</span>`;
-  return `<a class="fx done tc" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
+  return `<a class="fx done tc" data-eid="${esc(e.id)}" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-time">${f.void ? "–" : "Finale"}<small>${fmtTime(e.date, e.time_valid)}</small></div>
     <div class="fx-mid">
       <div class="fx-t ${wH ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span>${sc("h")}</div>

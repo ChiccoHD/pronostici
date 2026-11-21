@@ -32,7 +32,7 @@ function f1SessionFixture(e) {
   else if (s.k === "Sprint" && F.sprint_top?.length) info = `<div class="f1fx-top"><span class="f1fx-lab">Vince</span>${F.sprint_top.map(([n, code, c, p]) => `<span class="f1chip" style="--tc:${f1c(c)}"><i></i>${esc(code || n)}<b>${pct(p)}</b></span>`).join("")}</div>`;
   else info = `<div class="fx-sub"><span>${st === "done" ? "Tocca per tempi, settori, velocità e passo gara" : "Tempi, settori e velocità a fine sessione"}</span></div>`;
   return `<a class="fx f1fx ses ${st === "done" ? "done" : ""}" data-ses="${esc(s.k)}" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${st === "live" ? `<span class="f1-on">ORA</span>` : fmtTime(e.date)}${st === "done" ? "<small>finita</small>" : ""}</div>
+    <div class="fx-time">${st === "live" ? `<span class="lv-badge"><i class="lv-dot"></i>Live</span><small class="fx-min">in pista</small>` : fmtTime(e.date)}${st === "done" ? "<small>finita</small>" : ""}</div>
     <div class="fx-mid"><div class="f1fx-gp"><span class="f1flag">${SES_ICON[s.k] || "🏎️"}</span><b>${esc(s.name)}</b></div>
       <div class="f1fx-sub">${e.home_flag || ""} ${esc(e.home)} · Round ${F.round ?? "–"}</div>${info}</div>
   </a>`;
@@ -53,8 +53,9 @@ function f1Fixture(e) {
   } else {
     body = `<div class="f1fx-top">${top}</div>${nx && nx.k !== "Race" ? `<div class="fx-sub"><span>Prossima: <b>${esc(nx.name)}</b> ${esc(f1When(nx.date))}</span></div>` : ""}`;
   }
-  return `<a class="fx f1fx ${fin ? "done" : ""}" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${fin ? "Finale" : fmtTime(e.date)}${fin ? `<small>${fmtTime(e.date)}</small>` : typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
+  const racing = !fin && Date.now() > Date.parse(e.date) && Date.now() < Date.parse(e.date) + 150 * 60e3;
+  return `<a class="fx f1fx ${fin ? "done" : ""} ${racing ? "live" : ""}" href="#/e/${encodeURIComponent(e.id)}">
+    <div class="fx-time">${fin ? "Finale" : racing ? `<span class="lv-badge"><i class="lv-dot"></i>Live</span><small class="fx-min">in gara</small>` : fmtTime(e.date)}${fin ? `<small>${fmtTime(e.date)}</small>` : typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid"><div class="f1fx-gp"><span class="f1flag">${e.home_flag || "🏁"}</span><b>${esc(e.home)}</b></div>
       <div class="f1fx-sub">${sub.join(" · ")}</div>${body}</div>
   </a>`;

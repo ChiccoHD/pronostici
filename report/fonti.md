@@ -1,115 +1,57 @@
-# Verifica fonti — 2026-11-21
+# Verifica cronaca ESPN — 2026-11-21
 
-## Calcio
-- ✅ **football-data: prossime partite con quote** (190 righe)
-
-### Serie A
-- ✅ **football-data: risultati stagione** (110 partite, quote 110, angoli/tiri 110)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (20 partite)
-
-### Premier League
-- ✅ **football-data: risultati stagione** (100 partite, quote 100, angoli/tiri 100)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (21 partite)
-
-### LaLiga
-- ✅ **football-data: risultati stagione** (119 partite, quote 119, angoli/tiri 119)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (20 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Unai Simón: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Bundesliga
-- ✅ **football-data: risultati stagione** (81 partite, quote 81, angoli/tiri 81)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Jonas Urbig: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Ligue 1
-- ✅ **football-data: risultati stagione** (90 partite, quote 90, angoli/tiri 90)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Hillel Konaté: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accurateCrosses, accurateLongBalls, accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, interceptions, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots)
-
-### Serie B
-- ✅ **football-data: risultati stagione** (110 partite, quote 110, angoli/tiri 110)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (30 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Simone Perilli: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots, possessionPct, redCards, saves)
-
-### Championship
-- ✅ **football-data: risultati stagione** (180 partite, quote 180, angoli/tiri 180)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (36 partite)
-
-### Eredivisie
-- ✅ **football-data: risultati stagione** (108 partite, quote 108, angoli/tiri 108)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-
-### Süper Lig
-- ✅ **football-data: risultati stagione** (99 partite, quote 99, angoli/tiri 99)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-
-### Premiership scozzese
-- ✅ **football-data: risultati stagione** (75 partite, quote 75, angoli/tiri 75)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (14 partite)
-
-### Pro League belga
-- ✅ **football-data: risultati stagione** (99 partite, quote 99, angoli/tiri 99)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (18 partite)
-- ✅ **ESPN: tabellino giocatori** (32 giocatori; es. Gaëtan Coucke: gol 0, tiri 0)
-- ✅ **ESPN: statistiche squadra** (accuratePasses, blockedShots, crossPct, effectiveClearance, effectiveTackles, foulsCommitted, longballPct, offsides, passPct, penaltyKickGoals, penaltyKickShots, possessionPct, redCards, saves)
-
-### Primeira Liga
-- ✅ **football-data: risultati stagione** (98 partite, quote 98, angoli/tiri 98)
-- ❌ **Understat: xG per partita** (0 partite)
-- ✅ **ESPN: calendario ±10 giorni** (9 partite)
-
-### J1 League
-
-### MLS
-
-### Eliteserien
-
-### Brasileirão
-
-### A-League
-
-### Liga Profesional
-
-## NBA
-- ✅ **ESPN: calendario ±3 giorni** (51 partite)
-- ✅ **ESPN: quote nel calendario** (6 con quote)
-- ✅ **ESPN: tabellino giocatori** (19 giocatori; es. Domantas Sabonis: 19.0 pt, 16.0 rimb, 1.0 ast, 38.0 min)
-- ✅ **ESPN: infortuni partita in arrivo** (6 giocatori)
-- ✅ **ESPN: quote partita in arrivo** ({'provider': 'Draft Kings', 'details': 'PHI -12.5', 'total': 229.5, 'spread': -12.5, 'p_home': 0.8277347114556418, 'p_away': 0.17226528854435832, 'p_over': 0.5, 'p_under': 0.5})
-
-## Tennis
-- ✅ **ESPN ATP: incontri** (14 incontri, 2 in programma; tornei: Nitto ATP Finals)
-- ✅ **ESPN ATP: storico (200 giorni fa)** (129 incontri conclusi)
-- ✅ **ESPN WTA: incontri** (34 incontri, 2 in programma; tornei: LP Open by IND)
-- ✅ **ESPN WTA: storico (200 giorni fa)** (208 incontri conclusi)
-
-## Foto dei calciatori
-- ✅ **Wikidata: foto trovate** (8 su 12)
-  - Harry Kane: https://commons.wikimedia.org/wiki/Special:FilePath/Harry%20Kane%20England%20v%20Ghana%2023%20June%202026-219%20%28cropped%29.jpg?width=160
-  - Michael Olise: https://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Olise%20-%20France%20v%20Norway%20-%2026%20June%202026%20%28cropped%29.jpg?width=160
-  - Dayot Upamecano: https://commons.wikimedia.org/wiki/Special:FilePath/Dayot%20Upamecano%20France%20v%20Senegal%2016%20June%202026-402%20%28cropped%29.jpg?width=160
-  - Lautaro Martínez: https://commons.wikimedia.org/wiki/Special:FilePath/Lautaro%20Martinez%20Argentina%20v%20Spain%2019%20July%202026-049%20%28cropped%29.jpg?width=160
-  - Luis Díaz: https://commons.wikimedia.org/wiki/Special:FilePath/FC%20RB%20Salzburg%20gegen%20FC%20Bayern%20M%C3%BCnchen%20%282026-01-06%20Testspiel%29%2040%20%28Luiz%20D%C3%ADaz%29.jpg?width=160
-  - Pedri: https://commons.wikimedia.org/wiki/Special:FilePath/Pedri%20France%20v%20Spain%207.24.26-245.jpg?width=160
-  - Kylian Mbappé: https://commons.wikimedia.org/wiki/Special:FilePath/Kylian%20Mbappe%20France%20v%20Senegal%2016%20June%202026-391%20%28cropped%29.jpg?width=160
-  - Josip Stanisic: https://commons.wikimedia.org/wiki/Special:FilePath/Josip%20Stanisic%20Croatia%20v%20Portugal%202%20July%202026-022.jpg?width=160
-  - Kim Min-Jae: None
-  - Lennart Karl: None
-  - Tom Bischof: None
-  - Nome Inventato Xyz: None
-- ✅ **TheSportsDB: risponde** (https://r2.thesportsdb.com/images/media/player/cutout/j4ouvd1756408895.png/small)
+- ✅ **eng.1: cronaca (Fulham at Manchester City)** (97 righe)
+  - `` Lineups are announced and players are warming up.
+  - `7'` Attempt blocked. Erling Haaland (Manchester City) left footed shot from the left side of the box is blocked. A
+  - `14'` Foul by Ryan Sessegnon (Fulham).
+  - `21'` Phil Foden (Manchester City) wins a free kick in the defensive half.
+  - `35'` Attempt missed. Erling Haaland (Manchester City) left footed shot from the left side of the box is high and wi
+  - `41'` Attempt blocked. Erling Haaland (Manchester City) left footed shot from the centre of the box is blocked. Assi
+  - `45'+2'` Attempt saved. Jérémy Doku (Manchester City) right footed shot from the left side of the box is saved in the b
+  - `52'` Corner, Manchester City. Conceded by David Affengruber.
+  - `59'` Corner, Fulham. Conceded by Iliman Ndiaye.
+  - `69'` Attempt saved. Calvin Bassey (Fulham) left footed shot from a difficult angle on the left is saved in the bott
+  - `75'` Attempt blocked. Rodrigo Muniz (Fulham) header from very close range is blocked. Assisted by Shea Charles with
+  - `83'` Substitution, Fulham. César Palacios replaces Ryan Sessegnon.
+  - `` Match ends, Manchester City 1, Fulham 1.
+  - inizi più frequenti: Corner (14), Attempt blocked (9), Substitution (9), Attempt saved (5), Attempt missed (4), Offside (4), Elliot Anderson (Manchest (3), Ayyoub Bouaddi (Mancheste (3), Oscar Bobb (Fulham) wins  (2), Foul by Nico O'Reilly (Ma (2), Foul by Rúben Dias (Manch (2), Rodrigo Muniz (Fulham) wi (2), Phil Foden (Manchester Ci (2), Calvin Bassey (Fulham) wi (2)
+  - keyEvents: goal Fulham 16'; goal---volley Manchester City 57'
+- ✅ **ita.1: cronaca (Cagliari at Como)** (90 righe)
+  - `` Lineups are announced and players are warming up.
+  - `9'` Nicola Grandu (Cagliari) wins a free kick in the defensive half.
+  - `15'` Nicola Grandu (Cagliari) wins a free kick in the defensive half.
+  - `35'` Attempt missed. Paul Mendy (Cagliari) right footed shot from the centre of the box is close, but misses to the
+  - `45'` Delay in match because of an injury Jean Butez (Como).
+  - `47'` Corner, Cagliari. Conceded by Jacobo Ramón.
+  - `56'` Goal! Como 2, Cagliari 0. Lucas da Cunha (Como) header from the centre of the box to the high centre of the go
+  - `61'` Attempt missed. Nico Paz (Como) left footed shot from outside the box is high and wide to the left from a dire
+  - `68'` Delay over. They are ready to continue.
+  - `75'` Martin Baturina (Como) wins a free kick in the attacking half.
+  - `82'` Adam Obert (Cagliari) wins a free kick in the defensive half.
+  - `88'` Substitution, Como. Álex Valle replaces Martin Baturina.
+  - `90'+3'` Attempt saved. Tasos Douvikas (Como) right footed shot from the right side of the box is saved in the top righ
+  - inizi più frequenti: Substitution (10), Attempt missed (6), Corner (6), Delay over (5), Attempt saved (5), Offside (4), Foul by Alessandro Deiola (3), Foul by Zé Pedro (Cagliar (3), Attempt blocked (3), Delay in match because of (3), Mattia Liberali (Como) wi (2), Foul by Kaiki (Como) (2), Nicola Grandu (Cagliari)  (2), Foul by Alessandro Romano (2)
+  - keyEvents: goal---header Como 24'; goal---header Como 56'
+- ✅ **esp.1: cronaca (Deportivo at Alavés)** (137 righe)
+  - `` Lineups are announced and players are warming up.
+  - `11'` Lucas Boyé (Alaves) wins a free kick in the attacking half.
+  - `25'` Miguel Loureiro (Deportivo de A Coruña) wins a free kick in the defensive half.
+  - `35'` Denis Suárez (Alaves) wins a free kick on the left wing.
+  - `45'+2'` Handball by Abde Rebbach (Alaves).
+  - `50'` Corner, Alaves. Conceded by Miguel Loureiro.
+  - `55'` Penalty saved. Lucas Boyé (Alaves) right footed shot saved in the bottom right corner by Leo Román (Deportivo 
+  - `62'` Goal! Alaves 2, Deportivo de A Coruña 1. Lucas Boyé (Alaves) header from very close range to the centre of the
+  - `67'` Foul by Nahuel Tenaglia (Alaves).
+  - `72'` Adama Traoré (Deportivo de A Coruña) wins a free kick on the right wing.
+  - `79'` Adama Traoré (Deportivo de A Coruña) wins a free kick on the right wing.
+  - `87'` Attempt blocked. Miguel Loureiro (Deportivo de A Coruña) header from the right side of the box is blocked. Ass
+  - `90'+4'` Foul by Lorenzo Amatucci (Deportivo de A Coruña).
+  - inizi più frequenti: Corner (10), Substitution (10), Attempt missed (9), Attempt blocked (9), Attempt saved (6), Adama Traoré (Deportivo d (5), Foul by Lucas Boyé (Alave (4), Denis Suárez (Alaves) win (4), Miguel Loureiro (Deportiv (4), Foul by Lucas Noubi (Depo (3), Lucas Boyé (Alaves) wins  (3), Marc Casadó (Deportivo de (3), Ximo Navarro (Deportivo d (2), Foul by Marc Casadó (Depo (2)
+  - keyEvents: goal Alavés 2'; own-goal Deportivo 41'; goal---header Alavés 62'; goal Alavés 90'
+- ✅ **NBA: azioni con punteggio** (468 azioni)
+  - q1 12:00 0-0 Moussa Diabate vs. Onyeka Okongwu (Coby White gains possessi
+  - q1 2:57 14-24 Naz Reid shooting foul
+  - q2 7:42 36-46 Hawks Full timeout
+  - q3 12:00 56-57 Sion James enters the game for Ryan Kalkbrenner
+  - q3 2:41 78-72 Aaron Wiggins enters the game for Jalen Johnson
+  - q4 8:24 95-80 Sion James enters the game for Christian Anderson

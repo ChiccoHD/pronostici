@@ -420,7 +420,8 @@ def _laps_rows(js, kind, drivers):
     by_code = {x.get("code"): x for x in drivers}
     rows = []
     for p in js["rows"]:
-        x = by_code.get(p.get("code")) if kind == "past" else (by_num.get(str(p["num"])) or by_code.get(p.get("code")))
+        # prima la sigla (VER, LEC…): i numeri cambiano tra le stagioni (il 3 era di Ricciardo, ora è di Verstappen)
+        x = by_code.get(p.get("code")) if kind == "past" else (by_code.get(p.get("code")) or by_num.get(str(p["num"])))
         if not x and kind == "weekend":
             continue
         rows.append({"id": x["id"] if x else None, "code": p.get("code") or (x or {}).get("code"), "team": (x or {}).get("team_name") or p.get("team"),

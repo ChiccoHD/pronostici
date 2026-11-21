@@ -74,3 +74,13 @@ Prova su 3.802 partite di 8 campionati (Premier, Championship, Serie A, LaLiga, 
 Prova su 17 GP del 2026 (Verifica fonti, modo `f1pratica`): rating di gara spostato in base al passo nelle prove libere del weekend (scarto dal migliore sul giro secco e, con peso 1,5, nelle serie lunghe), punteggio standard × peso × 0,1.
 - Log-loss del vincitore: 1,885 senza prove; 1,841 (peso 0,5), 1,809 (1), 1,783 (1,5), 1,774 (2), 1,790 (3), 1,815 (4). Brier del podio da 0,0829 a 0,0798.
 - Decisione: peso 1,5 (`PRACTICE_W` in `models/f1.py`), un po' sotto l'ottimo per non adattarsi troppo a 17 gare. Le prove si usano solo prima della gara; dopo la qualifica conta anche la griglia.
+
+## Meteo e gol nel calcio (novembre 2026)
+
+Verifica fonti, modo `meteo`: 2.435 partite di questa stagione in 18 campionati, città dello stadio da ESPN e meteo
+all'ora della partita dall'archivio di Open-Meteo; gol confrontati con la media del proprio campionato.
+
+- Pioggia (≥1 mm nelle due ore) contro asciutto: 196 contro 2.239 partite, **+0,14 gol** a partita (errore ±0,12): non significativa.
+- Vento forte (≥30 km/h) contro calmo: 41 contro 2.394 partite, **−0,24 gol** (errore ±0,25): non significativa.
+
+Il meteo resta solo un'informazione nella scheda della partita (`weather`), fuori dal modello. Da riprovare a fine stagione con più partite.

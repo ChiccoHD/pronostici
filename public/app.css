@@ -766,8 +766,9 @@ a.btn-main, label.btn-main { box-sizing: border-box; text-align: center; }
   .top { z-index: 8; }
   #toast { bottom: 28px; margin-left: 46px; }
   #side { display: none; }
-  body.split #side { display: block; position: fixed; top: var(--head, 52px); bottom: 0; left: 92px; width: 440px; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px 24px; border-right: 1px solid var(--rule); }
-  body.split main { margin-left: 440px; max-width: 900px; }
+  body.split #side { display: block; position: fixed; top: var(--head, 52px); bottom: 0; left: 92px; width: var(--side); overflow-y: auto; overscroll-behavior: contain; padding: 0 16px 24px; border-right: 1px solid var(--rule); }
+  body { --side: clamp(460px, 40vw, 680px); }
+  body.split main { margin-left: var(--side); max-width: none; padding-left: 24px; padding-right: 24px; }
   body.split #side #list-main { display: block; }
   body.split #side .filters { margin: 0 -16px; padding-left: 16px; padding-right: 16px; top: 0; }
   /* partita aperta: sfondo evidenziato e barretta verde a sinistra (niente riquadri intorno ai singoli pezzi) */
@@ -1872,7 +1873,7 @@ html, body { overflow-anchor: none; }
 .board.tc2 .bw img { width: 100%; height: 100%; object-fit: contain; filter: saturate(.6); }
 .board.tc2 .bw-h { left: -34px; transform: rotate(-12deg); }
 .board.tc2 .bw-a { right: -34px; transform: rotate(12deg); }
-.board.tc2 .board-mid { font-weight: 900; font-style: italic; font-size: 15px; color: var(--ink); background: var(--card); border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; box-shadow: var(--shadow); margin-top: 10px; }
+.board.tc2 .board-mid { font-weight: 900; font-style: italic; font-size: 15px; color: var(--ink); background: var(--card); border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; box-shadow: var(--shadow); padding: 0 2px 0 0; line-height: 1; margin-top: calc(var(--crest-h, 52px) / 2 - 17px); }
 .board.tc2 .board-t .crest { background: var(--card); }
 .f1-strat p { margin: 6px 0; font-size: 13.5px; line-height: 1.45; }
 .tyres.big .tyre { width: 34px; height: 34px; font-size: 14px; border-width: 4px; }
@@ -1992,4 +1993,4 @@ html, body { overflow-anchor: none; }
 
 /* computer: intestazione larga quanto lo schermo, contenuti più larghi sugli schermi grandi */
 @media (min-width: 1180px) { .top-row { max-width: none; padding: 10px 28px 10px 24px; } }
-@media (min-width: 1500px) { main { max-width: 1240px; } body.split main { max-width: 1040px; } }
+@media (min-width: 1500px) { main { max-width: 1240px; } }

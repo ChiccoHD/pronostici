@@ -323,7 +323,7 @@ function slipCard(sl) {
     <div class="ss-money"><label>Quota sul sito <input type="text" inputmode="decimal" data-ss-odds value="${quota ? String(quota).replace(".", ",") : ""}" placeholder="es. 3,50"></label>
       <label>Puntata € <input type="text" inputmode="decimal" data-ss-stake value="${stake ? String(stake).replace(".", ",") : ""}" placeholder="es. 5"></label></div>
     ${quota && stake ? `<p class="note">${st.cls === "win" ? `Vincita: <b>${num(quota * stake, 2)} €</b>` : st.cls === "lose" ? `Persi ${num(stake, 2)} €` : `Vincita possibile: <b>${num(quota * stake, 2)} €</b>`}. ${quota && prod ? `Il modello la stima al ${pct(prod)}, quota equa ${odd(prod)}: ${quota > 1 / prod ? "il sito paga più della quota equa." : "il sito paga meno della quota equa."}` : ""}</p>` : ""}
-    <div class="ss-acts"><button type="button" class="link-btn" data-ss-share>Condividi link</button><button type="button" class="link-btn" data-ss-img>Immagine</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
+    <div class="ss-acts"><button type="button" class="link-btn" data-ss-replay>🔁 Rigioca</button><button type="button" class="link-btn" data-ss-share>Condividi link</button><button type="button" class="link-btn" data-ss-img>Immagine</button><button type="button" class="link-btn" data-ss-rename>Rinomina</button><button type="button" class="link-btn danger" data-ss-del>Elimina</button></div>
   </details>`;
 }
 
@@ -349,6 +349,7 @@ function wireSlips() {
     const val = el => { const v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) && v > 0 ? v : null; };
     card.querySelector("[data-ss-odds]")?.addEventListener("change", e => { upd(sl => sl.odds = val(e.target)); refreshSlips(); });
     card.querySelector("[data-ss-stake]")?.addEventListener("change", e => { upd(sl => sl.stake = val(e.target)); refreshSlips(); });
+    card.querySelector("[data-ss-replay]")?.addEventListener("click", () => replaySlip(id));
     card.querySelector("[data-ss-share]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlip(sl.legs); });
     card.querySelector("[data-ss-img]")?.addEventListener("click", () => { const sl = mySlips().find(s => s.id === id); if (sl) shareSlipImage(sl.legs, sl.name); });
     card.querySelector("[data-ss-rename]")?.addEventListener("click", async () => { const n = await askText("Nome della schedina", mySlips().find(s => s.id === id)?.name || ""); if (n) { upd(sl => sl.name = n.trim().slice(0, 40)); refreshSlips(); } });
@@ -357,3 +358,64 @@ function wireSlips() {
 }
 
 function refreshSlips() { if (location.hash.startsWith("#/tu")) showMe(); else showSlip(); }
+
+/* ------------------------------------------------------------------ rigioca una schedina salvata */
+/* Per ogni giocata: se la partita non è ancora iniziata si rimette uguale; se è già giocata si cerca la prossima partita
+   delle stesse squadre (prima con entrambe, poi con una delle due) e la stessa giocata, con la probabilità nuova. */
+async function replayCandidate(f) {
+  const now = Date.now();
+  if (Date.parse(f.date) > now) return { ...f, same: true };
+  const [hn, an] = String(f.match || "").split(" – ");
+  const up = (INDEX?.events || []).filter(e => e.sport === f.sport && !e.final && Date.parse(e.date) > now).sort((a, b) => a.date.localeCompare(b.date));
+  const has = (e, n) => n && (e.home === n || e.away === n);
+  const cands = [...up.filter(e => has(e, hn) && has(e, an)), ...up.filter(e => (has(e, hn) || has(e, an)) && !(has(e, hn) && has(e, an)))];
+  for (const e of cands.slice(0, 3)) {
+    let d = null;
+    try { d = await getJSON(`data/events/${encodeURIComponent(e.id)}.json`); } catch { d = null; }
+    if (!d) continue;
+    let p = null;
+    if (d.sport === "soccer") p = (rsCands(d, "mix").concat(rsCands(d, "exact"))).find(c => c.label === f.label)?.p ?? null;
+    else if (/ vince$/.test(f.label) && d.main) {
+      const who = f.label.replace(/ vince$/, "");
+      p = [d.home.short, d.home.name].includes(who) ? d.main[0] : [d.away.short, d.away.name].includes(who) ? d.main[d.main.length - 1] : null;
+    }
+    if (p != null) return { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name,
+      sport: d.sport, label: f.label, p, book: null, same: false,
+      via: has(e, hn) && has(e, an) ? "stesse squadre" : `prossima di ${has(e, hn) ? hn : an}` };
+  }
+  return null;
+}
+
+async function replaySlip(id) {
+  const sl = mySlips().find(s => s.id === id);
+  if (!sl) return;
+  const { el, close } = openSheet(`<h3 class="sheet-t">Rigioca «${esc(sl.name)}»</h3><p class="sheet-p">Cerco le partite…</p>`, { label: "Rigioca la schedina" });
+  const found = await Promise.all(sl.legs.map(f => replayCandidate(f).catch(() => null)));
+  const rows = sl.legs.map((f, i) => { const c = found[i];
+    return `<label class="rp-row ${c ? "" : "off"}"><input type="checkbox" data-rp="${i}" ${c ? "checked" : "disabled"}>
+      <span class="rp-t"><b>${esc(f.label)}</b>${c ? `<small>${c.same ? "stessa partita" : esc(c.via)}: ${esc(c.match)}, ${esc(fmtDay(c.date).rel || fmtShort(c.date))} ${esc(fmtTime(c.date, c.time_valid))}</small>`
+        : `<small>${esc(f.match)}: già giocata, nessuna partita in programma con la stessa giocata</small>`}</span>
+      ${c ? `<span class="rp-p">${pct(c.p)}${!c.same && c.p !== f.p ? `<small>era ${pct(f.p)}</small>` : ""}</span>` : ""}</label>`; }).join("");
+  el.innerHTML = `<div class="sheet-grip" aria-hidden="true"></div><h3 class="sheet-t">Rigioca «${esc(sl.name)}»</h3>
+    <p class="sheet-p">Scegli le giocate da rimettere nella schedina. Quelle già giocate passano alla prossima partita delle stesse squadre, con la probabilità aggiornata.</p>
+    <div class="rp-list">${rows}</div><p class="sheet-p" id="rp-sum"></p>
+    <div class="sheet-acts"><button type="button" class="btn-main alt" data-no>Annulla</button><button type="button" class="btn-main" data-yes>Metti nella schedina</button></div>`;
+  const sum = () => { const sel = [...el.querySelectorAll("[data-rp]:checked")].map(b => found[+b.dataset.rp]);
+    el.querySelector("#rp-sum").innerHTML = sel.length ? `${sel.length} ${sel.length === 1 ? "giocata" : "giocate"} · quota equa <b>${odd(sel.reduce((a, c) => a * c.p, 1))}</b>` : "Nessuna giocata scelta";
+    el.querySelector("[data-yes]").disabled = !sel.length; };
+  el.querySelectorAll("[data-rp]").forEach(b => b.onchange = sum);
+  sum();
+  el.querySelector("[data-no]").onclick = close;
+  el.querySelector("[data-yes]").onclick = () => {
+    const list = favs();
+    for (const b of el.querySelectorAll("[data-rp]:checked")) {
+      const { same, via, ...c } = found[+b.dataset.rp];
+      const key = `${c.event}|${c.label}`;
+      if (!list.some(x => x.key === key)) list.push({ key, ...c, result: undefined, added: new Date().toISOString() });
+    }
+    saveFavs(list);
+    close();
+    toast("Giocate rimesse nella schedina");
+    if (typeof showSlipSheet === "function") setTimeout(showSlipSheet, 250);
+  };
+}

@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-21", t: "Rigioca una schedina", items: [
+    "In Tu, ogni schedina salvata ha «🔁 Rigioca»: scegli le giocate da rimettere nella schedina. Se la partita è già stata giocata, l'app usa la prossima partita delle stesse squadre con la stessa giocata e la probabilità aggiornata." ] },
   { d: "2026-11-20", t: "Undici miglioramenti", items: [
     "F1: il pronostico della gara tiene conto del passo nelle prove libere del weekend (provato su 17 GP del 2026: previsioni migliori). In Gara la sezione «Passo nelle prove libere».",
     "F1: «Strategia più probabile» in Gomme (soste, mescole, giro della prima sosta, costo della sosta) e, in Testa a testa, il confronto dei due piloti sessione per sessione.",

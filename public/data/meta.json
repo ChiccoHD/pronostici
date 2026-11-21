@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21T09:54+00:00",
+ "updated": "2026-11-21T11:09+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -105,7 +105,7 @@
     "espn": "ok",
     "espn_tabellini": "100 partite",
     "partite_in_arrivo": 17,
-    "foto_giocatori": "TheSportsDB 50, Wikipedia 172, senza foto 26, ESPN 20, da controllare 336"
+    "foto_giocatori": "TheSportsDB 62, Wikipedia 172, senza foto 38, ESPN 20, da controllare 312"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -148,6 +148,14 @@
     "partite_in_arrivo": 20,
     "foto_giocatori": "da controllare 408, Wikipedia 284, ESPN 26"
    },
+   "a-league": {
+    "espn": "ok",
+    "storico": "ESPN, 163 partite stagione scorsa + 27 di questa",
+    "xg_partite": 0,
+    "espn_tabellini": "27 partite",
+    "partite_in_arrivo": 3,
+    "foto_giocatori": "Wikipedia 45, da controllare 48, ESPN 4"
+   },
    "argentina": {
     "football-data": "ok",
     "xg_partite": 0,
@@ -156,7 +164,7 @@
     "partite_in_arrivo": 7,
     "foto_giocatori": "da controllare 183, Wikipedia 54, ESPN 11"
    },
-   "aggiornato": "2026-11-21T09:52+00:00"
+   "aggiornato": "2026-11-21T11:09+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -281,18 +289,18 @@
    "aggiornato": "2026-11-21T09:53+00:00"
   },
   "risultati": {
-   "esiti": "4 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-21T09:54+00:00"
+   "esiti": "0 nuovi esiti, 0 calendari letti",
+   "aggiornato": "2026-11-21T11:09+00:00"
   },
   "archivio": {
    "partite": 360,
-   "nuove": 4
+   "nuove": 0
   },
   "taratura": {
    "soccer": "x0.96 su 214 partite",
    "nba": "x1.06 su 75 partite",
    "tennis": "x0.95 su 71 partite",
-   "partite_ritoccate": 396
+   "partite_ritoccate": 312
   },
   "f1": {
    "gp_in_arrivo": 3,

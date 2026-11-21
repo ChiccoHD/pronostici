@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-21", t: "Computer più ordinato", items: [ "Su computer l'intestazione occupa tutta la larghezza e sugli schermi grandi le pagine sfruttano più spazio." ] },
   { d: "2026-11-21", t: "Sfida il modello, grafici in diretta e altre novità", items: [
     "⚔️ Sfida il modello: nella scheda della partita scegli il tuo 1X2 prima del via. In Tu c'è la classifica «Tu contro il modello», anche campionato per campionato.",
     "📈 Probabilità minuto per minuto: nella scheda in diretta (e a fine partita) un grafico mostra come cambiano 1, X e 2 a ogni gol; nel basket azione per azione, nel tennis game per game.",

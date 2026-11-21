@@ -1989,3 +1989,7 @@ html, body { overflow-anchor: none; }
 .tc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: 999px; background: color-mix(in srgb, var(--tc) 14%, var(--card)); border: 1px solid color-mix(in srgb, var(--tc) 40%, transparent); font-size: 13px; font-weight: 700; }
 .tc-chip small { font-size: 11px; color: var(--ink-3); }
 .tc-chip img { width: 18px; height: 18px; object-fit: contain; }
+
+/* computer: intestazione larga quanto lo schermo, contenuti più larghi sugli schermi grandi */
+@media (min-width: 1180px) { .top-row { max-width: none; padding: 10px 28px 10px 24px; } }
+@media (min-width: 1500px) { main { max-width: 1240px; } body.split main { max-width: 1040px; } }

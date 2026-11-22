@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T21:26+00:00",
+ "updated": "2026-11-22T22:25+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -9,10 +9,10 @@
     "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
     "xg_partite": 110,
     "espn": "ok",
-    "espn_tabellini": "118 partite",
-    "meteo": "2 partite",
-    "partite_in_arrivo": 12,
-    "foto_giocatori": "TheSportsDB 134, Wikipedia 215, senza foto 50, ESPN 22"
+    "espn_tabellini": "119 partite",
+    "meteo": "1 partite",
+    "partite_in_arrivo": 11,
+    "foto_giocatori": "senza foto 47, Wikipedia 194, TheSportsDB 124, ESPN 22"
    },
    "premier-league": {
     "football-data": "ok",
@@ -31,10 +31,10 @@
     "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
     "xg_partite": 119,
     "espn": "ok",
-    "espn_tabellini": "127 partite",
-    "meteo": "2 partite",
-    "partite_in_arrivo": 14,
-    "foto_giocatori": "TheSportsDB 186, Wikipedia 258, senza foto 44, ESPN 14"
+    "espn_tabellini": "128 partite",
+    "meteo": "1 partite",
+    "partite_in_arrivo": 13,
+    "foto_giocatori": "TheSportsDB 176, Wikipedia 239, ESPN 13, senza foto 38"
    },
    "bundesliga": {
     "football-data": "ok",
@@ -52,10 +52,9 @@
     "understat": "non raggiungibile: xG della stagione da football-data, stagione scorsa solo gol",
     "xg_partite": 90,
     "espn": "ok",
-    "espn_tabellini": "98 partite",
-    "meteo": "1 partite",
-    "partite_in_arrivo": 10,
-    "foto_giocatori": "Wikipedia 183, ESPN 17, senza foto 78, TheSportsDB 72"
+    "espn_tabellini": "99 partite",
+    "partite_in_arrivo": 9,
+    "foto_giocatori": "Wikipedia 163, TheSportsDB 71, senza foto 64, ESPN 15"
    },
    "serie-b": {
     "football-data": "ok",
@@ -122,7 +121,7 @@
     "espn": "ok",
     "espn_tabellini": "98 partite",
     "partite_in_arrivo": 9,
-    "foto_giocatori": "da controllare 230, Wikipedia 79, TheSportsDB 1, ESPN 6"
+    "foto_giocatori": "senza foto 8, Wikipedia 79, TheSportsDB 4, da controllare 219, ESPN 6"
    },
    "j1": {
     "football-data": "ok",
@@ -176,7 +175,7 @@
     "partite_in_arrivo": 5,
     "foto_giocatori": "Wikipedia 47, ESPN 8, da controllare 124"
    },
-   "aggiornato": "2026-11-22T21:23+00:00"
+   "aggiornato": "2026-11-22T22:22+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -190,7 +189,7 @@
    },
    "partite_in_arrivo": 29,
    "partite_stagione": 241,
-   "aggiornato": "2026-11-22T21:25+00:00"
+   "aggiornato": "2026-11-22T22:24+00:00"
   },
   "tennis": {
    "atp": {
@@ -201,7 +200,7 @@
     "storico": "12451 incontri (+0)",
     "espn": "17 incontri in programma"
    },
-   "aggiornato": "2026-11-22T21:25+00:00"
+   "aggiornato": "2026-11-22T22:24+00:00"
   },
   "coppe": {
    "uomini": {
@@ -261,7 +260,7 @@
     "espn_uefa.wchampions": "174 giocate, 10 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-22T21:24+00:00"
+   "aggiornato": "2026-11-22T22:24+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -298,21 +297,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-22T21:25+00:00"
+   "aggiornato": "2026-11-22T22:24+00:00"
   },
   "risultati": {
-   "esiti": "4 nuovi esiti, 4 calendari letti",
-   "aggiornato": "2026-11-22T21:26+00:00"
+   "esiti": "3 nuovi esiti, 4 calendari letti",
+   "aggiornato": "2026-11-22T22:25+00:00"
   },
   "archivio": {
-   "partite": 485,
-   "nuove": 4
+   "partite": 488,
+   "nuove": 3
   },
   "taratura": {
-   "soccer": "x0.94 su 323 partite",
+   "soccer": "x0.95 su 326 partite",
    "nba": "x1.08 su 81 partite",
    "tennis": "x0.94 su 80 partite",
-   "partite_ritoccate": 317
+   "partite_ritoccate": 315
   },
   "f1": {
    "gp_in_arrivo": 3,
@@ -329,7 +328,7 @@
    "mercato_22": "22 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-22T21:26+00:00"
+   "aggiornato": "2026-11-22T22:25+00:00"
   },
   "quote_in_movimento": 0
  }

@@ -627,7 +627,13 @@ function renderList() {
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   if (st !== "done") evs.sort((a, b) => a.date.localeCompare(b.date));   // in ordine di orario (le sessioni F1 sono aggiunte in fondo)
-  const count = k => listEvents().filter(e => (k === "all" || e.sport === k) && !isPastDay(e)).length;
+  // i numeri degli sport seguono lo stato scelto (Tutte / In diretta / Da giocare / Concluse) e il filtro per giocata,
+  // così coincidono con quelli dello stato e dei giorni
+  const count = k => {
+    if (st === "live") return typeof liveNow === "function" ? (liveNow(k) ?? 0) : 0;
+    const L = listEvents().filter(e => (k === "all" || e.sport === k) && mkPass(e));
+    return st === "next" ? L.filter(e => Date.parse(e.date) > now).length : st === "done" ? L.filter(e => isEnded(e) && !e._ses).length : L.filter(e => !isPastDay(e)).length;
+  };
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>

@@ -1139,7 +1139,9 @@ async function liveData(maxAge = 20000) {
 /* partite in corso adesso secondo ESPN (null se non ancora lette) */
 function liveNow(sport = "all") {
   if (!LIVE_CACHE) return null;
-  return LIVE_CACHE.data.events.filter(e => e.info.state === "in" && (sport === "all" || e.info.sport === sport)).length;
+  // solo le partite che sono anche nell'elenco: il numero deve coincidere con quelle che si vedono
+  const known = new Set((INDEX?.events || []).filter(e => mkPass(e)).map(e => e.id));
+  return LIVE_CACHE.data.events.filter(e => e.info.state === "in" && known.has(e.id) && (sport === "all" || e.info.sport === sport)).length;
 }
 /* esiti visti dal telefono: le partite finite vanno subito in "Concluse", senza aspettare l'aggiornamento dei dati */
 function phoneFinals() { try { return JSON.parse(localStorage.getItem("p_finals") || "{}"); } catch { return {}; } }

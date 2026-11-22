@@ -380,7 +380,10 @@ def _index_entry(d) -> dict:
             "f1": {"round": G["round"], "circuit": G["circuit"], "top": [[x["short"], x["code"], x["color"], x["win"], x["podium"]] for x in top],
                    "pole_top": [[x["short"], x["code"], x["color"], x["pole"]] for x in sorted([y for y in d["drivers"] if y.get("pole") is not None], key=lambda y: -y["pole"])[:3]],
                    "sprint_top": [[byid[s["id"]]["short"], byid[s["id"]]["code"], byid[s["id"]]["color"], s["win"]] for s in sorted(d.get("sprint") or [], key=lambda s: -s["win"])[:3] if s["id"] in byid],
-                   "quali_done": G.get("quali_done"), "rain": d.get("rain"), "sessions": G["sessions"]},
+                   "quali_done": G.get("quali_done"), "rain": d.get("rain"), "sessions": G["sessions"],
+                   # vittoria secondo modello e mercati, per il confronto in Archivio dopo la gara
+                   "wm": {x["short"]: [round(x.get("win") or 0, 4), round(((d.get("market") or {}).get("win") or {}).get(x["id"], -1), 4)]
+                          for x in d["drivers"] if (x.get("win") or 0) >= 0.003 or ((d.get("market") or {}).get("win") or {}).get(x["id"], 0) >= 0.003}},
             **({"final": d["final"]} if d.get("final") else {})}
 
 

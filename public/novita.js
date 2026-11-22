@@ -1,6 +1,13 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "Dove fidarsi, quote convenienti, pagina giocatore e altro", items: [
+    "Info → Archivio: «Dove fidarsi» (campionato per campionato, esito, Under/Over e Goal colorati per quanto il modello mantiene le promesse) e «Modello contro mercati nel tempo» (chi sbaglia meno, anche in F1).",
+    "Migliori: nuovo filtro «💰 Quote convenienti», le giocate in cui il modello dà un po' più del bookmaker (da 3 a 11 punti).",
+    "Pagina del giocatore (NBA e calcio): tocca il nome nella scheda Giocatori. Medie, giocate della prossima partita, partita per partita dalle ultime 10 e quante volte ha superato la soglia.",
+    "Testa a testa del calcio fino a 10 stagioni indietro (si completa nei prossimi aggiornamenti) e risultati più frequenti.",
+    "Cerca a voce: tocca il microfono e di' una squadra o una partita («Inter Milan»).",
+    "Quote in movimento: nella scheda un avviso quando le quote si spostano molto dalla prima volta che l'app le ha viste; per le partite seguite arriva anche una notifica." ] },
   { d: "2026-11-22", t: "Tu più pulito", items: [ "Tolti i Traguardi dal profilo." ] },
   { d: "2026-11-22", t: "Vai dritto alla giocata e capisci quando fidarti dei mercati", items: [ "Toccando una giocata nelle Migliori o nel riquadro «Le migliori di oggi» la scheda si apre già sulla scheda giusta, con la riga illuminata.", "Quando modello e mercati (o bookmaker) sono lontani almeno 12 punti, un avviso rosso dice di dare più peso ai mercati: in cima alla Gara della F1 (con i piloti in disaccordo), sulle card delle Migliori e nella scheda delle partite. Quelle giocate non finiscono più tra «Le migliori di oggi»." ] },
   { d: "2026-11-22", t: "F1: il passo in qualifica entra nel pronostico", items: [ "Le percentuali della gara ora considerano anche quanto è stato veloce ogni pilota in qualifica, non solo la posizione in griglia: utile per chi parte indietro per penalità. Provato su 17 GP del 2026: previsione del vincitore migliore di circa il 4%. Nuovo riquadro «Passo in qualifica» nella Gara." ] },

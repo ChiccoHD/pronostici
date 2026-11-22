@@ -5,7 +5,7 @@
         (se cambiano, l'app mostra "Aggiornamento disponibile");
       - dati (data/*.json): prima la rete, con 4 secondi di pazienza; senza rete l'ultima copia salvata;
       - loghi e foto ESPN: dalla copia sul telefono, scaricati una volta sola. */
-const APP = "pronostici-app-v30", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
+const APP = "pronostici-app-v31", DATA = "pronostici-data-v1", IMG = "pronostici-img-v1";
 const SHELL = ["./", "app.css", "app.js", "teams.js", "slip.js", "me.js", "live.js", "sheet.js", "notify.js", "novita.js", "layout.js", "search.js", "share.js", "compare.js", "f1.js", "extra.js",
   "manifest.webmanifest", "icon-192.png", "badge-96.png"];
 

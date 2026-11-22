@@ -14,7 +14,7 @@ export const DEFAULT_PREFS = {
   nba: { on: true, mode: "mine", start: false, quarter: true, qstart: false, end: true },
   tennis: { on: true, mode: "mine", start: false, game: false, set: true, setstart: false, end: true },
   f1: { on: true, mode: "mine", start: true, quali: true, end: true },
-  general: { slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3, matchday: true },
+  general: { slips: true, lineup: true, gap: true, daily: false, risk: false, riskp: 0.3, matchday: true, move: true },
 };
 const gen = s => ({ ...DEFAULT_PREFS.general, ...(s.prefs?.general || {}) });
 
@@ -252,6 +252,17 @@ export class Push {
           const lab = e.main.length === 3 ? [`vittoria ${e.home}`, "il pareggio", `vittoria ${e.away}`][i] : `vittoria ${[e.home, e.away][i]}`;
           for (const [key, s] of fol) if (gen(s).gap) outbox.push({ key, s, payload: { title: `📊 Modello e quote non sono d'accordo`, body: `${e.home} – ${e.away}: ${lab} al ${Math.round(e.main[i] * 100)}% per il modello, ${Math.round(e.book[i] * 100)}% per i bookmaker`, tag: `${e.id}-gap`, url: `#/e/${e.id}` } });
           await this.store.put("gap:" + e.id, now);
+        }
+      }
+      // quote in movimento (dalla prima quota vista): avviso da 8 punti, di nuovo solo se si muovono di altri 5
+      if (e.move && Date.parse(e.date) > now && Math.abs(e.move.to - e.move.from) >= 0.08) {
+        const last = await this.store.get("mv:" + e.id);
+        if (last == null || Math.abs(e.move.to - last) >= 0.05) {
+          const i = e.move.i, lab = e.main?.length === 3 ? [`vittoria ${e.home}`, "il pareggio", `vittoria ${e.away}`][i] : `vittoria ${[e.home, e.away][i]}`;
+          const up = e.move.to > e.move.from;
+          for (const [key, s] of fol) if (gen(s).move) outbox.push({ key, s, payload: { title: `${up ? "📈" : "📉"} Quote in movimento`,
+            body: `${e.home} – ${e.away}: ${lab} passa dal ${Math.round(e.move.from * 100)}% al ${Math.round(e.move.to * 100)}% per i bookmaker. Di solito vuol dire una notizia (infortuni, formazioni).`, tag: `${e.id}-move`, url: `#/e/${e.id}` } });
+          await this.store.put("mv:" + e.id, e.move.to);
         }
       }
       // formazioni ufficiali (calcio): da 75 minuti prima, ogni 3 minuti finché escono

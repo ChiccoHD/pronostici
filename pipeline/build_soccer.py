@@ -33,6 +33,30 @@ def _fd_history(code: str, start_year: int, status: dict) -> list[dict]:
     return out
 
 
+OLD_SEASONS = 7        # stagioni in più (oltre alle 3 del modello) solo per gli scontri diretti
+OLD_PER_RUN = 2        # stagioni vecchie scaricate al massimo per giro (restano in cache per sempre)
+_OLD: dict = {}
+
+
+def _fd_old(code: str, start_year: int) -> list[dict]:
+    """Scontri diretti: stagioni più vecchie (solo data, squadre e gol), scaricate poco alla volta."""
+    out, budget = [], OLD_PER_RUN
+    for y in range(start_year - 3 - OLD_SEASONS + 1, start_year - 2):
+        sc = config.fd_season_code(y)
+        path = CACHE / "soccer" / f"fdold_{code}_{sc}.json"
+        rows = store.load(path)
+        if rows is None and budget > 0:
+            budget -= 1
+            try:
+                fresh = footballdata.season(code, sc)
+            except Exception:
+                fresh = None
+            rows = [{"date": m["date"], "home": m["home"], "away": m["away"], "hg": m["hg"], "ag": m["ag"]} for m in fresh or []]
+            store.save(path, rows)
+        out.extend(rows or [])
+    return out
+
+
 def _fdnew_history(lg: dict, season_from: date, status: dict) -> list[dict]:
     country, name = lg["fdnew"]
     path = CACHE / "soccer" / f"fdnew_{country}_{name}.json"
@@ -217,6 +241,11 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
             si = season_info(lg, today)
             season_from, start_year = si["from"], si["year"]
             matches = history(lg, today, status)
+            try:
+                _OLD[key] = _fd_old(lg["fd"], season_info(lg, today)["year"]) if lg.get("fd") and lg.get("kind", "fd") == "fd" else []
+            except Exception:
+                log.exception("Scontri diretti vecchi %s", key)
+                _OLD[key] = []
             if not matches:
                 status_all[key] = {**status, "errore": "nessuno storico disponibile"}
                 continue
@@ -335,7 +364,7 @@ def _event_detail(key, lg, e, home, away, matches, ratings, share, pos, lines, c
         "cards": S.count_market(*cards, lines=(2.5, 3.5, 4.5, 5.5, 6.5), disp=1.35) if cards else None,
         "book": book or None,
         "form": {"home": th, "away": ta},
-        "h2h": S.h2h(matches, home, away),
+        "h2h": S.h2h(_OLD.get(key, []) + matches, home, away),
         "players": players,
         "trends": {"home": trends.soccer(th["last"], "home"), "away": trends.soccer(ta["last"], "away")},
         "reliability": bt["1x2"].get("grade"),

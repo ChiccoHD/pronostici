@@ -217,3 +217,74 @@ function showTeamCalendar() {
       : `<div class="empty"><b>Nessuna partita nei prossimi giorni</b>Le partite compaiono qui quando entrano nell'elenco (fino a 10-14 giorni prima).</div>`}
     <p class="note">Con le notifiche attive (in Tu) la mattina del giorno della partita arriva un promemoria con l'orario e il pronostico.</p>`;
 }
+
+/* ------------------------------------------------------------------ pagina del giocatore (NBA e calcio) */
+/* #/giocatore/<partita>/<home|away>/<id ESPN>: dati della prossima partita (file della partita) e partita per partita
+   dalla gamelog pubblica di ESPN (letta dal telefono, verificata con Verifica fonti modo giocatori). */
+const plHref = (d, side, p) => `#/giocatore/${encodeURIComponent(d.id)}/${side}/${encodeURIComponent(p.pid)}`;
+async function gamelog(sport, league, pid) {
+  const path = sport === "nba" ? "basketball/nba" : `soccer/${(typeof ESPN_CODE !== "undefined" && ESPN_CODE[league]) || league}`;
+  const js = await fetch(`https://site.web.api.espn.com/apis/common/v3/sports/${path}/athletes/${encodeURIComponent(pid)}/gamelog`).then(r => r.ok ? r.json() : null);
+  if (!js || !js.events) return null;
+  const rows = [];
+  for (const st of js.seasonTypes || []) for (const cat of st.categories || []) for (const ev of cat.events || []) {
+    const meta = js.events[ev.eventId];
+    if (!meta || rows.some(r => r.id === ev.eventId)) continue;
+    const s = {};
+    (js.labels || []).forEach((l, i) => { s[l] = ev.stats?.[i]; });
+    rows.push({ id: ev.eventId, date: meta.gameDate, opp: meta.opponent?.abbreviation || meta.opponent?.displayName || "", at: meta.atVs || "", res: meta.gameResult || "", score: meta.score || "", s });
+  }
+  return rows.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+}
+async function showPlayer(eid, side, pid) {
+  const back = `<button class="back" onclick="history.length > 1 ? history.back() : location.hash='#/e/${encodeURIComponent(eid)}'">‹ Partita</button>`;
+  $app.innerHTML = back + `<p class="muted">Caricamento…</p>`;
+  let d;
+  try { d = await getJSON(`data/events/${encodeURIComponent(eid)}.json`); } catch { $app.innerHTML = back + `<div class="empty"><b>Partita non più disponibile</b></div>`; return; }
+  const p = (d.players?.[side] || []).find(x => String(x.pid) === String(pid));
+  if (!p) { $app.innerHTML = back + `<div class="empty"><b>Giocatore non trovato</b></div>`; return; }
+  const T = d[side], O = d[side === "home" ? "away" : "home"], nba = d.sport === "nba";
+  const [cH, cA] = teamColors(d.home, d.away), col = side === "home" ? cH : cA;
+  CUR = { event: d.id, match: `${d.home.name} – ${d.away.name}`, date: d.date, time_valid: d.time_valid, league_name: d.league_name, sport: d.sport };
+  const head = `<div class="pl-hero" style="--tc:${col}">${avatar(p.name, col, p.pos, nba ? headshot("nba", p.pid) : (p.photo ?? headshot("soccer", p.pid)))}
+    <div><h1>${esc(p.name)}</h1><span>${esc(T.name)}${p.pos ? ` · ${esc(p.pos)}` : ""}${p.out ? ` · <b class="bad">fuori</b>` : ""}</span></div></div>
+    <a class="pl-next" href="#/e/${encodeURIComponent(d.id)}"><span>Prossima partita</span><b>${side === "home" ? "contro" : "in casa di"} ${esc(O.name)}</b><small>${esc(fmtDay(d.date).label)}, ${esc(fmtTime(d.date, d.time_valid))} ›</small></a>`;
+  let now = "", stats = "";
+  if (nba) {
+    now = Object.entries(p.props || {}).map(([k, v]) => `<div class="line"><span>${PROP_NAME[k]}<br><b>${num(v.mean)}</b> attesi</span><div class="chips">${Object.entries(v.p).map(([L, pr]) => {
+      const key = favKey(`${p.name} almeno ${L} ${PROP_UNIT[k]}`, pr);
+      return `<button type="button" class="chip ${pr >= .6 ? "hot" : ""} ${isFav(key) ? "on" : ""}" data-fav="${esc(key)}">${L}+<b>${pct(pr)}</b></button>`; }).join("")}</div></div>`).join("");
+    const cols = [["avg5", "Ultime 5"], ["avg10", "Ultime 10"], ["avg15", "Ultime 15"], ["season", "Stagione"]].filter(([k]) => p[k]);
+    const rowsDef = [["min", "Minuti"], ["pts", "Punti"], ["reb", "Rimbalzi"], ["ast", "Assist"], ["tpm", "Triple"], ["stl", "Recuperi"], ["blk", "Stoppate"], ["fg_pct", "% al tiro"]];
+    stats = `<table class="vs-table pl-t"><tr><th></th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}</tr>${rowsDef.map(([k, l]) => `<tr><td>${l}</td>${cols.map(([c]) => `<td>${p[c]?.[k] == null ? "–" : k === "fg_pct" ? Math.round(p[c][k] * 100) : num(p[c][k])}</td>`).join("")}</tr>`).join("")}</table>`;
+  } else {
+    const P = [["p_goal", "Segna"], ["p_assist", "Assist"], ["p_goal_or_assist", "Gol o assist"], ["p_sot", "Tiro in porta"], ["p_shot", "Almeno un tiro"], ["p_card", "Ammonito"]];
+    now = `<div class="pl-probs">${P.filter(([k]) => p[k] != null).map(([k, l]) => `<div><b>${pct(p[k])}</b><span>${l}</span></div>`).join("")}</div>`;
+    const t = p.tot || {};
+    stats = `<div class="pl-probs">${[["apps", "Presenze"], ["starts", "Da titolare"]].map(([k, l]) => `<div><b>${p[k] ?? "–"}</b><span>${l}</span></div>`).join("")}${[["g", "Gol"], ["a", "Assist"], ["sh", "Tiri"], ["sot", "Tiri in porta"], ["yc", "Gialli"]].map(([k, l]) => `<div><b>${t[k] ?? "–"}</b><span>${l}</span></div>`).join("")}</div>`;
+  }
+  $app.innerHTML = back + head + sec(nba ? "Le sue giocate nella prossima partita" : "Nella prossima partita", now + `<p class="note">Stime del modello per questa partita. Tocca una soglia per metterla in schedina.</p>`)
+    + sec(nba ? "Medie" : "In stagione", stats) + `<div id="pl-log">${sec("Partita per partita", `<p class="muted">Caricamento da ESPN…</p>`)}</div>`;
+  let rows = null;
+  try { rows = await gamelog(d.sport, d.league, p.pid); } catch { rows = null; }
+  const box = document.getElementById("pl-log");
+  if (!box) return;
+  if (!rows?.length) { box.innerHTML = sec("Partita per partita", `<p class="note">Lo storico partita per partita non è disponibile ora.</p>`); return; }
+  const last = rows.slice(0, 10);
+  const K = nba ? [["MIN", "Min"], ["PTS", "Pt"], ["REB", "Rim"], ["AST", "Ass"], ["3PT", "3P"]] : [["G", "Gol"], ["A", "Ass"], ["SH", "Tiri"], ["ST", "In porta"], ["YC", "Gialli"]].map(([k, l]) => [Object.keys(last[0].s).find(x => x === k || (k === "SH" && /^SHOT|^SH$/.test(x)) || (k === "ST" && /^SOG|^SOT|^ST$/.test(x)) || (k === "G" && /^G$|^TG$/.test(x))) || k, l]);
+  // quante volte sopra la soglia principale dei suoi mercati, nelle ultime 10
+  const hits = nba ? Object.entries(p.props || {}).map(([k, v]) => {
+    const lab = { pts: "PTS", reb: "REB", ast: "AST", tpm: "3PT", pra: null }[k];
+    const L = Object.keys(v.p).map(Number).sort((a, b) => Math.abs(v.p[a] - .5) - Math.abs(v.p[b] - .5))[0];
+    const val = r => k === "pra" ? ["PTS", "REB", "AST"].reduce((s, x) => s + (parseFloat(r.s[x]) || 0), 0) : parseFloat(String(r.s[lab]).split("-")[0]);
+    const n = last.filter(r => val(r) >= L).length;
+    return `<div><b>${n}/${last.length}</b><span>${PROP_NAME[k]} ${L}+</span></div>`;
+  }).join("") : "";
+  const ptsMax = nba ? Math.max(10, ...last.map(r => parseFloat(r.s.PTS) || 0)) : 0;
+  const chart = nba ? `<div class="pl-bars">${last.slice().reverse().map(r => { const v = parseFloat(r.s.PTS) || 0; return `<span title="${v} punti"><i style="height:${Math.round(v / ptsMax * 100)}%"></i><small>${v}</small></span>`; }).join("")}</div>` : "";
+  box.innerHTML = sec("Partita per partita", (hits ? `<div class="pl-probs">${hits}</div><p class="note">Quante volte nelle ultime ${last.length} partite ha raggiunto la soglia più equilibrata di ogni mercato.</p>` : "")
+    + (chart ? `<h3 class="lb-h3">Punti nelle ultime ${last.length}</h3>${chart}` : "")
+    + `<table class="vs-table pl-t pl-log"><tr><th>Data</th><th></th>${K.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      ${last.map(r => `<tr><td>${esc(new Date(r.date).toLocaleDateString("it-IT", { day: "numeric", month: "short" }))}</td><td>${esc(r.at)} ${esc(r.opp)} <span class="f ${r.res === "W" ? "V" : r.res === "L" ? "P" : "N"}">${r.res === "W" ? "V" : r.res === "L" ? "P" : r.res ? "N" : ""}</span></td>${K.map(([k]) => `<td>${esc(r.s[k] ?? "–")}</td>`).join("")}</tr>`).join("")}</table>
+      <p class="note">Dati ESPN, ultime ${last.length} partite giocate.</p>`);
+}

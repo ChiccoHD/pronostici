@@ -18,7 +18,8 @@ def _row(e: dict) -> dict | None:
         if not f.get("names") or not top:
             return None
         return {"id": e["id"], "d": e["date"][:16], "s": "f1", "l": "f1", "ln": "Formula 1", "h": e["home"], "a": e.get("away", ""),
-                "fp": [[t[0], round(t[3], 3), round(t[4], 3)] for t in top], "w": f["names"][:3]}
+                "fp": [[t[0], round(t[3], 3), round(t[4], 3)] for t in top], "w": f["names"][:3],
+                **({"wm": (e.get("f1") or {})["wm"]} if (e.get("f1") or {}).get("wm") else {})}
     if f.get("void") or f.get("h") is None:
         return None
     r = {"id": e["id"], "d": e["date"][:16], "s": e["sport"], "l": e["league"], "ln": e.get("league_name", ""),

@@ -399,6 +399,7 @@ function route() {
   if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
   if (view === "tu") return showMe();
   if (view === "calendario") return showTeamCalendar();
+  if (view === "giocatore" && arg) { const [, , e, s, p] = location.hash.split("/"); return showPlayer(decodeURIComponent(e), s, decodeURIComponent(p)); }
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
   if (view === "info") return showInfoHub(arg);
@@ -992,6 +993,13 @@ function seg(name, opts, cur) {
 /* da quanti punti di distanza tra modello e mercato conviene dare più peso al mercato (che vede notizie, formazioni,
    infortuni, guasti: cose fuori dai dati del modello) */
 const TRUST_GAP = 0.12;
+/* quote in movimento dalla prima volta che l'app le ha viste (campo move dell'elenco, pipeline/odds_move.py) */
+function moveNote(id, labels) {
+  const m = INDEX?.events.find(e => e.id === id)?.move;
+  if (!m) return "";
+  const up = m.to > m.from, since = new Date(m.since).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return `<div class="board-move ${up ? "up" : "down"}"><b>${up ? "📈" : "📉"} Quote in movimento</b><span>«${esc(labels[m.i])}» per i bookmaker è passata dal ${pct(m.from)} al <b>${pct(m.to)}</b> (da ${esc(since)}). Uno spostamento così di solito segue una notizia: infortuni, formazioni, motivazioni.</span></div>`;
+}
 function bookGap(probs, book, labels) {
   if (!book) return "";
   let gi = -1, gap = 0;
@@ -1026,7 +1034,7 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     <div class="pbar" aria-hidden="true">${segs}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
-    ${bookGap(probs, book, favLabels)}
+    ${bookGap(probs, book, favLabels)}${!d.final ? moveNote(d.id, favLabels) : ""}
     ${foot.filter(Boolean).length ? `<div class="board-foot">${foot.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</div>` : ""}
   </div>`;
 }
@@ -1249,7 +1257,7 @@ function soccerSplit(d, cH, cA) {
 /* testa a testa: solo gli scontri diretti tra le due squadre */
 function h2hView(d, cH, cA) {
   const h = d.h2h, soccer = d.sport === "soccer";
-  if (!h || !h.n) return sec("Testa a testa", `<p class="note">Nessuno scontro diretto ${soccer ? "nelle ultime tre stagioni" : "nelle ultime due stagioni"} tra queste due squadre.</p>`);
+  if (!h || !h.n) return sec("Testa a testa", `<p class="note">Nessuno scontro diretto ${soccer ? "nelle stagioni disponibili" : "nelle ultime due stagioni"} tra queste due squadre.</p>`);
   const H = d.home, A = d.away;
   const isH = g => soccer ? g.home === H.fd : String(g.home) === String(H.id);
   // punti di vista della squadra di casa di oggi
@@ -1275,7 +1283,10 @@ function h2hView(d, cH, cA) {
   const both = soccer
     ? `<div class="rows"><div class="r"><span class="l">Gol a partita, in totale</span><span class="v num">${num(avg(r => r.hs + r.as))}</span></div>
        <div class="r"><span class="l">Over 2,5</span><span class="v num">${pct(h.over25)}</span></div>
-       <div class="r"><span class="l">Goal, segnano entrambe</span><span class="v num">${pct(h.btts)}</span></div></div>`
+       <div class="r"><span class="l">Goal, segnano entrambe</span><span class="v num">${pct(h.btts)}</span></div></div>
+       ${(() => { const c = {}; rows.forEach(r => { const k = `${r.mine}-${r.theirs}`; c[k] = (c[k] || 0) + 1; });
+         const top = Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 4);
+         return n >= 3 ? `<h3>Risultati più frequenti</h3><div class="h2h-sc">${top.map(([k, v]) => `<span><b>${k}</b><small>${v} ${v === 1 ? "volta" : "volte"}</small></span>`).join("")}</div><p class="note">Punteggio dal punto di vista di ${esc(H.short || H.name)} (suoi gol – gol dell'avversaria).</p>` : ""; })()}`
     : `<div class="rows"><div class="r"><span class="l">Punti totali a partita</span><span class="v num">${num(h.avg_total ?? avg(r => r.hs + r.as))}</span></div>
        <div class="r"><span class="l">Scarto medio</span><span class="v num">${num(avg(r => Math.abs(r.mine - r.theirs)))}</span></div></div>`;
   const nm = id => soccer ? id : ((d.names || {})[id] || id);
@@ -1284,7 +1295,7 @@ function h2hView(d, cH, cA) {
     <p class="note">V, N e P sono dal punto di vista di ${esc(H.short || H.name)}. Il punteggio è scritto come casa – ospite di quella partita.</p>`;
   return sec("Chi ha vinto", head, `${n} ${n === 1 ? "scontro diretto" : "scontri diretti"}`)
     + sec("Numeri degli scontri diretti", stats + `<h3>Nelle partite tra loro</h3>` + both)
-    + sec("Tutti gli scontri diretti", list, soccer ? "ultime tre stagioni" : "ultime due stagioni");
+    + sec("Tutti gli scontri diretti", list, soccer ? `dal ${new Date(rows[n - 1].g.date).getFullYear()}` : "ultime due stagioni");
 }
 
 function lastSoccer(d) {
@@ -1317,7 +1328,7 @@ function soccerPlayers(d, cH, cA, lu = null, side = "home") {
     if (!list.length) return `<p class="note">${d.cup === "women" ? "Per la Champions femminile non ci sono dati sui singoli giocatori." : d.cup === "national" ? "Per le nazionali non ci sono percentuali dei singoli giocatori (le convocazioni cambiano a ogni finestra), ma le formazioni ufficiali compaiono qui e in Esito circa un'ora prima del via." : d.cup ? `Per ${esc(d[side].short || d[side].name)} non ci sono dati sui giocatori: gioca in un campionato che l'app non segue.` : "I dati sui giocatori arrivano con i tabellini delle prime partite."}</p>`;
     if (lu) list = list.map(p => withLineup(p, status(side, p))).sort((a, b) => order[a.lu] - order[b.lu] || b.p_goal - a.p_goal);
     return `<div class="sp-row head"><span></span><span>Giocatore</span><span>Segna</span><span>Assist</span><span>Tiro in porta</span><span>Giallo</span></div>
-    ${list.map(p => `<div class="sp-row ${p.lu === "out" ? "sp-out" : ""}">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><b>${esc(p.name)}</b><span>${p.lu ? `<i class="lu lu-${p.lu}">${LU_LABEL[p.lu]}</i> ` : ""}${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
+    ${list.map(p => `<div class="sp-row ${p.lu === "out" ? "sp-out" : ""}">${avatar(p.name, c, null, p.photo ?? headshot("soccer", p.pid))}<span class="sp-name"><a href="${d.cup === "national" ? "#" : plHref(d, side, p)}"><b>${esc(p.name)}</b></a><span>${p.lu ? `<i class="lu lu-${p.lu}">${LU_LABEL[p.lu]}</i> ` : ""}${esc(p.pos || "")} · ${p.tot.g} gol, ${p.tot.a} assist</span></span>
       <span class="v ${p.p_goal >= .4 ? "hot" : ""}">${pct(p.p_goal)}</span><span class="v">${pct(p.p_assist)}</span><span class="v">${pct(p.p_sot)}</span><span class="v">${pct(p.p_card)}</span></div>`).join("")}`;
   };
   return `<div id="sp-wrap"><div data-segpane="pl:home" ${side !== "home" ? "hidden" : ""}>${tbl("home", cH)}</div><div data-segpane="pl:away" ${side !== "away" ? "hidden" : ""}>${tbl("away", cA)}</div>
@@ -1456,7 +1467,7 @@ function nbaPlayers(d, cH, cA) {
     }).join("");
     const tag = p.out ? `<span class="p-tag out">Fuori</span>` : `<span class="p-tag">${p.status ? esc(statusIt(p.status)) + ", " : ""}${num(p.min_proj, 0)} minuti attesi</span>`;
     return `<div class="player">${avatar(p.name, c, p.pos, headshot("nba", p.pid))}<div>
-      <div class="p-head"><span class="p-name">${esc(p.name)}</span>${tag}</div>
+      <div class="p-head"><a class="p-name" href="${plHref(d, p._side, p)}">${esc(p.name)} ›</a>${tag}</div>
       <div class="p-avg" aria-label="Medie nelle ultime 5 partite">
         <div><b>${num(a.pts)}</b><span>punti</span></div><div><b>${num(a.reb)}</b><span>rimbalzi</span></div>
         <div><b>${num(a.ast)}</b><span>assist</span></div><div><b>${num(a.tpm)}</b><span>triple</span></div>
@@ -1464,7 +1475,7 @@ function nbaPlayers(d, cH, cA) {
       <div class="p-trend">Medie ultime 5. Ultime 10: ${num(a10.pts)} punti, ${num(a10.reb)} rimbalzi, ${num(a10.ast)} assist. Ultime 15: ${num(a15.pts)}, ${num(a15.reb)}, ${num(a15.ast)}.</div>
       ${p.out ? "" : `<div class="lines">${props}</div>`}</div></div>`;
   }).join("") : `<p class="note">Tabellini non ancora disponibili.</p>`;
-  return `<div data-segpane="pl:home">${block(d.players.home, cH)}</div><div data-segpane="pl:away" hidden>${block(d.players.away, cA)}</div>
+  return `<div data-segpane="pl:home">${block(d.players.home.map(p => ({ ...p, _side: "home" })), cH)}</div><div data-segpane="pl:away" hidden>${block(d.players.away.map(p => ({ ...p, _side: "away" })), cA)}</div>
     <p class="note">Ogni riquadro è la probabilità di arrivare almeno a quella soglia, da minuti attesi, medie recenti e avversario.</p>`;
 }
 
@@ -1667,6 +1678,24 @@ async function showBest() {
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     sportBtn(s, count(s.key), "giocate")).join("")}</div>
     ${dayChips(oneEach, it => it.date, "partite")}</div>`;
+  // quote convenienti: il modello è un po' più ottimista del mercato, ma non così lontano da fidarsi più del mercato
+  const isValue = it => it.book != null && it.p >= 0.45 && it.p - it.book >= 0.03 && it.p - it.book < TRUST_GAP;
+  const valueItems = (() => { const s = new Set(); return cats.flatMap(c => c.items.map(it => ({ ...it, cat: it.cat || c.name }))).filter(isValue)
+    .filter(it => { const k = `${it.event}|${it.label}`; return !s.has(k) && s.add(k); }).sort((a, b) => (b.p / b.book) - (a.p / a.book)); })();
+  const mode = load("best_mode", "all");
+  html += `<div class="bm-row"><button type="button" class="nt-chip" data-bm="all" aria-pressed="${mode !== "value"}">Tutte</button><button type="button" class="nt-chip" data-bm="value" aria-pressed="${mode === "value"}">💰 Quote convenienti <b>${valueItems.length}</b></button></div>`;
+  if (mode === "value") {
+    const vRow = it => pickRow(it, false, true).replace(/<span class="edge[^"]*">[^<]*<\/span>/, `<span class="edge pos">quota equa ${odd(it.p)} · bookmaker ${odd(it.book)} (+${Math.round((it.p - it.book) * 100)} punti)</span>`);
+    html += valueItems.length ? `<section class="sec best gaps"><h2>Quote convenienti<small>${valueItems.length} giocate</small></h2>${valueItems.slice(0, 40).map(vRow).join("")}
+      <p class="note">Giocate dove il modello dà dai 3 agli 11 punti in più del bookmaker (quote senza margine): la quota del bookmaker paga più del giusto secondo il modello. Oltre i 12 punti di distanza non compaiono, perché lì di solito ha ragione il mercato. In cima quelle con il rapporto più favorevole. Restano stime: nessuna giocata è sicura.</p></section>`
+      : `<div class="empty"><b>Nessuna quota conveniente per questa scelta</b>Servono partite con le quote dei bookmaker: prova un altro giorno o sport.</div>`;
+    $app.innerHTML = html;
+    $app.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { save("best_mode", b.dataset.bm); showBest(); });
+    $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
+    $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
+    requestAnimationFrame(centerDays);
+    return;
+  }
   if (!cats.length) html += `<div class="empty"><b>Nessuna giocata per questa scelta</b>Prova un altro giorno o un altro sport.</div>`;
   // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance
   if (cats.length) {
@@ -1716,6 +1745,7 @@ async function showBest() {
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
+  $app.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { save("best_mode", b.dataset.bm); showBest(); });
   requestAnimationFrame(centerDays);
   countUp($app);
   // puntini sotto le card: quale si sta guardando

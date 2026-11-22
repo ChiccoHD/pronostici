@@ -321,8 +321,9 @@ async function infoArchive() {
       <p class="note">Se il modello è ben tarato, la colonna a destra somiglia alla percentuale che dava.</p>`, "", "Archivio calibrazione")
     + (monthRows.length ? sec("Mese per mese", `<div class="rows">${monthRows.join("")}</div><p class="note">Quante volte è uscito l'esito più probabile secondo il modello, rispetto alla probabilità che gli dava in media.</p>`, "", "Archivio mesi") : "")
     + (calTxt ? sec("Taratura automatica", `<div class="rows">${calTxt}</div><p class="note">Se nelle partite concluse il modello è stato troppo sicuro o troppo prudente sul risultato principale, le prossime percentuali vengono corrette di poco, sempre di più man mano che l'archivio cresce. Serve un minimo di 60 partite per sport.</p>`, "", "Archivio taratura") : "")
+    + archVsMarket(rowsAll)
     + (dis.length ? sec("Modello contro bookmaker", `<p class="prose" style="margin:0">Nelle <b>${dis.length}</b> partite in cui non erano d'accordo sulla favorita, il modello ci ha preso <b>${disModel}</b> volte, i bookmaker <b>${disBook}</b>.</p>`, "", "Archivio quote") : "")
-    + (leagues.length ? sec("Per competizione", `<div class="rows">${leagues.map(([l, h]) => `<div class="r"><span class="l">${esc(l)} <span class="faint">${h.length} partite</span></span><span class="v"><b>${pct(rate(h))}</b></span></div>`).join("")}</div>`, "pronostico più probabile preso", "Archivio campionati") : "")
+    + archLeagues(rows)
     + sec("Partite", days.map(d => `<h3 class="lb-h3">${esc(fmtDay(d + "T12:00:00Z").label)}</h3><div class="ar-day">${rows.filter(r => r.d.startsWith(d)).map(fx).join("")}</div>`).join("")
       + (new Set(rows.map(r => r.d.slice(0, 10))).size > ARCH_DAYS ? `<button type="button" class="btn-main alt" data-ar-more>Mostra giorni precedenti</button>` : ""), "", "Archivio partite");
 }
@@ -478,6 +479,60 @@ function avatarSheet() {
 }
 
 /* bilancio per tipo di giocata: per ogni mercato la scelta del modello, quante volte è uscita e quante se ne aspettava */
+/* dove fidarsi: per ogni campionato, ogni giocata principale presa rispetto a quanto prevista */
+function archLeagues(rows) {
+  const L = {};
+  const add = (lg, k, hit, p) => { const o = ((L[lg] ||= {})[k] ||= { n: 0, w: 0, e: 0 }); o.n++; o.w += hit ? 1 : 0; o.e += p; };
+  for (const r of rows) {
+    const lg = r.ln.split(" · ")[0], P = r.p, mx = Math.max(...P), ti = P.indexOf(mx);
+    const out = r.s === "tennis" ? (r.r[2] ?? (r.r[0] > r.r[1] ? 0 : 1)) : P.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
+    add(lg, "e", ti === out, mx);
+    if (r.o != null) add(lg, "o", (r.o >= .5) === (r.r[0] + r.r[1] > 2.5), Math.max(r.o, 1 - r.o));
+    if (r.g != null) add(lg, "g", (r.g >= .5) === (r.r[0] > 0 && r.r[1] > 0), Math.max(r.g, 1 - r.g));
+    if (r.t) { const tot = r.s === "tennis" ? r.tg : r.r[0] + r.r[1]; if (tot != null) add(lg, "o", (r.t[1] >= .5) === (tot > r.t[0]), Math.max(r.t[1], 1 - r.t[1])); }
+  }
+  const verdict = o => !o || o.n < 8 ? ["few", o ? `${o.n}` : "–"] : (o.w / o.n) - (o.e / o.n) >= -0.03 ? ["ok", pct(o.w / o.n)] : (o.w / o.n) - (o.e / o.n) >= -0.08 ? ["mid", pct(o.w / o.n)] : ["ko", pct(o.w / o.n)];
+  const list = Object.entries(L).filter(([, v]) => v.e && v.e.n >= 5).sort((a, b) => b[1].e.n - a[1].e.n);
+  if (!list.length) return "";
+  const cell = o => { const [c, t] = verdict(o); return `<td class="lv-${c}" title="${o ? `${o.w} su ${o.n}, previste ${pct(o.e / o.n)}` : ""}">${t}</td>`; };
+  const good = list.filter(([, v]) => verdict(v.e)[0] === "ok" && v.e.n >= 15).map(([k]) => k).slice(0, 3);
+  const bad = list.filter(([, v]) => verdict(v.e)[0] === "ko").map(([k]) => k).slice(0, 3);
+  return sec("Dove fidarsi", `<table class="vs-table lg-trust"><tr><th>Competizione</th><th>Esito</th><th>Under/Over</th><th>Goal</th></tr>
+      ${list.map(([k, v]) => `<tr><td>${esc(k)} <span class="faint">${v.e.n}</span></td>${cell(v.e)}${cell(v.o)}${cell(v.g)}</tr>`).join("")}</table>
+    <div class="lg-leg"><span class="lv-ok">come previsto o meglio</span><span class="lv-mid">un po' sotto</span><span class="lv-ko">sotto le attese: cautela</span><span class="lv-few">pochi dati</span></div>
+    <p class="note">Per ogni competizione e giocata: quante volte la scelta più probabile del modello è uscita (tocca una casella per il dettaglio). Il colore confronta con quanto il modello se l'aspettava.${good.length ? ` Finora più affidabile in <b>${good.map(esc).join(", ")}</b>.` : ""}${bad.length ? ` Più cautela in <b>${bad.map(esc).join(", ")}</b>.` : ""}</p>`, "", "Archivio campionati");
+}
+
+/* modello contro mercati nel tempo: errore medio (log-loss) sul risultato, più basso è meglio; vince chi sbaglia meno */
+function archVsMarket(rows) {
+  const S = {};
+  const add = (k, lm, lb, hm, hb) => { const o = (S[k] ||= { n: 0, m: 0, b: 0, hm: 0, hb: 0 }); o.n++; o.m += lm; o.b += lb; o.hm += hm; o.hb += hb; };
+  const ll = p => -Math.log(Math.max(p, 0.01));
+  for (const r of rows) {
+    if (r.s === "f1") {
+      const win = r.w?.[0], wm = r.wm;
+      if (!win || !wm || !wm[win] || wm[win][1] < 0) continue;
+      const fav = (i) => Object.entries(wm).sort((a, b) => b[1][i] - a[1][i])[0][0];
+      add("Formula 1", ll(wm[win][0]), ll(wm[win][1]), fav(0) === win ? 1 : 0, fav(1) === win ? 1 : 0);
+      continue;
+    }
+    if (!r.b || !r.p) continue;
+    const P = r.p, out = r.s === "tennis" ? (r.r[2] ?? (r.r[0] > r.r[1] ? 0 : 1)) : P.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
+    if (r.b[out] == null) continue;
+    const k = r.s === "soccer" ? r.ln.split(" · ")[0] : { nba: "NBA", tennis: "Tennis" }[r.s] || r.s;
+    add(k, ll(P[out]), ll(r.b[out]), P.indexOf(Math.max(...P)) === out ? 1 : 0, r.b.indexOf(Math.max(...r.b)) === out ? 1 : 0);
+  }
+  const list = Object.entries(S).filter(([, o]) => o.n >= 5).sort((a, b) => b[1].n - a[1].n);
+  if (!list.length) return "";
+  const tot = list.reduce((a, [, o]) => ({ n: a.n + o.n, m: a.m + o.m, b: a.b + o.b }), { n: 0, m: 0, b: 0 });
+  const who = o => { if (o.n < 10) return ["pochi dati", "few"]; const d = (o.b - o.m) / o.n; return Math.abs(d) < 0.02 ? ["pari", "eq"] : d > 0 ? ["modello", "good"] : ["mercati", "bad"]; };
+  const [wt] = who(tot);
+  return sec("Modello contro mercati nel tempo", `<div class="vm-top"><b>${wt === "pari" ? "Finora alla pari" : wt === "modello" ? "Finora sbaglia meno il modello" : "Finora sbagliano meno i mercati"}</b><span>${tot.n} partite e gare con le quote di prima del via</span></div>
+    <table class="vs-table lg-trust"><tr><th>Competizione</th><th>Favorita presa<br><small>modello · mercati</small></th><th>Meglio</th></tr>
+      ${list.map(([k, o]) => { const [w, c] = who(o); return `<tr><td>${esc(k)} <span class="faint">${o.n}</span></td><td>${pct(o.hm / o.n)} · ${pct(o.hb / o.n)}</td><td class="${c}"><b>${w}</b></td></tr>`; }).join("")}</table>
+    <p class="note">«Meglio» guarda a quanta probabilità ognuno dava a quello che è successo davvero (errore medio più basso), non solo alla favorita. Dove vincono i mercati, quando sono lontani dal modello dai più peso a loro; dove vince il modello, il suo parere vale anche contro le quote. Calcio e basket: bookmaker; F1: Polymarket e Kalshi.</p>`, "", "Archivio contro mercati");
+}
+
 function archMarkets(rows) {
   const M = new Map();
   const add = (sp, k, hit, p) => { const key = `${sp}|${k}`; const o = M.get(key) || { sp, k, n: 0, w: 0, e: 0 }; o.n++; o.w += hit ? 1 : 0; o.e += p; M.set(key, o); };

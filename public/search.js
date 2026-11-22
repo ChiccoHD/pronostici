@@ -33,18 +33,52 @@ function searchMatch(q, ...fields) {
   return words.length && words.every(w => hay.includes(w));
 }
 
+/* ricerca a voce (Web Speech API: Chrome su Android, Safari su iPhone): si dice il nome e compare nei risultati;
+   se è una partita sola, si apre. Il riconoscimento lo fa il telefono/browser, l'app non registra nulla. */
+const SPEECH = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+function voiceSearch(inp, mic) {
+  const msg = $app.querySelector(".mic-msg");
+  let rec;
+  try { rec = new SPEECH(); } catch { return; }
+  rec.lang = "it-IT"; rec.interimResults = true; rec.maxAlternatives = 1;
+  mic.classList.add("on"); msg.hidden = false; msg.textContent = "Ti ascolto… di' una squadra, un tennista o «Inter Milan»";
+  rec.onresult = ev => {
+    const t = [...ev.results].map(r => r[0].transcript).join(" ").trim();
+    inp.value = t; SEARCH.q = t; $app.querySelector(".search-x").hidden = !t; searchRender();
+    if (ev.results[ev.results.length - 1].isFinal) {
+      msg.textContent = `Hai detto: «${t}»`;
+      // due nomi di squadra che giocano tra loro: apro la partita
+      const words = normName(t).split(" ").filter(w => w.length > 2 && !["contro", "versus", "partita"].includes(w));
+      const hits = words.length < 2 ? [] : (INDEX?.events || []).filter(e => {
+        if (e.final) return false;
+        const h = normName(e.home), a = normName(e.away);
+        return words.some(w => h.includes(w)) && words.some(w => a.includes(w));
+      });
+      if (hits.length === 1) setTimeout(() => { location.hash = `#/e/${encodeURIComponent(hits[0].id)}`; }, 500);
+    }
+  };
+  rec.onerror = e => { msg.textContent = e.error === "not-allowed" ? "Serve il permesso al microfono (impostazioni del browser)." : "Non ho capito, riprova."; };
+  rec.onend = () => mic.classList.remove("on");
+  try { rec.start(); } catch { mic.classList.remove("on"); }
+}
+
 async function showSearch() {
   $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Cerca</h1>
     <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="search-q" type="search" inputmode="search" autocomplete="off" placeholder="Squadra, tennista, campionato…" value="${esc(SEARCH.q)}" aria-label="Cerca">
-      <button type="button" class="search-x" aria-label="Cancella" ${SEARCH.q ? "" : "hidden"}>×</button></div>
+      <button type="button" class="search-x" aria-label="Cancella" ${SEARCH.q ? "" : "hidden"}>×</button>
+      ${SPEECH ? `<button type="button" class="search-mic" aria-label="Cerca a voce"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>` : ""}</div>
+    <p class="note mic-msg" hidden></p>
     <a class="cmp-entry" href="#/confronta"><span>⚖️</span><span><b>Confronta</b><small>due squadre o due tennisti, anche se non si affrontano</small></span><em>›</em></a>
     <div id="srch-res"></div>`;
   const inp = document.getElementById("search-q"), x = $app.querySelector(".search-x");
   let t = null;
   inp.oninput = () => { SEARCH.q = inp.value; x.hidden = !inp.value; clearTimeout(t); t = setTimeout(searchRender, 120); };
   x.onclick = () => { inp.value = ""; SEARCH.q = ""; x.hidden = true; searchRender(); inp.focus(); };
-  setTimeout(() => inp.focus(), 50);
+  const mic = $app.querySelector(".search-mic");
+  if (mic) mic.onclick = () => voiceSearch(inp, mic);
+  if (!SEARCH.voice) setTimeout(() => inp.focus(), 50);
+  if (SEARCH.voice) { SEARCH.voice = false; mic?.click(); }
   searchRender();
   searchPool().then(() => { if (location.hash.startsWith("#/cerca")) searchRender(); });
 }

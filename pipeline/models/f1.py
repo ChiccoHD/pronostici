@@ -218,7 +218,7 @@ def practice_pace(sessions: list[list[dict]]) -> dict:
 
 # passo in qualifica (giro secco della sessione Q) sopra a griglia e prove: provato sui GP 2026 con Verifica fonti,
 # modo f1quali: log-loss del vincitore 1,588 → 1,518 con peso 3-4 (scelto 3, il più prudente del tratto migliore)
-QUALI_W = 3.0
+QPACE_W = 3.0
 
 
 def practice_adjust(R: dict, pace: dict, w: float) -> dict:

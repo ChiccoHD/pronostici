@@ -90,4 +90,4 @@ Il meteo resta solo un'informazione nella scheda della partita (`weather`), fuor
 Verifica fonti, modo `f1quali`: 17 GP del 2026, simulazione con la griglia vera e le prove libere (peso 1,5), più il
 passo sul giro secco della qualifica con pesi diversi. Log-loss del vincitore / Brier del podio:
 0 → 1,588 / 0,0721; 1 → 1,549 / 0,0713; 2 → 1,528 / 0,0709; 3 → 1,518 / 0,0707; 4 → 1,518 / 0,0706; 6 → 1,549 / 0,0709.
-Scelto **3** (`QUALI_W`), il più prudente del tratto migliore. Il peso della griglia resta quello del circuito.
+Scelto **3** (`QPACE_W`), il più prudente del tratto migliore. Il peso della griglia resta quello del circuito.

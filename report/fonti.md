@@ -1,57 +1,29 @@
-# Verifica cronaca ESPN — 2026-11-21
+# Verifica griglia e quote F1 — 2026-11-22
 
-- ✅ **eng.1: cronaca (Fulham at Manchester City)** (97 righe)
-  - `` Lineups are announced and players are warming up.
-  - `7'` Attempt blocked. Erling Haaland (Manchester City) left footed shot from the left side of the box is blocked. A
-  - `14'` Foul by Ryan Sessegnon (Fulham).
-  - `21'` Phil Foden (Manchester City) wins a free kick in the defensive half.
-  - `35'` Attempt missed. Erling Haaland (Manchester City) left footed shot from the left side of the box is high and wi
-  - `41'` Attempt blocked. Erling Haaland (Manchester City) left footed shot from the centre of the box is blocked. Assi
-  - `45'+2'` Attempt saved. Jérémy Doku (Manchester City) right footed shot from the left side of the box is saved in the b
-  - `52'` Corner, Manchester City. Conceded by David Affengruber.
-  - `59'` Corner, Fulham. Conceded by Iliman Ndiaye.
-  - `69'` Attempt saved. Calvin Bassey (Fulham) left footed shot from a difficult angle on the left is saved in the bott
-  - `75'` Attempt blocked. Rodrigo Muniz (Fulham) header from very close range is blocked. Assisted by Shea Charles with
-  - `83'` Substitution, Fulham. César Palacios replaces Ryan Sessegnon.
-  - `` Match ends, Manchester City 1, Fulham 1.
-  - inizi più frequenti: Corner (14), Attempt blocked (9), Substitution (9), Attempt saved (5), Attempt missed (4), Offside (4), Elliot Anderson (Manchest (3), Ayyoub Bouaddi (Mancheste (3), Oscar Bobb (Fulham) wins  (2), Foul by Nico O'Reilly (Ma (2), Foul by Rúben Dias (Manch (2), Rodrigo Muniz (Fulham) wi (2), Phil Foden (Manchester Ci (2), Calvin Bassey (Fulham) wi (2)
-  - keyEvents: goal Fulham 16'; goal---volley Manchester City 57'
-- ✅ **ita.1: cronaca (Cagliari at Como)** (90 righe)
-  - `` Lineups are announced and players are warming up.
-  - `9'` Nicola Grandu (Cagliari) wins a free kick in the defensive half.
-  - `15'` Nicola Grandu (Cagliari) wins a free kick in the defensive half.
-  - `35'` Attempt missed. Paul Mendy (Cagliari) right footed shot from the centre of the box is close, but misses to the
-  - `45'` Delay in match because of an injury Jean Butez (Como).
-  - `47'` Corner, Cagliari. Conceded by Jacobo Ramón.
-  - `56'` Goal! Como 2, Cagliari 0. Lucas da Cunha (Como) header from the centre of the box to the high centre of the go
-  - `61'` Attempt missed. Nico Paz (Como) left footed shot from outside the box is high and wide to the left from a dire
-  - `68'` Delay over. They are ready to continue.
-  - `75'` Martin Baturina (Como) wins a free kick in the attacking half.
-  - `82'` Adam Obert (Cagliari) wins a free kick in the defensive half.
-  - `88'` Substitution, Como. Álex Valle replaces Martin Baturina.
-  - `90'+3'` Attempt saved. Tasos Douvikas (Como) right footed shot from the right side of the box is saved in the top righ
-  - inizi più frequenti: Substitution (10), Attempt missed (6), Corner (6), Delay over (5), Attempt saved (5), Offside (4), Foul by Alessandro Deiola (3), Foul by Zé Pedro (Cagliar (3), Attempt blocked (3), Delay in match because of (3), Mattia Liberali (Como) wi (2), Foul by Kaiki (Como) (2), Nicola Grandu (Cagliari)  (2), Foul by Alessandro Romano (2)
-  - keyEvents: goal---header Como 24'; goal---header Como 56'
-- ✅ **esp.1: cronaca (Deportivo at Alavés)** (137 righe)
-  - `` Lineups are announced and players are warming up.
-  - `11'` Lucas Boyé (Alaves) wins a free kick in the attacking half.
-  - `25'` Miguel Loureiro (Deportivo de A Coruña) wins a free kick in the defensive half.
-  - `35'` Denis Suárez (Alaves) wins a free kick on the left wing.
-  - `45'+2'` Handball by Abde Rebbach (Alaves).
-  - `50'` Corner, Alaves. Conceded by Miguel Loureiro.
-  - `55'` Penalty saved. Lucas Boyé (Alaves) right footed shot saved in the bottom right corner by Leo Román (Deportivo 
-  - `62'` Goal! Alaves 2, Deportivo de A Coruña 1. Lucas Boyé (Alaves) header from very close range to the centre of the
-  - `67'` Foul by Nahuel Tenaglia (Alaves).
-  - `72'` Adama Traoré (Deportivo de A Coruña) wins a free kick on the right wing.
-  - `79'` Adama Traoré (Deportivo de A Coruña) wins a free kick on the right wing.
-  - `87'` Attempt blocked. Miguel Loureiro (Deportivo de A Coruña) header from the right side of the box is blocked. Ass
-  - `90'+4'` Foul by Lorenzo Amatucci (Deportivo de A Coruña).
-  - inizi più frequenti: Corner (10), Substitution (10), Attempt missed (9), Attempt blocked (9), Attempt saved (6), Adama Traoré (Deportivo d (5), Foul by Lucas Boyé (Alave (4), Denis Suárez (Alaves) win (4), Miguel Loureiro (Deportiv (4), Foul by Lucas Noubi (Depo (3), Lucas Boyé (Alaves) wins  (3), Marc Casadó (Deportivo de (3), Ximo Navarro (Deportivo d (2), Foul by Marc Casadó (Depo (2)
-  - keyEvents: goal Alavés 2'; own-goal Deportivo 41'; goal---header Alavés 62'; goal Alavés 90'
-- ✅ **NBA: azioni con punteggio** (468 azioni)
-  - q1 12:00 0-0 Moussa Diabate vs. Onyeka Okongwu (Coby White gains possessi
-  - q1 2:57 14-24 Naz Reid shooting foul
-  - q2 7:42 36-46 Hawks Full timeout
-  - q3 12:00 56-57 Sion James enters the game for Ryan Kalkbrenner
-  - q3 2:41 78-72 Aaron Wiggins enters the game for Jalen Johnson
-  - q4 8:24 95-80 Sion James enters the game for Christian Anderson
+- gara: (11436, 'Yas Marina', '2026-12-06T13:00:00+00:00'); qualifica: 11416
+- ❌ **OpenF1 starting_grid session 11436** null
+- ❌ **OpenF1 session_result 11436** []
+- ✅ **OpenF1 starting_grid session 11416** [{"position": 1, "driver_number": 3, "lap_duration": 94.151, "meeting_key": 1300, "session_key": 11416}, {"position": 2, "driver_number": 63, "lap_duration": 94.224, "meeting_key": 1300, "session_key": 11416}, {"position": 3, "driver_number": 1, "lap_duration": 94.244, "meeting_key": 1300, "session_key": 11416}, {"position": 4, "driver_number": 6, "lap_duration": 94.592, "meeting_key": 1300, "session_key": 11416}, {"position": 5, "driver_number": 41, "lap_duration": 94.668, "meeting_key": 1300, "session_key": 11416}, {"position": 6, "driver_number": 12, "lap_duration": 93.893, "meeting_key": 1300, "session_key": 11416}, {"position": 7, "driver_number": 30, "lap_duration": 95.09, "meeting_key": 1300, "session_key": 11416}, {"position": 8, "driver_number": 10, "lap_duration": 95.105, "meeting_key": 1300, "session_key": 11416}, {"position": 9, "driver_number": 43, "lap_duration": 95.314, "m
+- ✅ **OpenF1 session_result 11416** [{"position": 1, "driver_number": 12, "number_of_laps": 26, "dnf": false, "dns": false, "dsq": false, "duration": [94.684, 95.086, 93.893], "gap_to_leader": [0.02, 0.692, 0.0], "meeting_key": 1300, "session_key": 11416}, {"position": 2, "driver_number": 3, "number_of_laps": 21, "dnf": false, "dns": false, "dsq": false, "duration": [95.264, 94.394, 94.151], "gap_to_leader": [0.6, 0.0, 0.258], "meeting_key": 1300, "session_key": 11416}, {"position": 3, "driver_number": 63, "number_of_laps": 26, "d
+- ✅ **formula1.com elenco gare** [('1298', 'mexico'), ('1299', 'brazil'), ('1300', 'las-vegas'), ('1301', 'qatar'), ('1302', 'abu-dhabi'), ('1308', 'bahrain')]
+- ✅ **formula1.com starting-grid (bahrain)** Pos. No. Driver Team Time | 1 3 Max Verstappen VER Red Bull Racing 1:35.130 | 2 44 Lewis Hamilton HAM Ferrari 1:35.428 | 3 12 Kimi Antonelli ANT Mercedes 1:35.631 | 4 16 Charles Leclerc LEC Ferrari 1:35.666 | 5 1 Lando Norris NOR McLaren 1:35.757 | 6 81 Oscar Piastri PIA McLaren 1:35.762 | 7 63 George Russell RUS Mercedes 1:35.871 | 8 6 Isack Hadjar HAD Red Bull Racing 1:35.558 | 9 10 Pierre Gasly GAS Alpine 1:37.210 | 10 5 Gabriel Bortoleto BOR Audi 1:37.673 | 11 30 Liam Lawson LAW Racing Bulls 1:37.023 | 12 14 Fernando Alonso ALO Aston Martin 1:37.220 | 13 55 Carlos Sainz SAI Williams 1:37.527 | 14 18 Lance Stroll STR Aston Martin 1:37.566 | 15 27 Nico Hulkenberg HUL Audi 1:37.970 | 16 87 Oliver Bearman BEA Haas F1 Team 1:37.980 | 17 31 Esteban Ocon OCO Haas F1 Team 1:38.233 | 18 23 Alexander Albon ALB Williams 1:38.600 | 19 77 Valtteri Bottas BOT Cadillac 1:38.611 | 20 11 Sergio Perez PER Cadillac 1:38.933 | 21 43 Franco Colapinto COL Alpine | 22 41 Arvid Lindblad LIN Racing Bulls
+- ✅ **formula1.com qualifying (bahrain)** Pos. No. Driver Team Q1 Q2 Q3 Laps | 1 3 Max Verstappen VER Red Bull Racing 1:36.477 1:35.696 1:35.130 12 | 2 44 Lewis Hamilton HAM Ferrari 1:36.595 1:36.032 1:35.428 15 | 3 6 Isack Hadjar HAD Red Bull Racing 1:36.898 1:36.192 1:35.558 12 | 4 12 Kimi Antonelli ANT Mercedes 1:37.041 1:35.959 1:35.631 12 | 5 16 Charles Leclerc LEC Ferrari 1:36.730 1:35.970 1:35.666 12 | 6 1 Lando Norris NOR McLaren 1:37.092 1:36.173 1:35.757 12 | 7 81 Oscar Piastri PIA McLaren 1:36.852 1:36.020 1:35.762 12 | 8 63 George Russell RUS Mercedes 1:37.264 1:36.245 1:35.871 12 | 9 10 Pierre Gasly GAS Alpine 1:37.174 1:36.410 1:37.210 18 | 10 5 Gabriel Bortoleto BOR Audi 1:37.106 1:36.814 1:37.673 18 | 11 30 Liam Lawson LAW Racing Bulls 1:37.332 1:37.023 12 | 12 14 Fernando Alonso ALO Aston Martin 1:37.721 1:37.220 9 | 13 55 Carlos Sainz SAI Williams 1:37.651 1:37.527 12 | 14 18 Lance Stroll STR Aston Martin 1:37.729 1:37.566 12 | 15 43 Franco Colapinto COL Alpine 1:37.179 DNF 8 | 16 41 Arvid Lindblad LIN Racing Bulls 1:37.883 DNF 9 | 17 27 Nico Hulkenberg HUL Audi 1:37.970 6 | 18 87 Oliver Bearman BEA Haas F1 Team 1:37.980 9 | 19 31 Esteban Ocon OCO Haas F1 Team 1:38.233 9 | 20 23 Alexander Albon ALB Williams 1:38.600 6 | 21 77 Valtteri Bottas BOT Cadillac 1:38.611 6 | 22 11 Sergio Perez PER Cadillac 1:38.933 6
+  - ESPN Heineken Las Vegas Grand Prix FP1 STATUS_FINAL: 1:S. Pérez start=None; 2:R. Hirakawa start=None; 3:R. Câmara start=None; 4:V. Bottas start=None; 5:D. Beganovic start=None; 6:J. Crawford start=None; 7:A. Albon start=None; 8:K. Antonelli start=None
+    chiavi: ['athlete', 'id', 'order', 'statistics', 'type', 'uid', 'winner']
+  - ESPN Heineken Las Vegas Grand Prix FP2 STATUS_FINAL: 1:G. Russell start=None; 2:P. Gasly start=None; 3:C. Leclerc start=None; 4:I. Hadjar start=None; 5:O. Piastri start=None; 6:L. Hamilton start=None; 7:L. Norris start=None; 8:K. Antonelli start=None
+    chiavi: ['athlete', 'id', 'order', 'statistics', 'type', 'uid', 'winner']
+  - ESPN Heineken Las Vegas Grand Prix FP3 STATUS_FINAL: 1:G. Russell start=None; 2:K. Antonelli start=None; 3:L. Norris start=None; 4:C. Leclerc start=None; 5:F. Colapinto start=None; 6:M. Verstappen start=None; 7:L. Lawson start=None; 8:L. Hamilton start=None
+    chiavi: ['athlete', 'id', 'order', 'statistics', 'type', 'uid', 'winner']
+  - ESPN Heineken Las Vegas Grand Prix Qual STATUS_FINAL: 1:K. Antonelli start=None; 2:M. Verstappen start=None; 3:G. Russell start=None; 4:L. Norris start=None; 5:I. Hadjar start=None; 6:A. Lindblad start=None; 7:O. Piastri start=None; 8:L. Lawson start=None
+    chiavi: ['athlete', 'id', 'order', 'statistics', 'type', 'uid', 'winner']
+  - ESPN Heineken Las Vegas Grand Prix Race STATUS_SCHEDULED: None:M. Verstappen start=None; None:G. Russell start=None; None:L. Norris start=None; None:I. Hadjar start=None; None:A. Lindblad start=None; None:K. Antonelli start=None; None:L. Lawson start=None; None:P. Gasly start=None
+    chiavi: ['athlete', 'id', 'type', 'uid', 'winner']
+  - Kalshi KXF1RACE Las Vegas Grand Prix Main Race Winner (23 mercati)
+    chiavi: ['can_close_early', 'close_time', 'created_time', 'custom_strike', 'early_close_condition', 'event_ticker', 'exchange_index', 'expected_expiration_time', 'expiration_value', 'last_price_dollars', 'latest_expiration_time', 'market_type', 'no_ask_dollars', 'no_bid_dollars', 'no_sub_title', 'notional_value_dollars', 'occurrence_datetime', 'open_interest_fp', 'open_time', 'previous_price_dollars', 'previous_yes_ask_dollars', 'previous_yes_bid_dollars', 'price_level_structure', 'price_ranges', 'result', 'rules_primary', 'rules_secondary', 'settlement_bounds_type', 'settlement_timer_seconds', 'status', 'strike_type', 'subtitle', 'ticker', 'title', 'updated_time', 'volume_24h_fp', 'volume_fp', 'yes_ask_dollars', 'yes_ask_size_fp', 'yes_bid_dollars', 'yes_bid_size_fp', 'yes_sub_title']
+    {"last_price_dollars": "0.0200", "no_ask_dollars": "1.0000", "no_bid_dollars": "0.9800", "no_sub_title": "Lewis Hamilton", "open_interest_fp": "112697.72", "previous_price_dollars": "0.0600", "previous_yes_ask_dollars": "0.0600", "previous_yes_bid_dollars": "0.0500", "price_level_structure": "linear_cent", "price_ranges": [{"end": "1.0000", "start": "0.0000", "step": "0.0100"}], "subtitle": ":: Ferrari", "title": "Main Race: Lewis Hamilton wins", "volume_24h_fp": "63593.33", "volume_fp": "121483.88", "yes_ask_dollars": "0.0200", "yes_ask_size_fp": "130390.82", "yes_bid_dollars": "0.0000", "yes
+  - Kalshi KXF1RACEPODIUM Las Vegas Grand Prix Main Race: Podium Finishers (23 mercati)
+    chiavi: ['can_close_early', 'close_time', 'created_time', 'custom_strike', 'early_close_condition', 'event_ticker', 'exchange_index', 'expected_expiration_time', 'expiration_value', 'last_price_dollars', 'latest_expiration_time', 'market_type', 'no_ask_dollars', 'no_bid_dollars', 'no_sub_title', 'notional_value_dollars', 'occurrence_datetime', 'open_interest_fp', 'open_time', 'previous_price_dollars', 'previous_yes_ask_dollars', 'previous_yes_bid_dollars', 'price_level_structure', 'price_ranges', 'result', 'rules_primary', 'rules_secondary', 'settlement_bounds_type', 'settlement_timer_seconds', 'status', 'strike_type', 'subtitle', 'ticker', 'title', 'updated_time', 'volume_24h_fp', 'volume_fp', 'yes_ask_dollars', 'yes_ask_size_fp', 'yes_bid_dollars', 'yes_bid_size_fp', 'yes_sub_title']
+    {"last_price_dollars": "0.0500", "no_ask_dollars": "0.9600", "no_bid_dollars": "0.9500", "no_sub_title": "Lewis Hamilton", "open_interest_fp": "6378.36", "previous_price_dollars": "0.2400", "previous_yes_ask_dollars": "0.2400", "previous_yes_bid_dollars": "0.2200", "price_level_structure": "linear_cent", "price_ranges": [{"end": "1.0000", "start": "0.0000", "step": "0.0100"}], "subtitle": ":: Ferrari", "title": "Main Race: Lewis Hamilton to finish top 3", "volume_24h_fp": "2338.99", "volume_fp": "7217.44", "yes_ask_dollars": "0.0500", "yes_ask_size_fp": "83.28", "yes_bid_dollars": "0.0400", "y
+  - Kalshi KXF1H2H F1 Matchup: Antonelli vs Russell (2 mercati)
+    chiavi: ['can_close_early', 'close_time', 'created_time', 'custom_strike', 'early_close_condition', 'event_ticker', 'exchange_index', 'expected_expiration_time', 'expiration_value', 'last_price_dollars', 'latest_expiration_time', 'market_type', 'no_ask_dollars', 'no_bid_dollars', 'no_sub_title', 'notional_value_dollars', 'occurrence_datetime', 'open_interest_fp', 'open_time', 'previous_price_dollars', 'previous_yes_ask_dollars', 'previous_yes_bid_dollars', 'price_level_structure', 'price_ranges', 'primary_participant_key', 'result', 'rules_primary', 'rules_secondary', 'settlement_bounds_type', 'settlement_timer_seconds', 'status', 'strike_type', 'ticker', 'title', 'updated_time', 'volume_24h_fp', 'volume_fp', 'yes_ask_dollars', 'yes_ask_size_fp', 'yes_bid_dollars', 'yes_bid_size_fp', 'yes_sub_title']
+    {"last_price_dollars": "0.3700", "no_ask_dollars": "0.6300", "no_bid_dollars": "0.5500", "no_sub_title": "Andrea Kimi Antonelli", "open_interest_fp": "15.95", "previous_price_dollars": "0.0000", "previous_yes_ask_dollars": "0.0000", "previous_yes_bid_dollars": "0.0000", "price_level_structure": "linear_cent", "price_ranges": [{"end": "1.0000", "start": "0.0000", "step": "0.0100"}], "title": "Will Andrea Kimi Antonelli beat George Russell in the Las Vegas Grand Prix?", "volume_24h_fp": "15.95", "volume_fp": "15.95", "yes_ask_dollars": "0.4500", "yes_ask_size_fp": "231.75", "yes_bid_dollars": "0

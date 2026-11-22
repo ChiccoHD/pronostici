@@ -547,6 +547,55 @@ def f1_practice_test():
     out(f"- **migliore: peso {best}** (senza prove: {res[0.0][0]:.3f} / {res[0.0][1]:.4f})")
 
 
+def grid_check():
+    """Griglia di partenza ufficiale (con penalità) e quote F1 da più fonti gratuite."""
+    import json, re
+    out(f"# Verifica griglia e quote F1 — {date.today().isoformat()}\n")
+    O = "https://api.openf1.org/v1"
+    ses = http.get_json(f"{O}/sessions", {"year": date.today().year}, delay=1.5) or []
+    race = next((s for s in reversed(ses) if s.get("session_name") == "Race" and s.get("date_start", "") > (date.today() - timedelta(days=4)).isoformat()), None)
+    quali = next((s for s in reversed(ses) if s.get("session_name") == "Qualifying" and s.get("date_start", "") < date.today().isoformat() + "T23"), None)
+    out(f"- gara: {race and (race.get('session_key'), race.get('location'), race.get('date_start'))}; qualifica: {quali and quali.get('session_key')}")
+    for sk in [x for x in (race and race.get("session_key"), quali and quali.get("session_key")) if x]:
+        sg = http.get_json(f"{O}/starting_grid", {"session_key": sk}, delay=2.0)
+        check(f"OpenF1 starting_grid session {sk}", bool(sg), json.dumps(sg if isinstance(sg, list) else sg, ensure_ascii=False)[:900])
+        sr = http.get_json(f"{O}/session_result", {"session_key": sk}, delay=2.0)
+        check(f"OpenF1 session_result {sk}", bool(sr), json.dumps((sr or [])[:3], ensure_ascii=False)[:500])
+    rc = http.get_json(f"{O}/race_control", {"session_key": race["session_key"]} if race else {}, delay=2.0) if race else None
+    for m in (rc or [])[:15]:
+        out(f"  - race control: {m.get('category')} {m.get('message')}")
+    # formula1.com
+    html = http.get_text(f"https://www.formula1.com/en/results/{date.today().year}/races", delay=2.0) or ""
+    links = sorted(set(re.findall(r'/en/results/\d{4}/races/(\d+)/([a-z0-9-]+)', html)))
+    check("formula1.com elenco gare", bool(links), str(links[-6:]))
+    if links:
+        rid, slug = links[-1] if not race else next(((a, b) for a, b in links if race.get("location", "").lower().replace(" ", "-") in b), links[-1])
+        for page in ("starting-grid", "qualifying"):
+            h = http.get_text(f"https://www.formula1.com/en/results/{date.today().year}/races/{rid}/{slug}/{page}", delay=2.0) or ""
+            rows = re.findall(r"<tr[^>]*>(.*?)</tr>", h, re.S)
+            txt = [re.sub(r"<[^>]+>", " ", r) for r in rows[:25]]
+            check(f"formula1.com {page} ({slug})", len(rows) > 5, " | ".join(re.sub(r"\s+", " ", t).strip()[:70] for t in txt))
+    # ESPN
+    js = http.get_json("https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard", delay=1.0) or {}
+    for ev in (js.get("events") or [])[:1]:
+        for comp in ev.get("competitions") or []:
+            cs = comp.get("competitors") or []
+            out(f"  - ESPN {ev.get('name')} {comp.get('type', {}).get('abbreviation')} {comp.get('status', {}).get('type', {}).get('name')}: "
+                + "; ".join(f"{c.get('order')}:{(c.get('athlete') or {}).get('shortName')} start={c.get('startPosition') or c.get('startOrder')}" for c in cs[:8]))
+            if cs:
+                out(f"    chiavi: {sorted(cs[0].keys())}")
+    # Kalshi
+    K = "https://api.elections.kalshi.com/trade-api/v2"
+    for t in ("KXF1RACE", "KXF1RACEPODIUM", "KXF1POLE", "KXF1H2H"):
+        ev = http.get_json(f"{K}/events", {"series_ticker": t, "status": "open", "with_nested_markets": "true"}, delay=1.5) or {}
+        for e in (ev.get("events") or [])[:1]:
+            ms = e.get("markets") or []
+            out(f"  - Kalshi {t} {e.get('title')} ({len(ms)} mercati)")
+            if ms:
+                out(f"    chiavi: {sorted(ms[0].keys())}")
+                out("    " + json.dumps({k: ms[0].get(k) for k in ms[0] if any(w in k for w in ("price", "bid", "ask", "volume", "title", "interest"))}, ensure_ascii=False)[:600])
+
+
 def momentum_check():
     """Formato di cronaca ESPN (calcio) e azioni (NBA): servono al grafico della probabilità e al momento della partita."""
     out(f"# Verifica cronaca ESPN — {date.today().isoformat()}\n")
@@ -652,6 +701,11 @@ def weather_test():
 
 def main():
     import sys
+    if "griglia" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        grid_check()
+        _write()
+        return
     if "momento" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         momentum_check()

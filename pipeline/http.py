@@ -71,3 +71,8 @@ def exists(url: str, *, delay: float = 0.25, timeout: int = 20) -> bool | None:
         if code == 404:
             return False
     return None
+
+
+def get_text(url: str, params: dict | None = None, **kw) -> str | None:
+    r = get(url, params, **kw)
+    return r.text if r is not None else None

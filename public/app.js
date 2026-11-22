@@ -431,42 +431,55 @@ function dayChipLabel(key) {
   const s = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-/* filtri compatti: scorrendo in giù resta solo la riga dei giorni, in piccolo; tornando su ricompaiono sport e stato.
-   L'altezza persa resta come margine sotto i filtri: l'elenco non si sposta e la pagina non "salta" avanti e indietro. */
+/* filtri compatti: i filtri scorrono via con la pagina (niente cambi di altezza, quindi niente salti); quando sono usciti
+   dallo schermo compare sotto l'intestazione una barra fissa con i giorni e i campionati in piccolo, più «Filtri» per
+   tornare su. I bottoni della barra girano il tocco a quelli veri. Sul computer (elenco a lato) non serve. */
 (function compactFilters() {
-  // onY = altezza a cui i filtri si sono compattati: si riaprono solo tornando sopra quel punto (o risalendo un bel po').
-  // Prima si decideva dalla posizione del segnaposto, che si sposta proprio quando i filtri cambiano altezza:
-  // con elenchi corti i filtri si aprivano e chiudevano di continuo e la pagina restava bloccata.
-  let lastY = scrollY, up = 0, onY = null, quietUntil = 0;
-  const set = on => {
-    const f = document.querySelector("#list-main .filters");
-    if (!f || document.body.classList.contains("fcompact") === on) return;
-    quietUntil = performance.now() + 250;     // gli eventi causati dal cambio di altezza non contano
-    if (on) {
-      const full = f.offsetHeight;
-      document.body.classList.add("fcompact");
-      f.style.marginBottom = `${Math.max(0, full - f.offsetHeight)}px`;
-      onY = scrollY;
-    } else {
-      document.body.classList.remove("fcompact");
-      f.style.marginBottom = "";
-      onY = null;
-    }
+  let bar = null, sig = "", shown = false, raf = 0;
+  const miniH = () => (bar && bar.offsetHeight) || 84;
+  const make = () => {
+    bar = document.createElement("div");
+    bar.id = "fmini";
+    bar.setAttribute("aria-hidden", "true");
+    document.body.appendChild(bar);
+    bar.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-day],[data-league],[data-fm-top]");
+      if (!b) return;
+      const f = document.querySelector("#list-main .filters");
+      if (b.dataset.fmTop != null || !f) { document.getElementById("f-mark")?.scrollIntoView({ block: "start" }); scrollBy(0, -(document.querySelector(".top")?.offsetHeight || 52) - 8); return; }
+      const sel = b.dataset.day != null ? `[data-day="${CSS.escape(b.dataset.day)}"]` : `[data-league="${CSS.escape(b.dataset.league)}"]`;
+      f.querySelector(sel)?.click();
+      // l'elenco riparte dall'inizio del giorno o del campionato scelto
+      requestAnimationFrame(() => { const end = document.getElementById("f-end"); if (end) scrollTo(0, end.getBoundingClientRect().top + scrollY - (document.querySelector(".top")?.offsetHeight || 52) - miniH() + 2); });
+    });
   };
-  addEventListener("scroll", () => {
-    const mark = document.getElementById("f-mark"), y = scrollY;
-    if (!mark) { document.body.classList.remove("fcompact"); onY = null; lastY = y; return; }
-    if (performance.now() < quietUntil) { lastY = y; return; }
-    const on = document.body.classList.contains("fcompact");
-    if (!on) {
-      const head = document.querySelector(".top")?.offsetHeight || 52;
-      const room = document.documentElement.scrollHeight - innerHeight;   // con un elenco corto non serve compattare
-      if (y > lastY && mark.getBoundingClientRect().top < head - 60 && room > 600) { up = 0; set(true); }
-    } else if (y < onY - 40) { set(false); up = 0; }
-    else if (y < lastY) { up += lastY - y; if (up > 160) { set(false); up = 0; } }
-    else up = 0;
-    lastY = y;
-  }, { passive: true });
+  const sync = f => {
+    const days = f.querySelector(".days"), lg = f.querySelector(".leagues");
+    const sp = SPORTS.find(x => x.key === state.sport);
+    const s = (days?.innerHTML || "") + "|" + (lg?.innerHTML || "") + "|" + state.sport;
+    if (s === sig) return;
+    sig = s;
+    bar.innerHTML = `<div class="fm-row"><button type="button" class="fm-top" data-fm-top aria-label="Torna ai filtri">${esc(SPORT_ICON[state.sport] || "☰")}<span>Filtri</span></button>
+      <div class="fm-days">${days ? days.innerHTML : ""}</div></div>${lg ? `<div class="fm-lg">${lg.innerHTML}</div>` : ""}`;
+    const cur = bar.querySelector('.fm-days [aria-pressed="true"]');
+    if (cur) requestAnimationFrame(() => { const d = bar.querySelector(".fm-days"); d.scrollLeft = cur.offsetLeft - d.clientWidth / 2 + cur.offsetWidth / 2; });
+    const cl = bar.querySelector('.fm-lg [aria-pressed="true"]');
+    if (cl) requestAnimationFrame(() => { const d = bar.querySelector(".fm-lg"); d.scrollLeft = cl.offsetLeft - 12; });
+  };
+  const check = () => {
+    raf = 0;
+    const end = document.getElementById("f-end"), f = document.querySelector("#list-main .filters");
+    const head = document.querySelector(".top")?.offsetHeight || 52;
+    // compare quando il fondo dei filtri arriva sotto la barra: la barra copre solo filtri che stanno uscendo
+    const want = !!(end && f && !document.body.classList.contains("split") && end.getBoundingClientRect().top < head + miniH());
+    if (want) { if (!bar) make(); sync(f); bar.style.top = `${head}px`; }
+    if (want !== shown && bar) { shown = want; bar.classList.toggle("on", want); bar.setAttribute("aria-hidden", String(!want)); }
+  };
+  const later = () => { if (!raf) raf = requestAnimationFrame(check); };
+  addEventListener("scroll", later, { passive: true });
+  addEventListener("resize", later);
+  addEventListener("hashchange", () => { sig = ""; later(); });
+  window.fminiRefresh = () => { sig = ""; later(); };
 })();
 
 /* barra dei giorni: il giorno scelto (di solito oggi) al centro; a sinistra i giorni passati, a destra i prossimi */
@@ -632,7 +645,7 @@ function renderList() {
     if (opts.length > 1) html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti", byDay.length], ...opts.map(([k, l]) => [k, l, n[k]])].map(([k, l, c]) =>
       `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k)}${l} <span>${c}</span></button>`).join("")}</div>`;
   }
-  html += `</div>`;
+  html += `</div><div id="f-end"></div>`;
   if (st === "live") html += `<div id="live-embed"></div>`;
   if (st === "done" && evs.length) {
     const scored = evs.filter(e => outcomeIx(e) != null), hit = scored.filter(e => outcomeIx(e) === e.main.indexOf(Math.max(...e.main)));

@@ -63,6 +63,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (campionat
 - Ricerca a voce: `voiceSearch` in `search.js` (Web Speech API, `it-IT`; due squadre riconosciute aprono la partita).
 - Quote in movimento: `pipeline/odds_move.py` (prima quota vista in `data/cache/odds_first.json`, campo `move` nell'elenco da 6 punti), `moveNote` nel tabellone, avviso nel Worker (`mv:<id>`, da 8 punti, preferenza `general.move`).
 - Immagine del profilo in Tu: `avatarSheet`/`avatarHtml` in `me.js`, `p_avatar` (foto ridotta a 192 px, logo o simbolo; la foto non entra nel link di backup).
+- Filtri dell'elenco sul telefono: non sticky; `compactFilters` in `app.js` mostra la barra fissa `#fmini` (giorni e campionati clonati, i tocchi girati ai bottoni veri) quando `#f-end` passa sotto la barra; niente cambi di altezza durante lo scorrimento.
 - Scorrimento: `showListKeepScroll` ridisegna l'elenco tenendo ferma la prima partita visibile; i dati nuovi che arrivano dalla rete non riportano su chi sta scorrendo.
 - `data/cache/` storico già scaricato (scritto dal workflow, non modificarlo a mano).
 - `public/` il sito; `public/data/` è generato dal workflow.

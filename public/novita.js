@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "Scorrimento dell'elenco più fluido", items: [ "I filtri non si restringono più mentre scorri (era quello che faceva «impazzire» la pagina): ora scorrono via e sotto l'intestazione compare una barra fissa con i giorni e i campionati in piccolo, più «Filtri» per tornare su." ] },
   { d: "2026-11-22", t: "Dove fidarsi, quote convenienti, pagina giocatore e altro", items: [
     "Info → Archivio: «Dove fidarsi» (campionato per campionato, esito, Under/Over e Goal colorati per quanto il modello mantiene le promesse) e «Modello contro mercati nel tempo» (chi sbaglia meno, anche in F1).",
     "Migliori: nuovo filtro «💰 Quote convenienti», le giocate in cui il modello dà un po' più del bookmaker (da 3 a 11 punti).",

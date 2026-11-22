@@ -2016,3 +2016,22 @@ html, body { overflow-anchor: none; }
 .f1-odds td, .f1-odds th { text-align: center; white-space: nowrap; font-size: 12.5px; padding-left: 3px; padding-right: 3px; }
 .f1-odds td:first-child, .f1-odds th:first-child { text-align: left; }
 .f1-odds td:first-child .f1-num { margin-right: 6px; }
+
+/* giocata aperta da Migliori o dal riquadro Oggi */
+.pick-flash { animation: pickflash 2.6s ease-out; border-radius: 10px; }
+@keyframes pickflash { 0%, 35% { background: color-mix(in srgb, #f5b301 32%, transparent); box-shadow: 0 0 0 2px #f5b301; } 100% { background: transparent; box-shadow: 0 0 0 0 transparent; } }
+
+/* quando fidarsi più del mercato */
+.board-gap.trust { display: flex; flex-direction: column; gap: 4px; background: color-mix(in srgb, #e5484d 13%, var(--card)); border: 1.5px solid color-mix(in srgb, #e5484d 50%, transparent); }
+.board-gap.trust b { color: #e5484d; font-size: 14px; }
+.pc-trust { display: block; margin-top: 8px; padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--ink); background: color-mix(in srgb, #e5484d 13%, var(--card)); }
+.f1-trust { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; margin-bottom: 12px; font-size: 13.5px; }
+.f1-trust > b { font-size: 15px; }
+.f1-trust.warn { background: color-mix(in srgb, #e5484d 12%, var(--card)); border: 1.5px solid color-mix(in srgb, #e5484d 50%, transparent); }
+.f1-trust.warn > b { color: #e5484d; }
+.f1-trust.ok { background: color-mix(in srgb, var(--go) 11%, var(--card)); }
+.f1-trust.ok > b { color: var(--go-ink); }
+.f1-tr { display: grid; grid-template-columns: 1.3fr 1fr 1fr; align-items: center; gap: 6px; padding: 5px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+.f1-tr span:first-child { display: flex; align-items: center; }
+.f1-tr .mk b { color: #e5484d; }
+.f1-trust span, .f1-tr { color: var(--ink); }

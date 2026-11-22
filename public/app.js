@@ -354,8 +354,40 @@ async function boot() {
   route();
 }
 
+/* link a una giocata precisa: la scheda si apre già sulla scheda giusta, con la riga in evidenza (focusPick) */
+const pickHref = it => `#/e/${encodeURIComponent(it.event)}/${encodeURIComponent(it.label)}`;
+let PICK_FOCUS = null;
+function focusPick(eid) {
+  const lab = PICK_FOCUS;
+  PICK_FOCUS = null;
+  if (!lab) return;
+  const show = el => {
+    const pane = el.closest("[data-pane]");
+    if (pane?.hidden) $app.querySelector(`[data-tab="${pane.dataset.pane}"]`)?.click();
+    const sp = el.closest("[data-segpane]");
+    if (sp?.hidden) { const [n, v] = sp.dataset.segpane.split(":"); $app.querySelector(`[data-seg="${n}"] [data-v="${v}"]`)?.click(); }
+    const det = el.closest("details"); if (det && !det.open) det.open = true;
+    const row = el.closest(".f1-row, .f1-vsr, .f1-duel, .line, .r, .mk, .row, .bar, li, tr") || el.parentElement;
+    setTimeout(() => {
+      row.scrollIntoView({ block: "center" });
+      row.classList.add("pick-flash");
+      setTimeout(() => row.classList.remove("pick-flash"), 2600);
+    }, 120);
+  };
+  const btns = [...$app.querySelectorAll(`[data-fav="${CSS.escape(`${eid}|${lab}`)}"]`)];
+  if (btns.length) return show(btns[0]);
+  // F1, testa a testa non in elenco: la sfida si apre nel selettore della scheda «Testa a testa»
+  const m = lab.match(/^(.+) davanti a (.+)$/), a = document.getElementById("f1-a"), b = document.getElementById("f1-b");
+  if (m && a && b) {
+    const opt = (sel, n) => [...sel.options].find(o => o.textContent.trim().endsWith(n) || o.textContent.includes(n));
+    const oa = opt(a, m[1]), ob = opt(b, m[2]);
+    if (oa && ob) { a.value = oa.value; b.value = ob.value; a.dispatchEvent(new Event("change")); b.dispatchEvent(new Event("change")); return show(document.getElementById("f1-duel") || a); }
+  }
+}
+
 function route() {
-  const [view, arg] = location.hash.replace(/^#\/?/, "").split("/");
+  const [view, arg, arg2] = location.hash.replace(/^#\/?/, "").split("/");
+  PICK_FOCUS = view === "e" && arg2 ? decodeURIComponent(arg2) : null;
   const navKey = ["info", "migliori", "schedina", "tu"].includes(view) ? view : view === "calendario" ? "tu" : view === "multipla" ? "schedina" : view === "affidabilita" ? "info" : "home";
   document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === navKey ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.body.dataset.view = view || "home";
@@ -510,7 +542,7 @@ function todayWidget() {
     const onDay = d => isoDay(d) === pick;
     // per ogni sport la migliore di oggi (fino al mattino dopo); se oggi non c'è più niente, la migliore del primo giorno in cui si gioca
     const bestOf = k => {
-      const all = pool.filter(it => it.sport === k);
+      const all = pool.filter(it => it.sport === k && !(it.book != null && it.p - it.book >= TRUST_GAP));
       // giorno scelto: la carta c'è solo se quel giorno c'è una giocata forte (es. il sabato della F1 ha solo la pole, mai sicura)
       if (pick) { const b = all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0]; return b && b.p >= GOOD_PICK ? b : null; }
       const now = all.filter(it => tonight(it.date));
@@ -530,7 +562,7 @@ function todayWidget() {
     if (pick && pick < today) bests = "";     // giorno passato: niente migliori (le giocate restano solo per le partite da giocare)
     else if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori ${esc(dayName)}</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
       const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
-      return `<a class="twb" href="#/e/${encodeURIComponent(it.event)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
+      return `<a class="twb" href="${pickHref(it)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
         <span class="twb-sp"><i>${ic}</i>${name}</span>
         <span class="twb-p"><b data-count="${Math.round(it.p * 100)}">${Math.round(it.p * 100)}</b><small>%</small></span>
         <span class="twb-bars">${[1, 2, 3, 4].map(i => `<i class="${i <= tier ? "on" : ""}"></i>`).join("")}</span>
@@ -957,12 +989,16 @@ function seg(name, opts, cur) {
 }
 
 /* stessa regola dell'elenco: se il modello e le quote sono lontani almeno 7 punti su un esito, lo dico */
+/* da quanti punti di distanza tra modello e mercato conviene dare più peso al mercato (che vede notizie, formazioni,
+   infortuni, guasti: cose fuori dai dati del modello) */
+const TRUST_GAP = 0.12;
 function bookGap(probs, book, labels) {
   if (!book) return "";
   let gi = -1, gap = 0;
   probs.forEach((p, i) => { if (book[i] != null && Math.abs(p - book[i]) > gap) { gap = Math.abs(p - book[i]); gi = i; } });
   if (gap < 0.07) return "";
   const more = probs[gi] > book[gi];
+  if (gap >= TRUST_GAP) return `<div class="board-gap trust"><b>⚠️ Qui dai più peso alle quote</b><span>Su «${esc(labels[gi])}» il modello dice ${pct(probs[gi])}, i bookmaker ${pct(book[gi])}: ${Math.round(gap * 100)} punti di differenza. Quando la distanza è così grande di solito le quote sanno qualcosa che il modello non vede (infortuni, formazioni, motivazioni): usa le loro percentuali come riferimento.</span></div>`;
   return `<div class="board-gap"><b>${Math.round(gap * 100)} punti dalle quote</b> su «${esc(labels[gi])}»: il modello dice ${pct(probs[gi])}, i bookmaker ${pct(book[gi])}. Il modello è ${more ? "più" : "meno"} ottimista: possono pesare cose che non vede, come infortuni o formazioni.</div>`;
 }
 
@@ -1044,6 +1080,7 @@ async function showEvent(id) {
     $app.innerHTML = back + f1View(d) + `<p class="note">Dati aggiornati ${esc(ago(d.updated))}. Le percentuali sono stime statistiche, non certezze.</p>`;
     if (typeof eventActions === "function") { $app.querySelector(".board")?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
     wire("f1"); wireF1(d);
+    focusPick(d.id);
     return;
   }
   const body = d.sport === "soccer" ? soccerView(d) : d.sport === "nba" ? nbaView(d) : tennisView(d);
@@ -1061,6 +1098,7 @@ async function showEvent(id) {
     after.insertAdjacentHTML("afterend", h);
   }).catch(() => null);
   wire(d.sport);
+  focusPick(d.id);
   attachLive(d);
   attachLineups(d);
 }
@@ -1602,13 +1640,17 @@ function pickCard(it, rank) {
   const c = usable(it.color) ? it.color : it.sport === "nba" ? "#ea7a1a" : it.sport === "tennis" ? "#9aa51a" : "#0a9b5a";
   const tier = it.p >= .85 ? ["Molto alta", 4] : it.p >= .78 ? ["Alta", 3] : it.p >= .7 ? ["Buona", 2] : ["Media", 1];
   const bars = [1, 2, 3, 4].map(i => `<i class="${i <= tier[1] ? "on" : ""}"></i>`).join("");
-  const book = it.book != null ? `<span class="pc-book ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">bookmaker ${pct(it.book)}</span>` : "";
-  return `<a class="pcard" href="#/e/${encodeURIComponent(it.event)}" style="--tc:${c}">
+  const mkName = it.sport === "f1" ? "mercati" : "bookmaker";
+  const book = it.book != null ? `<span class="pc-book ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">${mkName} ${pct(it.book)}</span>` : "";
+  // modello e mercato molto lontani: qui conta di più il mercato (sa cose che il modello non vede)
+  const trust = it.book != null && Math.abs(it.p - it.book) >= TRUST_GAP
+    ? `<span class="pc-trust">⚠️ ${it.sport === "f1" ? "I mercati dicono" : "Le quote dicono"} <b>${pct(it.book)}</b>: qui dai più peso a ${it.sport === "f1" ? "loro" : "loro"}</span>` : "";
+  return `<a class="pcard" href="${pickHref(it)}" style="--tc:${c}">
     <span class="pc-top"><span class="pc-rank">${rank}</span><span class="pc-lg">${esc(SPORT_NAME[it.sport] || "")} · ${esc(it.cat || "")}</span>${star(key)}</span>
     <span class="pc-mid">${pickMark(it)}<span class="pc-p"><b><span data-count="${Math.round(it.p * 100)}">${Math.round(it.p * 100)}</span><small>%</small></b><span class="pc-tier" title="Probabilità stimata: ${tier[0].toLowerCase()}">${bars}<em>${tier[0]}</em></span></span></span>
     <b class="pc-label">${esc(it.label)}</b>
     <span class="pc-match">${esc(it.match)}</span>
-    <span class="pc-foot"><span>${esc(when)}${it.low ? " · pochi dati" : ""}</span>${book}</span>
+    <span class="pc-foot"><span>${esc(when)}${it.low ? " · pochi dati" : ""}</span>${book}</span>${trust}
   </a>`;
 }
 

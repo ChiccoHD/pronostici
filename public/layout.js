@@ -20,7 +20,7 @@ function listToSide() {
 }
 function markActive() {
   const h = location.hash;
-  side.querySelectorAll("a[href^='#/e/']").forEach(a => a.classList.toggle("active", a.getAttribute("href") === h));
+  side.querySelectorAll("a[href^='#/e/']").forEach(a => a.classList.toggle("active", a.getAttribute("href") === h || h.startsWith(a.getAttribute("href") + "/")));
 }
 
 /* chiamata da route(): true se ha già disegnato la pagina */

@@ -62,6 +62,26 @@ function f1Fixture(e) {
 }
 
 /* ------------------------------------------------------------------ scheda del GP */
+/* quando dare più peso ai mercati: modello lontano da mercati che (se sono due) sono d'accordo tra loro */
+function f1TrustBox(D, MK) {
+  const W = MK.win || {}, by = MK.by || {}, srcs = Object.keys(by);
+  const rows = D.filter(x => W[x.id] != null && x.win != null).map(x => ({ x, p: x.win, m: W[x.id], g: x.win - W[x.id] }));
+  if (rows.length < 5) return "";
+  const big = rows.filter(r => Math.abs(r.g) >= 0.1 && Math.max(r.p, r.m) >= 0.12).sort((a, b) => Math.abs(b.g) - Math.abs(a.g));
+  let agree = null;
+  if (srcs.length >= 2) {
+    const [s1, s2] = srcs, a = by[s1].win || {}, b = by[s2].win || {};
+    const both = Object.keys(a).filter(i => b[i] != null && Math.max(a[i], b[i]) >= 0.05);
+    if (both.length >= 3) agree = Math.max(...both.map(i => Math.abs(a[i] - b[i]))) <= 0.06;
+  }
+  const src = esc(srcs.join(" e ") || MK.src || "mercati");
+  if (!big.length) return `<div class="f1-trust ok"><b>✓ Modello e mercati d'accordo</b><span>Per la vittoria le percentuali del modello e quelle dei mercati (${src}) sono vicine: puoi usare l'una o l'altra.</span></div>`;
+  const list = big.slice(0, 4).map(r => `<div class="f1-tr"><span>${f1Num(r.x, "xs")}<b>${esc(r.x.short)}</b></span><span>modello <b>${pct(r.p)}</b></span><span class="mk">mercati <b>${pct(r.m)}</b></span></div>`).join("");
+  return `<div class="f1-trust warn"><b>⚠️ Per questa gara dai più peso ai mercati</b>
+    <span>${agree ? `${src} sono d'accordo tra loro e lontani dal modello.` : `I mercati (${src}) sono lontani dal modello.`} I mercati vedono cose che il modello non ha (passo gara nelle prove, aggiornamenti, guasti, strategia): quando la distanza è così grande, di solito hanno ragione loro. Usa le loro percentuali in «Quote a confronto».</span>
+    ${list}</div>`;
+}
+
 /* quote a confronto: modello e ogni mercato di previsione, per vittoria e podio */
 function f1OddsBox(D, MK) {
   const by = MK.by || {}, srcs = Object.keys(by);
@@ -158,7 +178,7 @@ function f1View(d) {
       <span class="f1-q"><b>${odd(v.mp)}</b><small>quota merc.</small></span><span class="f1-q eq"><b>${odd(v.p)}</b><small>quota equa</small></span>${star(favKey(v.l, v.p, v.mp))}</div>`).join("")
       || `<p class="note">Nessuna differenza grande: modello e mercato sono d'accordo.</p>`}</div>
       <p class="note">Giocate a cui il modello dà più probabilità del dei mercati di previsione ${esc(MKT_SRC)} (prezzi pubblici senza margine, media delle fonti, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
-  const gridBox = G.quali_done && !d.final ? f1GridBox(D, d) : "";
+  const gridBox = (!d.final ? f1TrustBox(D, MK) : "") + (G.quali_done && !d.final ? f1GridBox(D, d) : "");
   const gara = gridBox + sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
       <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sui mercati di previsione (${esc(MKT_SRC)}, media senza margine), per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")

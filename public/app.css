@@ -1994,3 +1994,14 @@ html, body { overflow-anchor: none; }
 /* computer: intestazione larga quanto lo schermo, contenuti più larghi sugli schermi grandi */
 @media (min-width: 1180px) { .top-row { max-width: none; padding: 10px 28px 10px 24px; } }
 @media (min-width: 1500px) { main { max-width: 1240px; } }
+
+/* F1: griglia di partenza */
+.f1-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 6px; border-radius: 12px; background: repeating-linear-gradient(0deg, transparent 0 30px, var(--rule) 30px 31px); }
+.f1-slot2 { --tc: #888; display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 10px; background: var(--card); border-left: 4px solid var(--tc); color: var(--ink); text-decoration: none; box-shadow: var(--shadow); min-width: 0; }
+.f1-slot2.r { margin-top: 22px; margin-bottom: -22px; }
+.f1-slot2:last-child.l { margin-bottom: 22px; }
+.f1-slot2 > i { font-style: normal; font-weight: 800; font-size: 12px; color: var(--ink-3); width: 16px; text-align: center; flex: none; }
+.f1-slot2 > .f1-st { text-align: left; align-items: flex-start; display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.15; }
+.f1-slot2 b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f1-slot2 .f1-st small { font-size: 10.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f1-slot2 .f1-gt { font-size: 11px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }

@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "F1: griglia di partenza", items: [ "Dopo la qualifica la griglia di partenza compare in cima alla scheda Gara (e in Qualifica), su due file sfalsate con foto, squadra e distacco in qualifica.", "Corretto il nome di Verstappen nei tempi delle sessioni (prima compariva «V…»)." ] },
   { d: "2026-11-22", t: "Ritocchi", items: [ "Il «vs» nella scheda della partita ora è centrato tra i due stemmi.", "Su computer l'elenco delle partite a sinistra è più largo e cresce con lo schermo." ] },
   { d: "2026-11-21", t: "Computer più ordinato", items: [ "Su computer l'intestazione occupa tutta la larghezza, l'elenco delle partite a sinistra è più largo (cresce con lo schermo) e sugli schermi grandi le pagine sfruttano più spazio." ] },
   { d: "2026-11-21", t: "Sfida il modello, grafici in diretta e altre novità", items: [

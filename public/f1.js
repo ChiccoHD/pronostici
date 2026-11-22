@@ -62,6 +62,20 @@ function f1Fixture(e) {
 }
 
 /* ------------------------------------------------------------------ scheda del GP */
+const fmtLap = t => { const m = Math.floor(t / 60), x = t - m * 60; return m ? `${m}:${x.toFixed(3).padStart(6, "0")}` : x.toFixed(3); };
+/* griglia di partenza a due file sfalsate, con foto, squadra e distacco in qualifica (dai tempi OpenF1 quando ci sono) */
+function f1GridBox(D, d) {
+  const grid = D.filter(x => x.grid).sort((a, b) => a.grid - b.grid);
+  if (!grid.length) return "";
+  const Q = d.sessions_laps?.Q?.rows || [], qt = {};
+  for (const r of Q) if (r.id && r.lap) qt[r.id] = r.lap;
+  const best = Math.min(...Object.values(qt));
+  const gap = x => qt[x.id] == null ? "" : x.grid === 1 || qt[x.id] === best ? `<small class="f1-gt">pole ${fmtLap(qt[x.id])}</small>` : `<small class="f1-gt">+${(qt[x.id] - best).toFixed(3)}</small>`;
+  return sec("Griglia di partenza", `<div class="f1-grid2">${grid.map(x => `<a class="f1-slot2 ${x.grid % 2 ? "l" : "r"}" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}">
+      <i>${x.grid}</i>${f1Num(x, "xs")}<span class="f1-st"><b>${esc(x.short)}</b>${gap(x) || `<small>${esc(x.team_name || "")}</small>`}</span></a>`).join("")}</div>
+    <p class="note">Ordine di partenza dopo la qualifica${Object.keys(qt).length ? "; a destra il distacco dal miglior giro in qualifica" : ""}. Penalità decise dopo la qualifica possono cambiarlo. Le percentuali della gara partono da questa griglia.</p>`, `${grid.length} piloti`, "F1 griglia");
+}
+
 function f1View(d) {
   const G = d.gp || {}, D = d.drivers || [], fin = d.final;
   const byId = Object.fromEntries(D.map(x => [x.id, x]));
@@ -125,7 +139,8 @@ function f1View(d) {
       <span class="f1-q"><b>${odd(v.mp)}</b><small>quota merc.</small></span><span class="f1-q eq"><b>${odd(v.p)}</b><small>quota equa</small></span>${star(favKey(v.l, v.p, v.mp))}</div>`).join("")
       || `<p class="note">Nessuna differenza grande: modello e mercato sono d'accordo.</p>`}</div>
       <p class="note">Giocate a cui il modello dà più probabilità del mercato di previsione Polymarket (prezzi pubblici, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
-  const gara = sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
+  const gridBox = G.quali_done && !d.final ? f1GridBox(D, d) : "";
+  const gara = gridBox + sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
       <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sul mercato di previsione Polymarket, per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
     + vsHtml
@@ -139,9 +154,7 @@ function f1View(d) {
   // Qualifica e Sprint
   let quali;
   if (G.quali_done) {
-    const grid = D.filter(x => x.grid).sort((a, b) => a.grid - b.grid);
-    quali = sec("Griglia di partenza", `<div class="f1-grid">${grid.map(x => `<a class="f1-slot ${x.grid % 2 ? "l" : "r"}" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}"><i>${x.grid}</i>${esc(x.code || x.short)}</a>`).join("")}</div>
-      <p class="note">Qualifica conclusa: le percentuali della gara partono da questa griglia.</p>`, "", "F1 griglia");
+    quali = f1GridBox(D, d);
   } else {
     const pl = [...D].filter(x => x.pole != null).sort((a, b) => b.pole - a.pole);
     quali = sec("Pole position", `<div class="f1-tab">${pl.slice(0, 12).map((x, i) => `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}

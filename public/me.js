@@ -8,7 +8,7 @@ function showMe() {
   const st = s => slipState(s).cls;
   const openSlips = slips.filter(s => !["win", "lose"].includes(st(s))), won = slips.filter(s => st(s) === "win"), lost = slips.filter(s => st(s) === "lose");
   const closed = meClosed();
-  let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips) + meBadges(closed, slips, teams);
+  let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips);
   if (typeof weekSection === "function") html += weekSection();
 
   // squadre seguite e loro prossime partite

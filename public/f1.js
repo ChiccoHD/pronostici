@@ -166,6 +166,9 @@ function f1View(d) {
     + (d.practice?.pace ? sec("Passo nelle prove libere", `<div class="rows">${Object.entries(d.practice.pace).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id, z]) => { const x = byId[id] || { short: id };
         return `<div class="r"><span class="l">${x.num ? f1Num(x, "xs") : ""}${esc(x.short)}</span><span class="v"><b class="${z > 0.3 ? "good" : z < -0.3 ? "bad" : ""}">${z > 0 ? "+" : ""}${num(z, 1)}</b></span></div>`; }).join("")}</div>
       <p class="note">Le percentuali della gara tengono conto anche del passo di questo weekend (giro secco e simulazioni con tanta benzina): su 17 GP del 2026 il pronostico è migliorato così. Positivo = più veloce della media.</p>`, "", "F1 passo prove") : "")
+    + (d.practice?.qpace ? sec("Passo in qualifica", `<div class="rows">${Object.entries(d.practice.qpace).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id, z]) => { const x = byId[id] || { short: id };
+        return `<div class="r"><span class="l">${x.num ? f1Num(x, "xs") : ""}${esc(x.short)}</span><span class="v"><b class="${z > 0.3 ? "good" : z < -0.3 ? "bad" : ""}">${z > 0 ? "+" : ""}${num(z, 1)}</b></span></div>`; }).join("")}</div>
+      <p class="note">Oltre alla posizione in griglia, conta quanto è stato veloce ogni pilota in qualifica (anche chi parte indietro per penalità): sugli stessi 17 GP del 2026 il pronostico del vincitore è migliorato di circa il 4%. Positivo = più veloce della media.</p>`, "", "F1 passo qualifica") : "")
     + sec("Scuderia vincente", teamBars, "", "F1 scuderia")
     + sec("Posizione attesa", `<div class="rows">${ord("exp_pos").reverse().slice(0, 22).map(x => `<div class="r"><span class="l">${f1Num(x, "xs")} ${esc(x.short)}</span><span class="v">${num(x.exp_pos)}°</span></div>`).join("")}</div>
       <p class="note">Media delle simulazioni (ritiri contati in fondo).</p>`, "", "F1 posizione attesa");

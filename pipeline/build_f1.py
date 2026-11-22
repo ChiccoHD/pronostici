@@ -627,6 +627,8 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
         except Exception:
             log.exception("Prove libere F1")
     R_use = F.practice_adjust(R, pace, F.PRACTICE_W)
+    qpace = F.practice_pace([wk["Q"]["rows"]]) if (wk.get("Q") or {}).get("rows") else {}
+    R_use = F.practice_adjust(R_use, qpace, F.QUALI_W)
     sim = F.simulate(entrants, R_use, team_r, dnf_rate, prof, scale, grid=grid, rain=rain if rain >= 0.3 else 0.0)
     # sprint (se in programma e non ancora corsa)
     sprint = None
@@ -714,6 +716,8 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
             d["sessions_laps"] = wk
             if pace and F.PRACTICE_W:
                 d["practice"] = {"w": F.PRACTICE_W, "pace": {k: round(v, 2) for k, v in pace.items()}}
+            if qpace:
+                d["practice"] = {**d.get("practice", {}), "qw": F.QUALI_W, "qpace": {k: round(v, 2) for k, v in qpace.items()}}
         except Exception:
             log.exception("Giri F1")
         try:

@@ -216,6 +216,11 @@ def practice_pace(sessions: list[list[dict]]) -> dict:
     return {i: max(-2.5, min(2.5, -(g - m) / sd)) for i, g in gap.items()}
 
 
+# passo in qualifica (giro secco della sessione Q) sopra a griglia e prove: provato sui GP 2026 con Verifica fonti,
+# modo f1quali: log-loss del vincitore 1,588 → 1,518 con peso 3-4 (scelto 3, il più prudente del tratto migliore)
+QUALI_W = 3.0
+
+
 def practice_adjust(R: dict, pace: dict, w: float) -> dict:
     """Rating con il passo delle prove: race += w * 0.1 * punteggio (0.1 = circa la distanza tra due squadre vicine)."""
     if not pace or not w:

@@ -1083,14 +1083,26 @@ function tabsView(id, tabs) {
     ${tabs.map(([k, , body]) => `<div role="tabpanel" data-pane="${k}" ${k !== cur ? "hidden" : ""}>${body}</div>`).join("")}`;
 }
 
+/* schede della partita: ognuna ricorda dove eri arrivato. Tornando su una scheda già vista si riparte da lì;
+   una scheda nuova si apre dal suo inizio (subito sotto il tabellone), senza riportare in cima alla pagina */
+const TAB_SCROLL = new Map();
 function wire(id) {
+  const key = t => `${location.hash.split("/").slice(0, 3).join("/")}|${t}`;
   $app.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => {
+    const prev = $app.querySelector('[data-tab][aria-selected="true"]')?.dataset.tab;
+    if (prev === b.dataset.tab) return;
+    if (prev) TAB_SCROLL.set(key(prev), window.scrollY);
     state.tab[id] = b.dataset.tab;
     $app.querySelectorAll("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === b));
     $app.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== b.dataset.tab);
-    const brd = $app.querySelector(".board"), head = document.querySelector(".top").offsetHeight;
-    const y = brd ? brd.getBoundingClientRect().bottom + window.scrollY - head : 0;
-    if (window.scrollY > y) window.scrollTo(0, y);
+    const tabs = b.closest(".tabs"), head = document.querySelector(".top").offsetHeight;
+    // inizio della scheda: la barra delle schede (che resta attaccata in alto) appena sotto l'intestazione
+    const pane = $app.querySelector(`[data-pane="${b.dataset.tab}"]`);
+    const start = pane ? pane.getBoundingClientRect().top + window.scrollY - head - (tabs?.offsetHeight || 0) - 8 : 0;
+    const saved = TAB_SCROLL.get(key(b.dataset.tab));
+    if (saved != null) window.scrollTo(0, Math.max(saved, Math.min(window.scrollY, start)));
+    else if (window.scrollY > start) window.scrollTo(0, start);
+    b.scrollIntoView({ block: "nearest", inline: "center" });
   });
   $app.querySelectorAll("[data-seg]").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = () => {
     const name = g.dataset.seg;

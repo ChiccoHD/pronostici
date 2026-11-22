@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "Schede della partita che ricordano dove eri", items: [ "Passando tra Esito, Gol, Forma, Giocatori e le altre schede, ognuna riparte dal punto in cui l'avevi lasciata; una scheda nuova si apre dal suo inizio, senza riportarti in cima alla pagina." ] },
   { d: "2026-11-22", t: "Formazioni in campo", items: [ "Quando escono le formazioni ufficiali, in cima a Esito compaiono le due squadre schierate sul campo con il modulo, i numeri di maglia e i cognomi (tocca un giocatore per la sua pagina), più le panchine." ] },
   { d: "2026-11-22", t: "Conteggi dell'elenco allineati", items: [ "I numeri sotto Calcio, Basket, Tennis e F1 e quelli di Tutte, Da giocare e Concluse ora seguono il giorno scelto, lo stato e il filtro per giocata: con «Oggi» contano solo le partite di oggi." ] },
   { d: "2026-11-22", t: "Notifiche dei gol con il marcatore e «Solo da giocare»", items: [ "Notifiche dei gol: se ESPN non ha ancora scritto chi ha segnato, l'avviso aspetta fino a 2 minuti e mezzo per arrivare con il nome.", "Elenco: «Da giocare» (in alto, accanto a Tutte) toglie le partite iniziate o finite, ora tiene il giorno scelto e resta attivo alla prossima apertura. Anche nella barra compatta c'è «Solo da giocare»." ] },

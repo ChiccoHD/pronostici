@@ -1469,16 +1469,18 @@ function showLineups(d, lu) {
       <div class="lu-imp-g">${[["1", 0], ["X", 1], ["2", 2]].map(([l, i]) => `<span><small>${l}</small><b>${pct(imp.x12[i])}</b><em>prima ${pct(d.markets["1x2"][i])}</em></span>`).join("")}
         <span><small>Over 2,5</small><b>${pct(imp.over)}</b><em>prima ${pct(d.markets.ou?.["2.5"])}</em></span><span><small>Goal</small><b>${pct(imp.btts)}</b><em>prima ${pct(d.markets.btts)}</em></span></div>
       <p class="note">Stima: chi manca toglie una parte dei gol che di solito porta, chi entra al suo posto ne recupera circa la metà. Gol attesi ${num(imp.xg[0], 2)} – ${num(imp.xg[1], 2)} (prima ${num(d.markets.xg[0], 2)} – ${num(d.markets.xg[1], 2)}).</p></div>`;
-  box.innerHTML = `<h2>Formazioni ufficiali<small>da ESPN</small></h2>${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`;
+  const luSec = sec("Formazioni ufficiali", `${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`, "da ESPN", "Formazioni elenco");
+  box.outerHTML = luSec.replace("<section ", '<section id="lu-box" ');
   // le formazioni anche nella scheda Esito, in alto: è lì che si guarda prima
   // nazionali (niente dati dei giocatori): le formazioni intere direttamente in Esito
   // in Esito, in alto: il campo con le due formazioni (sempre) e, se cambia qualcosa, l'effetto sulle percentuali
   const pitch = pitchHtml(d, lu, cH, cA);
   document.getElementById("lu-top")?.remove();
+  // riquadro richiudibile come gli altri (tocca il titolo): resta chiuso anche nelle partite successive
   document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
-    `<section class="sec" id="lu-top"><h2>Formazioni ufficiali<small>da ESPN</small></h2>${imp?.changed ? impHtml : ""}
+    sec("Formazioni ufficiali", `${imp?.changed ? impHtml : ""}
       ${pitch || `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}
-      ${imp && !imp.changed ? `<p class="note">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>` : ""}</section>`);
+      ${imp && !imp.changed ? `<p class="note">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>` : ""}`, "da ESPN", "Formazioni campo").replace("<section ", '<section id="lu-top" '));
   const tab = document.querySelector('[data-tab="gioc"]');
   if (tab && !tab.querySelector(".lu-dot")) tab.insertAdjacentHTML("beforeend", `<span class="lu-dot" title="Formazioni ufficiali"></span>`);
 }

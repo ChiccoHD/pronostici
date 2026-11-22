@@ -609,6 +609,37 @@ def f1_quali_test():
         out(f"- con qualifica {best} e peso della griglia {gw}: {a[0]:.3f} / {a[1]:.4f}")
 
 
+def players_check():
+    """Storico partita per partita dei giocatori (ESPN) e se il telefono può leggerlo (intestazione CORS)."""
+    import json, requests
+    out(f"# Verifica giocatori ESPN — {date.today().isoformat()}\n")
+    H = {"Origin": "https://pronostici.dimariafnc.workers.dev", "User-Agent": "Mozilla/5.0"}
+    tests = [("nba", "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/3112335/gamelog"),
+             ("nba-site", "https://site.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/3112335/gamelog"),
+             ("nba-overview", "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/3112335/overview"),
+             ("calcio-gamelog", "https://site.web.api.espn.com/apis/common/v3/sports/soccer/ita.1/athletes/384482/gamelog"),
+             ("calcio-overview", "https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/150225/overview"),
+             ("calcio-eventlog", "https://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/athletes/150225/eventlog")]
+    for name, url in tests:
+        try:
+            r = requests.get(url, headers=H, timeout=20)
+            js = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+            check(f"{name} {r.status_code}", r.ok, f"CORS={r.headers.get('access-control-allow-origin')} chiavi={sorted(js.keys())[:14] if isinstance(js, dict) else type(js)}")
+            if name == "nba" and isinstance(js, dict):
+                out("  - labels: " + str(js.get("labels"))[:200] + " names: " + str(js.get("names"))[:200])
+                st = js.get("seasonTypes") or []
+                ev = js.get("events") or {}
+                out(f"  - seasonTypes {len(st)}; events {len(ev)}; primo evento: {json.dumps(next(iter(ev.values()), {}))[:400]}")
+                if st:
+                    cat = (st[0].get("categories") or [{}])[0]
+                    out("  - prima riga: " + json.dumps((cat.get("events") or [{}])[0])[:300])
+            if name.startswith("calcio") and isinstance(js, dict):
+                out("  - " + json.dumps(js)[:700])
+        except Exception as e:
+            check(name, False, str(e)[:200])
+        time.sleep(1.5)
+
+
 def grid_check():
     """Griglia di partenza ufficiale (con penalità) e quote F1 da più fonti gratuite."""
     import json, re
@@ -766,6 +797,11 @@ def main():
     if "f1quali" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         f1_quali_test()
+        _write()
+        return
+    if "giocatori" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        players_check()
         _write()
         return
     if "griglia" in sys.argv[1:]:

@@ -107,3 +107,11 @@ def laps_summary(session_key: int, budget: list[int], keep: bool = True) -> dict
 def _good(js: dict) -> bool:
     """Almeno 10 piloti con un giro cronometrato: sotto, i dati della sessione non sono ancora completi."""
     return sum(1 for p in js.get("rows") or [] if p.get("lap")) >= 10
+
+
+def starting_grid(quali_session_key: int) -> list[tuple[int, int]]:
+    """Griglia di partenza ufficiale (con le penalità) pubblicata dopo la qualifica: [(posizione, numero)].
+    Si chiede con la chiave della sessione di qualifica (verificato con Verifica fonti, modo griglia)."""
+    js = _get("starting_grid", {"session_key": quali_session_key}) or []
+    out = [(int(x["position"]), int(x["driver_number"])) for x in js if isinstance(x, dict) and x.get("position") and x.get("driver_number")]
+    return sorted(out)

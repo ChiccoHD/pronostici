@@ -11,7 +11,7 @@ from . import photos, store
 from .config import CACHE, PUBLIC_DATA
 from .models import f1 as F
 from .models.common import r
-from .sources import jolpica, openf1, openmeteo, polymarket
+from .sources import espn, kalshi, jolpica, openf1, openmeteo, polymarket
 
 log = logging.getLogger("f1")
 SEASONS_BACK = 3          # 2023-2025 più quella in corso
@@ -458,10 +458,17 @@ def _weekend_sessions(gp, year, race_iso, drivers, budget) -> dict:
 
 
 def _market(gp, race_iso, drivers) -> dict | None:
-    """Polymarket (mercato di previsione gratuito): probabilità per vittoria, podio, pole e testa a testa, abbinate ai piloti."""
-    m = polymarket.gp_markets(gp["name"], race_iso)
-    if not m:
+    """Mercati di previsione gratuiti (Polymarket e Kalshi): probabilità per vittoria, podio, pole e testa a testa, abbinate
+    ai piloti. Ogni fonte è prima ripulita dal margine (vittoria e pole sommano 1, podio 3), poi si fa la media."""
+    pm = polymarket.gp_markets(gp["name"], race_iso)
+    try:
+        km = kalshi.gp_markets(gp.get("official") or gp["name"], gp.get("locality") or "")
+    except Exception:
+        log.exception("Kalshi")
+        km = None
+    if not pm and not km:
         return None
+    m = pm or {"win": {}, "podium": {}, "pole": {}, "fl": {}, "fp1": {}, "fp2": {}, "fp3": {}, "team_win": {}, "team_pole": {}, "h2h": []}
     full = {polymarket.norm(x["name"]): x["id"] for x in drivers}
     last = {}
     for x in drivers:
@@ -475,12 +482,26 @@ def _market(gp, race_iso, drivers) -> dict | None:
                 return i
         ids = last.get(k.split(" ")[-1] if k else "", [])
         return ids[0] if len(ids) == 1 else None
-    out = {"src": "Polymarket", "at": datetime.now(timezone.utc).isoformat(timespec="minutes")}
-    for k in ("win", "podium", "pole", "fl", "fp1", "fp2", "fp3"):
-        v = {who(n): p for n, p in (m.get(k) or {}).items()}
+    srcs = [n for n, x in (("Polymarket", pm), ("Kalshi", km)) if x]
+    out = {"src": " e ".join(srcs), "at": datetime.now(timezone.utc).isoformat(timespec="minutes"), "by": {}}
+    TOT = {"win": 1.0, "pole": 1.0, "fl": 1.0, "podium": 3.0}
+    def clean(raw, k):
+        v = {who(n): p for n, p in (raw or {}).items()}
         v.pop(None, None)
-        if v:
-            out[k] = v
+        s = sum(v.values())
+        if k in TOT and len(v) >= 8 and s > 0:          # margine tolto solo se il mercato è (quasi) completo
+            v = {i: p * TOT[k] / s for i, p in v.items()}
+        return {i: r(min(p, 0.99), 4) for i, p in v.items()}
+    for k in ("win", "podium", "pole", "fl", "fp1", "fp2", "fp3"):
+        per = {n: clean(x.get(k), k) for n, x in (("Polymarket", pm), ("Kalshi", km)) if x and x.get(k)}
+        per = {n: v for n, v in per.items() if v}
+        if not per:
+            continue
+        ids = set().union(*per.values())
+        out[k] = {i: r(sum(v[i] for v in per.values() if i in v) / sum(1 for v in per.values() if i in v), 4) for i in ids}
+        if k in ("win", "podium", "pole"):
+            for n, v in per.items():
+                out["by"].setdefault(n, {})[k] = v
     # scuderie: nomi del mercato ("Red Bull Racing", "Alpine") → id della squadra
     teams = {}
     for x in drivers:
@@ -498,16 +519,73 @@ def _market(gp, race_iso, drivers) -> dict | None:
         if v:
             out[k] = v
     h = []
-    for a, b, pa, vol in m["h2h"]:
+    for a, b, pa, vol in m["h2h"] + ((km or {}).get("h2h") or []):
         ia, ib = who(a), who(b)
         if ia and ib and ia != ib:
             h.append([ia, ib, pa, vol])
+    # stessa sfida su più fonti: una riga sola, con la media
+    pairs = {}
+    for a, b, pa, vol in h:
+        key, p = ((a, b), pa) if a < b else ((b, a), 1 - pa)
+        pairs.setdefault(key, []).append((p, vol))
+    h = [[a, b, r(sum(p for p, _ in v) / len(v), 4), sum(x for _, x in v)] for (a, b), v in pairs.items()]
     if h:
         out["h2h"] = h
     for k in ("sc", "red"):
         if m.get(k) is not None:
             out[k] = m[k]
     return out if len(out) > 2 else None
+
+
+def _official_grid(gp, year, race_iso, quali, info) -> tuple[dict, str, list]:
+    """Griglia di partenza vera, con le penalità: OpenF1 (starting_grid della qualifica), controllata con l'ordine
+    della gara su ESPN. Se non c'è ancora, l'ordine di qualifica. Restituisce (griglia, fonte, penalità)."""
+    qpos = {q["id"]: q["pos"] for q in quali}
+    ids = set(qpos)
+    by_num = {str(info[i]["num"]): i for i in ids if i in info and info[i].get("num")}
+    race_t = datetime.fromisoformat(race_iso.replace("Z", "+00:00"))
+    loc, cty = _norm(gp.get("locality")), _norm(gp.get("country"))
+    qs = [s for s in ALL_SESSIONS if s.get("session_name") == "Qualifying" and s.get("year") == year
+          and (_norm(s.get("location")) == loc or _norm(s.get("circuit_short_name")) == loc or _norm(s.get("country_name")) == cty)
+          and abs((datetime.fromisoformat(s["date_start"]) - race_t).days) <= 4]
+    grid, src = {}, ""
+    if qs:
+        try:
+            rows = openf1.starting_grid(qs[-1]["session_key"])
+            g = {by_num[str(n)]: p for p, n in rows if str(n) in by_num}
+            if len(g) >= len(ids) - 2 and len(g) >= 15:
+                grid, src = g, "ufficiale"
+        except Exception:
+            log.exception("Griglia OpenF1")
+    # controllo con ESPN: l'elenco della gara è già nell'ordine di partenza
+    try:
+        js = espn.league_board("racing", "f1")
+        names = {polymarket.norm(info[i]["name"]): i for i in ids if i in info}
+        last = {polymarket.norm(info[i]["name"]).split(" ")[-1]: i for i in ids if i in info}
+        for ev in js.get("events") or []:
+            for comp in ev.get("competitions") or []:
+                if (comp.get("type") or {}).get("abbreviation") != "Race":
+                    continue
+                order = []
+                for c in comp.get("competitors") or []:
+                    n = polymarket.norm((c.get("athlete") or {}).get("displayName") or "")
+                    order.append(names.get(n) or last.get(n.split(" ")[-1] if n else ""))
+                eg = {i: k + 1 for k, i in enumerate(order) if i}
+                if len(eg) >= 15:
+                    if grid:
+                        same = sum(1 for i, p in eg.items() if grid.get(i) == p)
+                        src = "ufficiale, confermata da ESPN" if same >= len(eg) - 1 else src
+                    elif sorted(eg.values()) == list(range(1, len(eg) + 1)) and eg != qpos:
+                        grid, src = eg, "ESPN (ordine di partenza)"
+    except Exception:
+        log.exception("Griglia ESPN")
+    if not grid:
+        return qpos, "qualifica", []
+    for i in ids:                       # chi manca (non ha fatto tempi): in fondo, nell'ordine di qualifica
+        if i not in grid:
+            grid[i] = max(grid.values()) + 1
+    pen = sorted([{"id": i, "q": qpos[i], "g": grid[i]} for i in ids if grid.get(i) != qpos[i] and grid[i] - qpos[i] >= 2], key=lambda x: x["g"])
+    return grid, src, pen
 
 
 def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, info, of_sessions, budget, stand, bt, status, all_races=None):
@@ -532,10 +610,10 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
     quali = [] if done else jolpica.quali_for(year, rnd)
     if quali:
         entrants = [{"id": q["id"], "team": q["team"]} for q in quali]
-        grid = {q["id"]: q["pos"] for q in quali}
+        grid, grid_src, grid_pen = _official_grid(gp, year, race_iso, quali, info)
     else:
         entrants = [{"id": y["id"], "team": y["team"]} for y in base["results"]]
-        grid = None
+        grid, grid_src, grid_pen = None, "", []
     prof = F.circuit_profile(races, gp["circuit"])
     fc = openmeteo.forecast(gp["lat"], gp["lon"]) if not done else None
     wx = _weather(gp, fc)
@@ -619,6 +697,8 @@ def _gp_event(gp, year, races, R, team_r, dnf_rate, scale, colors, team_names, i
                                                          "pole": next((q["name"] for q in x.get("quali") or [] if q["pos"] == 1), None)} for x in eds[:10]],
                         "laps": eds[0]["results"][0].get("laps"), "since": eds[-1]["season"], "all_editions": len(eds),
                         "pole_win_all": r(sum(1 for x in eds if x["results"][0].get("grid") == 1) / len(eds), 3)}
+    if grid:
+        d["grid_info"] = {"src": grid_src, "pen": grid_pen}
     lanes = [p["lane"] for _, dd in datas for p in dd.get("pit") or [] if p.get("lane") and 12 < p["lane"] < 45]
     if lanes:
         d["circuit"]["pit_loss"] = r(statistics.median(lanes), 1)

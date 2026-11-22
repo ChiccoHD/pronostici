@@ -529,6 +529,19 @@ def _install_f1_fakes():
                 "team_win": {"Mercedes": .3, "Ferrari": .22, "McLaren F1 Team": .18}, "team_pole": {}, "h2h": [[ds[i]["name"].split()[-1], ds[i + 1]["name"].split()[-1], round(rr.uniform(.3, .7), 3), rr.randint(100, 9000)] for i in range(0, 12, 2)],
                 "sc": .62, "red": .12, "events": 4}
     polymarket.gp_markets = pm
+    from .sources import kalshi
+    def km(name, loc):
+        rr = random.Random(name + "k")
+        ds = F1DATA["drivers"]
+        return {"win": {d["name"]: round(max(.005, rr.uniform(0, .25) * (d["force"] + 1) / 3), 3) for d in ds},
+                "podium": {d["name"]: round(min(.9, rr.uniform(0, .6) * (d["force"] + 1) / 2), 3) for d in ds[:12]}, "pole": {}, "fl": {},
+                "h2h": [[ds[0]["name"], ds[1]["name"], .55, 300]]}
+    kalshi.gp_markets = km
+    def sg(key):
+        order = sorted(F1DATA["drivers"], key=lambda d: -d["force"])
+        order.insert(5, order.pop(0))           # il primo in qualifica penalizzato di 5 posti
+        return [(i + 1, int(d["num"])) for i, d in enumerate(order)]
+    openf1.starting_grid = sg
     def fc(lat, lon):
         start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
         times = [(start + timedelta(hours=h)).strftime("%Y-%m-%dT%H:00") for h in range(16 * 24)]

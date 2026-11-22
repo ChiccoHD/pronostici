@@ -2005,3 +2005,14 @@ html, body { overflow-anchor: none; }
 .f1-slot2 b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .f1-slot2 .f1-st small { font-size: 10.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .f1-slot2 .f1-gt { font-size: 11px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.f1-gsrc { font-size: 13px; font-weight: 700; padding: 8px 10px; border-radius: 10px; margin-bottom: 8px; }
+.f1-gsrc.ok { background: color-mix(in srgb, var(--go) 13%, var(--card)); color: var(--go-ink); }
+.f1-gsrc.wait { background: color-mix(in srgb, #f5b301 16%, var(--card)); color: var(--ink); }
+.f1-pen { font-size: 13px; padding: 6px 10px; margin-bottom: 6px; border-radius: 10px; background: color-mix(in srgb, #e5484d 11%, var(--card)); }
+.f1-pen span { color: #e5484d; font-weight: 700; font-size: 12px; margin-left: 4px; }
+.f1-slot2.pen { box-shadow: var(--shadow), inset 0 0 0 1.5px #e5484d; }
+.f1-slot2 .f1-gpen { color: #e5484d !important; font-weight: 800; }
+.f1-odds td, .f1-odds th { text-align: center; white-space: nowrap; font-size: 12.5px; padding-left: 3px; padding-right: 3px; }
+.f1-odds td:first-child, .f1-odds th:first-child { text-align: left; }
+.f1-odds td:first-child .f1-num { margin-right: 6px; }

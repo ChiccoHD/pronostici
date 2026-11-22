@@ -62,6 +62,19 @@ function f1Fixture(e) {
 }
 
 /* ------------------------------------------------------------------ scheda del GP */
+/* quote a confronto: modello e ogni mercato di previsione, per vittoria e podio */
+function f1OddsBox(D, MK) {
+  const by = MK.by || {}, srcs = Object.keys(by);
+  if (!srcs.length) return "";
+  const pane = k => {
+    const rows = [...D].filter(x => x[k === "win" ? "win" : "podium"] != null).sort((a, b) => (MK[k]?.[b.id] || b[k === "win" ? "win" : "podium"]) - (MK[k]?.[a.id] || a[k === "win" ? "win" : "podium"])).slice(0, 10);
+    return `<div data-segpane="f1o:${k}" ${k === "win" ? "" : "hidden"}><table class="vs-table f1-odds"><tr><th>Pilota</th><th>Modello</th>${srcs.map(s => `<th>${esc(s === "Polymarket" ? "Poly" : s)}</th>`).join("")}<th>Quota</th></tr>
+      ${rows.map(x => { const mp = MK[k]?.[x.id], p = x[k === "win" ? "win" : "podium"]; const diff = mp != null && p != null ? p - mp : 0;
+        return `<tr><td>${f1Num(x, "xs")}${esc(x.short)}</td><td class="${diff >= 0.03 ? "best" : ""}">${pct(p)}</td>${srcs.map(s => `<td>${by[s][k]?.[x.id] != null ? pct(by[s][k][x.id]) : "–"}</td>`).join("")}<td><b>${mp != null ? odd(mp) : "–"}</b></td></tr>`; }).join("")}</table></div>`;
+  };
+  return sec("Quote a confronto", `<div class="f1-segrow">${seg("f1o", [["win", "Vittoria"], ["podium", "Podio"]], "win")}</div>${pane("win")}${pane("podium")}
+    <p class="note">Probabilità del modello accanto a quelle dei mercati di previsione (${esc(srcs.join(" e "))}): prezzi pubblici e gratuiti, ripuliti dal margine; la <b>quota media</b> viene dalla media delle fonti. In verde dove il modello è più ottimista di almeno 3 punti. I bookmaker italiani possono pagare un po' meno.</p>`, srcs.length > 1 ? `${srcs.length} fonti` : "", "F1 quote");
+}
 const fmtLap = t => { const m = Math.floor(t / 60), x = t - m * 60; return m ? `${m}:${x.toFixed(3).padStart(6, "0")}` : x.toFixed(3); };
 /* griglia di partenza a due file sfalsate, con foto, squadra e distacco in qualifica (dai tempi OpenF1 quando ci sono) */
 function f1GridBox(D, d) {
@@ -71,9 +84,15 @@ function f1GridBox(D, d) {
   for (const r of Q) if (r.id && r.lap) qt[r.id] = r.lap;
   const best = Math.min(...Object.values(qt));
   const gap = x => qt[x.id] == null ? "" : x.grid === 1 || qt[x.id] === best ? `<small class="f1-gt">pole ${fmtLap(qt[x.id])}</small>` : `<small class="f1-gt">+${(qt[x.id] - best).toFixed(3)}</small>`;
-  return sec("Griglia di partenza", `<div class="f1-grid2">${grid.map(x => `<a class="f1-slot2 ${x.grid % 2 ? "l" : "r"}" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}">
-      <i>${x.grid}</i>${f1Num(x, "xs")}<span class="f1-st"><b>${esc(x.short)}</b>${gap(x) || `<small>${esc(x.team_name || "")}</small>`}</span></a>`).join("")}</div>
-    <p class="note">Ordine di partenza dopo la qualifica${Object.keys(qt).length ? "; a destra il distacco dal miglior giro in qualifica" : ""}. Penalità decise dopo la qualifica possono cambiarlo. Le percentuali della gara partono da questa griglia.</p>`, `${grid.length} piloti`, "F1 griglia");
+  const gi = d.grid_info || {}, pen = {};
+  for (const p of gi.pen || []) pen[p.id] = p;
+  const official = /ufficiale|ESPN/.test(gi.src || "");
+  const badge = official ? `<div class="f1-gsrc ok">✓ Griglia ufficiale con le penalità${/confermata/.test(gi.src) ? " · controllata su due fonti (FIA via OpenF1 ed ESPN)" : gi.src === "ufficiale" ? " (FIA via OpenF1)" : " (ESPN)"}</div>`
+    : `<div class="f1-gsrc wait">⏳ Ordine di qualifica: la griglia ufficiale con eventuali penalità non è ancora uscita. Si aggiorna da sola.</div>`;
+  const penList = (gi.pen || []).map(p => { const x = D.find(y => y.id === p.id); return x ? `<div class="f1-pen"><b>${esc(x.short)}</b> ${p.q}° in qualifica → parte <b>${p.g}°</b> <span>penalità −${p.g - p.q} posti</span></div>` : ""; }).join("");
+  return sec("Griglia di partenza", badge + penList + `<div class="f1-grid2">${grid.map(x => `<a class="f1-slot2 ${x.grid % 2 ? "l" : "r"} ${pen[x.id] ? "pen" : ""}" href="${f1Href(x.id)}" style="--tc:${f1c(x.color)}">
+      <i>${x.grid}</i>${f1Num(x, "xs")}<span class="f1-st"><b>${esc(x.short)}</b>${pen[x.id] ? `<small class="f1-gpen">↓${pen[x.id].g - pen[x.id].q} penalità</small>` : gap(x) || `<small>${esc(x.team_name || "")}</small>`}</span></a>`).join("")}</div>
+    <p class="note">${Object.keys(qt).length ? "Sotto il nome il distacco dal miglior giro in qualifica. " : ""}Le percentuali della gara partono da questa griglia.</p>`, `${grid.length} piloti`, "F1 griglia");
 }
 
 function f1View(d) {
@@ -102,12 +121,12 @@ function f1View(d) {
   </div>`;
 
   // Gara: un pilota per riga, con la giocata scelta nel selettore
-  const MK = d.market || {};
+  const MK = d.market || {}, MKT_SRC = MK.src || "Polymarket";
   const mkOf = (k, x) => (MK[k] || {})[x.id];
   const raceRow = k => (x, i) => {
     const p = x[k], mp = mkOf(k, x);
     return `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}
-      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}${x.grid ? ` · griglia ${x.grid}°` : ""}</small>${mp != null ? `<span class="f1-mk" title="Probabilità e quota sul mercato Polymarket">mercato ${pct(mp)} · q. ${odd(mp)}</span>` : ""}</a>
+      <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}${x.grid ? ` · griglia ${x.grid}°` : ""}</small>${mp != null ? `<span class="f1-mk" title="Probabilità e quota sui mercati di previsione (media, senza margine)">mercato ${pct(mp)} · q. ${odd(mp)}</span>` : ""}</a>
       <span class="f1-bar"><i style="width:${Math.round((p || 0) * 100)}%"></i></span>
       <b class="f1-p">${pct(p)}<small>q. ${odd(p)}</small></b>
 
@@ -138,12 +157,12 @@ function f1View(d) {
       ${f1Num(v.x, "xs")}<span class="f1-vsl"><b>${esc(v.l)}</b><small>modello ${pct(v.p)} · mercato ${pct(v.mp)}</small></span>
       <span class="f1-q"><b>${odd(v.mp)}</b><small>quota merc.</small></span><span class="f1-q eq"><b>${odd(v.p)}</b><small>quota equa</small></span>${star(favKey(v.l, v.p, v.mp))}</div>`).join("")
       || `<p class="note">Nessuna differenza grande: modello e mercato sono d'accordo.</p>`}</div>
-      <p class="note">Giocate a cui il modello dà più probabilità del mercato di previsione Polymarket (prezzi pubblici, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
+      <p class="note">Giocate a cui il modello dà più probabilità del dei mercati di previsione ${esc(MKT_SRC)} (prezzi pubblici senza margine, media delle fonti, aggiornati a ogni giro di dati). La <b>quota equa</b> è quella giusta secondo il modello: se il tuo sito paga di più, il modello ci vede valore. Restano stime, non certezze.</p>`, "", "F1 mercato") : "";
   const gridBox = G.quali_done && !d.final ? f1GridBox(D, d) : "";
   const gara = gridBox + sec("Gara", `<div class="f1-segrow">${seg("f1g", [["win", "Vittoria"], ["podium", "Podio"], ["top10", "Punti"], ["dnf", "Ritiro"]], "win")}</div>
       ${["win", "podium", "top10", "dnf"].map(paneFor).join("")}
-      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sul mercato di previsione Polymarket, per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
-    + vsHtml
+      <p class="note">Punti = arrivo nei primi 10. Ritiro = non classificato (incidente, guasto). q. = quota equa secondo il modello.${MK.win ? " Sotto il pilota, «mercato» = probabilità e quota sui mercati di previsione (${esc(MKT_SRC)}, media senza margine), per confronto." : ""} Tocca la stella per metterla in schedina.</p>`, "", "F1 gara")
+    + f1OddsBox(D, MK) + vsHtml
     + (d.practice?.pace ? sec("Passo nelle prove libere", `<div class="rows">${Object.entries(d.practice.pace).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id, z]) => { const x = byId[id] || { short: id };
         return `<div class="r"><span class="l">${x.num ? f1Num(x, "xs") : ""}${esc(x.short)}</span><span class="v"><b class="${z > 0.3 ? "good" : z < -0.3 ? "bad" : ""}">${z > 0 ? "+" : ""}${num(z, 1)}</b></span></div>`; }).join("")}</div>
       <p class="note">Le percentuali della gara tengono conto anche del passo di questo weekend (giro secco e simulazioni con tanta benzina): su 17 GP del 2026 il pronostico è migliorato così. Positivo = più veloce della media.</p>`, "", "F1 passo prove") : "")
@@ -160,7 +179,7 @@ function f1View(d) {
     quali = sec("Pole position", `<div class="f1-tab">${pl.slice(0, 12).map((x, i) => `<div class="f1-row" style="--tc:${f1c(x.color)}"><span class="f1-rk">${i + 1}</span>${f1Num(x, "sm")}
       <a class="f1-who" href="${f1Href(x.id)}"><b>${esc(x.short)}</b><small>${esc(x.team_name)}</small>${mkOf("pole", x) != null ? `<span class="f1-mk">mercato ${pct(mkOf("pole", x))} · q. ${odd(mkOf("pole", x))}</span>` : ""}</a>
       <span class="f1-bar"><i style="width:${Math.round(x.pole * 100)}%"></i></span><b class="f1-p">${pct(x.pole)}<small>q. ${odd(x.pole)}</small></b>${star(favKey(label.pole(x), x.pole, mkOf("pole", x)))}</div>`).join("")}</div>
-      <p class="note">Stima dal passo in qualifica delle ultime gare, con più peso a quelle recenti.${MK.pole ? " «mercato» = Polymarket, per confronto." : ""}</p>`, "", "F1 pole");
+      <p class="note">Stima dal passo in qualifica delle ultime gare, con più peso a quelle recenti.${MK.pole ? " «mercato» = ${esc(MKT_SRC)}, per confronto." : ""}</p>`, "", "F1 pole");
   }
   const flap = [...D].filter(x => x.fl != null).sort((a, b) => b.fl - a.fl).slice(0, 6);
   quali += sec("Giro più veloce", `<div class="bars">${flap.map(x => `<div class="bar f1-tb" style="--tc:${f1c(x.color)}"><i style="width:${Math.round(x.fl * 100)}%"></i><span>${esc(x.short)}<small>${esc(x.team_name)}</small></span><b>${pct(x.fl)}</b></div>`).join("")}</div>`, "", "F1 giro veloce");
@@ -207,7 +226,7 @@ function f1View(d) {
       <p class="note">Media delle posizioni di distacco dal compagno di squadra di quel momento, edizione per edizione${C0.since ? ` (dal ${C0.since})` : ""}. Più a sinistra = lo batte; il numero a destra = edizioni contate.</p>`, "", "F1 compagni pista") : "";
   const h2h = sec("Scegli due piloti", `<div class="f1-pick"><select id="f1-a">${opts}</select><span>contro</span><select id="f1-b">${opts}</select></div><div id="f1-duel">${D[1] ? duel(D[0], D[1]) : ""}</div>
       <p class="note">Chi arriva davanti all'altro (se uno si ritira, vince chi resta in gara). Stima dalle simulazioni della gara.</p>`, "", "F1 h2h scelta")
-    + (mkDuels.length ? sec("Sfide quotate", mkDuels.map(([a, b]) => duel(a, b)).join("") + `<p class="note">Le sfide che il mercato Polymarket quota per questo GP, con la stima del modello.</p>`, "", "F1 sfide mercato") : "")
+    + (mkDuels.length ? sec("Sfide quotate", mkDuels.map(([a, b]) => duel(a, b)).join("") + `<p class="note">Le sfide che i mercati di previsione (${esc(MKT_SRC)}) quotano per questo GP, con la stima del modello.</p>`, "", "F1 sfide mercato") : "")
     + sec("Compagni di squadra", mates.map(([a, b]) => duel(a, b)).join(""), "", "F1 compagni")
     + mcHtml;
 
@@ -548,7 +567,7 @@ function f1SessionSheet(d, k) {
     const list = (d.drivers || []).filter(x => MKS[x.id] != null).sort((a, b) => MKS[b.id] - MKS[a.id]);
     quote = list.map(x => `<div class="f1-ss" style="--tc:${f1c(x.color)}"><span class="f1-rk"></span>${f1Num(x, "sm")}<span class="f1-who"><b>${esc(x.short)}</b><small>${esc(x.team_name)}</small></span>
       <span class="f1-st"><b>q. ${odd(MKS[x.id])}</b><small>mercato ${pct(MKS[x.id])} · stima ${pct(x[est])}</small></span></div>`).join("")
-      + `<p class="note">Quote del mercato di previsione Polymarket (${F1_MK_SES[k].startsWith("fp") ? "chi fa il giro più veloce della sessione" : F1_MK_SES[k] === "pole" ? "chi prende la pole" : "chi vince"}). «stima» = ${F1_MK_SES[k].startsWith("fp") ? "probabilità di pole del modello, il passo sul giro secco più vicino: nelle prove contano molto i programmi delle squadre" : "probabilità del modello"}. Restano stime.</p>`;
+      + `<p class="note">Quote dei mercati di previsione ${esc(d.market?.src || "Polymarket")} (${F1_MK_SES[k].startsWith("fp") ? "chi fa il giro più veloce della sessione" : F1_MK_SES[k] === "pole" ? "chi prende la pole" : "chi vince"}). «stima» = ${F1_MK_SES[k].startsWith("fp") ? "probabilità di pole del modello, il passo sul giro secco più vicino: nelle prove contano molto i programmi delle squadre" : "probabilità del modello"}. Restano stime.</p>`;
   }
   const tabs = (S0 ? [["t", "Tempi", tempi], ["s", "Settori", sett], ["v", "Velocità", vel], ["p", "Passo gara", passo]] : []).concat(quote ? [["q", "Quote", quote]] : []);
   const { el } = openSheet(`<h3 class="sheet-t">${esc(ses?.name || k)}</h3><p class="sheet-p" style="margin-top:-6px">${esc(d.home.name)}${ses ? ` · ${esc(f1When(ses.date))}` : ""}</p>

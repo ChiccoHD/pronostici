@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "F1: griglia ufficiale e quote da due mercati", items: [ "La griglia di partenza ora è quella ufficiale con le penalità (FIA tramite OpenF1, controllata con ESPN): chi è penalizzato è segnato in rosso, con la posizione in qualifica e quella di partenza. Se la griglia ufficiale non è ancora uscita, lo dice. Le percentuali della gara partono dalla griglia vera.", "Quote F1 da due mercati di previsione gratuiti, Polymarket e Kalshi, ripulite dal margine e mediate. Nuovo riquadro «Quote a confronto» nella Gara: modello, ogni mercato e quota media per vittoria e podio." ] },
   { d: "2026-11-22", t: "F1: griglia di partenza", items: [ "Dopo la qualifica la griglia di partenza compare in cima alla scheda Gara (e in Qualifica), su due file sfalsate con foto, squadra e distacco in qualifica.", "Corretto il nome di Verstappen nei tempi delle sessioni (prima compariva «V…»)." ] },
   { d: "2026-11-22", t: "Ritocchi", items: [ "Il «vs» nella scheda della partita ora è centrato tra i due stemmi.", "Su computer l'elenco delle partite a sinistra è più largo e cresce con lo schermo." ] },
   { d: "2026-11-21", t: "Computer più ordinato", items: [ "Su computer l'intestazione occupa tutta la larghezza, l'elenco delle partite a sinistra è più largo (cresce con lo schermo) e sugli schermi grandi le pagine sfruttano più spazio." ] },

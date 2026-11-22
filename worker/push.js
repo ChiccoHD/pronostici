@@ -506,6 +506,15 @@ export class Push {
         const changed = !prev || JSON.stringify(prev.sets) !== JSON.stringify(cur.sets);
         if (changed) logs["log:" + id] = tennisLogStep((await this.store.get("log:" + id)) || [], prev, cur, now);
       }
+      // gol arrivato ma ESPN non ha ancora scritto chi ha segnato: si aspetta fino a 2 minuti e mezzo (il punteggio
+      // nuovo resta in sospeso), così la notifica arriva con il nome; a fine partita o dopo l'attesa parte comunque
+      if (e.sport === "soccer" && prev && cur.st === "in" && cur.h + cur.a > prev.h + prev.a) {
+        const news = (cur.goals || []).slice(prev.goals?.length || 0);
+        const since = prev.waitG || now;
+        if ((!news.length || news.some(g => !g.who)) && now - since < 150e3) {
+          cur.h = prev.h; cur.a = prev.a; cur.goals = prev.goals; cur.waitG = since;
+        }
+      }
       for (const [k, [type, title, body]] of diff(e.sport, prev, cur, e).entries()) {
         for (const key of followers.get(id) || []) {
           const s = subMap.get(key);

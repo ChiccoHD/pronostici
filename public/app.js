@@ -52,7 +52,8 @@ function leagueMark(key, sport) {
   return `<span class="group-dot g-${sport || "soccer"}"></span>`;
 }
 // all'apertura si vede la giornata di oggi (se non ci sono partite oggi, renderList torna a "Tutti")
-const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home", day: new Date().toLocaleDateString("en-CA") };
+const state = { sport: load("sport", "all"), league: load("league", "all"), tab: {}, formN: 5, side: "home", day: new Date().toLocaleDateString("en-CA"),
+  status: load("status", "all") === "next" ? "next" : "all" };     // «Da giocare» resta scelto anche alla prossima apertura
 let INDEX = null, META = null, REL = null, BEST = null;
 
 /* ------------------------------------------------------------------ utilità */
@@ -443,11 +444,11 @@ function dayChipLabel(key) {
     bar.setAttribute("aria-hidden", "true");
     document.body.appendChild(bar);
     bar.addEventListener("click", ev => {
-      const b = ev.target.closest("[data-day],[data-league],[data-fm-top]");
+      const b = ev.target.closest("[data-day],[data-league],[data-fm-top],[data-status]");
       if (!b) return;
       const f = document.querySelector("#list-main .filters");
       if (b.dataset.fmTop != null || !f) { document.getElementById("f-mark")?.scrollIntoView({ block: "start" }); scrollBy(0, -(document.querySelector(".top")?.offsetHeight || 52) - 8); return; }
-      const sel = b.dataset.day != null ? `[data-day="${CSS.escape(b.dataset.day)}"]` : `[data-league="${CSS.escape(b.dataset.league)}"]`;
+      const sel = b.dataset.status != null ? `[data-status="${b.dataset.status}"]` : b.dataset.day != null ? `[data-day="${CSS.escape(b.dataset.day)}"]` : `[data-league="${CSS.escape(b.dataset.league)}"]`;
       f.querySelector(sel)?.click();
       // l'elenco riparte dall'inizio del giorno o del campionato scelto
       requestAnimationFrame(() => { const end = document.getElementById("f-end"); if (end) scrollTo(0, end.getBoundingClientRect().top + scrollY - (document.querySelector(".top")?.offsetHeight || 52) - miniH() + 2); });
@@ -456,11 +457,13 @@ function dayChipLabel(key) {
   const sync = f => {
     const days = f.querySelector(".days"), lg = f.querySelector(".leagues");
     const sp = SPORTS.find(x => x.key === state.sport);
-    const s = (days?.innerHTML || "") + "|" + (lg?.innerHTML || "") + "|" + state.sport;
+    const s = (days?.innerHTML || "") + "|" + (lg?.innerHTML || "") + "|" + state.sport + "|" + state.status;
     if (s === sig) return;
     sig = s;
+    const nx = state.status === "next";
     bar.innerHTML = `<div class="fm-row"><button type="button" class="fm-top" data-fm-top aria-label="Torna ai filtri">${esc(SPORT_ICON[state.sport] || "☰")}<span>Filtri</span></button>
-      <div class="fm-days">${days ? days.innerHTML : ""}</div></div>${lg ? `<div class="fm-lg">${lg.innerHTML}</div>` : ""}`;
+      <div class="fm-days">${days ? days.innerHTML : ""}</div></div>
+      <div class="fm-row2"><button type="button" class="fm-next ${nx ? "on" : ""}" data-status="${nx ? "all" : "next"}">${nx ? "✓ Solo da giocare" : "⏳ Solo da giocare"}</button>${lg ? `<div class="fm-lg">${lg.innerHTML}</div>` : ""}</div>`;
     const cur = bar.querySelector('.fm-days [aria-pressed="true"]');
     if (cur) requestAnimationFrame(() => { const d = bar.querySelector(".fm-days"); d.scrollLeft = cur.offsetLeft - d.clientWidth / 2 + cur.offsetWidth / 2; });
     const cl = bar.querySelector('.fm-lg [aria-pressed="true"]');
@@ -688,7 +691,15 @@ function renderList() {
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
   requestAnimationFrame(centerDays); countUp(document.querySelector(".tw") || $app);
-  $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => { state.status = b.dataset.status; state.day = "all"; showList(); });
+  $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => {
+    const was = state.status;
+    state.status = b.dataset.status;
+    save("status", state.status === "next" ? "next" : "all");
+    // tra «Tutte» e «Da giocare» il giorno scelto resta (se non è passato): si tolgono solo le partite iniziate o finite
+    const keepDay = ["all", "next"].includes(was) && ["all", "next"].includes(state.status) && state.day !== "all" && state.day >= isoDay(Date.now());
+    if (!keepDay) state.day = "all";
+    showList();
+  });
   $app.querySelectorAll("[data-mk-open]").forEach(b => b.onclick = showMarketSheet);
   $app.querySelectorAll("[data-mk-clear]").forEach(b => b.onclick = () => { state.mk = null; showList(); });
   if (st === "live" && typeof showLive === "function") setTimeout(() => showLive({ embed: true }), 0);

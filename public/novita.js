@@ -1,6 +1,7 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-22", t: "Notifiche dei gol con il marcatore e «Solo da giocare»", items: [ "Notifiche dei gol: se ESPN non ha ancora scritto chi ha segnato, l'avviso aspetta fino a 2 minuti e mezzo per arrivare con il nome.", "Elenco: «Da giocare» (in alto, accanto a Tutte) toglie le partite iniziate o finite, ora tiene il giorno scelto e resta attivo alla prossima apertura. Anche nella barra compatta c'è «Solo da giocare»." ] },
   { d: "2026-11-22", t: "Scorrimento dell'elenco più fluido", items: [ "I filtri non si restringono più mentre scorri (era quello che faceva «impazzire» la pagina): ora scorrono via e sotto l'intestazione compare una barra fissa con i giorni e i campionati in piccolo, più «Filtri» per tornare su." ] },
   { d: "2026-11-22", t: "Dove fidarsi, quote convenienti, pagina giocatore e altro", items: [
     "Info → Archivio: «Dove fidarsi» (campionato per campionato, esito, Under/Over e Goal colorati per quanto il modello mantiene le promesse) e «Modello contro mercati nel tempo» (chi sbaglia meno, anche in F1).",

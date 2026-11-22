@@ -1,1 +1,1 @@
-{"updated":"2026-11-22T15:56+00:00","sports":{"soccer":{"n":303,"t_fit":0.9,"t":0.95,"logloss":0.9051,"logloss_tarata":0.904},"nba":{"n":81,"t_fit":1.4,"t":1.085,"logloss":0.6509,"logloss_tarata":0.648},"tennis":{"n":75,"t_fit":0.7,"t":0.94,"logloss":0.594,"logloss_tarata":0.5918}}}
+{"updated":"2026-11-22T17:33+00:00","sports":{"soccer":{"n":307,"t_fit":0.9,"t":0.949,"logloss":0.9051,"logloss_tarata":0.904},"nba":{"n":81,"t_fit":1.4,"t":1.085,"logloss":0.6509,"logloss_tarata":0.648},"tennis":{"n":77,"t_fit":0.7,"t":0.939,"logloss":0.5924,"logloss_tarata":0.59}}}

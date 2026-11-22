@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21T23:58+00:00",
+ "updated": "2026-11-22T00:10+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -306,8 +306,8 @@
    "aggiornato": "2026-11-21T23:44+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-21T23:58+00:00"
+   "esiti": "0 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-22T00:10+00:00"
   },
   "archivio": {
    "partite": 436,
@@ -331,11 +331,11 @@
     "logloss_uniform": 3.091,
     "brier_podium": 0.0838
    },
-   "mercato_21": "60 prezzi",
+   "mercato_21": "75 prezzi",
    "mercato_22": "nessuno",
-   "mercato_23": "nessuno",
+   "mercato_23": "0 prezzi",
    "openf1_richieste": 2,
-   "aggiornato": "2026-11-21T23:58+00:00"
+   "aggiornato": "2026-11-22T00:10+00:00"
   }
  }
 }

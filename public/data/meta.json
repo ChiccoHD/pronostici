@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T00:24+00:00",
+ "updated": "2026-11-22T00:28+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -306,12 +306,12 @@
    "aggiornato": "2026-11-21T23:44+00:00"
   },
   "risultati": {
-   "esiti": "1 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-22T00:24+00:00"
+   "esiti": "0 nuovi esiti, 0 calendari letti",
+   "aggiornato": "2026-11-22T00:28+00:00"
   },
   "archivio": {
    "partite": 437,
-   "nuove": 1
+   "nuove": 0
   },
   "taratura": {
    "soccer": "x0.96 su 286 partite",
@@ -335,7 +335,7 @@
    "mercato_22": "nessuno",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 2,
-   "aggiornato": "2026-11-22T00:24+00:00"
+   "aggiornato": "2026-11-22T00:28+00:00"
   }
  }
 }

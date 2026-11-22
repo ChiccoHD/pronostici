@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T06:31+00:00",
+ "updated": "2026-11-22T09:01+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -306,7 +306,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-22T06:31+00:00"
+   "aggiornato": "2026-11-22T09:01+00:00"
   },
   "archivio": {
    "partite": 445,
@@ -333,8 +333,8 @@
    "mercato_21": "75 prezzi",
    "mercato_22": "22 prezzi",
    "mercato_23": "0 prezzi",
-   "openf1_richieste": 12,
-   "aggiornato": "2026-11-22T06:31+00:00"
+   "openf1_richieste": 4,
+   "aggiornato": "2026-11-22T09:01+00:00"
   }
  }
 }

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T12:47+00:00",
+ "updated": "2026-11-22T12:57+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -116,7 +116,7 @@
     "espn_tabellini": "104 partite",
     "meteo": "4 partite",
     "partite_in_arrivo": 13,
-    "foto_giocatori": "ESPN 16, senza foto 91, Wikipedia 141, TheSportsDB 136, da controllare 76"
+    "foto_giocatori": "ESPN 16, senza foto 91, Wikipedia 141, TheSportsDB 140, da controllare 72"
    },
    "primeira-liga": {
     "football-data": "ok",
@@ -180,7 +180,7 @@
     "partite_in_arrivo": 5,
     "foto_giocatori": "Wikipedia 44, da controllare 127, ESPN 8"
    },
-   "aggiornato": "2026-11-22T12:44+00:00"
+   "aggiornato": "2026-11-22T12:54+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -194,7 +194,7 @@
    },
    "partite_in_arrivo": 29,
    "partite_stagione": 241,
-   "aggiornato": "2026-11-22T12:46+00:00"
+   "aggiornato": "2026-11-22T12:56+00:00"
   },
   "tennis": {
    "atp": {
@@ -205,7 +205,7 @@
     "storico": "12447 incontri (+0)",
     "espn": "5 incontri in programma"
    },
-   "aggiornato": "2026-11-22T12:46+00:00"
+   "aggiornato": "2026-11-22T12:56+00:00"
   },
   "coppe": {
    "uomini": {
@@ -265,7 +265,7 @@
     "espn_uefa.wchampions": "174 giocate, 10 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-22T12:46+00:00"
+   "aggiornato": "2026-11-22T12:55+00:00"
   },
   "nazionali": {
    "storico": "12548 partite, fino al 2026-11-17",
@@ -302,11 +302,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-22T12:46+00:00"
+   "aggiornato": "2026-11-22T12:55+00:00"
   },
   "risultati": {
    "esiti": "1 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-22T12:47+00:00"
+   "aggiornato": "2026-11-22T12:57+00:00"
   },
   "archivio": {
    "partite": 447,
@@ -334,7 +334,7 @@
    "mercato_22": "22 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-22T12:47+00:00"
+   "aggiornato": "2026-11-22T12:57+00:00"
   },
   "quote_in_movimento": 0
  }

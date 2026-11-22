@@ -1404,6 +1404,36 @@ function lineupImpact(d, lu) {
 }
 
 /* formazioni ufficiali arrivate (da live.js): riquadro con titolari e panchina, e tabella giocatori ricalcolata */
+/* formazioni in campo: metà campo per squadra, file dal portiere in avanti secondo il modulo (es. 4-3-3);
+   l'ordine dentro la fila viene da formationPlace di ESPN (se manca, dall'ordine dei titolari) */
+function pitchHtml(d, lu, cH, cA) {
+  const lines = t => {
+    const st = [...t.starters].sort((a, b) => (a.fp || 99) - (b.fp || 99));
+    const shape = (t.formation || "").split("-").map(Number).filter(n => n > 0);
+    if (shape.reduce((a, b) => a + b, 0) !== st.length - 1) return null;
+    const out = [[st[0]]];
+    let i = 1;
+    for (const n of shape) { out.push(st.slice(i, i + n)); i += n; }
+    return out;
+  };
+  const sur = n => { const p = String(n).split(" "); return p.length > 1 ? p.slice(1).join(" ") : n; };
+  const half = (side, t, c) => {
+    const L = lines(t);
+    if (!L) return "";
+    const rows = side === "home" ? [...L].reverse() : L;      // casa in basso con il portiere in fondo, ospite in alto
+    const fg = onColor(c);
+    return `<div class="pt-half ${side}">${rows.map(r => `<div class="pt-row">${r.map(p => {
+      const has = d.players?.[side]?.some(x => String(x.pid) === String(p.pid));
+      const inner = `<i style="background:${c};color:${fg}">${esc(p.jersey || "")}</i><span>${esc(sur(p.name))}</span>`;
+      return has ? `<a class="pt-p" href="${plHref(d, side, p)}">${inner}</a>` : `<span class="pt-p">${inner}</span>`; }).join("")}</div>`).join("")}</div>`;
+  };
+  const top = half("away", lu.away, cA), bot = half("home", lu.home, cH);
+  if (!top || !bot) return "";
+  return `<div class="pitch"><div class="pt-lab a"><span class="tdot" style="background:${cA}"></span>${esc(d.away.short || d.away.name)} <small>${esc(lu.away.formation)}</small></div>
+    ${top}<div class="pt-mid"></div>${bot}
+    <div class="pt-lab h"><span class="tdot" style="background:${cH}"></span>${esc(d.home.short || d.home.name)} <small>${esc(lu.home.formation)}</small></div></div>
+    <details class="pt-bench"><summary>Panchine</summary><p><b>${esc(d.home.short || d.home.name)}:</b> ${lu.home.bench.map(p => esc(p.name)).join(", ") || "–"}</p><p><b>${esc(d.away.short || d.away.name)}:</b> ${lu.away.bench.map(p => esc(p.name)).join(", ") || "–"}</p></details>`;
+}
 function showLineups(d, lu) {
   const wrap = document.getElementById("sp-wrap");
   if (!wrap) return;
@@ -1430,9 +1460,13 @@ function showLineups(d, lu) {
   box.innerHTML = `<h2>Formazioni ufficiali<small>da ESPN</small></h2>${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`;
   // le formazioni anche nella scheda Esito, in alto: è lì che si guarda prima
   // nazionali (niente dati dei giocatori): le formazioni intere direttamente in Esito
-  if ((imp?.changed || !imp) && !document.getElementById("lu-top")) document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
-    `<section class="sec" id="lu-top"><h2>Formazioni ufficiali<small>da ESPN</small></h2>${imp ? `${impHtml}<p class="note">Titolari e panchina nella scheda Giocatori.</p>`
-      : `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}</section>`);
+  // in Esito, in alto: il campo con le due formazioni (sempre) e, se cambia qualcosa, l'effetto sulle percentuali
+  const pitch = pitchHtml(d, lu, cH, cA);
+  document.getElementById("lu-top")?.remove();
+  document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
+    `<section class="sec" id="lu-top"><h2>Formazioni ufficiali<small>da ESPN</small></h2>${imp?.changed ? impHtml : ""}
+      ${pitch || `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}
+      ${imp && !imp.changed ? `<p class="note">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>` : ""}</section>`);
   const tab = document.querySelector('[data-tab="gioc"]');
   if (tab && !tab.querySelector(".lu-dot")) tab.insertAdjacentHTML("beforeend", `<span class="lu-dot" title="Formazioni ufficiali"></span>`);
 }

@@ -512,7 +512,7 @@ async function fetchLineups(tg) {
     if (side !== "home" && side !== "away") continue;
     const people = (team.roster || []).map(p => ({
       pid: String(p.athlete?.id ?? ""), name: p.athlete?.displayName || p.athlete?.fullName || "",
-      jersey: p.jersey || "", pos: p.position?.abbreviation || "", starter: !!p.starter,
+      jersey: p.jersey || "", pos: p.position?.abbreviation || "", starter: !!p.starter, fp: Number(p.formationPlace) || 0,
     })).filter(p => p.name);
     out[side] = { formation: team.formation || "", starters: people.filter(p => p.starter), bench: people.filter(p => !p.starter) };
   }

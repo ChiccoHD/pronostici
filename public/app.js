@@ -495,7 +495,7 @@ function centerDays() {
   });
 }
 
-function dayChips(items, getDate, what = "partite", done = 0) {
+function dayChips(items, getDate, what = "partite", done = 0, allPast = false) {
   const counts = {};
   for (const it of items) { const k = isoDay(getDate(it)); counts[k] = (counts[k] || 0) + 1; }
   const keys = Object.keys(counts).sort();
@@ -510,7 +510,7 @@ function dayChips(items, getDate, what = "partite", done = 0) {
     return `<button data-day="${k}" class="${k === today ? "is-today" : k < today ? "is-past" : ""}" aria-pressed="${state.day === k}" aria-label="${esc(dayChipLabel(k))}, ${counts[k]} ${what || ""}">
       <span class="d-top">${esc(top)}</span><b>${d.getDate()}</b><span class="d-mon">${esc(month)}</span>${cnt(counts[k])}</button>`;
   };
-  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${items.filter(it => isoDay(getDate(it)) >= today).length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
+  return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${allPast ? items.length : items.filter(it => isoDay(getDate(it)) >= today).length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
 }
 if (!state.day) state.day = "all";
 
@@ -623,26 +623,31 @@ function renderList() {
   const ahead = st === "next" ? nextIx : bySport.filter(e => !isPastDay(e));
   // nel calendario di Tutte ci sono anche i giorni passati (partite finite, restano tre giorni); "Tutti" resta da oggi in avanti
   const chipItems = st === "all" ? bySport : ahead;
-  const byDay = st === "done" ? ended : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
+  const byDay = st === "done" ? ended.filter(e => state.day === "all" || state.day === "done" || isoDay(e.date) === state.day) : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   if (st !== "done") evs.sort((a, b) => a.date.localeCompare(b.date));   // in ordine di orario (le sessioni F1 sono aggiunte in fondo)
   // i numeri degli sport seguono lo stato scelto (Tutte / In diretta / Da giocare / Concluse) e il filtro per giocata,
   // così coincidono con quelli dello stato e dei giorni
+  // tutti i numeri (sport e stato) seguono anche il giorno scelto: con «Oggi» contano solo le partite di oggi
+  const dayOk = e => state.day === "all" || state.day === "done" || isoDay(e.date) === state.day;
+  const stCount = (L, s) => s === "next" ? L.filter(e => Date.parse(e.date) > now && dayOk(e)).length
+    : s === "done" ? L.filter(e => isEnded(e) && !e._ses && dayOk(e)).length
+    : L.filter(e => state.day === "all" ? !isPastDay(e) : dayOk(e)).length;
   const count = k => {
     if (st === "live") return typeof liveNow === "function" ? (liveNow(k) ?? 0) : 0;
-    const L = listEvents().filter(e => (k === "all" || e.sport === k) && mkPass(e));
-    return st === "next" ? L.filter(e => Date.parse(e.date) > now).length : st === "done" ? L.filter(e => isEnded(e) && !e._ses).length : L.filter(e => !isPastDay(e)).length;
+    return stCount(listEvents().filter(e => (k === "all" || e.sport === k) && mkPass(e)), st);
   };
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
     <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main">${todayWidget()}<div id="f-mark"></div><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     sportBtn(s, count(s.key), s.key === "f1" ? "sessioni" : "partite")).join("")}</div>`;
-  const seg = [["all", "Tutte", bySport.filter(e => !isPastDay(e)).length], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", nextIx.length], ["done", "Concluse", ended.length]];
+  const seg = [["all", "Tutte", stCount(bySport, "all")], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", stCount(bySport, "next")], ["done", "Concluse", stCount(bySport, "done")]];
   html += `<div class="status-seg" role="group" aria-label="Stato delle partite">${seg.map(([k, l, n]) =>
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
   if (st === "all" || st === "next") html += dayChips(chipItems, e => e.date, state.sport === "f1" ? "sessioni" : "partite");
+  else if (st === "done" && ended.length) html += dayChips(ended, e => e.date, "partite", 0, true);
   // filtro per giocata: sotto il calendario
   html += `<div class="mk-row">${state.mk
     ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
@@ -702,7 +707,10 @@ function renderList() {
     state.status = b.dataset.status;
     save("status", state.status === "next" ? "next" : "all");
     // tra «Tutte» e «Da giocare» il giorno scelto resta (se non è passato): si tolgono solo le partite iniziate o finite
-    const keepDay = ["all", "next"].includes(was) && ["all", "next"].includes(state.status) && state.day !== "all" && state.day >= isoDay(Date.now());
+    // il giorno scelto resta: Da giocare da oggi in avanti, Concluse fino a oggi, Tutte sempre
+    const today = isoDay(Date.now());
+    const keepDay = state.day !== "all" && state.status !== "live" && was !== "live"
+      && (state.status === "next" ? state.day >= today : state.status === "done" ? state.day <= today : true);
     if (!keepDay) state.day = "all";
     showList();
   });

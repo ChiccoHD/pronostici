@@ -118,3 +118,7 @@ l'incertezza del 40% (`TOTAL_SPREAD`) il log-loss scende sulle due metà (0,692 
 giocati (ATP +2,0, WTA +2,3). Spostando il totale di 2 game (`GAMES_SHIFT`) l'errore sugli Over/Under scende
 (ATP 0,684 → 0,654, WTA 0,671 → 0,630), uguale nelle due metà. Trovato anche un errore nei dati: le qualificazioni
 degli Slam maschili erano trattate al meglio dei 5 set; ora al meglio dei 3.
+
+**Fonti non provabili** (Verifica fonti, modo `precisione`, `pipeline/research.py`): ClubElo non risponde ai server di
+GitHub (connessione scaduta; clubelo.com dà solo la pagina web) e l'archivio di Jeff Sackmann per servizio e risposta
+del tennis non esiste più su GitHub. Le due prove restano pronte nel codice se le fonti tornano.

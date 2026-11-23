@@ -65,6 +65,7 @@ Web app personale "Pronostici": statistiche e probabilità per calcio (campionat
 - Immagine del profilo in Tu: `avatarSheet`/`avatarHtml` in `me.js`, `p_avatar` (foto ridotta a 192 px, logo o simbolo; la foto non entra nel link di backup).
 - Filtri dell'elenco sul telefono: «Da giocare» (`state.status = "next"`) salvato in `p_status`, tiene il giorno scelto; non sticky; `compactFilters` in `app.js` mostra la barra fissa `#fmini` (giorni e campionati clonati, i tocchi girati ai bottoni veri) quando `#f-end` passa sotto la barra; niente cambi di altezza durante lo scorrimento.
 - Scorrimento: `showListKeepScroll` ridisegna l'elenco tenendo ferma la prima partita visibile; i dati nuovi che arrivano dalla rete non riportano su chi sta scorrendo.
+- Prove di precisione di novembre 2026 (`report/taratura.md`): NBA minuti degli assenti ai compagni (`MIN_SHARE` in `player_props`), incertezza degli Over/Under NBA allargata (`TOTAL_SPREAD`), totale dei game del tennis spostato di `GAMES_SHIFT` (2), qualificazioni Slam ATP al meglio dei 3 (`espn.py`). Prove che servono la rete: Verifica fonti modo `precisione` (`pipeline/research.py`: ClubElo e servizio/risposta Sackmann, oggi fonti non raggiungibili).
 - `data/cache/` storico già scaricato (scritto dal workflow, non modificarlo a mano).
 - `public/` il sito; `public/data/` è generato dal workflow.
 

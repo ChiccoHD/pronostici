@@ -127,6 +127,11 @@ def blend_shift(m: NbaModel, home, away, b2b_home, b2b_away, p_espn, weight, adj
     return NormalDist().inv_cdf(p) * m.s_m - (hs - as_)
 
 
+# Over/Under dei punti totali: il modello era troppo sicuro rispetto alla linea dei bookmaker (log-loss 0,80 sulla
+# seconda metà del 2025-27). Allargando l'incertezza del 40% scende a 0,76; vedi report/taratura.md.
+TOTAL_SPREAD = 1.4
+
+
 def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None, shift: float = 0.0, adj=(0.0, 0.0)) -> dict:
     hs, as_ = m.expected(home, away, b2b_home, b2b_away, adj)
     hs, as_ = hs + shift / 2, as_ - shift / 2
@@ -136,7 +141,7 @@ def markets(m: NbaModel, home, away, b2b_home, b2b_away, book: dict | None, shif
     totals = {}
     for dl in (-10, -5, 0, 5, 10):
         L = tl + dl
-        totals[f"{L:g}"] = r(1 - norm_cdf((L - total) / m.s_t))
+        totals[f"{L:g}"] = r(1 - norm_cdf((L - total) / (m.s_t * TOTAL_SPREAD)))
     sp = book.get("spread") if book and book.get("spread") is not None else -_half(abs(margin)) * (1 if margin > 0 else -1)
     spreads = {}
     for ds in (-4, -2, 0, 2, 4):
@@ -230,13 +235,19 @@ def player_block(rows, n):
             "tp_pct": r(tpm / tpa, 3) if tpa else None}
 
 
+# minuti di chi è fuori: una parte va ai compagni in proporzione ai loro minuti. Provato sulle partite 2026-27 con
+# assenze vere (Verifica locale, report/taratura.md): con il 35% sparisce lo sbaglio sistematico sui punti
+# (-0,77 → +0,05) e l'errore sugli over dei punti scende (Brier 0,260 → 0,253); con più del 50% peggiora.
+MIN_SHARE = 0.35
+
+
 def player_props(lines, team_id, team_game_ids, pts_factor, injuries_by_pid) -> list[dict]:
     by_p = defaultdict(list)
     for x in lines:
         if x["team"] == team_id:
             by_p[x["pid"]].append(x)
     recent5 = set(team_game_ids[:5])
-    out = []
+    base = []
     for pid, rows in by_p.items():
         rows.sort(key=lambda x: x["date"], reverse=True)
         if not any(x["event"] in recent5 for x in rows):
@@ -247,6 +258,14 @@ def player_props(lines, team_id, team_game_ids, pts_factor, injuries_by_pid) -> 
         last5 = rows[:5]
         wts = [0.85 ** i for i in range(len(last5))]
         min_proj = sum(w * x["min"] for w, x in zip(wts, last5)) / sum(wts)
+        active = sum(1 for x in rows if x["event"] in recent5) >= 3     # giocava davvero nelle ultime partite
+        base.append((pid, rows, status, out_flag, min_proj, active))
+    miss = sum(m for _, _, _, o, m, a in base if o and a and m >= 20)
+    tot = sum(m for _, _, _, o, m, _ in base if not o and m >= 12) or 1
+    out = []
+    for pid, rows, status, out_flag, min_proj, _ in base:
+        if not out_flag and miss:
+            min_proj = min(40.0, min_proj + MIN_SHARE * miss * min_proj / tot)
         if min_proj < 12:
             continue
         r15 = rows[:15]

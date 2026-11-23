@@ -91,3 +91,30 @@ Verifica fonti, modo `f1quali`: 17 GP del 2026, simulazione con la griglia vera 
 passo sul giro secco della qualifica con pesi diversi. Log-loss del vincitore / Brier del podio:
 0 → 1,588 / 0,0721; 1 → 1,549 / 0,0713; 2 → 1,528 / 0,0709; 3 → 1,518 / 0,0707; 4 → 1,518 / 0,0706; 6 → 1,549 / 0,0709.
 Scelto **3** (`QPACE_W`), il più prudente del tratto migliore. Il peso della griglia resta quello del circuito.
+
+## Novembre 2026 — prove di precisione
+
+**NBA, riposo e viaggi oltre al back-to-back** (partite 2025-26 e 2026-27, 1.391): differenza tra margine vero e
+margine del modello contro km e fusi degli ospiti, riposo di 2+ giorni, 3 partite in 4 notti. Solo «casa riposata»
+esce dal rumore (+2,1 ± 1,0 punti), e applicato alla seconda metà peggiora la previsione (log-loss 0,584 → 0,595).
+Non aggiunto: resta solo il back-to-back già nel modello.
+
+**NBA, minuti di chi è fuori ai compagni** (box score 2026-27, 1.091 casi con un compagno da 20+ minuti assente):
+senza ridistribuzione i punti sono sottostimati di 0,77; con il 35% dei minuti mancanti ai compagni lo sbaglio
+sparisce (+0,05) e il Brier sugli over dei punti scende da 0,260 a 0,253 (assist 0,243 → 0,240, rimbalzi uguali).
+Aggiunto (`MIN_SHARE` in `models/nba.py`, solo per assenti che giocavano davvero nelle ultime partite).
+
+**Calcio, peso del tempo campionato per campionato** (12 campionati, partite dal 1° gennaio 2026, emivita 100-450
+giorni): il valore di oggi, 200 giorni, è già il migliore in media (1X2 + Over 2,5: 1,6776); scegliere il migliore
+per ogni campionato guadagna al massimo 0,002, dentro il rumore. Nessun cambio.
+
+**Taratura di Over 2,5 e Goal dall'archivio** (333 partite, metà per stimare e metà per provare): la correzione
+peggiora entrambe (Over 0,671 → 0,675; Goal 0,679 → 0,684). Nessun cambio: le due giocate sono già tarate.
+
+**NBA, Over/Under dei punti** (94 partite con la linea dei bookmaker): il modello era troppo sicuro. Allargando
+l'incertezza del 40% (`TOTAL_SPREAD`) il log-loss scende sulle due metà (0,692 → 0,688 e 0,799 → 0,762).
+
+**Tennis, totale dei game** (8.000 incontri 2026): la catena di Markov prevedeva in media 2 game in più di quelli
+giocati (ATP +2,0, WTA +2,3). Spostando il totale di 2 game (`GAMES_SHIFT`) l'errore sugli Over/Under scende
+(ATP 0,684 → 0,654, WTA 0,671 → 0,630), uguale nelle due metà. Trovato anche un errore nei dati: le qualificazioni
+degli Slam maschili erano trattate al meglio dei 5 set; ora al meglio dei 3.

@@ -175,6 +175,12 @@ def match_dist(pa, pb, best_of=3):
     return final
 
 
+# la catena di Markov con punti indipendenti dà troppi game: sugli incontri 2026 (8.000) la media prevista supera quella
+# vera di circa 2 game (ATP +2,0, WTA +2,3). Spostando il totale di 2 game l'errore sugli Over/Under scende
+# (log-loss ATP 0,684 → 0,654, WTA 0,671 → 0,630, uguale sulle due metà del periodo). Vedi report/taratura.md.
+GAMES_SHIFT = 2
+
+
 def markets(p_match: float, tour: str, surface: str, best_of: int) -> dict:
     s = SURF.get(surface, "Hard")
     p0 = P0.get((tour, s), 0.62)
@@ -196,7 +202,7 @@ def markets(p_match: float, tour: str, surface: str, best_of: int) -> dict:
     tb = 0.0
     for (sa, sb, gA, gB, t), v in md.items():
         sets[f"{sa}-{sb}"] += v
-        tot[gA + gB] += v
+        tot[max(gA + gB - GAMES_SHIFT, 12 if best_of == 3 else 18)] += v
         diff[gA - gB] += v
         tb += v * t
     exp_games = sum(k * v for k, v in tot.items())

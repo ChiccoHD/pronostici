@@ -310,7 +310,8 @@ def tennis_matches(events: list[dict], tour: str) -> list[dict]:
                     "tournament": tour_name, "location": location, "major": major,
                     "court": (c.get("venue") or {}).get("court"),
                     "round": (c.get("round") or {}).get("displayName") if isinstance(c.get("round"), dict) else c.get("round"),
-                    "best_of": 5 if major and tour == "atp" else 3,  # il campo "format" di ESPN dice sempre 5
+                    # il campo "format" di ESPN dice sempre 5; le qualificazioni degli Slam si giocano al meglio dei 3
+                    "best_of": 5 if major and tour == "atp" and "qualif" not in str((c.get("round") or {}).get("displayName") if isinstance(c.get("round"), dict) else c.get("round") or "").lower() else 3,
                     "players": players,
                 })
     return out

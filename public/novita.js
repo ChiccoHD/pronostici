@@ -1,6 +1,11 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-23", t: "Pronostici più precisi (prove sulle partite giocate)", items: [
+    "NBA: quando un giocatore importante è fuori, una parte dei suoi minuti va ai compagni. Le loro percentuali su punti e assist sono più giuste (provato su oltre mille casi di questa stagione).",
+    "NBA: gli Over/Under dei punti totali sono meno sicuri di prima, perché il modello lo era troppo rispetto alla linea dei bookmaker.",
+    "Tennis: il totale dei game era sovrastimato di circa 2 game; corretto. E le qualificazioni degli Slam maschili ora sono al meglio dei 3 set, come nella realtà.",
+    "Provati senza guadagno, quindi non cambiati: riposo e viaggi nell'NBA oltre al back-to-back, il peso del tempo per ogni campionato di calcio, la taratura di Over 2,5 e Goal." ] },
   { d: "2026-11-22", t: "Schede della partita che ricordano dove eri", items: [ "Passando tra Esito, Gol, Forma, Giocatori e le altre schede, ognuna riparte dal punto in cui l'avevi lasciata; una scheda nuova si apre dal suo inizio, senza riportarti in cima alla pagina." ] },
   { d: "2026-11-22", t: "Formazioni in campo", items: [ "Quando escono le formazioni ufficiali, in cima a Esito compaiono le due squadre schierate sul campo con il modulo, i numeri di maglia e i cognomi (tocca un giocatore per la sua pagina), più le panchine. Toccando il titolo «Formazioni ufficiali» il riquadro si chiude e resta chiuso finché non lo riapri." ] },
   { d: "2026-11-22", t: "Conteggi dell'elenco allineati", items: [ "I numeri sotto Calcio, Basket, Tennis e F1 e quelli di Tutte, Da giocare e Concluse ora seguono il giorno scelto, lo stato e il filtro per giocata: con «Oggi» contano solo le partite di oggi." ] },

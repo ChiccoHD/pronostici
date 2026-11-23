@@ -799,6 +799,12 @@ def main():
         f1_quali_test()
         _write()
         return
+    if "precisione" in sys.argv[1:]:
+        logging.basicConfig(level=logging.WARNING)
+        from . import research
+        research.run(out)
+        _write()
+        return
     if "giocatori" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         players_check()

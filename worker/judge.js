@@ -27,7 +27,7 @@ export function judgeF1(label, f) {
   return null;
 }
 
-/* "win" | "lose" | null (non giudicabile dal solo risultato) */
+/* "win" | "lose" | "void" (draw no bet finito pari: rimborsata) | null (non giudicabile dal solo risultato) */
 export function judge(label, f, ev) {
   if (ev?.sport === "f1") return judgeF1(String(label || "").trim(), f);
   if (!f || f.void || f.h == null) return null;
@@ -63,6 +63,7 @@ export function judge(label, f, ev) {
     if ((m = L.match(/^(Over|Under) (\d+),5 nel primo tempo$/))) return yes(m[1] === "Over" ? h1 + a1 > num(m[2]) : h1 + a1 < num(m[2]));
   }
   if ((m = L.match(/^(.+) o pareggio$/))) { const s = side(m[1], ev); return s ? yes(s === "home" ? H >= A : A >= H) : null; }
+  if ((m = L.match(/^DNB (.+)$/))) { const s = side(m[1], ev); return !s ? null : H === A ? "void" : yes(s === "home" ? H > A : A > H); }
   if ((m = L.match(/^(.+) vince$/))) { const s = side(m[1], ev); return s ? yes(s === "home" ? H > A : A > H) : null; }
   if ((m = L.match(/^(.+) segna$/))) { const s = side(m[1], ev); return s ? yes((s === "home" ? H : A) > 0) : null; }
   if ((m = L.match(/^(.+) over (\d+),5$/))) { const s = side(m[1], ev); return s ? yes((s === "home" ? H : A) > num(m[2])) : null; }

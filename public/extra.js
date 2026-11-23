@@ -158,11 +158,11 @@ function weekCanvas(s) {
 /* ------------------------------------------------------------------ simulatore della schedina */
 /* "su 100 volte passa X": il prodotto delle probabilità disegnato come 100 pallini; la giocata che rischia di più
    e, se nella stessa partita c'è una giocata simile più sicura, il cambio che alza di più la schedina. */
-const SIM_REL = { "1x2": ["dc", "1x2"], dc: ["dc"], ou: ["ou"], gg: ["ou", "gg"], combo: ["1x2", "dc", "combo"], exact: ["mg", "ou"], mg: ["mg"], mgt: ["mgt"] };
+const SIM_REL = { "1x2": ["dc", "dnb", "1x2"], dc: ["dc"], dnb: ["dc", "dnb"], ou: ["ou"], gg: ["ou", "gg"], combo: ["1x2", "dc", "combo"], exact: ["mg", "ou"], mg: ["mg"], mgt: ["mgt"] };
 function simBox(legs) {
   const live = legs.filter(f => !f.result);
   if (live.length < 2) return "";
-  const prod = legs.reduce((a, f) => a * (f.result === "win" ? 1 : f.p), 1), n = Math.round(prod * 100);
+  const prod = legs.reduce((a, f) => a * (f.result === "win" || f.result === "void" ? 1 : f.p), 1), n = Math.round(prod * 100);
   const weak = live.slice().sort((a, b) => a.p - b.p)[0];
   const dots = Array.from({ length: 100 }, (_, i) => `<i class="${i < n ? "y" : ""}"></i>`).join("");
   return `<section class="sec sim-box" id="sim-box"><h2><span class="sec-t">🎲 Simulatore</span><small>${legs.length} giocate</small></h2>
@@ -188,7 +188,7 @@ async function wireSim(legs, onSwap) {
   const alt = pickFrom(ok.filter(c => rel.includes(c.t) && (!/^(Over|Under)$/.test(dir(weak)) || dir(c) === dir(weak))))
     || pickFrom(ok.filter(c => rel.includes(c.t))) || pickFrom(ok.filter(c => ["dc", "ou", "mg"].includes(c.t)));
   if (!alt || !box.isConnected) return;
-  const prod = legs.reduce((a, f) => a * (f.result === "win" ? 1 : f.p), 1), np = prod / weak.p * alt.p;
+  const prod = legs.reduce((a, f) => a * (f.result === "win" || f.result === "void" ? 1 : f.p), 1), np = prod / weak.p * alt.p;
   box.innerHTML = `<div class="sim-sug"><span>💡 Cambia <b>${esc(weak.label)}</b> con <b>${esc(alt.label)}</b> (${pct(alt.p)}): la schedina passa da <b>${Math.round(prod * 100)}</b> a <b>${Math.round(np * 100)}</b> su 100.</span>
     ${onSwap ? `<button type="button" class="btn-main alt" data-sim-swap>Cambia</button>` : ""}</div>`;
   box.querySelector("[data-sim-swap]")?.addEventListener("click", () => onSwap(weak, alt));

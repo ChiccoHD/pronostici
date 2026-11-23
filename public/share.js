@@ -112,6 +112,7 @@ function topPicks(d) {
   if (d.sport === "soccer") {
     (m["1x2"] || []).forEach((p, i) => out.push([[`${H} vince`, "Pareggio", `${A} vince`][i], p]));
     Object.entries(m.dc || {}).forEach(([k, p]) => out.push([{ "1X": `${H} o pareggio`, X2: `${A} o pareggio`, "12": "Una delle due vince" }[k] || k, p]));
+    if (m["1x2"]) { const dn = dnbOf(m); out.push([`DNB ${H}`, dn.home], [`DNB ${A}`, dn.away]); }
     for (const k of ["1.5", "2.5", "3.5"]) if (m.ou?.[k] != null) { out.push([`Over ${k.replace(".", ",")}`, m.ou[k]]); out.push([`Under ${k.replace(".", ",")}`, 1 - m.ou[k]]); }
     if (m.btts != null) { out.push(["Goal", m.btts]); out.push(["No Goal", 1 - m.btts]); }
   } else if (d.sport === "nba") {
@@ -188,7 +189,7 @@ function slipCanvas(legs, title = "La mia schedina") {
   let Y = 420;
   for (const f of rows) {
     rrect(x, 40, Y, IMG_W - 80, 108, 22); x.fillStyle = C.card; x.fill();
-    const res = f.result === "win" ? ["✓", C.go] : f.result === "lose" ? ["✗", "#e5484d"] : null;
+    const res = f.result === "win" ? ["✓", C.go] : f.result === "lose" ? ["✗", "#e5484d"] : f.result === "void" ? ["↺", C.ink2] : null;
     font(x, 32, 800); x.fillStyle = C.ink; x.fillText(fitText(x, f.label, IMG_W - 330), 76, Y + 38);
     font(x, 24, 600); x.fillStyle = C.ink2; x.fillText(fitText(x, `${f.match}${f.date ? `, ${fmtDay(f.date).rel || fmtShort(f.date)} ${fmtTime(f.date, f.time_valid)}` : ""}`, IMG_W - 330), 76, Y + 76);
     font(x, 38, 800); x.fillStyle = res ? res[1] : C.go; x.textAlign = "right"; x.fillText(res ? res[0] : pct(f.p), IMG_W - 76, Y + 54); x.textAlign = "left";

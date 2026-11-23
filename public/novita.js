@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-24", t: "Draw No Bet", items: [
+    "Nella scheda del calcio c'è il Draw No Bet (pareggio rimborsato): la probabilità che vinca una squadra tolto il pareggio, con quota equa e quote dei bookmaker. Si aggiunge alla schedina con la stella e compare anche in Migliori e nella schedina della giornata.",
+    "Se la partita finisce pari la giocata è «Rimborsata» e vale quota 1: la schedina resta in gioco con le altre. Se avevi segnato quota e puntata, l'app ti chiede di correggere la quota totale." ] },
   { d: "2026-11-23", t: "Partita in diretta più in evidenza", items: [
     "Quando apri una partita in corso, il riquadro delle squadre si riduce: stemmi piccoli, risultato e minuto al centro al posto del «vs», il pronostico di prima del via solo come barra sottile. Subito sotto trovi diretta, probabilità, momentum e cronaca." ] },
   { d: "2026-11-23", t: "Pronostici più precisi (prove sulle partite giocate)", items: [

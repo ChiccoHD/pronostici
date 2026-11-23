@@ -116,6 +116,7 @@ def markets(lh: float, la: float, ht_share: float = 0.45) -> dict:
         "xg": [r(lh, 2), r(la, 2)],
         "1x2": [r(ph), r(pd), r(pa)],
         "dc": {"1X": r(ph + pd), "X2": r(pd + pa), "12": r(ph + pa)},
+        "dnb": {"home": r(ph / (ph + pa)), "away": r(pa / (ph + pa))},     # draw no bet: col pareggio si è rimborsati
         "ou": {f"{l}": r(M[tot > l].sum()) for l in (0.5, 1.5, 2.5, 3.5, 4.5, 5.5)},
         "btts": r(M[1:, 1:].sum()),
         "multigol": {f"{a}-{b}": r(M[(tot >= a) & (tot <= b)].sum())

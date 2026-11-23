@@ -152,7 +152,7 @@ const meIc = (e, c) => `<span class="me-ic" style="--ic:${c}" aria-hidden="true"
 function meClosed() {
   const seen = new Set();
   return [...favs(), ...mySlips().flatMap(s => s.legs)]
-    .filter(f => f.result && f.key && !seen.has(f.key) && seen.add(f.key))
+    .filter(f => f.result && f.result !== "void" && f.key && !seen.has(f.key) && seen.add(f.key))
     .sort((a, b) => (a.closed || a.date).localeCompare(b.closed || b.date));
 }
 

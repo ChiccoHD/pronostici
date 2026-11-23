@@ -325,9 +325,9 @@ export class Push {
         let payload = null;
         if (lost) payload = { title: `✗ ${sl.name}: persa`, body: `Non è uscita "${lost.l.label}" (${lost.e.home} – ${lost.e.away})`, tag: `slip-${sl.id}`, url: "#/tu" };
         else if (!open && res.length) {
-          const won = res.filter(x => x.r === "win").length, unk = res.filter(x => x.r === "unknown" || x.r === "gone").length;
+          const won = res.filter(x => x.r === "win").length, unk = res.filter(x => x.r === "unknown" || x.r === "gone").length, rb = res.filter(x => x.r === "void").length;
           payload = unk ? { title: `${sl.name}: partite finite`, body: `${won} giocate prese, ${unk} da controllare nell'app`, tag: `slip-${sl.id}`, url: "#/tu" }
-            : { title: `✓ ${sl.name}: vinta!`, body: `${won === 1 ? "La giocata è uscita" : `Tutte le ${won} giocate sono uscite`}${sl.odds ? ` · quota ${String(sl.odds).replace(".", ",")}` : ""}`, tag: `slip-${sl.id}`, url: "#/tu" };
+            : { title: rb && !won ? `↺ ${sl.name}: rimborsata` : `✓ ${sl.name}: vinta!`, body: rb ? `${won} ${won === 1 ? "giocata presa" : "giocate prese"}, ${rb} rimborsata${rb > 1 ? "e" : ""} (quota 1)` : `${won === 1 ? "La giocata è uscita" : `Tutte le ${won} giocate sono uscite`}${sl.odds ? ` · quota ${String(sl.odds).replace(".", ",")}` : ""}`, tag: `slip-${sl.id}`, url: "#/tu" };
         }
         if (payload) { outbox.push({ key, s, payload }); await this.store.put(sentKey, now); }
       }

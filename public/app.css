@@ -2146,3 +2146,8 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .bd-live .pbar { height: 18px; margin-top: 4px; }
 .bd-live ~ #live-box .lb-score { display: none; }
 #live-box { scroll-margin-top: 70px; }
+
+/* giocata rimborsata (draw no bet finito pari) */
+.pk.slip .pk-txt > .slip-live.void, .lv-say.void { color: var(--ink-2); }
+.ls-dot.void { background: var(--ink-3); }
+.ss-fix { margin: 8px 2px 0; }

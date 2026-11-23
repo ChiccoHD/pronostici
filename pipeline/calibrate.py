@@ -93,6 +93,8 @@ def apply(events: list[dict], status: dict) -> None:
         mk[key] = new
         if key == "1x2" and "dc" in mk:
             mk["dc"] = _dc(new)
+            if "dnb" in mk:
+                mk["dnb"] = {"home": round(new[0] / (new[0] + new[2]), 3), "away": round(new[2] / (new[0] + new[2]), 3)}
         mk["cal"] = t
         d["markets"] = mk
         store.save(path, d)

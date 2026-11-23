@@ -224,6 +224,7 @@ function scorePred(L, info) {
   if (L === "Una delle due vince") return (h, a) => h !== a;
   if ((m = L.match(/^(\d+)-(\d+)$/))) return (h, a) => h === +m[1] && a === +m[2];
   if ((m = L.match(/^(.+) o pareggio$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? h >= a : a >= h : null; }
+  if ((m = L.match(/^DNB (.+)$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? h > a : a > h : null; }
   if ((m = L.match(/^(.+) vince$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? h > a : a > h : null; }
   if ((m = L.match(/^(.+) non subisce gol$/))) { const s = sideIn(info, m[1]); return s ? (h, a) => s === "home" ? a === 0 : h === 0 : null; }
   if ((m = L.match(/^(.+) ([+-]\d+(?:,\d)?)$/))) {
@@ -241,7 +242,9 @@ function liveChance(L, info, ix) {
   if (info.sport === "soccer") {
     const f = scorePred(L, info);
     if (!f || !ix.xg) return null;
-    return soccerP(soccerDist(ix.xg, info.H, info.A, minuteOf(info)), f);
+    const dist = soccerDist(ix.xg, info.H, info.A, minuteOf(info));
+    if (/^DNB /.test(L)) { const pd = soccerP(dist, (h, a) => h === a); return pd >= 0.999 ? null : soccerP(dist, f) / (1 - pd); }   // pareggio = rimborso
+    return soccerP(dist, f);
   }
   if (info.sport === "nba") {
     const ex = ix.exp_score || [112, 112], frac = nbaFrac(info);
@@ -635,6 +638,11 @@ function pickStatus(label, info) {
     return outcome((x, y) => side === "home" ? x > y : y > x, h, a, firstDone);
   }
   if ((m = L.match(/^(.+) o pareggio$/))) { const side = sideOfText(m[1]); if (!side) return null; return outcome((h, a) => side === "home" ? h >= a : a >= h); }
+  if ((m = L.match(/^DNB (.+)$/))) {
+    const side = sideOfText(m[1]); if (!side) return null;
+    if (H === A) return end ? R("void", `Rimborsata: finita pari, ${score}, quota 1`) : R("", `Per ora pari, ${score}: così sarebbe rimborsata`);
+    return outcome((h, a) => side === "home" ? h > a : a > h);
+  }
   if ((m = L.match(/^(.+) vince$/))) {
     const side = sideOfText(m[1]); if (!side) return null;
     if (!end && H === A) return R("", `Per ora in parità, ${score}`);
@@ -682,7 +690,7 @@ function slipLiveHtml(s, info, label = "", ch = null) {
   const dots = parts.map(p => slipDots(p.s?.prog)).join("");
   const missing = parts.filter(p => !["ok", "win"].includes(p.s?.cls)).map(p => slipNeed(p.label, p.s, info));
   const lost = parts.find(p => p.s?.cls === "lose");
-  const [cls, txt] = s.cls === "win" ? ["win", "✓ Presa"]
+  const [cls, txt] = s.cls === "void" ? ["ok", "↺ Rimborsata (quota 1)"] : s.cls === "win" ? ["win", "✓ Presa"]
     : lost || s.cls === "lose" ? ["lose", "✗ Persa"]
     : !missing.length ? ["ok", "✓ Per ora presa"]
     : [s.cls === "ko" || parts.some(p => p.s?.cls === "ko") ? "ko" : "wait", `${live ? "Ti serve" : "Serviva"}: ${missing.join(" e ")}`];
@@ -1091,7 +1099,7 @@ async function attachSlipStatus() {
     chances.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, ch);
     el.innerHTML = s ? slipLiveHtml(s, info, el.dataset.slipLabel, ch) : "";
     el.className = `slip-live lvw ${s?.cls || ""}`;
-    if (s && (s.cls === "win" || s.cls === "lose")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, { ...s, _info: info });
+    if (s && (s.cls === "win" || s.cls === "lose" || s.cls === "void")) closed.set(`${el.dataset.slipEvent}|${el.dataset.slipLabel}`, { ...s, _info: info });
   });
   // schedine salvate: probabilità adesso che passino tutte (giocate non iniziate: stima di prima del via)
   document.querySelectorAll("[data-slip-chance]").forEach(el => {
@@ -1099,7 +1107,7 @@ async function attachSlipStatus() {
     if (!sl) return;
     let p = 1, live = false, unknown = false;
     for (const f of sl.legs) {
-      if (f.result) { p *= f.result === "win" ? 1 : 0; continue; }
+      if (f.result) { p *= f.result === "win" || f.result === "void" ? 1 : 0; continue; }
       const c = chances.get(`${f.event}|${f.label}`);
       if (c != null) { p *= c; live = true; }
       else if (new Date(f.date).getTime() > Date.now()) p *= f.p;

@@ -35,6 +35,13 @@ def soccer(d):
         out.append({**base, **(_team(t) if t else {"tag": "X"}), "cat": "Esito 1X2", "label": lab, "p": m["1x2"][i], "book": book[i]})
     for k, lab in (("1X", f"{H['short']} o pareggio"), ("X2", f"{A['short']} o pareggio")):
         out.append({**base, **_team(H if k == "1X" else A), "cat": "Doppia chance", "label": lab, "p": m["dc"][k], "book": None})
+    if m.get("dnb") is None and m.get("1x2"):
+        x = m["1x2"]
+        m = {**m, "dnb": {"home": x[0] / (x[0] + x[2]), "away": x[2] / (x[0] + x[2])}}
+    for side, t in (("home", H), ("away", A)):
+        bk = book[0] / (book[0] + book[2]) if book[0] and book[2] else None
+        out.append({**base, **_team(t), "cat": "Draw No Bet", "label": f"DNB {t['short']}", "p": m["dnb"][side],
+                    "book": (bk if side == "home" else 1 - bk) if bk is not None else None})
     ou_book = b.get("ou25")
     for line in ("1.5", "2.5", "3.5"):
         p = m["ou"][line]
@@ -156,7 +163,7 @@ def _h2h_book(M, a, b):
     return None
 
 
-ORDER = ["Esito 1X2", "Doppia chance", "Gol", "Multigol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",
+ORDER = ["Esito 1X2", "Doppia chance", "Draw No Bet", "Gol", "Multigol", "Marcatori", "Angoli", "Vincente NBA", "Punti totali", "Punti", "Rimbalzi",
          "Assist", "Triple", "Punti + rimbalzi + assist", "Vincente tennis", "Game nel tennis",
          "Vincente F1", "Podio F1", "Punti F1", "Pole F1", "Testa a testa F1"]
 

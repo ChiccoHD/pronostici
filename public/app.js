@@ -549,7 +549,7 @@ function todayWidget() {
   }
   if (BEST) {
     // la migliore di oggi per ogni sport: la giocata più probabile, senza doppia chance e linee scontate (Over 1,5…)
-    const pool = BEST.categories.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
+    const pool = BEST.categories.filter(c => !["Doppia chance", "Draw No Bet"].includes(c.name)).flatMap(c => c.items.map(it => ({ ...it, cat: c.name })))
       .filter(it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : it.cat !== "Multigol")
       .filter(it => it.cat !== "Punti F1" && Date.parse(it.date) > Date.now());
     const SP = [["soccer", "⚽", "Calcio", "#16a34a"], ["nba", "🏀", "Basket", "#ea7a1a"], ["tennis", "🎾", "Tennis", "#b5bd12"], ["f1", "🏎️", "F1", "#e10600"]];
@@ -980,6 +980,10 @@ function picks(items, book, { fav = true } = {}) {
     <span class="q">quota equa ${odd(p)}${book && book[i] != null ? `<br>quote ${pct(book[i])}` : ""}</span></div>`).join("")}</div>`;
 }
 
+/* draw no bet: probabilità di vittoria tolto il pareggio (col pareggio la giocata è rimborsata) */
+const dnbOf = m => m.dnb || (m["1x2"] ? { home: m["1x2"][0] / (m["1x2"][0] + m["1x2"][2]), away: m["1x2"][2] / (m["1x2"][0] + m["1x2"][2]) } : {});
+const dnbBook = b => b && b[0] && b[2] ? { home: b[0] / (b[0] + b[2]), away: b[2] / (b[0] + b[2]) } : null;
+const isVoid = f => f.result === "void";
 function rows(obj, { label = k => k, book = null } = {}) {
   return `<div class="bars">${Object.entries(obj).filter(([, v]) => v != null).map(([k, v]) =>
     `<div class="bar ${v >= 0.6 ? "hi" : ""}"><i style="width:${Math.round(v * 100)}%"></i>
@@ -1243,6 +1247,8 @@ function soccerView(d) {
 
   const esito = sec("Esito finale", picks([["1 " + H.short, m["1x2"][0], `${H.short} vince`], ["X", m["1x2"][1], "Pareggio"], ["2 " + A.short, m["1x2"][2], `${A.short} vince`]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
     + sec("Doppia chance", rows(m.dc, { label: k => ({ "1X": `${H.short} o pareggio`, "X2": `${A.short} o pareggio`, "12": "Una delle due vince" }[k] || k) }))
+    + sec("Draw No Bet", rows(dnbOf(m), { label: k => `DNB ${k === "home" ? H.short : A.short}`, book: dnbBook(b["1x2"]) })
+      + `<p class="note">Se finisce pari la giocata è rimborsata (quota 1). La percentuale è la probabilità di vincere tolto il pareggio.</p>`, "pareggio rimborsato")
     + sec("Combo", rows(m.combo))
     + sec("Risultato esatto", rows(Object.fromEntries(m.exact.map(x => [x.score, x.p]))), "i 10 più probabili")
     + sec("Primo tempo", picks([["1", m.ht["1x2"][0], `${H.short} vince il primo tempo`], ["X", m.ht["1x2"][1], "Pareggio nel primo tempo"], ["2", m.ht["1x2"][2], `${A.short} vince il primo tempo`]]) + rows(m.ht.ou, { label: k => `Over ${line(k)} nel primo tempo` }));
@@ -1786,7 +1792,7 @@ async function showBest() {
   // classifica unica tra tutti gli sport e le categorie: tutte le giocate con probabilità alta, senza la doppia chance
   if (cats.length) {
     const main = it => it.cat === "Gol" ? /2,5|Goal/.test(it.label) : it.cat === "Angoli" ? /9,5/.test(it.label) : it.cat !== "Multigol";
-    const sorted = cats.filter(c => c.name !== "Doppia chance").flatMap(c => c.items.map(it => ({ ...it, cat: c.name }))).filter(main)
+    const sorted = cats.filter(c => !["Doppia chance", "Draw No Bet"].includes(c.name)).flatMap(c => c.items.map(it => ({ ...it, cat: c.name }))).filter(main)
       .sort((a, b) => b.p - a.p);
     const high = sorted.filter(it => it.p >= HIGH);
     const best = (high.length >= 5 ? high : sorted.slice(0, 5)).slice(0, 60);
@@ -1933,7 +1939,7 @@ function playedHtml() {
   // storico: giocate singole chiuse più quelle delle schedine salvate, ognuna una volta sola
   const seen = new Set();
   const done = [...all, ...mySlips().flatMap(s => s.legs.map(f => ({ ...f, league_name: f.league_name || "" })))]
-    .filter(f => f.result && !seen.has(f.key) && seen.add(f.key)).sort((a, b) => b.date.localeCompare(a.date));
+    .filter(f => f.result && f.result !== "void" && !seen.has(f.key) && seen.add(f.key)).sort((a, b) => b.date.localeCompare(a.date));
   let html = "";
   if (waiting.length) html += sec("Giocate in attesa dell'esito", waiting.map(f => slipRow(f, now)).join(""), `${waiting.length}`, "Tu attesa");
   if (done.length) {
@@ -1951,7 +1957,7 @@ function playedHtml() {
     const worst = [...kinds].filter(([, o]) => o.n >= 3).map(([k, o]) => [k, o, o.w - o.e]).sort((a, b) => a[2] - b[2])[0];
     const best = [...kinds].filter(([, o]) => o.n >= 3).map(([k, o]) => [k, o, o.w - o.e]).sort((a, b) => b[2] - a[2])[0];
     const closed = mySlips().filter(s => s.legs.length && s.legs.every(l => l.result));
-    const won = closed.filter(s => s.legs.every(l => l.result === "win"));
+    const won = closed.filter(s => s.legs.every(l => l.result === "win" || l.result === "void"));
     const bestWin = won.map(s => s.legs.reduce((a, l) => a / Math.max(l.p, .01), 1)).sort((a, b) => b - a)[0];
     const insight = [worst && worst[2] < -0.5 ? `Vai peggio del previsto su <b>${esc(worst[0])}</b> (${worst[1].w} prese su ${worst[1].n}, il modello ne aspettava ${num(worst[1].e, 1)}).` : "",
       best && best[2] > 0.5 ? `Vai meglio del previsto su <b>${esc(best[0])}</b> (${best[1].w} su ${best[1].n}).` : "",

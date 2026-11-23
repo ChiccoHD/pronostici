@@ -46,7 +46,7 @@ def clubelo_test(out):
         d += timedelta(days=7)
     for base in ("https://api.clubelo.com", "http://api.clubelo.com", "http://clubelo.com/API"):
         r = http.get(f"{base}/2025-09-01", tries=1, timeout=15)
-        out(f"- prova {base}: {'risponde' if r is not None else 'non risponde'}")
+        out(f"- prova {base}: {'risponde: ' + r.text[:80].replace(chr(10), ' ') if r is not None else 'non risponde'}")
         if r is not None and "Club" in r.text[:200]:
             _CE["base"] = base
             break
@@ -148,6 +148,11 @@ def _sack(tour, year):
 
 
 def serve_test(out):
+    for t in ("atp", "wta"):
+        r = http.get(f"https://api.github.com/repos/JeffSackmann/tennis_{t}", tries=1)
+        out(f"- archivio tennis_{t}: {r.json().get('pushed_at') if r is not None else 'non trovato'}")
+        r = http.get(SACK.format(t=t, y=2024), tries=1)
+        out(f"  - file 2024: {'trovato' if r is not None else 'non trovato'}")
     for tour in ("atp", "wta"):
         rows = []
         for y in (2022, 2023, 2024, 2025, 2026):

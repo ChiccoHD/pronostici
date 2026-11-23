@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-23", t: "Partita in diretta più in evidenza", items: [
+    "Quando apri una partita in corso, il riquadro delle squadre si riduce: stemmi piccoli, risultato e minuto al centro al posto del «vs», il pronostico di prima del via solo come barra sottile. Subito sotto trovi diretta, probabilità, momentum e cronaca." ] },
   { d: "2026-11-23", t: "Pronostici più precisi (prove sulle partite giocate)", items: [
     "NBA: quando un giocatore importante è fuori, una parte dei suoi minuti va ai compagni. Le loro percentuali su punti e assist sono più giuste (provato su oltre mille casi di questa stagione).",
     "NBA: gli Over/Under dei punti totali sono meno sicuri di prima, perché il modello lo era troppo rispetto alla linea dei bookmaker.",

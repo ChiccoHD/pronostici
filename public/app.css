@@ -2125,3 +2125,24 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .pt-p span { margin-top: 3px; font-size: 10.5px; font-weight: 700; max-width: 62px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .pt-bench summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; }
 .pt-bench p { font-size: 12.5px; color: var(--ink-2); margin: 4px 0; }
+
+/* partita in corso: tabellone ridotto, il risultato prende il posto del «vs» */
+.board.bd-live { padding-bottom: 12px; }
+.bd-live .board-rings, .bd-live .board-sub, .bd-live .board-gap, .bd-live .board-move, .bd-live .board-foot { display: none; }
+.bd-live .board-vs { margin-top: 8px; align-items: center; }
+.bd-live .board-t { gap: 4px; }
+.bd-live .board-t .crest, .bd-live .board-t .crest .pphoto { width: 38px; height: 38px; }
+.bd-live .board-t .crest img { max-width: 38px; max-height: 38px; }
+.bd-live .board-t .crest .mono { width: 36px; height: 36px; font-size: 12px; }
+.bd-live .board-name { font-size: 14px; }
+.board.bd-live .bw { width: 100px; height: 100px; opacity: .07; }
+.board.bd-live .board-mid, .board.tc2.bd-live .board-mid { width: auto; height: auto; margin: 0; padding: 6px 14px; border-radius: 16px; background: var(--card); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-style: normal; color: var(--ink); }
+.bl-sc { font-size: 34px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.bl-sc i { font-style: normal; color: var(--ink-3); margin: 0 6px; }
+.board-mid small { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: #e5484d; }
+.board-mid small .pulse { width: 7px; height: 7px; }
+.bd-pre { margin-top: 10px; font-size: 11px; font-weight: 700; color: var(--ink-2); text-align: center; text-transform: uppercase; letter-spacing: .04em; }
+.bd-live .pbar { height: 18px; margin-top: 4px; }
+.bd-live ~ #live-box .lb-score { display: none; }
+#live-box { scroll-margin-top: 70px; }

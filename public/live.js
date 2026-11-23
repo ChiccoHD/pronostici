@@ -772,10 +772,34 @@ async function attachLive(d) {
   if (!box) return;
   if (failed && d.final) box.innerHTML = "";     // l'esito c'è già nella scheda: niente avviso
   else if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
-  else if (info && info.state !== "pre") box.innerHTML = liveBox(info, d, scoreChanged(d.id, info));
+  else if (info && info.state !== "pre") { const fl = scoreChanged(d.id, info); box.innerHTML = liveBox(info, d, fl); liveBoard(info, fl); }
   else box.innerHTML = "";
   if ((failed && !d.final) || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
     boxTimer = later(() => { if (location.hash === hash) attachLive(d); }, info?.state === "in" ? LIVE_FAST : LIVE_SLOW);
+}
+
+/* partita in corso: il tabellone delle squadre si riduce (stemmi piccoli, risultato al posto del «vs», niente cerchi)
+   e lascia spazio a diretta, cronaca, probabilità e momentum subito sotto */
+function liveBoard(info, flash) {
+  const brd = $app.querySelector(".board");
+  if (!brd) return;
+  const mid = brd.querySelector(".board-mid");
+  if (info.state !== "in") {
+    if (brd.classList.contains("bd-live")) { brd.classList.remove("bd-live"); if (mid) mid.textContent = "vs"; brd.querySelector(".bd-pre")?.remove(); }
+    return;
+  }
+  brd.classList.add("bd-live");
+  if (!brd.querySelector(".bd-pre")) brd.querySelector(".pbar")?.insertAdjacentHTML("beforebegin", `<div class="bd-pre">Pronostico prima del via</div>`);
+  if (!mid) return;
+  if (info.sport === "tennis") {
+    const s = info.sets || [[], []], n = Math.max(s[0].length, 1), cur = Math.min(info.period || n, n);
+    let a = 0, b = 0;
+    for (let i = 0; i < cur - 1; i++) { if (s[0][i] > s[1][i]) a++; else if (s[1][i] > s[0][i]) b++; }
+    mid.innerHTML = `<b class="bl-sc">${a}<i>-</i>${b}</b><small><span class="pulse"></span>${cur}° set</small>`;
+  } else {
+    const t = info.sport === "soccer" ? info.clock || info.detail : info.detail;
+    mid.innerHTML = `<b class="bl-sc ${flash ? "flash" : ""}">${info.H}<i>-</i>${info.A}</b><small><span class="pulse"></span>${esc(t || "Live")}</small>`;
+  }
 }
 
 function liveBox(info, d, flash = false) {

@@ -1,14 +1,19 @@
-# Verifica giocatori ESPN — 2026-11-22
+# Prove di precisione — 2026-11-23
 
-- ✅ **nba 200** CORS=* chiavi=['displayNames', 'events', 'filters', 'glossary', 'labels', 'names', 'seasonTypes']
-  - labels: ['MIN', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'REB', 'AST', 'BLK', 'STL', 'PF', 'TO', 'PTS'] names: ['minutes', 'fieldGoalsMade-fieldGoalsAttempted', 'fieldGoalPct', 'threePointFieldGoalsMade-threePointFieldGoalsAttempted', 'threePointPct', 'freeThrowsMade-freeThrowsAttempted', 'freeThrowPct', 'tota
-  - seasonTypes 2; events 19; primo evento: {"id": "401909312", "links": [{"language": "en", "rel": ["summary", "desktop", "event"], "href": "https://www.espn.com/nba/game/_/gameId/401909312/rockets-nuggets", "text": "Gamecast", "shortText": "Summary", "isExternal": false, "isPremium": false}, {"language": "en", "rel": ["summary", "sportscenter", "app", "event"], "href": "sportscenter://x-callback-url/showGame?sportName=basketball&leagueAbb
-  - prima riga: {"eventId": "401909312", "stats": ["38", "10-15", "66.7", "2-3", "66.7", "4-4", "100.0", "7", "11", "0", "0", "3", "4", "26"]}
-- ✅ **nba-site 200** CORS=* chiavi=['displayNames', 'events', 'filters', 'glossary', 'labels', 'names', 'seasonTypes']
-- ✅ **nba-overview 200** CORS=* chiavi=['awards', 'fantasy', 'gameLog', 'news', 'nextGame', 'rotowire', 'statistics']
-- ✅ **calcio-gamelog 200** CORS=* chiavi=['displayNames', 'events', 'filters', 'glossary', 'labels', 'names', 'seasonTypes']
-  - {"filters": [{"displayName": "Season", "name": "season", "value": "2026", "options": [{"value": "2026", "displayValue": "2026-27"}]}, {"displayName": "Team", "name": "team", "value": "4007", "options": [{"value": "1929", "displayValue": "Benfica"}, {"value": "3699", "displayValue": "Gil Vicente"}, {"value": "4007", "displayValue": "Monza"}, {"value": "11692", "displayValue": "Portugal U21"}]}, {"displayName": "League", "name": "league", "value": "ita.1", "options": [{"value": "ita.1", "displayValue": "Italian Serie A", "shortDisplayName": "Serie A"}, {"value": "ita.coppa_italia", "displayValue": "Coppa Italia", "shortDisplayName": "Coppa Italia"}]}], "labels": ["G", "A", "SHOT", "SOG", "FC",
-- ✅ **calcio-overview 200** CORS=* chiavi=['gameLog', 'news', 'nextGame', 'statistics']
-  - {"statistics": {"labels": ["STRT", "FC", "FA", "YC", "RC", "G", "A", "SHOT", "SOG", "OFF"], "names": ["starts", "foulsCommitted", "foulsSuffered", "yellowCards", "redCards", "totalGoals", "goalAssists", "totalShots", "shotsOnTarget", "offsides"], "displayNames": ["Starts", "Fouls Committed", "Fouls Suffered", "Yellow Cards", "Red Cards", "Total Goals", "Assists", "Shots", "Shots On Goal", "Offsides"], "filters": [{"name": "team", "displayName": "Teams", "options": [{"value": "187", "displayValue": "LA Galaxy", "menu": {"name": "league", "options": [{"value": "770", "displayValue": "MLS", "shortDisplayValue": "MLS"}]}}]}], "splits": [{"displayName": "2026 MLS", "teamId": "187", "teamSlug": "u
-- ✅ **calcio-eventlog 200** CORS=* chiavi=['$ref', 'events', 'teams']
-  - {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/seasons/2025/athletes/150225/eventlog?lang=en&region=us", "teams": {"2572": {"team": {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/seasons/2025/teams/2572?lang=en&region=us"}, "id": "2572"}, "187": {"team": {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/usa.1/seasons/2026/teams/187?lang=en&region=us"}, "id": "187"}}, "events": {"count": 20, "pageIndex": 1, "pageSize": 25, "pageCount": 1, "items": [{"event": {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/events/737060?lang=en&region=us"}, "competition": {"$ref": "http://sports.core.api.espn.com/v2/s
+## Tennis: servizio e risposta (Jeff Sackmann)
+- ATP 2022: 0 incontri
+- ATP 2023: 0 incontri
+- ATP 2024: 0 incontri
+- ATP 2025: 0 incontri
+- ATP 2026: 0 incontri
+- WTA 2022: 0 incontri
+- WTA 2023: 0 incontri
+- WTA 2024: 0 incontri
+- WTA 2025: 0 incontri
+- WTA 2026: 0 incontri
+
+## Calcio: ClubElo
+- prova https://api.clubelo.com: non risponde
+- prova http://api.clubelo.com: non risponde
+- prova http://clubelo.com/API: risponde
+- ClubElo non risponde ai server di GitHub: prova impossibile da qui

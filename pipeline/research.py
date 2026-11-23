@@ -22,8 +22,11 @@ def _ll(p, y):
 BIG = {"premier-league": "ENG", "serie-a": "ITA", "la-liga": "ESP", "bundesliga": "GER", "ligue-1": "FRA"}
 
 
+_CE = {"base": None}
+
+
 def _clubelo(day: date) -> dict:
-    txt = http.get_text(f"http://api.clubelo.com/{day.isoformat()}", delay=1.2) or ""
+    txt = http.get_text(f"{_CE['base']}/{day.isoformat()}", delay=1.2, tries=2, timeout=20) or ""
     out = {}
     for row in csv.DictReader(io.StringIO(txt)):
         try:
@@ -41,6 +44,15 @@ def clubelo_test(out):
     while d <= today:
         mondays.append(d)
         d += timedelta(days=7)
+    for base in ("https://api.clubelo.com", "http://api.clubelo.com", "http://clubelo.com/API"):
+        r = http.get(f"{base}/2025-09-01", tries=1, timeout=15)
+        out(f"- prova {base}: {'risponde' if r is not None else 'non risponde'}")
+        if r is not None and "Club" in r.text[:200]:
+            _CE["base"] = base
+            break
+    if not _CE["base"]:
+        out("- ClubElo non risponde ai server di GitHub: prova impossibile da qui")
+        return
     snaps = {}
     for m in mondays:
         s = _clubelo(m)
@@ -199,13 +211,13 @@ def serve_test(out):
 
 def run(out):
     out(f"# Prove di precisione — {date.today().isoformat()}\n")
-    out("## Calcio: ClubElo")
-    try:
-        clubelo_test(out)
-    except Exception as e:
-        out(f"- errore: {e}")
-    out("\n## Tennis: servizio e risposta (Jeff Sackmann)")
+    out("## Tennis: servizio e risposta (Jeff Sackmann)")
     try:
         serve_test(out)
+    except Exception as e:
+        out(f"- errore: {e}")
+    out("\n## Calcio: ClubElo")
+    try:
+        clubelo_test(out)
     except Exception as e:
         out(f"- errore: {e}")

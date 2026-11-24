@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24T09:56+00:00",
+ "updated": "2026-11-24T12:55+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -126,7 +126,7 @@
     "espn_tabellini": "98 partite",
     "meteo": "5 partite",
     "partite_in_arrivo": 10,
-    "foto_giocatori": "senza foto 165, Wikipedia 89, TheSportsDB 69, ESPN 6, da controllare 23"
+    "foto_giocatori": "senza foto 174, Wikipedia 89, TheSportsDB 70, ESPN 6, da controllare 13"
    },
    "j1": {
     "football-data": "ok",
@@ -182,7 +182,7 @@
     "partite_in_arrivo": 2,
     "foto_giocatori": "Wikipedia 20, da controllare 47, ESPN 4"
    },
-   "aggiornato": "2026-11-24T09:53+00:00"
+   "aggiornato": "2026-11-24T12:53+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -196,7 +196,7 @@
    },
    "partite_in_arrivo": 25,
    "partite_stagione": 258,
-   "aggiornato": "2026-11-24T09:55+00:00"
+   "aggiornato": "2026-11-24T12:55+00:00"
   },
   "tennis": {
    "atp": {
@@ -207,7 +207,7 @@
     "storico": "12459 incontri (+0)",
     "espn": "10 incontri in programma"
    },
-   "aggiornato": "2026-11-24T09:55+00:00"
+   "aggiornato": "2026-11-24T12:55+00:00"
   },
   "coppe": {
    "uomini": {
@@ -267,7 +267,7 @@
     "espn_uefa.wchampions": "174 giocate, 10 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-24T09:55+00:00"
+   "aggiornato": "2026-11-24T12:54+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -304,11 +304,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-24T09:55+00:00"
+   "aggiornato": "2026-11-24T12:55+00:00"
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-24T09:56+00:00"
+   "aggiornato": "2026-11-24T12:55+00:00"
   },
   "archivio": {
    "partite": 529,
@@ -335,8 +335,8 @@
    "mercato_22": "87 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-24T09:56+00:00"
+   "aggiornato": "2026-11-24T12:55+00:00"
   },
-  "quote_in_movimento": 1
+  "quote_in_movimento": 3
  }
 }

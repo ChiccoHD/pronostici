@@ -365,7 +365,8 @@ async function eventInfo(tg) {
       for (const a of block.athletes || []) {
         const v = Object.fromEntries(labs.map((l, i) => [l, a.stats?.[i]]));
         const pts = statNum(v.PTS), reb = statNum(v.REB), ast = statNum(v.AST), tpm = statNum(String(v["3PT"] || "0").split("-")[0]);
-        info.players.set(normName(a.athlete?.displayName), { pts, reb, ast, tpm, pra: pts + reb + ast });
+        const mn = v.MIN != null && v.MIN !== "" && v.MIN !== "--" ? statNum(String(v.MIN).split(":")[0]) : null;
+        info.players.set(normName(a.athlete?.displayName), { pts, reb, ast, tpm, pra: pts + reb + ast, min: mn, dnp: !!a.didNotPlay });
       }
     }
     const wp = s.winprobability;
@@ -787,7 +788,7 @@ async function attachLive(d) {
   if (!box) return;
   if (failed && d.final) box.innerHTML = "";     // l'esito c'è già nella scheda: niente avviso
   else if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
-  else if (info && info.state !== "pre") { const fl = scoreChanged(d.id, info); box.innerHTML = liveBox(info, d, fl); liveBoard(info, fl); markOutcomes(info); }
+  else if (info && info.state !== "pre") { const fl = scoreChanged(d.id, info); box.innerHTML = liveBox(info, d, fl); liveBoard(info, fl); markOutcomes(info); playedMinutes(info); }
   else box.innerHTML = "";
   if ((failed && !d.final) || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
     boxTimer = later(() => { if (location.hash === hash) attachLive(d); }, info?.state === "in" ? LIVE_FAST : LIVE_SLOW);
@@ -829,6 +830,30 @@ function liveBoard(info, flash) {
 
 /* partita finita: ogni giocata della scheda dice se è uscita e quanto è finita (al posto della stella).
    Le sezioni disegnate dopo (schede, giocatori) vengono segnate quando compaiono. */
+/* NBA: accanto ai minuti attesi quelli giocati davvero (in diretta e a fine partita) */
+let PM_OBS = null;
+function playedMinutes(info) {
+  PM_OBS?.disconnect(); PM_OBS = null;
+  if (!info || info.sport !== "nba" || !info.players?.size) return;
+  const hash = location.hash, end = info.state === "post";
+  const run = () => {
+    if (location.hash !== hash) { PM_OBS?.disconnect(); return; }
+    for (const el of $app.querySelectorAll(".pl-c")) {
+      const name = (el.querySelector(".p-name")?.textContent || "").replace("›", "").trim();
+      const pl = info.players.get(normName(name)), tag = el.querySelector(".p-tag");
+      if (!pl || !tag) continue;
+      const exp = tag.dataset.exp || (tag.dataset.exp = (tag.textContent.match(/(\d+) minuti attesi/) || [])[1] || "");
+      const txt = pl.dnp || pl.min == null || (end && !pl.min) ? (end ? "non ha giocato" : "") : `<b>${pl.min}'</b> ${end ? "giocati" : "finora"}`;
+      const html = `${exp ? `${exp}' attesi` : ""}${exp && txt ? " · " : ""}${txt}`;
+      if (txt && tag.dataset.pm !== html) { tag.dataset.pm = html; tag.innerHTML = html; tag.classList.add("pm"); }
+    }
+  };
+  run();
+  let t = 0;
+  PM_OBS = new MutationObserver(() => { clearTimeout(t); t = setTimeout(run, 80); });
+  PM_OBS.observe($app, { childList: true, subtree: true });
+}
+
 let OC_OBS = null;
 function markOutcomes(info) {
   OC_OBS?.disconnect(); OC_OBS = null;

@@ -2222,3 +2222,15 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 
 /* «Finita» ben visibile */
 .bd-badge { background: #e5484d; color: #fff; box-shadow: 0 2px 8px rgba(229, 72, 77, .35); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* medie del giocatore NBA in tabella */
+.p-avgt { margin-top: 8px; background: var(--soft); border-radius: 12px; padding: 8px 10px 6px; }
+.pa-cap { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.pa-row { display: grid; grid-template-columns: 74px repeat(5, minmax(0, 1fr)); align-items: center; text-align: center; padding: 5px 0; border-top: 1px solid var(--rule); }
+.pa-row > span:first-child { text-align: left; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.pa-row b { font-size: 14px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pa-row.main b { font-size: 16px; font-weight: 800; color: var(--ink); }
+.pa-row.main > span:first-child { color: var(--ink); }
+.pa-h { border-top: 0; padding-top: 0; }
+.pa-h span { font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.p-tag.pm b { color: var(--ink); font-weight: 800; }

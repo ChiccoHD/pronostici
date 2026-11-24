@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-24", t: "Giocatori NBA: minuti giocati e medie più chiare", items: [
+    "Accanto ai minuti attesi compaiono quelli giocati davvero: «29' attesi · 33' giocati» a fine partita, «finora» durante la diretta.",
+    "Le medie del giocatore sono in una tabellina: una riga per le ultime 5, 10 e 15 partite, una colonna per punti, rimbalzi, assist, triple e % al tiro." ] },
   { d: "2026-11-24", t: "Giocatori a finestra e tema chiaro più colorato", items: [
     "NBA, scheda Giocatori: ogni giocatore si apre e si chiude toccando il nome o la freccia. Chiuso mostra solo punti, rimbalzi e assist attesi; in alto «Apri tutti» e «Chiudi tutti».",
     "Il bollino «Finita» delle partite concluse ora è rosso, così si nota subito.",

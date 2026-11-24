@@ -1547,6 +1547,15 @@ function injuries(d) {
   return `<h3 style="margin-top:0">${esc(d.home.name)}</h3>${list(d.home)}<h3>${esc(d.away.name)}</h3>${list(d.away)}`;
 }
 
+/* medie del giocatore: una riga per periodo (ultime 5, 10, 15 partite), una colonna per statistica */
+function avgTable(rows) {
+  rows = rows.filter(([, a]) => a && a.pts != null);
+  if (!rows.length) return "";
+  const v = x => x != null ? num(x) : "–", pc = x => x != null ? Math.round(x * 100) : "–";
+  return `<div class="p-avgt"><div class="pa-cap">Medie a partita</div>
+    <div class="pa-row pa-h"><span></span><span>Punti</span><span>Rimb.</span><span>Assist</span><span>Triple</span><span>% tiro</span></div>
+    ${rows.map(([lab, a], i) => `<div class="pa-row ${i === 0 ? "main" : ""}"><span>${lab}</span><b>${v(a.pts)}</b><b>${v(a.reb)}</b><b>${v(a.ast)}</b><b>${v(a.tpm)}</b><b>${pc(a.fg_pct)}</b></div>`).join("")}</div>`;
+}
 /* giocatori NBA a finestra: chiusi mostrano solo nome e attesi, aperti tutte le statistiche (stato tenuto finché l'app è aperta) */
 const PL_OPEN = new Set();
 document.addEventListener("click", e => {
@@ -1579,11 +1588,7 @@ function nbaPlayers(d, cH, cA) {
       <div class="p-head"><a class="p-name" href="${plHref(d, p._side, p)}">${esc(p.name)} ›</a>${tag}<button type="button" class="pl-tog" aria-expanded="${open}" aria-label="Apri o chiudi le statistiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
       ${mini ? `<div class="pl-mini">${mini} <span>attesi · tocca per le soglie</span></div>` : ""}
       <div class="pl-body">
-      <div class="p-avg" aria-label="Medie nelle ultime 5 partite">
-        <div><b>${num(a.pts)}</b><span>punti</span></div><div><b>${num(a.reb)}</b><span>rimbalzi</span></div>
-        <div><b>${num(a.ast)}</b><span>assist</span></div><div><b>${num(a.tpm)}</b><span>triple</span></div>
-        <div><b>${a.fg_pct != null ? Math.round(a.fg_pct * 100) : "–"}</b><span>% al tiro</span></div></div>
-      <div class="p-trend">Medie ultime 5. Ultime 10: ${num(a10.pts)} punti, ${num(a10.reb)} rimbalzi, ${num(a10.ast)} assist. Ultime 15: ${num(a15.pts)}, ${num(a15.reb)}, ${num(a15.ast)}.</div>
+      ${avgTable([["Ultime 5", a], ["Ultime 10", a10], ["Ultime 15", a15]])}
       ${p.out ? "" : `<div class="lines">${props}</div>`}</div></div></div>`;
   }).join("") : `<p class="note">Tabellini non ancora disponibili.</p>`;
   const all = `<div class="pl-all"><button type="button" class="link-btn" data-pl-all="1">Apri tutti</button><button type="button" class="link-btn" data-pl-all="0">Chiudi tutti</button></div>`;

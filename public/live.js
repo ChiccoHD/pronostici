@@ -807,8 +807,10 @@ function liveBoard(info, flash) {
   brd.classList.toggle("bd-post", info.state === "post");
   if (info.state === "post") {
     if (mid) mid.innerHTML = info.sport === "tennis"
-      ? `<b class="bl-sc">${info.won?.[0] ?? 0}<i>-</i>${info.won?.[1] ?? 0}</b><small>Finita · set</small>`
-      : `<b class="bl-sc">${info.H}<i>-</i>${info.A}</b><small>Finita</small>`;
+      ? `<b class="bl-sc">${info.won?.[0] ?? 0}<i>-</i>${info.won?.[1] ?? 0}</b><small>set</small>`
+      : `<b class="bl-sc">${info.H}<i>-</i>${info.A}</b>`;
+    const meta = brd.querySelector(".board-meta");
+    if (meta && !meta.querySelector(".bd-badge")) meta.insertAdjacentHTML("beforeend", `<span class="bd-badge">✓ Finita</span>`);
     if (!brd.querySelector(".bd-pre")) brd.querySelector(".pbar")?.insertAdjacentHTML("beforebegin", `<div class="bd-pre">Pronostico prima del via</div>`);
     return;
   }
@@ -845,7 +847,18 @@ function markOutcomes(info) {
         st.classList.add("oc-chip", "oc-" + s.cls); st.insertAdjacentHTML("afterbegin", `<i class="oc-m">${mark}</i>`); st.title = s.txt;
         const m = label.match(/^(.+) almeno \d+ (punti|rimbalzi|assist|triple|P\+R\+A)$/), line = st.closest(".line");
         const pl = m && info.players?.get(normName(m[1])), f = m && { punti: "pts", rimbalzi: "reb", assist: "ast", triple: "tpm", "P+R+A": "pra" }[m[2]];
-        if (line && pl && pl[f] != null && !line.querySelector(".oc-t")) line.firstElementChild?.insertAdjacentHTML("beforeend", `<em class="oc-t done">fatti ${pl[f]}</em>`);
+        if (line && pl && pl[f] != null && !line.classList.contains("oc-line")) {
+          // riga del giocatore: sopra attesi → fatti con la differenza e una barra, sotto le soglie
+          const lab = line.firstElementChild, name = (lab?.childNodes[0]?.textContent || m[2]).trim();
+          const exp = parseFloat((lab?.querySelector("b")?.textContent || "").replace(",", ".")), did = pl[f];
+          const dlt = isNaN(exp) ? null : did - exp, cls = dlt == null ? "" : dlt >= 0 ? "up" : "down";
+          const top = Math.max(did, exp || 0, 1) * 1.15;
+          line.classList.add("oc-line");
+          lab.outerHTML = `<div class="pl-sum"><span class="pl-k">${esc(name)}</span>
+            ${isNaN(exp) ? "" : `<span class="pl-v"><small>attesi</small><b>${num(exp, 1)}</b></span><span class="pl-ar">→</span>`}
+            <span class="pl-v did ${cls}"><small>fatti</small><b>${did}</b></span>${dlt == null ? "" : `<span class="pl-d ${cls}">${dlt >= 0 ? "+" : "−"}${num(Math.abs(dlt), 1)}</span>`}
+            <span class="pl-bar"><i class="${cls}" style="width:${Math.min(100, did / top * 100)}%"></i>${isNaN(exp) ? "" : `<u style="left:${Math.min(100, exp / top * 100)}%"></u>`}</span></div>`;
+        }
         continue;
       }
       const row = st.parentElement;
@@ -867,7 +880,8 @@ function liveBox(info, d, flash = false) {
   const ix = INDEX.events.find(e => e.id === d.id);
   const on = info.state === "in";
   const detail = info.sport === "tennis" ? `${Math.min(info.period || 1, Math.max(info.sets[0].length, 1))}° set` : info.sport === "soccer" ? info.clock || info.detail : info.detail;
-  const head = `<div class="lb-head">${on ? `<span class="pulse"></span><b>In diretta</b>` : `<b>Finita</b>`}<small>${esc(on ? detail : "risultato finale")}</small></div>`;
+  const post = info.state === "post";      // finita: risultato e «Finita» stanno già nel tabellone in alto
+  const head = post ? "" : `<div class="lb-head">${on ? `<span class="pulse"></span><b>In diretta</b>` : `<b>Finita</b>`}<small>${esc(on ? detail : "risultato finale")}</small></div>`;
   let score;
   if (info.sport === "tennis") {
     score = `<div class="${flash ? "flash" : ""}">${tennisBoard(info)}</div>`;
@@ -880,7 +894,9 @@ function liveBox(info, d, flash = false) {
   const mine = favs().filter(f => f.event === d.id);
   const slip = mine.length ? `<h3 class="lb-h3">Le tue giocate su questa partita</h3>${statusChips(mine, info)}` : "";
   const burst = flash && info.state === "in" && info.sport === "soccer" ? `<div class="goal-burst" aria-hidden="true">GOL!</div>` : "";   // solo il gol: game e canestri sarebbero troppi
-  return `<section class="sec live-box">${burst}${head}${score}${probs}${slip}</section>` + liveDetails(info, d);
+  if (post && info.sport !== "tennis") score = "";
+  const body = `${burst}${head}${score}${probs}${slip}`;
+  return (body.trim() ? `<section class="sec live-box">${body}</section>` : "") + liveDetails(info, d);
 }
 
 /* ------------------------------------------------------------------ cronaca e statistiche in diretta */

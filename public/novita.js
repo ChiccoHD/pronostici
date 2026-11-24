@@ -5,7 +5,8 @@ const NOVITA = [
     "Quando una partita è finita il riquadro delle squadre si riduce e al centro c'è il risultato finale; spariscono i cerchi e gli avvisi sulle quote, che servono solo prima del via.",
     "In ogni sezione (esito, gol, combo, risultato esatto, punti, multigol, angoli…) al posto della stella c'è ✓ o ✗, con scritto quanto è finita: per esempio «uscita: 228 punti» o «non uscita: finita con 117 punti».",
     "Giocatori NBA: accanto a ogni statistica c'è quanti ne ha fatti davvero, e le soglie si colorano (✓ raggiunta, ✗ no). Nel calcio i marcatori dicono se hanno segnato.",
-    "NBA: le linee intere dei punti totali finite pari alla linea risultano «rimborsate»." ] },
+    "NBA: le linee intere dei punti totali finite pari alla linea risultano «rimborsate».",
+    "Il risultato finale sta nel riquadro in alto, in trasparenza sopra lo sfondo, con il bollino «Finita» in alto a destra (niente più riquadro separato). Nei giocatori ogni statistica mostra «attesi → fatti», la differenza e una barra con il segno dell'atteso." ] },
   { d: "2026-11-24", t: "Draw No Bet", items: [
     "Nella scheda del calcio c'è il Draw No Bet (pareggio rimborsato): la probabilità che vinca una squadra tolto il pareggio, con quota equa e quote dei bookmaker. Si aggiunge alla schedina con la stella e compare anche in Migliori e nella schedina della giornata.",
     "Se la partita finisce pari la giocata è «Rimborsata» e vale quota 1: la schedina resta in gioco con le altre. Se avevi segnato quota e puntata, l'app ti chiede di correggere la quota totale." ] },

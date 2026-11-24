@@ -2197,3 +2197,28 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .pl-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--ink-3); }
 .pl-bar i.up { background: var(--win); } .pl-bar i.down { background: var(--loss); }
 .pl-bar u { position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+
+/* giocatori NBA apribili */
+.pl-c .p-head { cursor: pointer; align-items: center; }
+.pl-c .p-head .p-tag { margin-left: auto; }
+.pl-tog { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--soft); color: var(--ink-2); cursor: pointer; }
+.pl-tog svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+.pl-c.open .pl-tog svg { transform: rotate(180deg); }
+.pl-c:not(.open) .pl-body { display: none; }
+.pl-c.open .pl-mini { display: none; }
+.pl-mini { margin-top: 4px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.pl-mini b { color: var(--ink); font-weight: 800; }
+.pl-mini span { font-size: 11px; color: var(--ink-3); }
+.pl-c:not(.open) { padding: 10px 0; }
+.pl-all { display: flex; justify-content: flex-end; gap: 14px; margin: -4px 0 6px; }
+
+/* tema chiaro: colori delle squadre più pieni nella scheda della partita (nel tema scuro restano come prima) */
+:root { --tc-mix: 50%; --tc-stripe: rgba(0, 0, 0, .04); --tc-fade: 72%; --tc-wm: .16; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --tc-mix: 30%; --tc-stripe: rgba(255, 255, 255, .05); --tc-fade: 55%; --tc-wm: .1; } }
+:root[data-theme="dark"] { --tc-mix: 30%; --tc-stripe: rgba(255, 255, 255, .05); --tc-fade: 55%; --tc-wm: .1; }
+.board.tc2 { background: linear-gradient(105deg, color-mix(in srgb, var(--ch) var(--tc-mix), var(--card)) 0 47.5%, var(--card) 47.5% 52.5%, color-mix(in srgb, var(--ca) var(--tc-mix), var(--card)) 52.5% 100%); }
+.board.tc2::before { background: repeating-linear-gradient(105deg, transparent 0 18px, var(--tc-stripe) 18px 36px), linear-gradient(180deg, transparent var(--tc-fade), color-mix(in srgb, var(--card) 85%, transparent) 100%); }
+.board.tc2 .bw { opacity: var(--tc-wm); }
+
+/* «Finita» ben visibile */
+.bd-badge { background: #e5484d; color: #fff; box-shadow: 0 2px 8px rgba(229, 72, 77, .35); backdrop-filter: none; -webkit-backdrop-filter: none; }

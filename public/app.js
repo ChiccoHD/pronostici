@@ -1547,6 +1547,21 @@ function injuries(d) {
   return `<h3 style="margin-top:0">${esc(d.home.name)}</h3>${list(d.home)}<h3>${esc(d.away.name)}</h3>${list(d.away)}`;
 }
 
+/* giocatori NBA a finestra: chiusi mostrano solo nome e attesi, aperti tutte le statistiche (stato tenuto finché l'app è aperta) */
+const PL_OPEN = new Set();
+document.addEventListener("click", e => {
+  const allB = e.target.closest("[data-pl-all]");
+  if (allB) {
+    const on = allB.dataset.plAll === "1";
+    document.querySelectorAll(".pl-c").forEach(el => { el.classList.toggle("open", on); el.querySelector(".pl-tog")?.setAttribute("aria-expanded", on); on ? PL_OPEN.add(el.dataset.pl) : PL_OPEN.delete(el.dataset.pl); });
+    return;
+  }
+  const el = e.target.closest(".pl-c");
+  if (!el || e.target.closest("a, .chip, .star") || !e.target.closest(".p-head, .pl-mini, .avatar, .pl-tog")) return;
+  const on = !el.classList.contains("open");
+  el.classList.toggle("open", on); el.querySelector(".pl-tog")?.setAttribute("aria-expanded", on);
+  on ? PL_OPEN.add(el.dataset.pl) : PL_OPEN.delete(el.dataset.pl);
+});
 function nbaPlayers(d, cH, cA) {
   const block = (list, c) => list.length ? list.map(p => {
     const a = p.avg5 || {}, a10 = p.avg10 || {}, a15 = p.avg15 || {};
@@ -1558,16 +1573,21 @@ function nbaPlayers(d, cH, cA) {
       return chips ? `<div class="line"><span>${PROP_NAME[k]}<br><b>${num(v.mean)}</b> attesi</span><div class="chips">${chips}</div></div>` : "";
     }).join("");
     const tag = p.out ? `<span class="p-tag out">Fuori</span>` : `<span class="p-tag">${p.status ? esc(statusIt(p.status)) + ", " : ""}${num(p.min_proj, 0)} minuti attesi</span>`;
-    return `<div class="player">${avatar(p.name, c, p.pos, headshot("nba", p.pid))}<div>
-      <div class="p-head"><a class="p-name" href="${plHref(d, p._side, p)}">${esc(p.name)} ›</a>${tag}</div>
+    const pk = `${d.id}:${p.pid || p.name}`, open = PL_OPEN.has(pk), pr = p.props || {};
+    const mini = p.out ? "" : [["pts", "pt"], ["reb", "rb"], ["ast", "as"]].filter(([k]) => pr[k]?.mean != null).map(([k, u]) => `<b>${num(pr[k].mean)}</b> ${u}`).join(" · ");
+    return `<div class="player pl-c ${open ? "open" : ""}" data-pl="${esc(pk)}">${avatar(p.name, c, p.pos, headshot("nba", p.pid))}<div>
+      <div class="p-head"><a class="p-name" href="${plHref(d, p._side, p)}">${esc(p.name)} ›</a>${tag}<button type="button" class="pl-tog" aria-expanded="${open}" aria-label="Apri o chiudi le statistiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      ${mini ? `<div class="pl-mini">${mini} <span>attesi · tocca per le soglie</span></div>` : ""}
+      <div class="pl-body">
       <div class="p-avg" aria-label="Medie nelle ultime 5 partite">
         <div><b>${num(a.pts)}</b><span>punti</span></div><div><b>${num(a.reb)}</b><span>rimbalzi</span></div>
         <div><b>${num(a.ast)}</b><span>assist</span></div><div><b>${num(a.tpm)}</b><span>triple</span></div>
         <div><b>${a.fg_pct != null ? Math.round(a.fg_pct * 100) : "–"}</b><span>% al tiro</span></div></div>
       <div class="p-trend">Medie ultime 5. Ultime 10: ${num(a10.pts)} punti, ${num(a10.reb)} rimbalzi, ${num(a10.ast)} assist. Ultime 15: ${num(a15.pts)}, ${num(a15.reb)}, ${num(a15.ast)}.</div>
-      ${p.out ? "" : `<div class="lines">${props}</div>`}</div></div>`;
+      ${p.out ? "" : `<div class="lines">${props}</div>`}</div></div></div>`;
   }).join("") : `<p class="note">Tabellini non ancora disponibili.</p>`;
-  return `<div data-segpane="pl:home">${block(d.players.home.map(p => ({ ...p, _side: "home" })), cH)}</div><div data-segpane="pl:away" hidden>${block(d.players.away.map(p => ({ ...p, _side: "away" })), cA)}</div>
+  const all = `<div class="pl-all"><button type="button" class="link-btn" data-pl-all="1">Apri tutti</button><button type="button" class="link-btn" data-pl-all="0">Chiudi tutti</button></div>`;
+  return all + `<div data-segpane="pl:home">${block(d.players.home.map(p => ({ ...p, _side: "home" })), cH)}</div><div data-segpane="pl:away" hidden>${block(d.players.away.map(p => ({ ...p, _side: "away" })), cA)}</div>
     <p class="note">Ogni riquadro è la probabilità di arrivare almeno a quella soglia, da minuti attesi, medie recenti e avversario.</p>`;
 }
 

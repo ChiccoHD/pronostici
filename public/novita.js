@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-24", t: "Giocatori a finestra e tema chiaro più colorato", items: [
+    "NBA, scheda Giocatori: ogni giocatore si apre e si chiude toccando il nome o la freccia. Chiuso mostra solo punti, rimbalzi e assist attesi; in alto «Apri tutti» e «Chiudi tutti».",
+    "Il bollino «Finita» delle partite concluse ora è rosso, così si nota subito.",
+    "Tema chiaro: nella scheda della partita i colori delle due squadre sono più pieni e gli stemmi sullo sfondo più visibili." ] },
   { d: "2026-11-24", t: "Partite finite: com'è andata ogni giocata", items: [
     "Quando una partita è finita il riquadro delle squadre si riduce e al centro c'è il risultato finale; spariscono i cerchi e gli avvisi sulle quote, che servono solo prima del via.",
     "In ogni sezione (esito, gol, combo, risultato esatto, punti, multigol, angoli…) al posto della stella c'è ✓ o ✗, con scritto quanto è finita: per esempio «uscita: 228 punti» o «non uscita: finita con 117 punti».",

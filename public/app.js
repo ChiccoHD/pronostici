@@ -372,11 +372,13 @@ async function eventTopPicks(d, brd) {
   const cards = out.slice(0, TOP_MAX).map(it => {
     const key = favKey(it.label, it.p, it.book);
     const gap = it.book != null ? Math.round((it.p - it.book) * 100) : null;
-    return `<div class="etp-c ${it.p >= 0.8 ? "hi" : ""}"><a href="${pickHref({ event: d.id, label: it.label })}">
+    return `<div class="etp-c ${it.p >= 0.8 ? "hi" : ""}"><a href="${pickHref({ event: d.id, label: it.label })}" data-etp="${esc(it.label)}">
       <b class="etp-p">${pct(it.p)}</b><span class="etp-l">${esc(it.label)}</span>
       <small>quota equa ${num(1 / it.p, 2)}${it.book != null ? ` · book ${pct(it.book)}${gap ? ` <i class="${gap > 0 ? "up" : "down"}">${gap > 0 ? "+" : ""}${gap}</i>` : ""}` : ""}</small></a>${star(key)}</div>`;
   }).join("");
-  brd.insertAdjacentHTML("afterend", `<section class="etp"><div class="etp-h"><b>Le più probabili</b><small>da ${pct(TOP_MIN)} in su · tocca per aprirla</small></div><div class="etp-row">${cards}</div></section>`);
+  // il tocco resta sulla pagina: apre la scheda giusta (Esito, Gol, Giocatori…) e illumina la riga
+  setTimeout(() => $app.querySelectorAll("[data-etp]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); PICK_FOCUS = a.dataset.etp; focusPick(d.id); })), 0);
+  brd.insertAdjacentHTML("afterend", `<section class="etp"><div class="etp-h"><b>Le più probabili</b><small>tocca un cartellino per vederlo nella scheda</small></div><div class="etp-row">${cards}</div></section>`);
 }
 const pickHref = it => `#/e/${encodeURIComponent(it.event)}/${encodeURIComponent(it.label)}`;
 let PICK_FOCUS = null;
@@ -390,14 +392,16 @@ function focusPick(eid) {
     const sp = el.closest("[data-segpane]");
     if (sp?.hidden) { const [n, v] = sp.dataset.segpane.split(":"); $app.querySelector(`[data-seg="${n}"] [data-v="${v}"]`)?.click(); }
     const det = el.closest("details"); if (det && !det.open) det.open = true;
+    const plc = el.closest(".pl-c"); if (plc && !plc.classList.contains("open")) { plc.classList.add("open"); plc.querySelector(".pl-tog")?.setAttribute("aria-expanded", "true"); PL_OPEN.add(plc.dataset.pl); }
     const row = el.closest(".f1-row, .f1-vsr, .f1-duel, .line, .r, .mk, .row, .bar, li, tr") || el.parentElement;
     setTimeout(() => {
       row.scrollIntoView({ block: "center" });
       row.classList.add("pick-flash");
-      setTimeout(() => row.classList.remove("pick-flash"), 2600);
+      if (el.classList.contains("chip")) el.classList.add("chip-flash");      // soglia del giocatore: si illumina anche il gettone
+      setTimeout(() => { row.classList.remove("pick-flash"); el.classList.remove("chip-flash"); }, 2600);
     }, 120);
   };
-  const btns = [...$app.querySelectorAll(`[data-fav="${CSS.escape(`${eid}|${lab}`)}"]`)];
+  const btns = [...$app.querySelectorAll(`[data-fav="${CSS.escape(`${eid}|${lab}`)}"]`)].filter(b => !b.closest(".etp"));   // non il cartellino in cima
   if (btns.length) return show(btns[0]);
   // F1, testa a testa non in elenco: la sfida si apre nel selettore della scheda «Testa a testa»
   const m = lab.match(/^(.+) davanti a (.+)$/), a = document.getElementById("f1-a"), b = document.getElementById("f1-b");

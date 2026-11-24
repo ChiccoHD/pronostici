@@ -356,6 +356,28 @@ async function boot() {
 }
 
 /* link a una giocata precisa: la scheda si apre già sulla scheda giusta, con la riga in evidenza (focusPick) */
+/* scheda della partita: in alto le giocate più probabili, in cartellini piccoli da scorrere.
+   Prima quelle scelte per Migliori, poi le altre righe della scheda (senza le quasi certe, oltre il 93%). */
+const TOP_MIN = 0.7, TOP_MAX = 8;
+async function eventTopPicks(d, brd) {
+  if (!brd || d.final || Date.parse(d.date) < Date.now()) return;
+  if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
+  if (!$app.contains(brd) || $app.querySelector(".etp")) return;
+  const seen = new Set(), out = [];
+  const add = (label, p, book, cat) => { if (p == null || p < TOP_MIN || seen.has(label)) return; seen.add(label); out.push({ label, p, book, cat }); };
+  for (const c of BEST.categories || []) for (const it of c.items || []) if (it.event === d.id) add(it.label, it.p, it.book, c.name);
+  if (out.length < TOP_MAX) for (const m of FAVMETA.values()) if (m.event === d.id && m.p <= 0.93) add(m.label, m.p, m.book, "");
+  if (!out.length) return;
+  out.sort((a, b) => b.p - a.p);
+  const cards = out.slice(0, TOP_MAX).map(it => {
+    const key = favKey(it.label, it.p, it.book);
+    const gap = it.book != null ? Math.round((it.p - it.book) * 100) : null;
+    return `<div class="etp-c ${it.p >= 0.8 ? "hi" : ""}"><a href="${pickHref({ event: d.id, label: it.label })}">
+      <b class="etp-p">${pct(it.p)}</b><span class="etp-l">${esc(it.label)}</span>
+      <small>quota equa ${num(1 / it.p, 2)}${it.book != null ? ` · book ${pct(it.book)}${gap ? ` <i class="${gap > 0 ? "up" : "down"}">${gap > 0 ? "+" : ""}${gap}</i>` : ""}` : ""}</small></a>${star(key)}</div>`;
+  }).join("");
+  brd.insertAdjacentHTML("afterend", `<section class="etp"><div class="etp-h"><b>Le più probabili</b><small>da ${pct(TOP_MIN)} in su · tocca per aprirla</small></div><div class="etp-row">${cards}</div></section>`);
+}
 const pickHref = it => `#/e/${encodeURIComponent(it.event)}/${encodeURIComponent(it.label)}`;
 let PICK_FOCUS = null;
 function focusPick(eid) {
@@ -1153,6 +1175,7 @@ async function showEvent(id) {
   if (rv) brd ? brd.insertAdjacentHTML("afterend", rv) : $app.querySelector(".back")?.insertAdjacentHTML("afterend", rv);
   if (typeof eventActions === "function") { brd?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
   if (typeof duelBox === "function") { const h = duelBox(d); if (h) { ($app.querySelector(".ev-acts") || brd)?.insertAdjacentHTML("afterend", h); wireDuel(d); } }
+  eventTopPicks(d, brd);
   // classifica con le due squadre, sotto i pulsanti (arriva un attimo dopo: il file del campionato si carica a parte)
   if (typeof matchTable === "function") matchTable(d).then(h => {
     if (!h || !$app.contains(brd)) return;

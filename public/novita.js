@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-25", t: "Le più probabili, in cima alla partita", items: [
+    "Aprendo una partita non ancora iniziata, sotto il riquadro delle squadre trovi i cartellini delle giocate più probabili (dal 70% in su, al massimo 8): percentuale, quota equa e, se c'è, il confronto con i bookmaker. Quelle dall'80% in su sono in verde.",
+    "Tocca un cartellino per andare alla riga giusta della scheda, o la stella per metterla in schedina." ] },
   { d: "2026-11-24", t: "Giocatori NBA: minuti giocati e medie più chiare", items: [
     "Accanto ai minuti attesi compaiono quelli giocati davvero: «29' attesi · 33' giocati» a fine partita, «finora» durante la diretta.",
     "Le medie del giocatore sono in una tabellina: una riga per le ultime 5, 10 e 15 partite, una colonna per punti, rimbalzi, assist, triple e % al tiro." ] },

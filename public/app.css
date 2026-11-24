@@ -2151,3 +2151,24 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .pk.slip .pk-txt > .slip-live.void, .lv-say.void { color: var(--ink-2); }
 .ls-dot.void { background: var(--ink-3); }
 .ss-fix { margin: 8px 2px 0; }
+
+/* partita finita: tabellone ridotto e giocate segnate */
+.bd-post .board-mid small { color: var(--ink-2); }
+.oc { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; font-weight: 900; flex: none; }
+.oc.win { background: var(--win-bg); color: var(--win); }
+.oc.lose { background: var(--loss-bg); color: var(--loss); }
+.oc.void { background: var(--rule); color: var(--ink-2); }
+.oc-t { display: block; font-style: normal; font-weight: 700; font-size: 12px; margin-top: 2px; }
+.oc-t.win { color: var(--win); } .oc-t.lose { color: var(--loss); } .oc-t.void { color: var(--ink-2); }
+.bar.oc-lose > i { opacity: .35; }
+.bar.oc-win > i { background: color-mix(in srgb, var(--win) 40%, transparent); }
+.rcell .oc { position: absolute; top: 4px; right: 4px; }
+.rcell.oc-win { box-shadow: inset 0 0 0 2px var(--win); }
+.bar > .oc { position: relative; flex: none; width: 26px; }
+.oc-t.done { color: var(--ink); font-size: 13px; }
+.chip.oc-chip { position: relative; }
+.chip .oc-m { font-style: normal; font-weight: 900; margin-right: 4px; }
+.chip.oc-win { background: var(--win-bg); color: var(--win); box-shadow: inset 0 0 0 1.5px var(--win); }
+.chip.oc-win b { color: var(--win); }
+.chip.oc-lose { opacity: .55; }
+.chip.oc-lose .oc-m { color: var(--loss); }

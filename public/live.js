@@ -609,6 +609,11 @@ function pickStatus(label, info) {
     if (firstDone) return (m[1] === "Over") === (c > +m[2]) ? R("win", `Vinta: ${c} gol nel primo tempo`) : R("lose", `Persa: ${c} gol nel primo tempo`);
     return m[1] === "Over" ? P(c > +m[2] ? R("win", `Già vinta: ${c} gol`) : R("", `${+m[2] + 1 - c === 1 ? "Manca" : "Mancano"} ${+m[2] + 1 - c} gol prima dell'intervallo`), c, +m[2] + 1, "gol") : under(c, +m[2], "gol");
   }
+  if ((m = L.match(/^(Over|Under) (\d+) punti$/))) {          // linea intera: pari alla linea = rimborsata
+    const c = H + A, n = +m[2], o = m[1] === "Over";
+    if (!end) return o ? (c > n ? R("win", `Già vinta: ${c} punti`) : R("", `Ora ${c} punti, linea ${n}`)) : (c > n ? R("lose", `Persa: già ${c} punti`) : R("ok", `Per ora va bene: ${c} punti`));
+    return c === n ? R("void", `Rimborsata: finita con ${c} punti, come la linea`) : (o ? c > n : c < n) ? R("win", `Vinta: ${c} punti`) : R("lose", `Persa: finita con ${c} punti`);
+  }
   if ((m = L.match(/^Over (\d+),5( punti)?$/))) return over(H + A, +m[1], unit);
   if ((m = L.match(/^Under (\d+),5( punti)?$/))) return under(H + A, +m[1], unit);
   if (L === "Goal, segnano entrambe") {
@@ -771,6 +776,8 @@ async function attachLive(d) {
   if (!tg) return;
   const start = new Date(d.date).getTime();
   if (Date.now() < start - 15 * 60e3) return;           // non ancora iniziata
+  const fin = d.final && typeof d.final === "object" && !d.final.void ? d.final : null;
+  if (fin && fin.h != null) liveBoard({ state: "post", sport: d.sport, H: fin.h, A: fin.a, won: [fin.h, fin.a] }, false);   // subito, prima della lettura ESPN
   let box = document.getElementById("live-box");
   if (!box) { box = document.createElement("div"); box.id = "live-box"; ($app.querySelector(".board") || $app.querySelector(".back"))?.after(box); }
   let info = null, failed = false;
@@ -780,7 +787,7 @@ async function attachLive(d) {
   if (!box) return;
   if (failed && d.final) box.innerHTML = "";     // l'esito c'è già nella scheda: niente avviso
   else if (failed) box.innerHTML = `<div class="warn">Non riesco a leggere il risultato in diretta adesso. Riprovo tra poco; intanto usa i link in fondo alla scheda.</div>`;
-  else if (info && info.state !== "pre") { const fl = scoreChanged(d.id, info); box.innerHTML = liveBox(info, d, fl); liveBoard(info, fl); }
+  else if (info && info.state !== "pre") { const fl = scoreChanged(d.id, info); box.innerHTML = liveBox(info, d, fl); liveBoard(info, fl); markOutcomes(info); }
   else box.innerHTML = "";
   if ((failed && !d.final) || info?.state === "in" || (info?.state === "pre" && Date.now() > start - 15 * 60e3))
     boxTimer = later(() => { if (location.hash === hash) attachLive(d); }, info?.state === "in" ? LIVE_FAST : LIVE_SLOW);
@@ -792,11 +799,19 @@ function liveBoard(info, flash) {
   const brd = $app.querySelector(".board");
   if (!brd) return;
   const mid = brd.querySelector(".board-mid");
-  if (info.state !== "in") {
-    if (brd.classList.contains("bd-live")) { brd.classList.remove("bd-live"); if (mid) mid.textContent = "vs"; brd.querySelector(".bd-pre")?.remove(); }
+  if (info.state !== "in" && info.state !== "post") {
+    if (brd.classList.contains("bd-live")) { brd.classList.remove("bd-live", "bd-post"); if (mid) mid.textContent = "vs"; brd.querySelector(".bd-pre")?.remove(); }
     return;
   }
   brd.classList.add("bd-live");
+  brd.classList.toggle("bd-post", info.state === "post");
+  if (info.state === "post") {
+    if (mid) mid.innerHTML = info.sport === "tennis"
+      ? `<b class="bl-sc">${info.won?.[0] ?? 0}<i>-</i>${info.won?.[1] ?? 0}</b><small>Finita · set</small>`
+      : `<b class="bl-sc">${info.H}<i>-</i>${info.A}</b><small>Finita</small>`;
+    if (!brd.querySelector(".bd-pre")) brd.querySelector(".pbar")?.insertAdjacentHTML("beforebegin", `<div class="bd-pre">Pronostico prima del via</div>`);
+    return;
+  }
   if (!brd.querySelector(".bd-pre")) brd.querySelector(".pbar")?.insertAdjacentHTML("beforebegin", `<div class="bd-pre">Pronostico prima del via</div>`);
   if (!mid) return;
   if (info.sport === "tennis") {
@@ -808,6 +823,44 @@ function liveBoard(info, flash) {
     const t = info.sport === "soccer" ? info.clock || info.detail : info.detail;
     mid.innerHTML = `<b class="bl-sc ${flash ? "flash" : ""}">${info.H}<i>-</i>${info.A}</b><small><span class="pulse"></span>${esc(t || "Live")}</small>`;
   }
+}
+
+/* partita finita: ogni giocata della scheda dice se è uscita e quanto è finita (al posto della stella).
+   Le sezioni disegnate dopo (schede, giocatori) vengono segnate quando compaiono. */
+let OC_OBS = null;
+function markOutcomes(info) {
+  OC_OBS?.disconnect(); OC_OBS = null;
+  if (!info || info.state !== "post") return;
+  const hash = location.hash;
+  const run = () => {
+    if (location.hash !== hash) { OC_OBS?.disconnect(); return; }
+    for (const st of $app.querySelectorAll("[data-fav]:not([data-oc])")) {
+      st.dataset.oc = "1";
+      const key = st.dataset.fav, label = FAVMETA.get(key)?.label || key.slice(key.indexOf("|") + 1);
+      let s = null;
+      try { s = pickStatus(label, info); } catch { s = null; }
+      if (!s || !["win", "lose", "void"].includes(s.cls)) continue;
+      const mark = s.cls === "win" ? "✓" : s.cls === "void" ? "↺" : "✗";
+      if (st.classList.contains("chip")) {          // soglie dei giocatori: il gettone si colora, e sulla riga quanti ne ha fatti
+        st.classList.add("oc-chip", "oc-" + s.cls); st.insertAdjacentHTML("afterbegin", `<i class="oc-m">${mark}</i>`); st.title = s.txt;
+        const m = label.match(/^(.+) almeno \d+ (punti|rimbalzi|assist|triple|P\+R\+A)$/), line = st.closest(".line");
+        const pl = m && info.players?.get(normName(m[1])), f = m && { punti: "pts", rimbalzi: "reb", assist: "ast", triple: "tpm", "P+R+A": "pra" }[m[2]];
+        if (line && pl && pl[f] != null && !line.querySelector(".oc-t")) line.firstElementChild?.insertAdjacentHTML("beforeend", `<em class="oc-t done">fatti ${pl[f]}</em>`);
+        continue;
+      }
+      const row = st.parentElement;
+      const txt = s.txt.replace(/^(Vinta|Persa|Già vinta)[:,]?\s*/, "") || s.txt;
+      st.insertAdjacentHTML("beforebegin", `<span class="oc ${s.cls}" title="${esc(s.txt)}">${mark}</span>`);
+      st.style.display = "none";
+      row.classList.add("oc-row", "oc-" + s.cls);
+      const where = row.querySelector("small") || row.querySelector(".q") || row.querySelector(".lab") || row.querySelector("span");
+      where?.insertAdjacentHTML("beforeend", `<em class="oc-t ${s.cls}">${s.cls === "win" ? "uscita" : s.cls === "void" ? "rimborsata" : "non uscita"}${txt && txt !== s.txt ? `: ${esc(txt)}` : ""}</em>`);
+    }
+  };
+  run();
+  let t = 0;
+  OC_OBS = new MutationObserver(() => { clearTimeout(t); t = setTimeout(run, 60); });
+  OC_OBS.observe($app, { childList: true, subtree: true });
 }
 
 function liveBox(info, d, flash = false) {

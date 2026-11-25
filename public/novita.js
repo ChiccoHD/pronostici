@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-25", t: "Migliori completa e avviso turnover", items: [
+    "Migliori: prima teneva solo le 40 giocate più probabili di tutta la settimana, così le partite di oggi (Inter, Atlético…) restavano fuori dietro a quelle dei giorni dopo. Ora per ogni giorno entrano anche le sue migliori 15 (dal 50% in su), quindi filtrando «Oggi» le trovi.",
+    "Calcio, possibile turnover: se una squadra ha una partita più importante nei giorni subito dopo (una finale, una semifinale, un turno a eliminazione o la Champions), nella scheda compare l'avviso, per esempio «Palmeiras ha la finale di Copa Libertadores sabato 28 (tra 4 giorni)». Il modello non lo sa, i bookmaker sì: è il caso in cui guardare le loro percentuali. Le giocate di quelle partite hanno l'avviso anche in Migliori e non entrano nel riquadro Oggi." ] },
   { d: "2026-11-25", t: "Le più probabili, in cima alla partita", items: [
     "Aprendo una partita non ancora iniziata, sotto il riquadro delle squadre trovi i cartellini delle giocate più probabili (dal 70% in su, al massimo 8): percentuale, quota equa e, se c'è, il confronto con i bookmaker. Quelle dall'80% in su sono in verde.",
     "Tocca un cartellino: la pagina apre da sola la sezione giusta (Esito, Punti, Giocatori…), apre il giocatore se è chiuso e illumina in giallo la riga della giocata. La stella invece la mette in schedina." ] },

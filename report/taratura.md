@@ -122,3 +122,7 @@ degli Slam maschili erano trattate al meglio dei 5 set; ora al meglio dei 3.
 **Fonti non provabili** (Verifica fonti, modo `precisione`, `pipeline/research.py`): ClubElo non risponde ai server di
 GitHub (connessione scaduta; clubelo.com dà solo la pagina web) e l'archivio di Jeff Sackmann per servizio e risposta
 del tennis non esiste più su GitHub. Le due prove restano pronte nel codice se le fonti tornano.
+
+**Turnover (novembre 2026)**: Chapecoense–Palmeiras del 24/11 (3-0), modello Palmeiras 71%, bookmaker 46%: Palmeiras
+aveva la finale di Libertadores 4 giorni dopo. Ora `rotation.py` lo segnala (solo come avviso). Prima di metterlo nel
+modello serve un archivio di partite con e senza turnover per misurare l'effetto.

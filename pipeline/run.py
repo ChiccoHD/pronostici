@@ -91,6 +91,8 @@ def main():
         logging.exception("Taratura non applicata")
     from . import odds_move
     odds_move.apply(keep, status)
+    from . import rotation
+    rotation.apply(keep, status)       # rischio turnover: prima di Migliori, che lo legge dai file delle partite
     store.save(PUBLIC_DATA / "index.json", {"updated": now.isoformat(timespec="minutes"), "events": keep})
     store.save(PUBLIC_DATA / "affidabilita.json", reliability)
     store.save(PUBLIC_DATA / "meta.json", {"updated": now.isoformat(timespec="minutes"), "sample": False,

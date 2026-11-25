@@ -24,9 +24,16 @@ def _f(v):
 
 
 def _base(d):
-    return {"event": d["id"], "sport": d["sport"], "league": d["league"], "league_name": d["league_name"],
-            "date": d["date"], "time_valid": d.get("time_valid"),
-            "match": f"{d['home']['name']} – {d['away']['name']}"}
+    b = {"event": d["id"], "sport": d["sport"], "league": d["league"], "league_name": d["league_name"],
+         "date": d["date"], "time_valid": d.get("time_valid"),
+         "match": f"{d['home']['name']} – {d['away']['name']}"}
+    rot = d.get("rotation") or {}
+    if rot:      # rischio turnover (rotation.py): la squadra ha una partita più importante subito dopo
+        side = max(rot, key=lambda s: rot[s]["lvl"])
+        T = d.get(side) or {}
+        b["rot"] = rot[side]["lvl"]
+        b["rot_txt"] = f"{T.get('short') or T.get('name')} ha {rot[side]['txt']}"
+    return b
 
 
 def _team(t):

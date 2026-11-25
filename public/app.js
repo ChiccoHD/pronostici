@@ -585,7 +585,7 @@ function todayWidget() {
     const onDay = d => isoDay(d) === pick;
     // per ogni sport la migliore di oggi (fino al mattino dopo); se oggi non c'è più niente, la migliore del primo giorno in cui si gioca
     const bestOf = k => {
-      const all = pool.filter(it => it.sport === k && !(it.book != null && it.p - it.book >= TRUST_GAP));
+      const all = pool.filter(it => it.sport === k && !(it.book != null && it.p - it.book >= TRUST_GAP) && !(it.rot >= 2));
       // giorno scelto: la carta c'è solo se quel giorno c'è una giocata forte (es. il sabato della F1 ha solo la pole, mai sicura)
       if (pick) { const b = all.filter(it => onDay(it.date)).sort((a, b) => b.p - a.p)[0]; return b && b.p >= GOOD_PICK ? b : null; }
       const now = all.filter(it => tonight(it.date));
@@ -1068,6 +1068,17 @@ function moveNote(id, labels) {
   const up = m.to > m.from, since = new Date(m.since).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   return `<div class="board-move ${up ? "up" : "down"}"><b>${up ? "📈" : "📉"} Quote in movimento</b><span>«${esc(labels[m.i])}» per i bookmaker è passata dal ${pct(m.from)} al <b>${pct(m.to)}</b> (da ${esc(since)}). Uno spostamento così di solito segue una notizia: infortuni, formazioni, motivazioni.</span></div>`;
 }
+/* rischio turnover (pipeline/rotation.py): partita più importante nei giorni dopo, spesso giocano le riserve */
+function rotationNote(d) {
+  const r = d.rotation;
+  if (!r) return "";
+  return ["home", "away"].filter(s => r[s]).map(s => {
+    const t = d[s].short || d[s].name, x = r[s];
+    return x.lvl >= 2
+      ? `<div class="board-gap trust rot"><b>🔄 Possibile turnover: ${esc(t)}</b><span>${esc(t)} ha ${esc(x.txt)}. In questi casi spesso fa riposare i titolari: il modello non lo sa, i bookmaker sì. Guarda le loro percentuali e le formazioni ufficiali (arrivano 90 minuti prima).</span></div>`
+      : `<div class="board-gap rot"><b>🔄 ${esc(t)}</b> ha ${esc(x.txt)}: possibile qualche cambio nella formazione.</div>`;
+  }).join("");
+}
 function bookGap(probs, book, labels) {
   if (!book) return "";
   let gi = -1, gap = 0;
@@ -1102,7 +1113,7 @@ function board(d, { subH = "", subA = "", probs, labels, favLabels = labels, boo
     <div class="pbar" aria-hidden="true">${segs}</div>
     <div class="board-rings">${probs.map((p, i) => `<div class="cell">${star(favKey(favLabels[i], p, book ? book[i] : null))}${ring(p, p === max)}<span class="lab">${esc(labels[i])}</span>
       <span class="bk">${book && book[i] != null ? `quote ${pct(book[i])}` : `quota equa ${odd(p)}`}</span></div>`).join("")}</div>
-    ${bookGap(probs, book, favLabels)}${!d.final ? moveNote(d.id, favLabels) : ""}
+    ${d.final ? "" : rotationNote(d)}${bookGap(probs, book, favLabels)}${!d.final ? moveNote(d.id, favLabels) : ""}
     ${foot.filter(Boolean).length ? `<div class="board-foot">${foot.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</div>` : ""}
   </div>`;
 }
@@ -1799,7 +1810,8 @@ function pickCard(it, rank) {
   const book = it.book != null ? `<span class="pc-book ${it.edge >= .05 ? "pos" : it.edge <= -.05 ? "neg" : ""}">${mkName} ${pct(it.book)}</span>` : "";
   // modello e mercato molto lontani: qui conta di più il mercato (sa cose che il modello non vede)
   const trust = it.book != null && Math.abs(it.p - it.book) >= TRUST_GAP
-    ? `<span class="pc-trust">⚠️ ${it.sport === "f1" ? "I mercati dicono" : "Le quote dicono"} <b>${pct(it.book)}</b>: qui dai più peso a ${it.sport === "f1" ? "loro" : "loro"}</span>` : "";
+    ? `<span class="pc-trust">⚠️ ${it.sport === "f1" ? "I mercati dicono" : "Le quote dicono"} <b>${pct(it.book)}</b>: qui dai più peso a ${it.sport === "f1" ? "loro" : "loro"}</span>`
+    : it.rot >= 2 ? `<span class="pc-trust">🔄 Possibile turnover: ${esc(it.rot_txt || "")}</span>` : "";
   return `<a class="pcard" href="${pickHref(it)}" style="--tc:${c}">
     <span class="pc-top"><span class="pc-rank">${rank}</span><span class="pc-lg">${esc(SPORT_NAME[it.sport] || "")} · ${esc(it.cat || "")}</span>${star(key)}</span>
     <span class="pc-mid">${pickMark(it)}<span class="pc-p"><b><span data-count="${Math.round(it.p * 100)}">${Math.round(it.p * 100)}</span><small>%</small></b><span class="pc-tier" title="Probabilità stimata: ${tier[0].toLowerCase()}">${bars}<em>${tier[0]}</em></span></span></span>

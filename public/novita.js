@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-25", t: "Perché: l'esito spiegato a parole", items: [
+    "In cima alla scheda Esito di ogni partita non iniziata c'è la sezione «Perché»: l'esito più probabile (o la doppia chance, se la favorita è sotto il 45%) con i motivi in elenco: forza in attacco e difesa, gol attesi, classifica, forma, casa e trasferta, precedenti, serie aperte e cosa dicono i bookmaker.",
+    "Sotto, «Cosa può andare storto»: i numeri contro, come un avversario in forma, bookmaker meno convinti, possibile turnover o un campionato dove il modello è meno preciso. Vale per calcio, NBA e tennis." ] },
   { d: "2026-11-25", t: "Migliori completa e avviso turnover", items: [
     "Migliori: prima teneva solo le 40 giocate più probabili di tutta la settimana, così le partite di oggi (Inter, Atlético…) restavano fuori dietro a quelle dei giorni dopo. Ora per ogni giorno entrano anche le sue migliori 15 (dal 50% in su), quindi filtrando «Oggi» le trovi.",
     "Calcio, possibile turnover: se una squadra ha una partita più importante nei giorni subito dopo (una finale, una semifinale, un turno a eliminazione o la Champions), nella scheda compare l'avviso, per esempio «Palmeiras ha la finale di Copa Libertadores sabato 28 (tra 4 giorni)». Il modello non lo sa, i bookmaker sì: è il caso in cui guardare le loro percentuali. Le giocate di quelle partite hanno l'avviso anche in Migliori e non entrano nel riquadro Oggi." ] },

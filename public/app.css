@@ -2252,3 +2252,13 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .etp-c small i { font-style: normal; font-weight: 800; } .etp-c small i.up { color: var(--win); } .etp-c small i.down { color: var(--loss); }
 .etp-c .star { position: absolute; top: 6px; right: 6px; transform: scale(.85); }
 .chip.chip-flash { box-shadow: 0 0 0 2.5px #f5a524; transform: scale(1.06); transition: transform .2s; }
+
+/* Perché: spiegazione dell'esito più probabile */
+.why-lead { margin: 2px 0 8px; font-size: 15px; font-weight: 700; }
+.why-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.why-l li { position: relative; padding: 7px 10px 7px 32px; border-radius: 10px; font-size: 14px; line-height: 1.4; background: var(--soft); }
+.why-l li::before { position: absolute; left: 10px; top: 7px; font-weight: 900; }
+.why-l li.pro::before { content: "✓"; color: var(--win); }
+.why-l li.con::before { content: "!"; color: #d98a00; left: 13px; }
+.why-l li.con { background: color-mix(in srgb, #f5a524 12%, var(--soft)); }
+.why-h { margin: 12px 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }

@@ -1283,7 +1283,7 @@ function soccerView(d) {
   }
   else if (d.low_data) s += `<div class="warn">Una delle due squadre gioca in un campionato che il modello non segue: la sua forza è stimata solo dalle partite di coppa.</div>`;
 
-  const esito = sec("Esito finale", picks([["1 " + H.short, m["1x2"][0], `${H.short} vince`], ["X", m["1x2"][1], "Pareggio"], ["2 " + A.short, m["1x2"][2], `${A.short} vince`]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
+  const esito = (typeof whyBox === "function" && !d.final ? whyBox(d) : "") + sec("Esito finale", picks([["1 " + H.short, m["1x2"][0], `${H.short} vince`], ["X", m["1x2"][1], "Pareggio"], ["2 " + A.short, m["1x2"][2], `${A.short} vince`]], b["1x2"]), `gol attesi ${num(m.xg[0], 2)}–${num(m.xg[1], 2)}`)
     + sec("Doppia chance", rows(m.dc, { label: k => ({ "1X": `${H.short} o pareggio`, "X2": `${A.short} o pareggio`, "12": "Una delle due vince" }[k] || k) }))
     + sec("Draw No Bet", rows(dnbOf(m), { label: k => `DNB ${k === "home" ? H.short : A.short}`, book: dnbBook(b["1x2"]) })
       + `<p class="note">Se finisce pari la giocata è rimborsata (quota 1). La percentuale è la probabilità di vincere tolto il pareggio.</p>`, "pareggio rimborsato")
@@ -1544,7 +1544,7 @@ function nbaView(d) {
 
   const injTxt = (m.injury_pts || []).some(x => x > 0) ? `<p class="note">Assenti: tolti al punteggio atteso ${[[H, m.injury_pts[0]], [d.away, m.injury_pts[1]]].filter(([, x]) => x > 0).map(([t, x]) => `${num(x, 1)} punti a ${esc(t.short || t.name)}`).join(" e ")}, in base a quanto segnano e giocano i giocatori fuori.</p>` : "";
   const bpi = m.espn_bpi != null ? `<p class="note">Il modello di previsione di ESPN (BPI) dà ${esc(H.short)} al ${pct(m.espn_bpi)}. ${m.espn_weight ? `Pesa per il ${Math.round(m.espn_weight * 100)}% nella percentuale qui sopra: è il peso che ha sbagliato meno sulle partite già giocate.` : "Non è incluso nel calcolo."}</p>` : "";
-  const esito = sec("Vincente", picks([[H.short || H.name, m.win[0], `${H.short || H.name} vince`], [A.short || A.name, m.win[1], `${A.short || A.name} vince`]], b.p_home ? [b.p_home, b.p_away] : null) + bpi + injTxt)
+  const esito = (typeof whyBox === "function" && !d.final ? whyBox(d) : "") + sec("Vincente", picks([[H.short || H.name, m.win[0], `${H.short || H.name} vince`], [A.short || A.name, m.win[1], `${A.short || A.name} vince`]], b.p_home ? [b.p_home, b.p_away] : null) + bpi + injTxt)
     + sec("Handicap", rows(m.spreads, { label: k => `${H.short || "Casa"} ${line(k)}` }), `margine atteso ${m.margin > 0 ? "+" : ""}${num(m.margin)}`)
     + sec("Margine di vittoria", rows(Object.fromEntries(Object.entries(m.bands).map(([k, v]) =>
       [k.replace("casa", `${H.short || "Casa"} vince di`).replace("ospite", `${A.short || "Ospite"} vince di`), v]))));
@@ -1648,7 +1648,7 @@ function tennisView(d) {
     foot: [esc(d.round || ""), `${surfaceIt(d.surface)}, al meglio dei ${m.best_of} set`] });
   if (d.low_data) s += `<div class="warn">Uno dei due giocatori ha pochi incontri nello storico: queste percentuali sono meno affidabili.</div>`;
   const ln = n => lastName(n);
-  const esito = sec("Vincente", picks([[ln(d.home.name), m.win[0], `${d.home.name} vince`], [ln(d.away.name), m.win[1], `${d.away.name} vince`]]))
+  const esito = (typeof whyBox === "function" && !d.final ? whyBox(d) : "") + sec("Vincente", picks([[ln(d.home.name), m.win[0], `${d.home.name} vince`], [ln(d.away.name), m.win[1], `${d.away.name} vince`]]))
     + sec("Risultato in set", rows(Object.fromEntries(Object.entries(m.sets).map(([k, v]) => {
       const [a, b] = k.split("-").map(Number);
       return [`${a > b ? ln(d.home.name) : ln(d.away.name)} ${Math.max(a, b)}-${Math.min(a, b)}`, v];

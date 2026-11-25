@@ -1,23 +1,61 @@
-# Prove di precisione — 2026-11-23
+# Turnover — 2026-11-25
 
-## Tennis: servizio e risposta (Jeff Sackmann)
-- archivio tennis_atp: non trovato
-  - file 2024: non trovato
-- archivio tennis_wta: non trovato
-  - file 2024: non trovato
-- ATP 2022: 0 incontri
-- ATP 2023: 0 incontri
-- ATP 2024: 0 incontri
-- ATP 2025: 0 incontri
-- ATP 2026: 0 incontri
-- WTA 2022: 0 incontri
-- WTA 2023: 0 incontri
-- WTA 2024: 0 incontri
-- WTA 2025: 0 incontri
-- WTA 2026: 0 incontri
-
-## Calcio: ClubElo
-- prova https://api.clubelo.com: non risponde
-- prova http://api.clubelo.com: non risponde
-- prova http://clubelo.com/API: risponde: <!DOCTYPE html><html lang="en"><head><link rel="preconnect" href="https://fonts.
-- ClubElo non risponde ai server di GitHub: prova impossibile da qui
+## Palmeiras (2029)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/2029/schedule`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 69, nextEvent 0, articoli 0
+  - 2026-01-20T23:00Z · Palmeiras at Novorizontino · bra.camp.paulista · 
+  - 2026-01-17T23:30Z · Mirassol at Palmeiras · bra.camp.paulista · 
+  - 2026-01-14T22:30Z · Santos at Palmeiras · bra.camp.paulista · 
+  - 2026-01-10T23:30Z · Palmeiras at Portuguesa · bra.camp.paulista · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/teams/2029/schedule`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 37, nextEvent 0, articoli 0
+  - 2026-02-26T00:30Z · Fluminense at Palmeiras · bra.1 · 
+  - 2026-02-13T00:30Z · Palmeiras at Internacional · bra.1 · 
+  - 2026-02-05T00:30Z · Vitória at Palmeiras · bra.1 · 
+  - 2026-01-28T22:00Z · Palmeiras at Atlético-MG · bra.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/teams/2029/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 1, nextEvent 0, articoli 0
+  - 2026-12-03T00:30Z · Coritiba at Palmeiras · bra.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/conmebol.libertadores/teams/2029/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 1, nextEvent 0, articoli 0
+  - 2026-11-28T20:00Z · Estudiantes de La Plata at Palmeiras · conmebol.libertadores · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/2029/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events'], eventi 0, nextEvent 0, articoli 0
+- `https://site.web.api.espn.com/apis/site/v2/sports/soccer/all/teams/2029/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 3, nextEvent 0, articoli 0
+  - 2026-11-28T20:00Z · Estudiantes de La Plata at Palmeiras · conmebol.libertadores · 
+  - 2026-12-03T00:30Z · Coritiba at Palmeiras · bra.1 · 
+  - 2026-12-06T19:00Z · Palmeiras at Grêmio · bra.copa_do_brazil · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/teams/2029`: chiavi ['team'], eventi 0, nextEvent 1, articoli 0
+  - 2026-12-03T00:30Z · Coritiba at Palmeiras · bra.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/news?team=2029&limit=5`: chiavi ['header', 'link', 'articles'], eventi 0, nextEvent 0, articoli 5
+  - notizia: Messi Cup 2026: How to watch in the UK, who is taking part, when and what is it? (2026-10-31T07:55:24Z)
+  - notizia: Depay misses late penalty, Estudiantes advance to Libertadores semis after 17 years (2026-09-17T05:17:57Z)
+  - notizia: Inter Miami signs Riquelme from Palmeiras through 2030 (2026-09-03T17:08:52Z)
+## Inter (110)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/110/schedule`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 22, nextEvent 0, articoli 0
+  - 2026-08-08T11:00Z · Internazionale at Juventus · club.friendly · 
+  - 2026-08-05T11:00Z · Internazionale at AC Milan · club.friendly · 
+  - 2026-08-01T11:30Z · Internazionale at Manchester City · club.friendly · 
+  - 2026-07-26T14:30Z · Internazionale at Karlsruher SC · club.friendly · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams/110/schedule`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 12, nextEvent 0, articoli 0
+  - 2026-09-14T18:45Z · Udinese at Internazionale · ita.1 · 
+  - 2026-09-05T16:00Z · Napoli at Internazionale · ita.1 · 
+  - 2026-08-30T18:45Z · Internazionale at Cagliari · ita.1 · 
+  - 2026-08-22T16:30Z · Monza at Internazionale · ita.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams/110/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 26, nextEvent 0, articoli 0
+  - 2027-05-09T18:00Z · Lecce at Internazionale · ita.1 · 
+  - 2027-05-16T18:00Z · Internazionale at Juventus · ita.1 · 
+  - 2027-05-23T18:00Z · Lazio at Internazionale · ita.1 · 
+  - 2027-05-30T18:00Z · Internazionale at Sassuolo · ita.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/conmebol.libertadores/teams/110/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events'], eventi 0, nextEvent 0, articoli 0
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/110/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 4, nextEvent 0, articoli 0
+  - 2026-11-25T20:00Z · VfB Stuttgart at Internazionale · uefa.champions · 
+  - 2026-12-09T20:00Z · Internazionale at Borussia Dortmund · uefa.champions · 
+  - 2027-01-19T20:00Z · Liverpool at Internazionale · uefa.champions · 
+  - 2027-01-27T20:00Z · Internazionale at Slovan Bratislava · uefa.champions · 
+- `https://site.web.api.espn.com/apis/site/v2/sports/soccer/all/teams/110/schedule?fixture=true`: chiavi ['timestamp', 'status', 'season', 'team', 'events', 'requestedSeason'], eventi 32, nextEvent 0, articoli 0
+  - 2027-05-09T18:00Z · Lecce at Internazionale · ita.1 · 
+  - 2027-05-16T18:00Z · Internazionale at Juventus · ita.1 · 
+  - 2027-05-23T18:00Z · Lazio at Internazionale · ita.1 · 
+  - 2027-05-30T18:00Z · Internazionale at Sassuolo · ita.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams/110`: chiavi ['team'], eventi 0, nextEvent 1, articoli 0
+  - 2026-11-28T19:45Z · Genoa at Internazionale · ita.1 · 
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/news?team=110&limit=5`: chiavi ['header', 'link', 'articles'], eventi 0, nextEvent 0, articoli 5
+  - notizia: Transfer rumors, news: Arsenal, Newcastle eye Inter's Pio Esposito (2026-11-24T22:38:39Z)
+  - notizia: Champions League Power Rankings before MD5: Who's No. 1? (2026-11-23T20:00:56Z)
+  - notizia: France woes mount as Tchouaméni, Thuram leave squad due to injuries (2026-11-11T01:23:49Z)

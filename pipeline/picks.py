@@ -1,5 +1,6 @@
 """Classifica delle giocate più probabili, ricavata dalle schede delle partite in programma.
 Scrive public/data/migliori.json, letto dalla sezione "Migliori" dell'app."""
+from zoneinfo import ZoneInfo
 from datetime import datetime, timezone
 
 from . import store
@@ -11,6 +12,11 @@ NBA_MIN_P = 0.55
 NBA_CAT = {"pts": "Punti", "reb": "Rimbalzi", "ast": "Assist", "tpm": "Triple", "pra": "Punti + rimbalzi + assist"}
 NBA_UNIT = {"pts": "punti", "reb": "rimbalzi", "ast": "assist", "tpm": "triple", "pra": "P+R+A"}
 PER_CAT = 40
+# Migliori si filtra per giorno: le prime 40 di tutta la settimana lasciavano fuori le partite di oggi (Inter, Atlético…)
+# perché vincevano sempre quelle dei giorni dopo. Ora per ogni giorno (ora italiana) entrano anche le sue prime PER_DAY.
+PER_DAY = 15
+DAY_MIN_P = 0.5          # sotto il 50% non serve aggiungerla: non è una «migliore»
+DAY_TZ = ZoneInfo("Europe/Rome")
 
 
 def _f(v):
@@ -168,6 +174,13 @@ ORDER = ["Esito 1X2", "Doppia chance", "Draw No Bet", "Gol", "Multigol", "Marcat
          "Vincente F1", "Podio F1", "Punti F1", "Pole F1", "Testa a testa F1"]
 
 
+def _day(iso):
+    try:
+        return datetime.fromisoformat(str(iso).replace("Z", "+00:00")).astimezone(DAY_TZ).date().isoformat()
+    except (TypeError, ValueError):
+        return ""
+
+
 def build(event_ids: list[str]) -> dict:
     items, trend_items = [], []
     for eid in event_ids:
@@ -194,8 +207,15 @@ def build(event_ids: list[str]) -> dict:
         cats.setdefault(it["cat"], []).append(it)
     out = []
     for c in sorted(cats, key=lambda c: ORDER.index(c) if c in ORDER else 99):
-        lst = sorted(cats[c], key=lambda x: -x["p"])[:PER_CAT]
-        out.append({"name": c, "items": lst})
+        allc = sorted(cats[c], key=lambda x: -x["p"])
+        keep = {id(x) for x in allc[:PER_CAT]}
+        per_day = {}
+        for x in allc:
+            day = _day(x.get("date"))
+            if x["p"] >= DAY_MIN_P and per_day.get(day, 0) < PER_DAY:
+                per_day[day] = per_day.get(day, 0) + 1
+                keep.add(id(x))
+        out.append({"name": c, "items": [x for x in allc if id(x) in keep]})
     # dove il modello è più ottimista dei bookmaker (l'altro lato dello stesso mercato sarebbe un doppione)
     gaps = sorted((it for it in items if it.get("edge") is not None and it["edge"] >= 0.03 and it.get("p") is not None),
                   key=lambda x: -x["edge"])[:60]

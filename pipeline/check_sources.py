@@ -805,6 +805,35 @@ def main():
         research.run(out)
         _write()
         return
+    if "turnover" in sys.argv[1:]:
+        # calendario di una squadra in tutte le competizioni (per capire se fa turnover prima/dopo una partita importante)
+        out(f"# Turnover — {date.today()}\n")
+        S = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+        for name, tid, lg in (("Palmeiras", 2029, "bra.1"), ("Inter", 110, "ita.1")):
+            out(f"## {name} ({tid})")
+            for url in (f"{S}/all/teams/{tid}/schedule", f"{S}/{lg}/teams/{tid}/schedule", f"{S}/{lg}/teams/{tid}/schedule?fixture=true",
+                        f"{S}/conmebol.libertadores/teams/{tid}/schedule?fixture=true", f"{S}/uefa.champions/teams/{tid}/schedule?fixture=true",
+                        f"https://site.web.api.espn.com/apis/site/v2/sports/soccer/all/teams/{tid}/schedule?fixture=true",
+                        f"{S}/{lg}/teams/{tid}", f"{S}/{lg}/news?team={tid}&limit=5"):
+                try:
+                    js = http.get_json(url, tries=1)
+                except Exception as e:
+                    js = None
+                    out(f"- `{url}` errore {e}")
+                    continue
+                if not js:
+                    out(f"- `{url}` vuoto"); continue
+                evs = js.get("events") or []
+                ne = (js.get("team") or {}).get("nextEvent") or []
+                arts = js.get("articles") or []
+                out(f"- `{url}`: chiavi {list(js)[:8]}, eventi {len(evs)}, nextEvent {len(ne)}, articoli {len(arts)}")
+                for e in (evs[-4:] + ne[:3]):
+                    lgn = (e.get("league") or {}).get("slug") or (e.get("seasonType") or {}).get("name") or ""
+                    out(f"  - {e.get('date')} · {e.get('name') or e.get('shortName')} · {lgn} · {((e.get('competitions') or [{}])[0].get('type') or {}).get('abbreviation', '')}")
+                for a in arts[:3]:
+                    out(f"  - notizia: {a.get('headline')} ({a.get('published')})")
+        _write()
+        return
     if "giocatori" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         players_check()

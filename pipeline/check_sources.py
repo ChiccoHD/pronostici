@@ -829,7 +829,9 @@ def main():
                 out(f"- `{url}`: chiavi {list(js)[:8]}, eventi {len(evs)}, nextEvent {len(ne)}, articoli {len(arts)}")
                 for e in (evs[-4:] + ne[:3]):
                     lgn = (e.get("league") or {}).get("slug") or (e.get("seasonType") or {}).get("name") or ""
-                    out(f"  - {e.get('date')} · {e.get('name') or e.get('shortName')} · {lgn} · {((e.get('competitions') or [{}])[0].get('type') or {}).get('abbreviation', '')}")
+                    c0 = (e.get("competitions") or [{}])[0]
+                    notes = "; ".join(n.get("headline", "") for n in c0.get("notes") or [])
+                    out(f"  - {e.get('date')} · {e.get('name') or e.get('shortName')} · {lgn} · tipo {(c0.get('type') or {}).get('abbreviation', '')} · note «{notes}» · season {(e.get('seasonType') or {}).get('name', '')} · {(e.get('week') or {}).get('text', '')}")
                 for a in arts[:3]:
                     out(f"  - notizia: {a.get('headline')} ({a.get('published')})")
         _write()

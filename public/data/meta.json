@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T19:44+00:00",
+ "updated": "2026-11-25T22:07+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -63,20 +63,20 @@
     "xg": "football-data, 120 partite",
     "xg_partite": 120,
     "espn": "ok",
-    "espn_tabellini": "126 partite",
-    "meteo": "13 partite",
-    "partite_in_arrivo": 20,
-    "foto_giocatori": "Wikipedia 178, senza foto 386, TheSportsDB 139, ESPN 11"
+    "espn_tabellini": "130 partite",
+    "meteo": "9 partite",
+    "partite_in_arrivo": 16,
+    "foto_giocatori": "senza foto 309, TheSportsDB 114, Wikipedia 137, ESPN 8"
    },
    "championship": {
     "football-data": "ok",
     "xg": "football-data, 192 partite",
     "xg_partite": 192,
     "espn": "ok",
-    "espn_tabellini": "200 partite",
-    "meteo": "16 partite",
-    "partite_in_arrivo": 27,
-    "foto_giocatori": "TheSportsDB 322, Wikipedia 534, ESPN 40, senza foto 60"
+    "espn_tabellini": "204 partite",
+    "meteo": "12 partite",
+    "partite_in_arrivo": 23,
+    "foto_giocatori": "Wikipedia 458, senza foto 54, TheSportsDB 269, ESPN 31"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -135,7 +135,7 @@
     "espn_tabellini": "357 partite",
     "meteo": "9 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 250, Wikipedia 100, ESPN 4, TheSportsDB 28, da controllare 190"
+    "foto_giocatori": "senza foto 260, Wikipedia 100, ESPN 4, TheSportsDB 29, da controllare 179"
    },
    "mls": {
     "football-data": "ok",
@@ -182,7 +182,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "Wikipedia 38, da controllare 96, ESPN 8"
    },
-   "aggiornato": "2026-11-25T19:42+00:00"
+   "aggiornato": "2026-11-25T22:05+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -196,7 +196,7 @@
    },
    "partite_in_arrivo": 33,
    "partite_stagione": 261,
-   "aggiornato": "2026-11-25T19:44+00:00"
+   "aggiornato": "2026-11-25T22:07+00:00"
   },
   "tennis": {
    "atp": {
@@ -204,18 +204,18 @@
     "espn": "0 incontri in programma"
    },
    "wta": {
-    "storico": "12469 incontri (+1)",
-    "espn": "7 incontri in programma"
+    "storico": "12471 incontri (+2)",
+    "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-25T19:44+00:00"
+   "aggiornato": "2026-11-25T22:07+00:00"
   },
   "coppe": {
    "uomini": {
-    "espn_uefa.champions": "272 giocate, 11 giorni controllati",
+    "espn_uefa.champions": "279 giocate, 11 giorni controllati",
     "espn_uefa.europa": "261 giocate, 11 giorni controllati",
     "espn_uefa.europa.conf": "206 giocate, 11 giorni controllati",
-    "partite_modello": "18374 di campionato, 739 di coppa",
-    "in_arrivo_champions": 25,
+    "partite_modello": "18374 di campionato, 746 di coppa",
+    "in_arrivo_champions": 18,
     "in_arrivo_europa-league": 18,
     "in_arrivo_conference": 18,
     "squadre_senza_campionato": [
@@ -267,7 +267,7 @@
     "espn_uefa.wchampions": "174 giocate, 11 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-25T19:43+00:00"
+   "aggiornato": "2026-11-25T22:06+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -304,21 +304,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-25T19:43+00:00"
+   "aggiornato": "2026-11-25T22:06+00:00"
   },
   "risultati": {
-   "esiti": "4 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-25T19:44+00:00"
+   "esiti": "17 nuovi esiti, 4 calendari letti",
+   "aggiornato": "2026-11-25T22:07+00:00"
   },
   "archivio": {
-   "partite": 578,
-   "nuove": 4
+   "partite": 595,
+   "nuove": 17
   },
   "taratura": {
-   "soccer": "x0.93 su 378 partite",
+   "soccer": "x0.94 su 393 partite",
    "nba": "x1.09 su 101 partite",
-   "tennis": "x0.93 su 98 partite",
-   "partite_ritoccate": 369
+   "tennis": "x0.93 su 100 partite",
+   "partite_ritoccate": 357
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -335,13 +335,13 @@
    "mercato_22": "87 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-25T19:44+00:00"
+   "aggiornato": "2026-11-25T22:07+00:00"
   },
-  "quote_in_movimento": 3,
+  "quote_in_movimento": 2,
   "turnover": {
    "ok": true,
-   "partite": 12,
-   "richieste": 4
+   "partite": 13,
+   "richieste": 14
   }
  }
 }

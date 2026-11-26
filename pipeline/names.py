@@ -16,6 +16,7 @@ ALIASES = {
     "deportivo": "la coruna", "deportivo la coruna": "la coruna", "hamarkameratene": "hamkam",
     "tokyo verdy 1969": "verdy", "tokyo verdy": "verdy", "urawa red diamonds": "urawa reds",
     "red bull new york": "new york red bulls", "new york red bulls": "new york red bulls",
+    "kobenhavn": "copenhagen", "f c kobenhavn": "copenhagen", "agf": "aarhus",
     "queens park rangers": "qpr", "amed sfk": "amedspor", "erzurum bb": "erzurumspor", "oh leuven": "oud heverlee leuven",
     # Italia
     "internazionale": "inter", "inter milan": "inter", "milan": "milan", "hellas verona": "verona",
@@ -67,8 +68,8 @@ ALIASES = {
     "paok": "paok", "paok salonika": "paok", "aek athens": "aek", "panathinaikos": "panathinaikos",
     "celtic": "celtic", "rangers": "rangers", "hearts": "hearts", "heart of midlothian": "hearts", "aberdeen": "aberdeen",
     "hibernian": "hibernian", "sint truidense": "st truiden", "kobenhavn": "copenhagen", "fc kobenhavn": "copenhagen",
-    "rb salzburg": "salzburg", "red bull salzburg": "salzburg", "sk sturm graz": "sturm graz", "rapid vienna": "rapid vienna",
-    "malmo": "malmo ff", "fcsb": "fcsb", "csu craiova": "u craiova",
+    "rb salzburg": "salzburg", "red bull salzburg": "salzburg", "sk sturm graz": "sturm graz", "rapid vienna": "sk rapid",
+    "malmo": "malmo ff", "fcsb": "fcsb", "csu craiova": "univ craiova",
     # MLS e Giappone (nomi brevi di football-data)
     "lafc": "los angeles fc", "la galaxy": "la galaxy", "new york red bulls": "ny red bulls",
     "new york city": "new york city", "atlanta united": "atlanta utd", "inter miami": "inter miami",
@@ -76,7 +77,8 @@ ALIASES = {
 
 
 def norm(name: str) -> str:
-    s = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode().lower()
+    name = (name or "").replace("ø", "o").replace("Ø", "O").replace("æ", "ae").replace("Æ", "Ae").replace("ß", "ss").replace("đ", "d").replace("ł", "l").replace("Ł", "L")
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
     s = s.replace("&", " ").replace("'", "").replace(".", " ").replace("-", " ")
     s = re.sub(r"[^a-z0-9 ]", " ", s)
     toks = [t for t in s.split() if t not in _DROP]

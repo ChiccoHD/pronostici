@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Coppe europee: squadre abbinate meglio", items: [
+    "Corretto un errore nelle coppe: l'Inter d'Escaldes (Andorra) veniva presa per l'Inter, così il Copenaghen sembrava sfavorito. Ora ogni squadra viene cercata solo nel suo campionato, e Copenaghen, AGF, Rapid Vienna e Craiova usano anche lo storico del loro campionato." ] },
   { d: "2026-11-26", t: "Partita del giorno, quote nel tempo e altro", items: [
     "Le migliori di oggi: carte di nuovo leggibili, la Partita del giorno è larga il doppio con i nomi interi.",
     "Partita del giorno: la prima carta della fila «Le migliori di oggi» è la partita più interessante del giorno (competizione importante, equilibrio, la tua squadra, modello lontano dalle quote), con le percentuali. Toccala per aprirla con il «Perché».",

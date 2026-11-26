@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from . import config, store
 from .config import CACHE, CUPS, EURO_LINK_FD, EURO_LINK_FDNEW, PUBLIC_DATA, SOCCER_LEAGUES, WOMEN_CUPS
-from .names import Matcher
+from .names import Matcher, norm
 from .sources import espn, footballdata
 from .models import soccer as S
 from .build_soccer import _fd_history, espn_book, PLAYER_BASE
@@ -118,12 +118,15 @@ def build_men(today: date):
     status, index, reliability = {}, [], {}
     y = config.soccer_season_start_year(today)
     # 1) campionati europei
-    pool = []
+    pool, codes_of = [], {}
     codes = [lg["fd"] for lg in SOCCER_LEAGUES.values() if lg.get("kind") == "fd"] + list(EURO_LINK_FD)
     for code in codes:
         st = {}
         rows = _fd_history(code, y, st)
         pool += rows
+        for r in rows:
+            for t in (r["home"], r["away"]):
+                codes_of.setdefault(t, set()).add(code)
         if not rows:
             status.setdefault("campionati_mancanti", []).append(code)
     since = date(y - 3, 1, 1).isoformat()
@@ -137,6 +140,15 @@ def build_men(today: date):
             status.setdefault("campionati_mancanti", []).append(country)
         pool += rows
     matcher = Matcher([m["home"] for m in pool] + [m["away"] for m in pool], min_score=0.86)
+    # Controllo del campionato: una squadra dei nostri campionati ha l'id ESPN nella base giocatori.
+    # Senza questo «Inter D'Escaldes» (Andorra) veniva presa per l'Inter.
+    main_codes = {lg["fd"] for lg in SOCCER_LEAGUES.values() if lg.get("kind") == "fd"}
+    by_code = {}
+
+    def code_matcher(code):
+        if code not in by_code:
+            by_code[code] = Matcher([t for t, cs in codes_of.items() if code in cs], min_score=0.72)
+        return by_code[code]
     # 2) partite di coppa delle ultime due stagioni
     cup_events = {}
     for key, cup in CUPS.items():
@@ -144,7 +156,16 @@ def build_men(today: date):
     unmatched = set()
 
     def nm(team):
-        m = matcher.match(team["name"])
+        lk = (_player_base().get(str(team.get("id") or "")) or {}).get("league")
+        code = (SOCCER_LEAGUES.get(lk) or {}).get("fd") if (SOCCER_LEAGUES.get(lk) or {}).get("kind") == "fd" else None
+        if code:
+            m = code_matcher(code).match(team["name"]) or matcher.match(team["name"])
+        else:
+            m = matcher.match(team["name"])
+            cs = codes_of.get(m, set()) if m else set()
+            if m and cs and cs <= main_codes and norm(m) != norm(team["name"]):
+                status.setdefault("abbinamenti_scartati", []).append(f"{team['name']} ≠ {m}")
+                m = None
         if not m:
             unmatched.add(team["name"])
         return m or team["name"]

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T16:45+00:00",
+ "updated": "2026-11-26T16:48+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -218,22 +218,19 @@
      "Inter D'Escaldes ≠ Inter"
     ],
     "partite_modello": "18398 di campionato, 746 di coppa",
-    "nazioni_squadre": "31 su 39 (39 richieste)",
+    "nazioni_squadre": "31 su 39 (0 richieste)",
     "livello_senza_campionato": {
-     "g": 0.9,
-     "b": 0.0,
+     "scope": "all",
+     "b": 0.45,
      "date": "2026-11-26",
      "logloss": {
-      "1.0|0.0": 0.9876,
-      "1.0|0.2": 0.9873,
-      "1.0|0.35": 0.9879,
-      "1.0|0.5": 0.9896,
-      "1.0|0.7": 0.994,
-      "0.9|0.0": 0.987,
-      "0.9|0.2": 0.9873,
-      "0.9|0.35": 0.9885,
-      "0.9|0.5": 0.9911,
-      "0.9|0.7": 0.9966
+      "cup|0.0": 0.9872,
+      "cup|0.2": 0.9871,
+      "cup|0.35": 0.9889,
+      "all|0.1": 0.9712,
+      "all|0.2": 0.9585,
+      "all|0.3": 0.949,
+      "all|0.45": 0.941
      },
      "squadre": 39,
      "con_nazione": 31
@@ -290,7 +287,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T16:45+00:00"
+   "aggiornato": "2026-11-26T16:48+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -331,7 +328,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T16:45+00:00"
+   "aggiornato": "2026-11-26T16:48+00:00"
   },
   "archivio": {
    "partite": 607,
@@ -360,7 +357,7 @@
    "openf1_richieste": 0,
    "aggiornato": "2026-11-26T15:56+00:00"
   },
-  "quote_in_movimento": 6,
+  "quote_in_movimento": 7,
   "turnover": {
    "ok": true,
    "partite": 14,

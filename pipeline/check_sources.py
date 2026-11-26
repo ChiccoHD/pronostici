@@ -805,6 +805,27 @@ def main():
         research.run(out)
         _write()
         return
+    if "arbitri" in sys.argv[1:]:
+        # nome dell'arbitro e cartellini/rigori nel summary ESPN (partita finita e partita in programma)
+        out(f"# Arbitri — {date.today()}\n")
+        for lg, eid in (("ita.1", "401875009"), ("ita.1", "401875004"), ("eng.1", None)):
+            if not eid:
+                sb = espn.scoreboard_day("soccer", lg, date.today() + timedelta(days=2)) or []
+                eid = str(sb[0]["id"]) if sb else None
+                if not eid:
+                    continue
+            js = espn.summary("soccer", lg, eid) or {}
+            gi = js.get("gameInfo") or {}
+            out(f"## {lg} {eid}")
+            out(f"- chiavi summary: {list(js)[:20]}")
+            out(f"- gameInfo: {list(gi)}; officials: {json.dumps(gi.get('officials'))[:400]}")
+            ke = js.get("keyEvents") or []
+            out(f"- keyEvents {len(ke)}, tipi: {sorted({(k.get('type') or {}).get('text', '') for k in ke})[:20]}")
+            for t in (js.get("boxscore") or {}).get("teams") or []:
+                st = {s.get("name"): s.get("displayValue") for s in t.get("statistics") or []}
+                out(f"- {t.get('team', {}).get('abbreviation')}: gialli {st.get('yellowCards')}, rossi {st.get('redCards')}, falli {st.get('foulsCommitted')}, rigori? {[k for k in st if 'enalt' in k]}")
+        _write()
+        return
     if "turnover" in sys.argv[1:]:
         # calendario di una squadra in tutte le competizioni (per capire se fa turnover prima/dopo una partita importante)
         out(f"# Turnover — {date.today()}\n")

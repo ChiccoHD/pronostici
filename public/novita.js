@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Tasto Preferiti con la campanella", items: [
+    "Il tasto Preferiti in alto ora è una campanella: vuota se non segui partite, piena e con il numero delle partite seguite appena ne aggiungi una." ] },
   { d: "2026-11-27", t: "Formazioni a partita finita e preferiti più comodi", items: [
     "A partita iniziata o finita, nella scheda trovi le «Formazioni iniziali» con il campo, come prima del via.",
     "Preferiti: per togliere una partita tocca la sua campanella (c'è anche a partita finita), oppure «Svuota» per toglierle tutte insieme (le tue squadre restano). Campanella ridisegnata, ora centrata nel cerchio." ] },

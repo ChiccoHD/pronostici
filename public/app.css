@@ -2458,8 +2458,10 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .acc-av.ko { background: linear-gradient(135deg, #ef4444, #f97316); }
 /* Preferiti */
 .fav-btn { position: relative; }
-.fav-btn svg { stroke: #f59e0b; fill: rgba(245,158,11,.18); stroke-width: 2; stroke-linejoin: round; }
-.fav-n { position: absolute; top: 3px; right: 5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #f59e0b; color: #1c1300; font: 800 10.5px/17px inherit; font-style: normal; text-align: center; box-sizing: border-box; }
+.fav-btn svg { stroke: #f5b301; fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.fav-btn.on svg { fill: #f5b301; stroke: #c98f00; }
+.fav-btn.on { border-color: color-mix(in srgb, #f5b301 55%, var(--rule-strong)); }
+.fav-n { position: absolute; top: 2px; right: 4px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #f59e0b; color: #1c1300; font: 800 10.5px/17px inherit; font-style: normal; text-align: center; box-sizing: border-box; }
 .fav-h { font-size: 15px; margin: 18px 2px 4px; display: flex; align-items: center; gap: 6px; }
 .fav-h small { color: var(--ink-3); font-weight: 700; }
 .fav-clear { margin-left: auto; border: 1px solid var(--rule-strong); background: var(--card); color: #ef4444; font: 700 12px/1 inherit; padding: 7px 12px; border-radius: 999px; cursor: pointer; }

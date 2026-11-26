@@ -44,6 +44,7 @@ function toggleFollow(ev) {
   try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(l.slice(-200))); } catch { /* niente */ }
   document.querySelectorAll(`[data-bell="${CSS.escape(ev.id)}"]`).forEach(b => setBell(b, on));
   const active = notifState().on;
+  if (typeof updateFavBtn === "function") updateFavBtn();
   toast(on ? (active ? "Partita seguita: riceverai gli avvisi" : "Partita seguita. Attiva le notifiche in Tu per ricevere gli avvisi") : "Non segui più questa partita");
   notifySync();
   return on;

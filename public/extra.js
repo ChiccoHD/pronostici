@@ -227,7 +227,13 @@ function favEvents() {
   return INDEX.events.filter(e => ids.has(e.id)).sort((a, b) => a.date.localeCompare(b.date));
 }
 function favBtn() {
-  return `<a class="std-btn fav-btn" href="#/preferiti" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Preferiti</span></a>`;
+  // campanella vuota senza partite seguite, piena con il numero quando ce n'è almeno una
+  const n = favEvents().length;
+  return `<a class="std-btn fav-btn ${n ? "on" : ""}" id="fav-btn" href="#/preferiti" aria-label="Preferiti${n ? `: ${n} partite seguite` : ""}">${BELL_SVG}<span>Preferiti</span>${n ? `<em class="fav-n">${n}</em>` : ""}</a>`;
+}
+function updateFavBtn() {
+  const b = document.getElementById("fav-btn");
+  if (b) b.outerHTML = favBtn();
 }
 function showFavorites() {
   const back = backBtn("Partite", "#/");

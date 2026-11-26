@@ -164,7 +164,9 @@ def build_men(today: date):
             m = matcher.match(team["name"])
             cs = codes_of.get(m, set()) if m else set()
             if m and cs and cs <= main_codes and norm(m) != norm(team["name"]):
-                status.setdefault("abbinamenti_scartati", []).append(f"{team['name']} ≠ {m}")
+                x = f"{team['name']} ≠ {m}"
+                if x not in status.setdefault("abbinamenti_scartati", []):
+                    status["abbinamenti_scartati"].append(x)
                 m = None
         if not m:
             unmatched.add(team["name"])

@@ -550,8 +550,9 @@ function slotChips(items, getDate) {
   for (const it of items) { const k = slotOf(getDate(it)); n[k] = (n[k] || 0) + 1; }
   if (state.slot !== "all" && !n[state.slot]) state.slot = "all";
   if (SLOTS.filter(s => n[s[0]]).length < 2) return "";        // tutte nella stessa fascia: il filtro non serve
-  const b = (k, l, h) => `<button type="button" data-slot="${k}" aria-pressed="${state.slot === k}" ${k !== "all" && !n[k] ? "disabled" : ""}><span>${l}</span>${h ? `<small>${h}</small>` : ""}<b>${n[k] || 0}</b></button>`;
-  return `<div class="slots" role="group" aria-label="Fascia oraria">${b("all", "Tutto il giorno", "")}${SLOTS.map(([k, l, h]) => b(k, l, h)).join("")}</div>`;
+  // quattro bottoni piccoli in una riga; si tocca di nuovo la fascia scelta per tornare a tutto il giorno
+  const b = (k, l, h) => `<button type="button" data-slot="${state.slot === k ? "all" : k}" aria-pressed="${state.slot === k}" ${!n[k] ? "disabled" : ""} aria-label="${l} ${h}, ${n[k] || 0} partite"><span>${l} <b>${n[k] || 0}</b></span><small>${h}</small></button>`;
+  return `<div class="slots" role="group" aria-label="Fascia oraria">${SLOTS.map(([k, l, h]) => b(k, l, h)).join("")}</div>`;
 }
 
 function showList() {

@@ -2269,13 +2269,12 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .mc-l li.mc-warn { background: color-mix(in srgb, #f5a524 14%, var(--soft)); }
 .mc-l li.mc-ok { background: var(--win-bg); }
 
-/* fasce orarie del giorno scelto */
-.slots { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 8px 0 2px; padding-bottom: 2px; }
-.slots::-webkit-scrollbar { display: none; }
-.slots button { flex: none; display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; text-align: left; }
-.slots button span { font-size: 13px; font-weight: 700; }
-.slots button small { grid-row: 2; font-size: 11px; color: var(--ink-3); }
-.slots button b { grid-row: 1 / 3; grid-column: 2; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* fasce orarie del giorno scelto: quattro bottoni piccoli in una riga */
+.slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 8px 0 2px; }
+.slots button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 2px; border-radius: 10px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; min-width: 0; }
+.slots button span { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.slots button span b { font-weight: 800; color: var(--go); margin-left: 2px; }
+.slots button small { font-size: 10.5px; color: var(--ink-3); }
 .slots button[aria-pressed="true"] { background: var(--go); border-color: transparent; color: #fff; }
-.slots button[aria-pressed="true"] small { color: rgba(255,255,255,.85); }
+.slots button[aria-pressed="true"] span b, .slots button[aria-pressed="true"] small { color: #fff; }
 .slots button:disabled { opacity: .4; cursor: default; }

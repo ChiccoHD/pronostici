@@ -2,7 +2,7 @@
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
   { d: "2026-11-27", t: "Partite in corso più ordinate", items: [
-    "Nell'elenco la scritta «adesso» delle partite in corso sta sopra i cerchi, con un pallino che lampeggia, e non tocca più le lettere 1 X 2 né la riga «prima del via»." ] },
+    "Partite in corso nell'elenco: «adesso» più grande e attaccato ai cerchi (anche loro più grandi), «prima del via» su una riga intera sotto, così i nomi delle squadre non vengono più tagliati. In Preferiti, dopo aver ricaricato la pagina, le partite in corso tornano subito con punteggio e percentuali di adesso." ] },
   { d: "2026-11-27", t: "Tasto Preferiti con la campanella", items: [
     "Il tasto Preferiti in alto ora è una campanella: vuota se non segui partite, piena e con il numero delle partite seguite appena ne aggiungi una." ] },
   { d: "2026-11-27", t: "Formazioni a partita finita e preferiti più comodi", items: [

@@ -1004,17 +1004,18 @@ function fixtureLive(e, L) {
     sub = `<span>${esc(done.join(" "))}</span>`;
   } else if (e.sport === "soccer" && L.half && L.period >= 2) sub = `<span>1° tempo ${L.half[0]}-${L.half[1]}</span>`;
   const now2 = typeof liveMain === "function" ? liveMain(e, L) : null;
-  sub += `<span class="fx-pre">prima del via: ${e.main.map((p, i) => `${labels[i]}: <b>${pct(p)}</b>`).join(" · ")}</span>`;
+  const pre = `<div class="fx-pre">prima del via: ${e.main.map((p, i) => `${labels[i]}: <b>${pct(p)}</b>`).join(" · ")}</div>`;
   return `<a class="fx tc live" data-eid="${esc(e.id)}" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
     <div class="fx-time"><span class="lv-badge"><i class="lv-dot"></i>Live</span><small class="fx-min">${esc(liveMin(L))}</small>${typeof bellBtn === "function" ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid">
       <div class="fx-t ${now === 0 ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span><b class="fx-sc lv">${Number.isFinite(H) ? H : ""}</b></div>
       <div class="fx-t ${now === (three ? 2 : 1) ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span class="fx-n">${esc(e.away)}</span><b class="fx-sc lv">${Number.isFinite(A) ? A : ""}</b></div>
-      <div class="fx-sub">${sub}</div>
+      ${sub ? `<div class="fx-sub">${sub}</div>` : ""}
     </div>
     ${now2 && now2.length === e.main.length
-      ? `<div class="fx-rings fx-live">${now2.map((p, i) => { const top = p === Math.max(...now2); return `<span class="fx-ring ${top ? "hit" : "dim"}">${ring(p, top)}<small>${labels[i]}</small></span>`; }).join("")}<em class="fx-now">adesso</em></div>`
+      ? `<div class="fx-rings fx-live" style="--n:${now2.length}">${now2.map((p, i) => { const top = p === Math.max(...now2); return `<span class="fx-ring ${top ? "hit" : "dim"}">${ring(p, top)}<small>${labels[i]}</small></span>`; }).join("")}<em class="fx-now">adesso</em></div>`
       : `<div class="fx-rings">${e.main.map((p, i) => `<span class="fx-ring ${now == null ? "" : i === now ? "hit" : "dim"}">${ring(p, i === now)}<small>${labels[i]}</small></span>`).join("")}</div>`}
+    ${pre}
   </a>`;
 }
 

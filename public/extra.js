@@ -267,7 +267,9 @@ function showFavorites() {
   // partite in corso: punteggio e percentuali di adesso, aggiornati finché la pagina resta aperta
   if (typeof liveData === "function" && evs.concat(teamEvs).some(e => !e.final && Date.parse(e.date) < Date.now())) {
     clearTimeout(FAV_T);
-    FAV_T = setTimeout(() => liveData(7000).then(() => { if (location.hash === "#/preferiti" && !document.hidden) { const y = scrollY; showFavorites(); scrollTo(0, y); } }).catch(() => {}), 15000);
+    // dati della diretta non ancora letti (app appena aperta o pagina ricaricata): subito, poi ogni 15 s
+    const fresh = typeof LIVE_CACHE !== "undefined" && LIVE_CACHE && Date.now() - LIVE_CACHE.ts < 20000;
+    FAV_T = setTimeout(() => liveData(7000).then(() => { if (location.hash === "#/preferiti" && !document.hidden) { const y = scrollY; showFavorites(); scrollTo(0, y); } }).catch(() => {}), fresh ? 15000 : 0);
   }
 }
 let FAV_T = 0;

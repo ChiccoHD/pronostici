@@ -2271,10 +2271,10 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 
 /* fasce orarie del giorno scelto: quattro bottoni piccoli in una riga */
 .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 8px 0 2px; }
-.slots button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 2px; border-radius: 10px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; min-width: 0; }
-.slots button span { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
-.slots button span b { font-weight: 800; color: var(--go); margin-left: 2px; }
-.slots button small { font-size: 10.5px; color: var(--ink-3); }
+.slots button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 4px; overflow: hidden; border-radius: 10px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; min-width: 0; }
+.slots button span { font-size: clamp(11px, 3.2vw, 13px); font-weight: 700; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.slots button small { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.slots button small b { font-size: 12.5px; font-weight: 800; color: var(--go); }
 .slots button[aria-pressed="true"] { background: var(--go); border-color: transparent; color: #fff; }
-.slots button[aria-pressed="true"] span b, .slots button[aria-pressed="true"] small { color: #fff; }
+.slots button[aria-pressed="true"] small, .slots button[aria-pressed="true"] small b { color: #fff; }
 .slots button:disabled { opacity: .4; cursor: default; }

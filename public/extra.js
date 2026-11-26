@@ -239,16 +239,36 @@ function showFavorites() {
   const teamEvs = INDEX.events.filter(e => !seen.has(e.id) && !e.final && Date.parse(e.date) > Date.now() - 3 * 3600e3 && Date.parse(e.date) < lim && teams.some(t => teamPlays(t, e)))
     .sort((a, b) => a.date.localeCompare(b.date));
   const open = (typeof favs === "function" ? favs() : []).filter(f => !f.result);
-  const group = list => {
+  const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>`;
+  const group = (list, removable) => {
     const days = {};
     for (const e of list) (days[isoDay(e.date)] ||= []).push(e);
-    return Object.entries(days).map(([k, l]) => `<h2 class="day">${esc(dayChipLabel(k))}<span>${new Date(k + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</span></h2><section class="group">${l.map(fixture).join("")}</section>`).join("");
+    return Object.entries(days).map(([k, l]) => `<h2 class="day">${esc(dayChipLabel(k))}<span>${new Date(k + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</span></h2><section class="group">${l.map(e => removable
+      ? `<div class="fav-row">${fixture(e)}<button type="button" class="fav-x" data-unfollow="${esc(e.id)}" aria-label="Togli dai preferiti">${STAR}</button></div>` : fixture(e)).join("")}</section>`).join("");
   };
   $app.innerHTML = back + `<h1 class="page-h">Preferiti</h1>
-    <h2 class="fav-h">🔔 Partite seguite <small>${evs.length}</small></h2>
-    ${evs.length ? group(evs) : `<div class="empty"><b>Nessuna partita seguita</b>Tocca la campanella 🔔 di una partita, nell'elenco o nella scheda: la ritrovi qui e ti arrivano gli avvisi.</div>`}
+    <h2 class="fav-h">🔔 Partite seguite <small>${evs.length}</small>${evs.length ? `<button type="button" class="fav-clear" id="fav-clear">Svuota</button>` : ""}</h2>
+    ${evs.length ? group(evs, true) : `<div class="empty"><b>Nessuna partita seguita</b>Tocca la campanella 🔔 di una partita, nell'elenco o nella scheda: la ritrovi qui e ti arrivano gli avvisi.</div>`}
     ${teams.length ? `<h2 class="fav-h">⭐ Le tue squadre, prossimi 7 giorni <small>${teamEvs.length}</small></h2>${teamEvs.length ? group(teamEvs) : `<p class="note">Nessuna partita delle tue squadre nei prossimi giorni.</p>`}` : ""}
     ${open.length ? `<a class="std-link" href="#/schedina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/></svg>${open.length} ${open.length === 1 ? "giocata salvata" : "giocate salvate"} nella schedina<span>›</span></a>` : ""}`;
+  const drop = ids => {
+    const keep = followed().filter(x => !ids.includes(x.id));
+    localStorage.setItem("p_follow", JSON.stringify(keep));
+    if (typeof notifySync === "function") notifySync();
+  };
+  $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    const row = b.closest(".fav-row");
+    drop([b.dataset.unfollow]);
+    row.classList.add("out");
+    setTimeout(() => { const y = scrollY; showFavorites(); scrollTo(0, y); }, 220);
+    toast("Tolta dai preferiti");
+  });
+  document.getElementById("fav-clear")?.addEventListener("click", async () => {
+    if (!(await askConfirm("Tutte le partite seguite escono dai preferiti e non ricevi più i loro avvisi. Le tue squadre restano.", { title: "Svuotare le partite seguite?", ok: "Svuota", danger: true }))) return;
+    drop(evs.map(e => e.id).concat(followed().map(x => x.id)));
+    toast("Partite seguite svuotate"); showFavorites();
+  });
   // partite in corso: punteggio e percentuali di adesso, aggiornati finché la pagina resta aperta
   if (typeof liveData === "function" && evs.concat(teamEvs).some(e => !e.final && Date.parse(e.date) < Date.now())) {
     clearTimeout(FAV_T);

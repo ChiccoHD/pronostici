@@ -1647,10 +1647,9 @@ function pitchHtml(d, lu, cH, cA) {
 }
 function showLineups(d, lu) {
   const wrap = document.getElementById("sp-wrap");
-  if (!wrap) return;
   const [cH, cA] = teamColors(d.home, d.away);
   const side = $app.querySelector('[data-seg="pl"] [aria-pressed="true"]')?.dataset.v || "home";
-  wrap.outerHTML = soccerPlayers(d, cH, cA, lu, side);
+  if (wrap) wrap.outerHTML = soccerPlayers(d, cH, cA, lu, side);
   let box = document.getElementById("lu-box");
   if (!box) {
     box = document.createElement("section"); box.id = "lu-box"; box.className = "sec";
@@ -1660,7 +1659,10 @@ function showLineups(d, lu) {
     <ol>${t.starters.map(p => `<li><b>${esc(p.jersey)}</b>${esc(p.name)}<small>${esc(p.pos)}</small></li>`).join("")}</ol>
     ${t.bench.length ? `<details><summary>Panchina (${t.bench.length})</summary><p>${t.bench.map(p => esc(p.name)).join(", ")}</p></details>` : ""}</div>`;
   // effetto delle formazioni sul risultato (solo dove ci sono i dati dei giocatori: campionati e coppe)
-  const imp = d.players?.home?.length || d.players?.away?.length ? lineupImpact(d, lu) : null;
+  const started = d.final || Date.now() > Date.parse(d.date);
+  const title = d.final || Date.now() > Date.parse(d.date) + 2.5 * 3600e3 ? "Formazioni iniziali" : "Formazioni ufficiali";
+  // a partita iniziata l'effetto sulle percentuali di prima del via non serve più
+  const imp = !started && (d.players?.home?.length || d.players?.away?.length) ? lineupImpact(d, lu) : null;
   const names = side => imp.who[side].map(w => `${esc(w.name)}${w.st === "bench" ? " (panchina)" : ""}`).join(", ");
   const impHtml = !imp ? "" : !imp.changed ? `<p class="note lu-imp">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>`
     : `<div class="lu-imp"><b>Con queste formazioni</b>
@@ -1668,8 +1670,8 @@ function showLineups(d, lu) {
       <div class="lu-imp-g">${[["1", 0], ["X", 1], ["2", 2]].map(([l, i]) => `<span><small>${l}</small><b>${pct(imp.x12[i])}</b><em>prima ${pct(d.markets["1x2"][i])}</em></span>`).join("")}
         <span><small>Over 2,5</small><b>${pct(imp.over)}</b><em>prima ${pct(d.markets.ou?.["2.5"])}</em></span><span><small>Goal</small><b>${pct(imp.btts)}</b><em>prima ${pct(d.markets.btts)}</em></span></div>
       <p class="note">Stima: chi manca toglie una parte dei gol che di solito porta, chi entra al suo posto ne recupera circa la metà. Gol attesi ${num(imp.xg[0], 2)} – ${num(imp.xg[1], 2)} (prima ${num(d.markets.xg[0], 2)} – ${num(d.markets.xg[1], 2)}).</p></div>`;
-  const luSec = sec("Formazioni ufficiali", `${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`, "da ESPN", "Formazioni elenco");
-  box.outerHTML = luSec.replace("<section ", '<section id="lu-box" ');
+  const luSec = sec(title, `${impHtml}<div class="lu-grid">${team(lu.home, d.home.short, cH)}${team(lu.away, d.away.short, cA)}</div>`, "da ESPN", "Formazioni elenco");
+  if (box.isConnected) box.outerHTML = luSec.replace("<section ", '<section id="lu-box" ');
   // le formazioni anche nella scheda Esito, in alto: è lì che si guarda prima
   // nazionali (niente dati dei giocatori): le formazioni intere direttamente in Esito
   // in Esito, in alto: il campo con le due formazioni (sempre) e, se cambia qualcosa, l'effetto sulle percentuali
@@ -1677,7 +1679,7 @@ function showLineups(d, lu) {
   document.getElementById("lu-top")?.remove();
   // riquadro richiudibile come gli altri (tocca il titolo): resta chiuso anche nelle partite successive
   document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
-    sec("Formazioni ufficiali", `${imp?.changed ? impHtml : ""}
+    sec(title, `${imp?.changed ? impHtml : ""}
       ${pitch ? "" : `<p class="note">Le formazioni di ESPN non sono ancora complete o il modulo non torna con i titolari: le mostro in elenco finché non vengono corrette.</p>`}
       ${pitch || `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}
       ${imp && !imp.changed ? `<p class="note">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>` : ""}`, "da ESPN", "Formazioni campo").replace("<section ", '<section id="lu-top" '));

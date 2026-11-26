@@ -69,6 +69,7 @@ document.addEventListener("click", ev => {
   ev.stopPropagation();
   try { toggleFollow(JSON.parse(b.dataset.ev)); } catch { /* niente */ }
   if (location.hash.startsWith("#/tu")) showMe();
+  else if (location.hash === "#/preferiti" && typeof showFavorites === "function") { const y = scrollY; showFavorites(); scrollTo(0, y); }
 }, true);
 
 function notifState() {

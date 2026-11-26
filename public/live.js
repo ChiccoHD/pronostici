@@ -543,7 +543,7 @@ async function attachLineups(d) {
   const tg = espnTarget(d.id), hash = location.hash;
   if (d.sport !== "soccer" || !tg) return;
   const start = new Date(d.date).getTime(), now = Date.now();
-  if (now > start + 4 * 3600e3) return;
+  // anche a partita finita (ESPN le tiene nel riepilogo): si mostrano come «Formazioni iniziali»
   if (now < start - 90 * 60e3) {   // troppo presto: riprovo all'ora giusta se la scheda resta aperta
     if (start - 90 * 60e3 - now < 3 * 3600e3) lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, start - 90 * 60e3 - now);
     return;

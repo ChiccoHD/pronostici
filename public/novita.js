@@ -1,6 +1,12 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Classifiche delle coppe europee", items: [
+    "In Classifiche ci sono Champions League, Europa League e Conference League (gruppo «Coppe europee»). La classifica della fase a campionato ha le zone colorate: verde le prime 8 (ottavi diretti), giallo dalla 9ª alla 24ª (playoff), rosso le eliminate, con la forma delle ultime 5.",
+    "Scheda Proiezione: il modello gioca 10.000 volte le partite che mancano e dice per ogni squadra la probabilità di finire tra le prime 8, ai playoff o fuori, con i punti attesi a fine fase.",
+    "Scheda Numeri: gol a partita, Over 2,5, gol di entrambe, vittorie in casa, pareggi, miglior attacco e difesa, squadre ancora imbattute. E la scheda Giornate con tutte le partite.",
+    "Nella scheda di una partita di coppa compare la classifica intorno alle due squadre; toccando una squadra si apre la sua pagina nel campionato.",
+    "Le fasce orarie hanno il colore del cielo: blu la notte, giallo la mattina, arancione il pomeriggio, viola la sera." ] },
   { d: "2026-11-26", t: "Fasce orarie", items: [
     "Scelto un giorno, sotto il calendario trovi le fasce orarie: Notte (0–9), Mattina (9–15), Pomeriggio (15–21) e Sera (21–24), ognuna con il numero di partite. Così vedi solo quelle che ti interessano, per esempio per farti la schedina del pomeriggio.",
     "Le fasce ci sono anche in Migliori, e i numeri di sport e stato seguono la fascia scelta. Gli orari sono quelli del telefono.", "Quattro bottoni piccoli in una riga: tocca di nuovo la fascia scelta per tornare a tutto il giorno." ] },

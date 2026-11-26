@@ -2278,3 +2278,33 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .slots button[aria-pressed="true"] { background: var(--go); border-color: transparent; color: #fff; }
 .slots button[aria-pressed="true"] small, .slots button[aria-pressed="true"] small b { color: #fff; }
 .slots button:disabled { opacity: .4; cursor: default; }
+
+/* coppe europee: classifica a zone, proiezione e numeri */
+.std-r.z-out > span:first-child { color: var(--ink-3); }
+.std.cup .std-r.z-top { box-shadow: inset 3px 0 0 var(--go); }
+.std.cup .std-r.z-mid { box-shadow: inset 3px 0 0 #f5a524; }
+.std.cup .std-r.z-out { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--loss) 60%, transparent); }
+.std.cup .std-r > span:first-child { padding-left: 6px; }
+.cup-cut { font-size: 10.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--go); text-align: center; padding: 3px 0; border-top: 2px dashed color-mix(in srgb, var(--go) 50%, transparent); }
+.cup-cut.out { color: var(--loss); border-color: color-mix(in srgb, var(--loss) 45%, transparent); }
+.cup-proj .cp-r { display: grid; grid-template-columns: minmax(0, 1fr) 46px 46px 42px; align-items: center; gap: 4px 6px; padding: 7px 0 6px; border-top: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+.cup-proj .cp-r.head { border-top: 0; font-size: 11px; color: var(--ink-3); font-weight: 700; }
+.cup-proj .cp-r > span:not(.std-t) { text-align: center; font-size: 13px; font-weight: 700; }
+.cup-proj .cp-r .std-t small { display: block; font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.cup-proj .cp-r .t8 { color: var(--go); } .cup-proj .cp-r .po { color: #d98a00; } .cup-proj .cp-r .out { color: var(--loss); }
+.cup-bar { grid-column: 1 / -1; display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--soft); }
+.cup-bar i { display: block; height: 100%; } .cup-bar .t8 { background: var(--go); } .cup-bar .po { background: #f5a524; } .cup-bar .out { background: color-mix(in srgb, var(--loss) 70%, transparent); }
+.cup-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; }
+.cup-top > b { flex-basis: 100%; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); }
+.cup-top span { padding: 4px 10px; border-radius: 999px; background: var(--soft); font-weight: 700; }
+.cup-top span i { font-style: normal; font-weight: 600; color: var(--ink-2); }
+
+/* fasce orarie: ognuna col suo colore del cielo (barretta in alto, sfumatura quando è scelta) */
+.slots button { position: relative; --sky: #6d7cff; }
+.slots button.sl-n { --sky: #5b6cff; } .slots button.sl-m { --sky: #f2b430; } .slots button.sl-p { --sky: #f07a2a; } .slots button.sl-s { --sky: #a35bd6; }
+.slots button::before { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--sky); opacity: .9; }
+.slots button[aria-pressed="true"] { background: linear-gradient(160deg, var(--sky), color-mix(in srgb, var(--sky) 55%, #000)); box-shadow: 0 4px 12px color-mix(in srgb, var(--sky) 35%, transparent); }
+.slots button[aria-pressed="true"]::before { background: rgba(255,255,255,.7); }
+.slots button:not([aria-pressed="true"]) small b { color: var(--sky); }
+.cup-proj .cp-n { display: flex; flex-direction: column; min-width: 0; }
+.cup-proj .cp-n b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

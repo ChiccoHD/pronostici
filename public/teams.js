@@ -11,6 +11,12 @@ const NAT_TABLE_KEYS = ["nations-league", "qual-mondiali", "qual-mondiali-sudame
   "qual-mondiali-africa", "qual-europei", "mondiali", "europei", "copa-america", "coppa-africa", "qual-coppa-africa", "coppa-asia",
   "gold-cup", "concacaf-nations"];
 const natName = k => (LEAGUES.soccer.find(([x]) => x === k) || [k, k])[1];
+/* coppe europee: classifica della fase a campionato, proiezione e numeri (pipeline/build_cups.py cup_page) */
+const CUP_TABLE_KEYS = [["champions", "Champions League"], ["europa-league", "Europa League"], ["conference", "Conference League"]];
+async function cupTables() {
+  const got = await Promise.all(CUP_TABLE_KEYS.map(async ([k, n]) => [k, n, await leagueData(k)]));
+  return got.filter(([, , L]) => L?.table?.length).map(([k, n]) => [k, n]);
+}
 /* quelle con partite in elenco e un file di classifica */
 async function natTables() {
   const keys = NAT_TABLE_KEYS.filter(k => (INDEX?.events || []).some(e => e.league === k));
@@ -28,8 +34,8 @@ const backBtn = label => `<button class="back" onclick="history.length > 1 ? his
 /* ------------------------------------------------------------------ classifiche */
 
 async function showStandings(key) {
-  const nat = await natTables();
-  const all = [...TABLE_LEAGUES, ["f1", "Formula 1"], ...nat];
+  const [nat, cups] = await Promise.all([natTables(), cupTables()]);
+  const all = [...TABLE_LEAGUES, ...cups, ["f1", "Formula 1"], ...nat];
   key = all.some(([k]) => k === key) ? key : load("table", "serie-a");
   if (!all.some(([k]) => k === key)) key = "serie-a";
   save("table", key);
@@ -68,6 +74,12 @@ async function showStandings(key) {
           <span>${r.w}</span><span>${r.l}</span><span>${(r.pct * 100).toFixed(0)}</span>${form(r.form)}</a>`).join("")}</div>`, "", `Classifica NBA ${g}`);
     };
     body = grp("Est") + grp("Ovest") + `<p class="note">In verde le prime 6 di ogni conference (playoff diretti), in giallo dalla 7ª alla 10ª (play-in). Forma: ultime 5, la più recente a destra.</p>`;
+  } else if (L.cup) {
+    const r = cupTabs(key, L, mark, form);
+    const rounds = L.rounds?.length ? roundsBox(key, L) : "";
+    $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + tabsView("std", r.concat(rounds ? [["gio", "Giornate", rounds]] : []));
+    wire("std"); if (rounds) wireRounds(key, L);
+    return;
   } else if (L.groups) {
     // nazionali: un riquadro per girone, niente pagina squadra
     body = L.groups.map(g => {
@@ -88,15 +100,48 @@ async function showStandings(key) {
   if (rounds) { wire("std"); wireRounds(key, L); }
 }
 
+/* coppe europee: Classifica (zone della fase a campionato), Proiezione (simulazione delle partite che mancano), Numeri */
+function cupTabs(key, L, mark, form) {
+  const zone = p => p <= 8 ? "z-top" : p <= 24 ? "z-mid" : "z-out";
+  const row = (r, inner) => r.lk ? `<a class="std-r ${zone(r.pos)}" href="${teamHref(r.lk, r.id)}">${inner}</a>` : `<div class="std-r ${zone(r.pos)}">${inner}</div>`;
+  const cut = p => p === 8 ? `<div class="cup-cut">▲ ottavi diretti · ▼ playoff</div>` : p === 24 ? `<div class="cup-cut out">▲ playoff · ▼ eliminate</div>` : "";
+  const tab = sec(L.name, `<div class="std cup"><div class="std-r head"><span>#</span><span>Squadra</span><span>G</span><span>DR</span><span>Pt</span><span>Forma</span></div>
+    ${L.table.map(r => row(r, `<span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.short || r.name)}</b></span><span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><span><b>${r.pts}</b></span>${form(r.form)}`) + cut(r.pos)).join("")}</div>`,
+    `fase a campionato`, `Classifica ${key}`)
+    + `<p class="note">Le prime 8 vanno direttamente agli ottavi, dalla 9ª alla 24ª ai playoff, dalla 25ª sono eliminate. ${L.src === "ESPN" ? "Classifica ufficiale da ESPN." : "Classifica calcolata dai risultati: i criteri di parità ufficiali possono cambiare qualche posizione."} Tocca una squadra per la sua pagina nel campionato.</p>`;
+  const out = [["tab", "Classifica", tab]];
+  if (L.proj) {
+    const bar = s => `<span class="cup-bar"><i class="t8" style="width:${s.top8 * 100}%"></i><i class="po" style="width:${s.po * 100}%"></i><i class="out" style="width:${s.out * 100}%"></i></span>`;
+    const p = x => x >= 0.995 ? "✓" : x < 0.005 ? "–" : pct(x);
+    const proj = sec("Come può finire", `<div class="cup-proj"><div class="cp-r head"><span>Squadra</span><span>Ottavi</span><span>Playoff</span><span>Fuori</span></div>
+      ${L.table.filter(r => r.sim).map(r => `<div class="cp-r"><span class="std-t">${mark(r)}<span class="cp-n"><b>${esc(r.short || r.name)}</b><small>${r.pos}° ora · ${num(r.sim.xpts, 1)} pt attesi</small></span></span>
+        <span class="t8">${p(r.sim.top8)}</span><span class="po">${p(r.sim.po)}</span><span class="out">${p(r.sim.out)}</span>${bar(r.sim)}</div>`).join("")}</div>`, "simulazione", "Proiezione coppa")
+      + `<p class="note">Il modello delle coppe gioca 10.000 volte le partite che mancano alla fase a campionato (quelle non ancora in calendario contro un avversario medio) e conta quante volte ogni squadra finisce nelle prime 8, tra la 9ª e la 24ª o fuori. Sono stime, non certezze.</p>`;
+    out.push(["proj", "Proiezione", proj]);
+  }
+  const S = L.stats || {};
+  if (S.matches) {
+    const box = (v, l) => `<div class="ar-box"><span class="ar-n">${v}</span><b>${l}</b></div>`;
+    const list = (t, arr, u) => arr?.length ? `<div class="cup-top"><b>${t}</b>${arr.map(([n, v]) => `<span>${esc(n)} <i>${v} ${u}</i></span>`).join("")}</div>` : "";
+    out.push(["num", "Numeri", sec("La competizione in numeri", `<div class="ar-grid">${box(num(S.goals, 2), "gol a partita")}${box(pct(S.over25), "partite con Over 2,5")}
+      ${box(pct(S.btts), "con gol di entrambe")}${box(pct(S.home_w), "vinte in casa")}${box(pct(S.draw), "pareggi")}${box(S.matches, "partite giocate")}</div>
+      ${list("Miglior attacco", S.attack, "gol")}${list("Miglior difesa", S.defense, "subiti")}
+      ${S.unbeaten?.length ? `<div class="cup-top"><b>Ancora imbattute</b>${S.unbeaten.map(n => `<span>${esc(n)}</span>`).join("")}</div>` : ""}`, "", "Numeri coppa")]);
+  }
+  return out;
+}
+
 /* finestra con tutti i campionati: ricerca e gruppi (con tanti campionati la fila di bottoni diventava scomoda) */
 let STD_ALL = [];
 const STD_GROUPS = [["Italia", ["serie-a", "serie-b"]], ["Grandi campionati europei", ["premier-league", "la-liga", "bundesliga", "ligue-1"]],
   ["Altri campionati europei", ["championship", "eredivisie", "super-lig", "scozia", "belgio", "primeira-liga", "eliteserien"]],
+  ["Coppe europee", ["champions", "europa-league", "conference"]],
   ["Americhe, Asia e Oceania", ["mls", "brasileirao", "argentina", "j1", "a-league"]], ["Basket", ["nba"]], ["Motori", ["f1"]]];
 const STD_KW = { "serie-a": "italia calcio", "serie-b": "italia calcio cadetteria", "premier-league": "inghilterra england premier calcio", "championship": "inghilterra england calcio",
   "la-liga": "spagna liga calcio", "bundesliga": "germania calcio", "ligue-1": "francia calcio", "eredivisie": "olanda paesi bassi calcio", "super-lig": "turchia calcio",
   "scozia": "scozia premiership calcio", "belgio": "belgio pro league calcio", "primeira-liga": "portogallo calcio", "eliteserien": "norvegia calcio",
   "mls": "usa stati uniti america calcio", "j1": "giappone j league calcio", "brasileirao": "brasile serie a calcio", "argentina": "argentina liga profesional calcio", "a-league": "australia a-league aleague oceania calcio",
+  "champions": "champions league coppa europa ucl", "europa-league": "europa league uel coppa", "conference": "conference league uecl coppa",
   "nba": "basket pallacanestro usa", "f1": "formula 1 f1 motori auto piloti costruttori" };
 function standingsSheet() {
   const nameOf = k => (STD_ALL.find(([x]) => x === k) || [k, k])[1];
@@ -328,9 +373,9 @@ function roundIt(r) {
    il resto si apre con "Tutta la classifica". NBA: la conference di ciascuna squadra. */
 async function matchTable(d) {
   if (!["soccer", "nba"].includes(d.sport) || !d.home?.id || !d.away?.id) return "";
-  const natl = d.cup === "national";
-  const lk = natl ? d.league : d.home.lk || d.league;
-  if (natl ? !NAT_TABLE_KEYS.includes(lk) : (!lk || lk !== (d.away.lk || d.league) || !TABLE_LEAGUES.some(([k]) => k === lk))) return "";
+  const natl = d.cup === "national", cupT = CUP_TABLE_KEYS.some(([k]) => k === d.league);
+  const lk = natl || cupT ? d.league : d.home.lk || d.league;
+  if (!cupT && (natl ? !NAT_TABLE_KEYS.includes(lk) : (!lk || lk !== (d.away.lk || d.league) || !TABLE_LEAGUES.some(([k]) => k === lk)))) return "";
   const L = await leagueData(lk);
   const tab = L?.table || [];
   const hi = { [d.home.id]: "home", [d.away.id]: "away" };
@@ -353,8 +398,8 @@ async function matchTable(d) {
       if (last >= 0 && i > last + 1) out += `<div class="mt-gap">⋯</div>`;
       last = i;
       const side = hi[r.id];
-      const tag = natl ? "div" : "a";
-      out += `<${tag} class="mt-row ${side ? "mt-" + side : ""}" ${natl ? "" : `href="${teamHref(lk, r.id)}"`} ${side ? `style="--tc:${side === "home" ? cH : cA}"` : ""}>
+      const href = cupT ? (r.lk ? teamHref(r.lk, r.id) : "") : natl ? "" : teamHref(lk, r.id), tag = href ? "a" : "div";
+      out += `<${tag} class="mt-row ${side ? "mt-" + side : ""}" ${href ? `href="${href}"` : ""} ${side ? `style="--tc:${side === "home" ? cH : cA}"` : ""}>
         <i>${r.pos}</i><span class="mt-n">${r.logo ? img(r.logo, "tlogo") : ""}${esc(nba ? r.name : r.short || r.name)}</span>${cells(r)}</${tag}>`;
     });
     if (last < rows.length - 1) out += `<div class="mt-gap">⋯ fino al ${rows.length}°</div>`;

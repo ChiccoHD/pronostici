@@ -1615,7 +1615,8 @@ function pitchHtml(d, lu, cH, cA) {
     let st;
     if (known) {
       // file e posizioni dai ruoli: il portiere, poi dalla difesa all'attacco; dentro la fila da sinistra a destra
-      st = [...t.starters].sort((a, b) => info(a).depth - info(b).depth || (a.fp || 99) - (b.fp || 99));
+      // a parità di ruolo prima i più larghi: es. in un 3-4-2-1 ESPN chiama CF-L e CF-R i due dietro la punta (F)
+      st = [...t.starters].sort((a, b) => info(a).depth - info(b).depth || Math.abs(info(b).side) - Math.abs(info(a).side) || (a.fp || 99) - (b.fp || 99));
     } else st = [...t.starters].sort((a, b) => (a.fp || 99) - (b.fp || 99));
     const out = [[st[0]]];
     let i = 1;

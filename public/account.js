@@ -6,7 +6,7 @@
    Si sincronizzano tutte le chiavi p_ tranne SYNC_SKIP. Se il documento sul server è cambiato da un altro
    dispositivo, liste e oggetti vengono uniti (accMergeVal); altrimenti vince il telefono (così le cancellazioni restano). */
 
-const FB_DEF = null;   // { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId } del progetto Firebase "pronostici"
+const FB_DEF = { apiKey: "AIzaSyBoiOoNiUZucLdLASz0_Xwk-j2r50q70hc", authDomain: "pronostici-807e7.firebaseapp.com", projectId: "pronostici-807e7", storageBucket: "pronostici-807e7.firebasestorage.app", messagingSenderId: "46940102528", appId: "1:46940102528:web:35fa9304a8da9cb2962b65" };   // { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId } del progetto Firebase "pronostici"
 const FBV = "10.14.1";
 const SYNC_SKIP = new Set(["p_acct", "p_sync", "p_finals", "p_closed", "p_news_seen", "p_status", "p_names_it"]);
 let FB = null, FBU = null, FBload = null, FBunsub = null, FBstate = "", FBt = "", FB_T = 0, FB_APPLYING = false;

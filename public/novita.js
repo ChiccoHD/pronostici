@@ -3,7 +3,7 @@
 const NOVITA = [
   { d: "2026-11-27", t: "Formazioni a partita finita e preferiti più comodi", items: [
     "A partita iniziata o finita, nella scheda trovi le «Formazioni iniziali» con il campo, come prima del via.",
-    "Preferiti: ogni partita seguita ha la stella ⭐ per toglierla, e c'è «Svuota» per toglierle tutte insieme (le tue squadre restano)." ] },
+    "Preferiti: per togliere una partita tocca la sua campanella (c'è anche a partita finita), oppure «Svuota» per toglierle tutte insieme (le tue squadre restano). Campanella ridisegnata, ora centrata nel cerchio." ] },
   { d: "2026-11-27", t: "Preferiti, colori e formazioni", items: [
     "Nuovo tasto ⭐ Preferiti accanto a Classifiche: le partite che segui con la campanella (anche in corso, con il risultato) e le prossime partite delle tue squadre, a portata di tocco. Il numero sul tasto dice quante partite seguite devono ancora finire.",
     "Squadre con colori simili (es. Olympiakos–Milan, tutte e due rosse): la seconda ora prende la sua seconda maglia o un colore ben diverso.",

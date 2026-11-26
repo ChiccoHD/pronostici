@@ -1069,7 +1069,7 @@ function fixtureDone(e) {
   }
   if (!f.void && e.sport === "tennis" && f.sets) verdict += `<span>${f.sets[0].map((g, i) => `${g}-${f.sets[1][i]}`).join(" ")}</span>`;
   return `<a class="fx done tc" data-eid="${esc(e.id)}" style="--ch:${cH};--ca:${cA}" href="#/e/${encodeURIComponent(e.id)}">
-    <div class="fx-time">${f.void ? "–" : "Finale"}<small>${fmtTime(e.date, e.time_valid)}</small></div>
+    <div class="fx-time">${f.void ? "–" : "Finale"}<small>${fmtTime(e.date, e.time_valid)}</small>${typeof BELL_KEEP !== "undefined" && BELL_KEEP ? bellBtn(e, true) : ""}</div>
     <div class="fx-mid">
       <div class="fx-t ${wH ? "fav" : ""}">${teamMark(e.home_logo, e.home_flag, cH)}<span class="fx-n">${esc(e.home)}</span>${sc("h")}</div>
       <div class="fx-t ${wA ? "fav" : ""}">${teamMark(e.away_logo, e.away_flag, cA)}<span class="fx-n">${esc(e.away)}</span>${sc("a")}</div>

@@ -48,7 +48,7 @@ function toggleFollow(ev) {
   notifySync();
   return on;
 }
-const BELL_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>`;
+const BELL_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 15V10.5a5.5 5.5 0 1 1 11 0V15l1.5 2h-14z"/><path d="M10 19.5a2 2 0 0 0 4 0"/></svg>`;
 function setBell(b, on) {
   b.classList.toggle("on", on);
   b.setAttribute("aria-pressed", String(on));
@@ -56,8 +56,10 @@ function setBell(b, on) {
   if (t) t.textContent = on ? "Seguita" : "Segui";
 }
 /* campanella: piccola nell'elenco, con scritta nella scheda della partita */
+let BELL_KEEP = false;
 function bellBtn(e, small = false) {
-  if (e.final || (e.date && Date.now() - Date.parse(e.date) > (e.sport === "tennis" ? 24 : 5) * 3600e3)) return "";
+  // in Preferiti la campanella resta anche a partita finita, per togliere la partita
+  if (!BELL_KEEP && (e.final || (e.date && Date.now() - Date.parse(e.date) > (e.sport === "tennis" ? 24 : 5) * 3600e3))) return "";
   const on = isFollowed(e.id);
   const data = esc(JSON.stringify({ id: e.id, sport: e.sport, date: e.date, home: e.home, away: e.away, league_name: e.league_name }));
   return `<button type="button" class="bell ${small ? "sm" : ""} ${on ? "on" : ""}" data-bell="${esc(e.id)}" data-ev='${data}' aria-pressed="${on}" aria-label="Avvisami per questa partita">${BELL_SVG}${small ? "" : `<span class="bell-t">${on ? "Seguita" : "Segui"}</span>`}</button>`;

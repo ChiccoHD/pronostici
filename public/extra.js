@@ -227,8 +227,7 @@ function favEvents() {
   return INDEX.events.filter(e => ids.has(e.id)).sort((a, b) => a.date.localeCompare(b.date));
 }
 function favBtn() {
-  const n = favEvents().filter(e => !e.final).length;
-  return `<a class="std-btn fav-btn" href="#/preferiti" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Preferiti</span>${n ? `<em class="fav-n">${n}</em>` : ""}</a>`;
+  return `<a class="std-btn fav-btn" href="#/preferiti" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Preferiti</span></a>`;
 }
 function showFavorites() {
   const back = backBtn("Partite", "#/");
@@ -239,12 +238,10 @@ function showFavorites() {
   const teamEvs = INDEX.events.filter(e => !seen.has(e.id) && !e.final && Date.parse(e.date) > Date.now() - 3 * 3600e3 && Date.parse(e.date) < lim && teams.some(t => teamPlays(t, e)))
     .sort((a, b) => a.date.localeCompare(b.date));
   const open = (typeof favs === "function" ? favs() : []).filter(f => !f.result);
-  const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>`;
   const group = (list, removable) => {
     const days = {};
     for (const e of list) (days[isoDay(e.date)] ||= []).push(e);
-    return Object.entries(days).map(([k, l]) => `<h2 class="day">${esc(dayChipLabel(k))}<span>${new Date(k + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</span></h2><section class="group">${l.map(e => removable
-      ? `<div class="fav-row">${fixture(e)}<button type="button" class="fav-x" data-unfollow="${esc(e.id)}" aria-label="Togli dai preferiti">${STAR}</button></div>` : fixture(e)).join("")}</section>`).join("");
+    return Object.entries(days).map(([k, l]) => `<h2 class="day">${esc(dayChipLabel(k))}<span>${new Date(k + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</span></h2><section class="group">${l.map(e => { BELL_KEEP = !!removable; try { return fixture(e); } finally { BELL_KEEP = false; } }).join("")}</section>`).join("");
   };
   $app.innerHTML = back + `<h1 class="page-h">Preferiti</h1>
     <h2 class="fav-h">🔔 Partite seguite <small>${evs.length}</small>${evs.length ? `<button type="button" class="fav-clear" id="fav-clear">Svuota</button>` : ""}</h2>
@@ -256,14 +253,6 @@ function showFavorites() {
     localStorage.setItem("p_follow", JSON.stringify(keep));
     if (typeof notifySync === "function") notifySync();
   };
-  $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = ev => {
-    ev.preventDefault(); ev.stopPropagation();
-    const row = b.closest(".fav-row");
-    drop([b.dataset.unfollow]);
-    row.classList.add("out");
-    setTimeout(() => { const y = scrollY; showFavorites(); scrollTo(0, y); }, 220);
-    toast("Tolta dai preferiti");
-  });
   document.getElementById("fav-clear")?.addEventListener("click", async () => {
     if (!(await askConfirm("Tutte le partite seguite escono dai preferiti e non ricevi più i loro avvisi. Le tue squadre restano.", { title: "Svuotare le partite seguite?", ok: "Svuota", danger: true }))) return;
     drop(evs.map(e => e.id).concat(followed().map(x => x.id)));

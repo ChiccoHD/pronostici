@@ -6,8 +6,8 @@ const NOVITA = [
   { d: "2026-11-26", t: "Squadre con il nome italiano", items: [
     "Le squadre straniere ora hanno il nome che si usa in Italia: Marsiglia, Lione, Nizza, Bayern Monaco, Barcellona, Siviglia, Sporting Lisbona, Stella Rossa, Dinamo Zagabria, Copenaghen, Inter, Milan, Roma e altre. Squadre seguite e schedine salvate si aggiornano da sole." ] },
   { d: "2026-11-26", t: "Account e sincronizzazione", items: [
-    "In Tu puoi creare un account con email e password: schedine, squadre seguite, storico, sfide e impostazioni restano salvati e li ritrovi su ogni telefono, tablet o computer in cui accedi. Le modifiche si sincronizzano da sole.",
-    "Quando crei l'account ricevi un codice di recupero: serve se dimentichi la password.",
+    "In Tu puoi accedere con Google o con email e password (come nelle altre app): schedine, squadre seguite, storico, sfide e impostazioni restano allineati su ogni telefono, tablet o computer in cui accedi. Le modifiche si sincronizzano da sole.",
+    "Password dimenticata: ti arriva un'email per sceglierne una nuova.",
     "Tu contro il modello: nuovo tasto «Azzera e ricomincia»." ] },
   { d: "2026-11-26", t: "Coppe europee: pronostici più precisi", items: [
     "Ogni squadra delle coppe parte dal livello della sua nazione (coefficiente UEFA): così una squadra norvegese o croata non viene più considerata forte come una spagnola o inglese solo perché domina il suo campionato. Sulle partite di coppa già giocate l'errore del modello scende da 0,987 a 0,941 (log-loss) e le percentuali si avvicinano molto a quelle dei bookmaker.",

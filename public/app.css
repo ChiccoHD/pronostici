@@ -2452,3 +2452,7 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .fx-rings.fx-live { position: relative; padding-bottom: 12px; }
 .fx-rings.fx-live .fx-now { position: absolute; left: 0; right: 0; bottom: -2px; text-align: center; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #ef4444; }
 .fx-sub .fx-pre { white-space: nowrap; }
+.acc-gbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: 700 15px/1 inherit; cursor: pointer; margin: 4px 0 0; }
+.acc-cfg { width: 100%; box-sizing: border-box; font-size: 13px; margin: 6px 0 8px; resize: vertical; }
+.acc-av.on { box-shadow: 0 0 0 3px rgba(34,197,94,.35); }
+.acc-av.ko { background: linear-gradient(135deg, #ef4444, #f97316); }

@@ -7,7 +7,6 @@
 // (Worker "pronostici" → Settings → Variables and Secrets): token GitHub "fine-grained" limitato a questo
 // repository, permesso Actions: Read and write.
 export { Push } from "./push.js";
-export { Accounts } from "./accounts.js";
 
 const REPO = "ChiccoHD/pronostici";
 const WORKFLOW = "aggiorna-dati.yml";
@@ -76,7 +75,6 @@ export default {
   // Il sito resta fatto di soli file statici: qui arriva solo ciò che non esiste in public/.
   fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith("/api/account/")) return env.ACCOUNTS.get(env.ACCOUNTS.idFromName("account")).fetch(request);
     if ((url.pathname.startsWith("/api/push/") && !/\/(tick|daily|matchday)$/.test(url.pathname)) || url.pathname.startsWith("/api/live/")) return pushObject(env).fetch(request);
     return env.ASSETS.fetch(request);
   },

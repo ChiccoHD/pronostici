@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T04:19+00:00",
+ "updated": "2026-11-26T06:26+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -135,7 +135,7 @@
     "espn_tabellini": "357 partite",
     "meteo": "9 partite",
     "partite_in_arrivo": 20,
-    "foto_giocatori": "senza foto 409, Wikipedia 131, ESPN 6, TheSportsDB 36, da controllare 132"
+    "foto_giocatori": "senza foto 427, Wikipedia 131, ESPN 6, TheSportsDB 38, da controllare 112"
    },
    "mls": {
     "football-data": "ok",
@@ -182,21 +182,21 @@
     "partite_in_arrivo": 3,
     "foto_giocatori": "da controllare 70, Wikipedia 29, ESPN 7"
    },
-   "aggiornato": "2026-11-26T04:17+00:00"
+   "aggiornato": "2026-11-26T06:24+00:00"
   },
   "nba": {
    "espn": "ok",
-   "tabellini": "268 partite",
+   "tabellini": "270 partite",
    "incrocio_espn": {
-    "n": 114,
-    "weight": 0.88,
-    "logloss_model": 0.635,
-    "logloss_espn": 0.5999,
-    "logloss_mix": 0.6023
+    "n": 116,
+    "weight": 0.89,
+    "logloss_model": 0.6336,
+    "logloss_espn": 0.598,
+    "logloss_mix": 0.6004
    },
-   "partite_in_arrivo": 28,
-   "partite_stagione": 268,
-   "aggiornato": "2026-11-26T04:18+00:00"
+   "partite_in_arrivo": 26,
+   "partite_stagione": 270,
+   "aggiornato": "2026-11-26T06:25+00:00"
   },
   "tennis": {
    "atp": {
@@ -207,7 +207,7 @@
     "storico": "12472 incontri (+0)",
     "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-26T04:19+00:00"
+   "aggiornato": "2026-11-26T06:26+00:00"
   },
   "coppe": {
    "uomini": {
@@ -267,7 +267,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T04:18+00:00"
+   "aggiornato": "2026-11-26T06:25+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -304,19 +304,19 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-26T04:18+00:00"
+   "aggiornato": "2026-11-26T06:25+00:00"
   },
   "risultati": {
-   "esiti": "6 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-26T04:19+00:00"
+   "esiti": "2 nuovi esiti, 2 calendari letti",
+   "aggiornato": "2026-11-26T06:26+00:00"
   },
   "archivio": {
-   "partite": 605,
-   "nuove": 6
+   "partite": 607,
+   "nuove": 2
   },
   "taratura": {
    "soccer": "x0.94 su 395 partite",
-   "nba": "x1.11 su 108 partite",
+   "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 101 partite",
    "partite_ritoccate": 430
   },
@@ -335,9 +335,9 @@
    "mercato_22": "87 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-26T04:19+00:00"
+   "aggiornato": "2026-11-26T06:26+00:00"
   },
-  "quote_in_movimento": 3,
+  "quote_in_movimento": 2,
   "turnover": {
    "ok": true,
    "partite": 13,

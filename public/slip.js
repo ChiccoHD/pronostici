@@ -67,11 +67,38 @@ function mpPropose(cands, target, k) {
   return { legs: picked, prod, odds, trust: picked.reduce((a, x) => a + x.tr, 0) / k };
 }
 
+/* con le quote dei bookmaker: si arriva alla quota pagata davvero (circa) scegliendo le giocate dove il modello
+   è più ottimista del mercato, così la probabilità stimata supera quella implicita nella quota */
+function mpProposeBook(cands, target) {
+  const pool = cands.filter(c => c.book != null && c.book > 0.05 && c.p - c.book > 0 && c.p - c.book < TRUST_GAP);
+  let best = null;
+  for (const k of [2, 3, 4]) {
+    const picked = [], used = new Set();
+    for (let i = 0; i < k; i++) {
+      const have = picked.reduce((a, x) => a * x.book, 1), need = i === k - 1 ? (1 / target) / have : (1 / target) ** (1 / k);
+      let b = null, bs = Infinity;
+      for (const c of pool) {
+        if (used.has(c.event)) continue;
+        const s = Math.abs(Math.log(c.book / need)) * 3 - (c.p - c.book) * 8 + (1 - c.tr);
+        if (s < bs) { bs = s; b = c; }
+      }
+      if (!b) break;
+      picked.push(b); used.add(b.event);
+    }
+    if (picked.length !== k) continue;
+    const bk = picked.reduce((a, x) => a * x.book, 1), pm = picked.reduce((a, x) => a * x.p, 1);
+    if (Math.abs(Math.log((1 / bk) / target)) > Math.log(1.25)) continue;
+    if (!best || pm * (1 / bk) > best.prod * best.odds) best = { legs: picked, prod: pm, odds: 1 / bk, book: bk, trust: picked.reduce((a, x) => a + x.tr, 0) / k };
+  }
+  return best;
+}
 async function showMultipla() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
   if (!location.hash.startsWith("#/multipla")) return;
   const cands = mpCandidates();
   const props = [2, 3, 4].map(k => mpPropose(cands, MP.target, k)).filter(Boolean);
+  const pb = mpProposeBook(cands, MP.target);
+  if (pb) props.unshift({ ...pb, byBook: true });
   const chip = (group, v, l, cur) => `<button data-mp="${group}" data-v="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`;
   let html = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1>
     <div class="mp-modes"><a class="on" href="#/multipla">Per quota</a><a href="#/multipla/giornata">Per giornata</a></div>
@@ -89,7 +116,11 @@ async function showMultipla() {
       return `<div class="pk mp-leg">${ring(it.p, it.p >= .75)}<a class="pk-txt" href="#/e/${encodeURIComponent(it.event)}"><b>${esc(it.label)}</b>
         <span>${esc(SPORT_NAME[it.sport] || "")} · ${esc(it.match)}, ${esc(when)}</span><span class="mp-tr t${Math.round(it.tr * 10)}">${esc(TRUST_LABEL(it.tr))}${it.book != null ? `, bookmaker ${pct(it.book)}` : ""}</span></a>${star(key)}</div>`;
     }).join("");
-    html += `<section class="sec mp-prop"><h2>${pr.legs.length} giocate<small>quota equa ${odd(pr.prod)}</small></h2>
+    html += pr.byBook ? `<section class="sec mp-prop mp-book"><h2>💰 Con le quote dei bookmaker<small>${pr.legs.length} giocate</small></h2>
+      <div class="slip-nums"><div>${ring(pr.prod, pr.prod >= .5)}<span>probabilità stimata dal modello (per i bookmaker ${pct(pr.book)})</span></div>
+      <div class="big-odd"><b>${num(pr.odds, 2)}</b><span>quota circa dei bookmaker</span></div></div>
+      <p class="note" style="margin-top:0">Arriva alla quota pagata davvero usando giocate dove il modello è un po' più ottimista del mercato: è l'unica combinazione che, secondo il modello, rende più di quanto rischi. Resta una stima.</p>`
+      : `<section class="sec mp-prop"><h2>${pr.legs.length} giocate<small>quota equa ${odd(pr.prod)}</small></h2>
       <div class="slip-nums"><div>${ring(pr.prod, pr.prod >= .5)}<span>probabilità stimata che escano tutte</span></div>
       <div class="big-odd"><b>${odd(pr.prod)}</b><span>quota equa</span></div></div>
       ${legs}

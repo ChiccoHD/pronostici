@@ -108,6 +108,24 @@ async function showStandings(key) {
   if (rounds) { wire("std"); wireRounds(key, L); }
 }
 
+/* il modello con questa squadra: dall'archivio delle partite concluse (180 giorni), quante volte ha preso
+   il risultato più probabile e quanto era sicuro in media */
+async function teamAccuracy(T) {
+  if (typeof ARCHIVE === "undefined") return "";
+  if (!ARCHIVE) { try { ARCHIVE = await getJSON("data/archive.json"); } catch { ARCHIVE = { rows: [] }; } }
+  const names = new Set([T.name, T.short].filter(Boolean));
+  const rows = (ARCHIVE.rows || []).filter(r => r.p && r.r && (names.has(r.h) || names.has(r.a)));
+  if (rows.length < 3) return "";
+  const out = r => r.p.length === 3 ? (r.r[0] > r.r[1] ? 0 : r.r[0] === r.r[1] ? 1 : 2) : (r.r[0] > r.r[1] ? 0 : 1);
+  const hit = rows.filter(r => r.p.indexOf(Math.max(...r.p)) === out(r)).length;
+  const conf = rows.reduce((a, r) => a + Math.max(...r.p), 0) / rows.length;
+  const rate = hit / rows.length, good = rate >= conf - 0.05;
+  const last = rows.slice(-6).map(r => `<i class="${r.p.indexOf(Math.max(...r.p)) === out(r) ? "ok" : "ko"}" title="${esc(r.h)} – ${esc(r.a)} ${r.r[0]}-${r.r[1]}"></i>`).join("");
+  return `<div class="tp-acc ${good ? "good" : "bad"}"><b>Il modello con ${esc(T.short || T.name)}</b>
+    <span>Ha preso il risultato più probabile <b>${hit} volte su ${rows.length}</b> (${pct(rate)}), dandolo in media al ${pct(conf)}. ${good ? "In linea o meglio del previsto: qui ci si può fidare." : "Meno del previsto: con questa squadra prendi le percentuali con più cautela."}</span>
+    <span class="tp-acc-l">${last}<small>ultime ${Math.min(6, rows.length)}</small></span></div>`;
+}
+
 /* ------------------------------------------------------------------ campionati di calcio: schede in più */
 const pctOr = x => x >= 0.995 ? "✓" : x < 0.005 ? "–" : pct(x);
 function zoneOf(L, pos) {
@@ -361,9 +379,10 @@ async function showTeam(lk, id) {
     ["giocatori", "Giocatori", box(plHtml, nba ? `<p class="note">Medie a partita.</p>` : `<p class="note">In campionato.</p>`)],
   ];
   if (T.trends?.length) tabs.push(["tendenze", "Tendenze", box(trendsList(T.trends, nba ? "nba" : "soccer"), `<p class="note">Serie aperte nelle ultime partite. Prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`)]);
-  $app.innerHTML = backBtn("Indietro") + head + nextBox + simHtml + tabsView("team", tabs)
+  $app.innerHTML = backBtn("Indietro") + head + nextBox + simHtml + `<div id="tp-acc"></div>` + tabsView("team", tabs)
     + `<p class="note">Dati aggiornati ${esc(ago(L.updated))}.</p>`;
   wire("team");
+  teamAccuracy(T).then(h => { const el = document.getElementById("tp-acc"); if (el && h) el.innerHTML = h; });
 }
 
 /* ------------------------------------------------------------------ squadre e giocatori preferiti */

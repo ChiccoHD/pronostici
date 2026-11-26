@@ -701,6 +701,8 @@ def main():
     _gen_soccer(); _gen_nba(); _gen_tennis(); _gen_f1(date.today())
     _install_fakes(); _install_f1_fakes()
     photos.ENABLED = False  # nessuna rete con i dati di esempio
+    from . import rotation
+    rotation.ENABLED = False
     import sys
     from . import run
     sys.argv = ["run"]

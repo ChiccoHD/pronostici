@@ -65,6 +65,32 @@ def _box(season_year: int, games: list[dict], status: dict, max_new: int = 200) 
     return lines, {gid: b.get("pred") for gid, b in box.items() if b.get("pred") is not None}
 
 
+def on_off(lines: list[dict], games: list[dict]) -> dict:
+    """Con e senza: per ogni squadra e giocatore, margine medio della squadra nelle partite giocate da lui e in quelle
+    in cui non ha giocato (solo partite con tabellino). {(squadra, pid): {"w": [n, margine], "wo": [n, margine]}}"""
+    res = {}
+    for g in games:
+        if g.get("hs") is not None:
+            res[g["id"]] = {g["home"]: g["hs"] - g["as"], g["away"]: g["as"] - g["hs"]}
+    played, team_games = {}, {}
+    for x in lines:
+        gid, t = x["event"], str(x.get("team"))
+        if gid not in res or t not in res[gid]:
+            continue
+        team_games.setdefault(t, set()).add(gid)
+        if (x.get("min") or 0) > 0:
+            played.setdefault((t, str(x["pid"])), set()).add(gid)
+    out = {}
+    for (t, pid), gs in played.items():
+        allg = team_games.get(t, set())
+        wo = allg - gs
+        if len(gs) < 3:
+            continue
+        m = lambda S: round(sum(res[g][t] for g in S) / len(S), 1) if S else None
+        out[(t, pid)] = {"w": [len(gs), m(gs)], "wo": [len(wo), m(wo)]}
+    return out
+
+
 def build(today: date):
     status = {}
     sy = config.nba_season_start_year(today)
@@ -78,6 +104,11 @@ def build(today: date):
     cur_done = [g for g in cur if g.get("hs") is not None]
     season_from = min((g["date"][:10] for g in cur), default=f"{sy}-10-15")
     lines, preds = _box(sy, cur, status)
+    try:
+        onoff = on_off(lines, cur)
+    except Exception:
+        log.exception("Con e senza")
+        onoff = {}
     bpi_path = CACHE / "nba" / f"bpi_{sy}.json"
     bpi = store.load(bpi_path, {})        # previsione ESPN registrata prima della partita
     preds = {**preds, **bpi}
@@ -145,6 +176,7 @@ def build(today: date):
                 "players": {"home": N.player_props(lines, g["home"], team_ids.get(g["home"], []), fh, inj_h),
                             "away": N.player_props(lines, g["away"], team_ids.get(g["away"], []), fa, inj_a)},
                 "names": {t: v[0] for t, v in names.items()},
+                "onoff": {side: {pid: v for (t, pid), v in onoff.items() if t == str(g[side])} for side in ("home", "away")},
                 "reliability": bt["win"].get("grade"),
                 "updated": now.isoformat(timespec="minutes"),
             }

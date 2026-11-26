@@ -94,10 +94,16 @@ export function diff(sport, prev, cur, ev) {
     if (g1 > g0) {
       const news = cur.goals.slice(prev.goals?.length || 0);
       const gs = news.length ? news : [{}];
+      // come cambia il pronostico dopo il gol (stessa stima della giocata a rischio, dal punteggio e dal tempo che resta)
+      let now = "";
+      try {
+        const ch = ["1", "X", "2"].map(l => liveChance(l, ev, cur));
+        if (ch.every(x => x != null)) now = ` · ora 1 ${Math.round(ch[0] * 100)}% X ${Math.round(ch[1] * 100)}% 2 ${Math.round(ch[2] * 100)}%`;
+      } catch { now = ""; }
       for (const g of gs.slice(0, 3)) {
         const team = g.s === "h" ? cur.hn : g.s === "a" ? cur.an : "";
         const who = g.who ? `${g.who}${g.og ? " (autogol)" : g.pen ? " (rigore)" : ""}` : "";
-        out.push(["goal", `⚽ Gol${team ? ` ${team}` : ""}! ${score}`, [who, g.m].filter(Boolean).join(" · ") + where]);
+        out.push(["goal", `⚽ Gol${team ? ` ${team}` : ""}! ${score}`, [who, g.m].filter(Boolean).join(" · ") + now + where]);
       }
     } else if (g1 < g0 && cur.st === "in") out.push(["goal", `Gol annullato: ${score}`, `Il punteggio è stato corretto${where}`]);
     for (const r of (cur.reds || []).slice(prev.reds?.length || 0)) {

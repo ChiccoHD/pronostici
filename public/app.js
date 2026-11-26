@@ -568,6 +568,34 @@ function tonight(date) {
   return +new Date(date).toLocaleString("it-IT", { hour: "2-digit", hourCycle: "h23", timeZone: TZ }) < 8;
 }
 const GOOD_PICK = 0.65;   // sotto questa probabilità una giocata di stasera non vale la carta "migliore": si guarda al giorno dopo
+/* partita della giornata: la più interessante del giorno (competizione importante, equilibrio, squadre seguite,
+   modello lontano dalle quote), come prima carta della fila delle migliori, per non aggiungere un altro riquadro */
+const MOD_W = { champions: 3, "serie-a": 2.6, "premier-league": 2.6, "la-liga": 2.4, bundesliga: 2.3, "europa-league": 2.1, "ligue-1": 2, nba: 1.8,
+  "nations-league": 2, mondiali: 3, europei: 3, conference: 1.6, atp: 1.4, wta: 1.2 };
+function matchOfDay(pick) {
+  const teams = typeof myTeams === "function" ? myTeams() : [];
+  const now = Date.now();
+  const evs = INDEX.events.filter(e => !e.final && e.main && e.sport !== "f1" && Date.parse(e.date) > now && (pick ? isoDay(e.date) === pick : tonight(e.date)));
+  if (!evs.length) return "";
+  const why = e => {
+    const m = e.main, a = m[0], b = m[m.length - 1], bal = 1 - Math.abs(a - b);
+    const gap = e.book ? Math.max(...e.main.map((x, i) => Math.abs(x - e.book[i]))) : 0;
+    const mine = teams.some(t => teamPlays(t, e));
+    const score = (MOD_W[e.league] || 1) * (0.6 + bal) + (mine ? 1.5 : 0) + (gap >= 0.08 ? 0.4 : 0);
+    const tags = [mine ? "la tua squadra" : "", (MOD_W[e.league] || 1) >= 2.3 ? "big match" : "", bal >= 0.85 ? "equilibrata" : "", gap >= 0.08 ? "modello lontano dalle quote" : ""].filter(Boolean);
+    return { e, score, tags };
+  };
+  const top = evs.map(why).sort((x, y) => y.score - x.score)[0];
+  if (!top) return "";
+  const e = top.e, m = e.main;
+  const lab = m.length === 3 ? [["1", m[0]], ["X", m[1]], ["2", m[2]]] : [[e.home.split(" ").pop(), m[0]], [e.away.split(" ").pop(), m[1]]];
+  return `<a class="twb tw-motd" href="#/e/${encodeURIComponent(e.id)}">
+    <span class="twb-sp"><i>🔥</i>Partita del giorno</span>
+    <b class="motd-t">${esc(e.home)}<br>${esc(e.away)}</b>
+    <span class="motd-p">${lab.map(([l, p]) => `<span><small>${esc(l)}</small><b>${pct(p)}</b></span>`).join("")}</span>
+    <small class="twb-m">${esc(top.tags.join(" · ") || e.league_name || "")}</small>
+    <span class="twb-f"><span>${esc(fmtTime(e.date, e.time_valid))}</span><span>perché ›</span></span></a>`;
+}
 function todayWidget() {
   const today = isoDay(Date.now()), cards = [];
   let bests = "";
@@ -618,7 +646,7 @@ function todayWidget() {
     const dayName = !pick ? "di oggi" : pick === isoDay(Date.now() + 864e5) ? "di domani"
       : `di ${new Date(`${pick}T12:00:00Z`).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", timeZone: TZ })}`;
     if (pick && pick < today) bests = "";     // giorno passato: niente migliori (le giocate restano solo per le partite da giocare)
-    else if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori ${esc(dayName)}</div><div class="tw-bests">${tops.map(([it, ic, name, c]) => {
+    else if (tops.length) bests = `<div class="tw-best-h">⭐ Le migliori ${esc(dayName)}</div><div class="tw-bests">${matchOfDay(pick)}${tops.map(([it, ic, name, c]) => {
       const tier = it.p >= .85 ? 4 : it.p >= .78 ? 3 : it.p >= .7 ? 2 : 1;
       return `<a class="twb" href="${pickHref(it)}" style="--sc:${c};--tc:${usable(it.color) ? it.color : c}">
         <span class="twb-sp"><i>${ic}</i>${name}</span>
@@ -695,7 +723,7 @@ function renderList() {
   // filtro per giocata: sotto il calendario
   html += `<div class="mk-row">${state.mk
     ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
-    : `<button type="button" class="mk-btn" data-mk-open>🎯 Filtra per giocata</button>`}</div>`;
+    : `<button type="button" class="mk-btn" data-mk-open>🎯 Filtra per giocata</button>`}<button type="button" class="mine-btn" data-mine aria-pressed="${state.mine}">⭐ Solo le mie</button></div>`;
   if (LEAGUES[state.sport] && st !== "live") {
     const n = {};
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
@@ -709,7 +737,8 @@ function renderList() {
     const scored = evs.filter(e => outcomeIx(e) != null), hit = scored.filter(e => outcomeIx(e) === e.main.indexOf(Math.max(...e.main)));
     if (scored.length) html += `<div class="done-sum"><b>${hit.length} su ${scored.length}</b> pronostici più probabili presi negli ultimi giorni (${pct(hit.length / scored.length)}). Tocca una partita per il confronto completo con quote ed esito.</div>`;
   }
-  if (!evs.length && st === "done") html += `<div class="empty"><b>Nessuna partita conclusa</b>Le partite finite restano qui per tre giorni, con il risultato e il confronto con il pronostico.</div>`;
+  if (!evs.length && state.mine) html += `<div class="empty"><b>Nessuna delle tue partite</b>Segui squadre e tennisti dalla loro pagina, o tocca la campanella di una partita. Tocca «Solo le mie» per vedere di nuovo tutto.</div>`;
+  else if (!evs.length && st === "done") html += `<div class="empty"><b>Nessuna partita conclusa</b>Le partite finite restano qui per tre giorni, con il risultato e il confronto con il pronostico.</div>`;
   else if (!evs.length && st !== "live") {
     const why = state.sport === "soccer" ? "Nei prossimi giorni non ci sono partite di questi campionati: succede durante le soste per le nazionali." : "Nei prossimi giorni non ci sono partite in programma per questa scelta.";
     html += `<div class="empty"><b>Nessuna partita in programma</b>${why}</div>`;
@@ -746,6 +775,7 @@ function renderList() {
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
   $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showListKeepScroll(); });
+  $app.querySelectorAll("[data-mine]").forEach(b => b.onclick = () => { state.mine = !state.mine; save("mine", state.mine ? "1" : "0"); showList(); });
   requestAnimationFrame(centerDays); countUp(document.querySelector(".tw") || $app);
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => {
     const was = state.status;
@@ -884,7 +914,10 @@ const MARKETS = [
 ];
 const MK = Object.fromEntries(MARKETS.map(m => [m[0], m]));
 const mkValue = e => state.mk && e.sport !== "f1" ? MK[state.mk.m]?.[2](e) : null;
-const mkPass = e => !state.mk || (mkValue(e) ?? -1) >= state.mk.min;
+/* «Solo le mie»: partite delle squadre e dei tennisti seguiti o con la campanella (p_mine) */
+state.mine = load("mine", "0") === "1";
+const isMineEv = e => (typeof isFollowed === "function" && isFollowed(e.id)) || (typeof myTeams === "function" && myTeams().some(t => teamPlays(t, e)));
+const mkPass = e => (!state.mk || (mkValue(e) ?? -1) >= state.mk.min) && (!state.mine || isMineEv(e));
 function mkLabel(e) {
   if (!state.mk) return "";
   const [k, l] = MK[state.mk.m];
@@ -1081,6 +1114,28 @@ function seg(name, opts, cur) {
    infortuni, guasti: cose fuori dai dati del modello) */
 const TRUST_GAP = 0.12;
 /* quote in movimento dalla prima volta che l'app le ha viste (campo move dell'elenco, pipeline/odds_move.py) */
+function oddsHistBox(d) {
+  const H = d.odds_hist, n = H[0].length - 1;
+  const labs = n === 3 ? ["1", "X", "2"] : [d.home.short || d.home.name, d.away.short || d.away.name];
+  const [cH, cA] = teamColors(d.home, d.away);
+  const cols = n === 3 ? [cH, "var(--ink-3)", cA] : [cH, cA];
+  const t0 = Date.parse(H[0][0]), t1 = Math.max(Date.parse(H[H.length - 1][0]), t0 + 1);
+  const model = n === 3 ? d.markets?.["1x2"] : d.markets?.win;
+  const vals = H.flatMap(r => r.slice(1)).concat(model || []);
+  const lo = Math.max(0, Math.min(...vals) - 0.05), hi = Math.min(1, Math.max(...vals) + 0.05);
+  const W = 320, Hh = 130, X = t => 8 + (Date.parse(t) - t0) / (t1 - t0) * (W - 16), Y = p => 8 + (hi - p) / (hi - lo || 1) * (Hh - 16);
+  const lines = [...Array(n).keys()].map(i => {
+    const path = H.map((r, j) => `${j ? "L" : "M"}${X(r[0]).toFixed(1)},${Y(r[i + 1]).toFixed(1)}`).join(" ");
+    const mdl = model?.[i] != null ? `<line x1="8" x2="${W - 8}" y1="${Y(model[i])}" y2="${Y(model[i])}" stroke="${cols[i]}" stroke-dasharray="3 4" opacity=".55"/>` : "";
+    return `${mdl}<path d="${path}" fill="none" stroke="${cols[i]}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  }).join("");
+  const first = H[0], last = H[H.length - 1];
+  const leg = labs.map((l, i) => { const dlt = Math.round((last[i + 1] - first[i + 1]) * 100);
+    return `<span><i style="background:${cols[i]}"></i>${esc(l)} <b>${pct(last[i + 1])}</b> <small class="${dlt > 0 ? "up" : dlt < 0 ? "down" : ""}">${dlt > 0 ? "+" : dlt < 0 ? "−" : "="}${dlt ? Math.abs(dlt) : ""}</small></span>`; }).join("");
+  const since = new Date(first[0]).toLocaleString("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return sec("Quote nel tempo", `<svg class="oh-chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Percentuali dei bookmaker nel tempo">${[0.25, 0.5, 0.75].filter(p => p > lo && p < hi).map(p => `<line x1="8" x2="${W - 8}" y1="${Y(p)}" y2="${Y(p)}" class="oh-grid"/>`).join("")}${lines}</svg>
+    <div class="oh-leg">${leg}</div><p class="note">Percentuali dei bookmaker (senza margine) dal ${esc(since)} a ora; tratteggiate quelle del modello. Una linea che sale o scende molto di solito vuol dire una notizia.</p>`, `${H.length} rilevazioni`, "Quote nel tempo");
+}
 function moveNote(id, labels) {
   const m = INDEX?.events.find(e => e.id === id)?.move;
   if (!m) return "";
@@ -1210,6 +1265,9 @@ async function showEvent(id) {
   if (typeof eventActions === "function") { brd?.insertAdjacentHTML("afterend", eventActions(d)); wireEventActions(d); }
   if (typeof duelBox === "function") { const h = duelBox(d); if (h) { ($app.querySelector(".ev-acts") || brd)?.insertAdjacentHTML("afterend", h); wireDuel(d); } }
   eventTopPicks(d, brd);
+  // quote nel tempo: in fondo alla scheda Esito (pipeline/odds_move.py, campo odds_hist)
+  const ep = $app.querySelector('[data-pane="esito"]');
+  if (ep && d.odds_hist?.length >= 2) ep.insertAdjacentHTML("beforeend", oddsHistBox(d));
   // classifica con le due squadre, sotto i pulsanti (arriva un attimo dopo: il file del campionato si carica a parte)
   if (typeof matchTable === "function") matchTable(d).then(h => {
     if (!h || !$app.contains(brd)) return;
@@ -1604,6 +1662,15 @@ function injuries(d) {
   return `<h3 style="margin-top:0">${esc(d.home.name)}</h3>${list(d.home)}<h3>${esc(d.away.name)}</h3>${list(d.away)}`;
 }
 
+/* con e senza: margine medio della squadra nelle partite con lui in campo e in quelle senza (build_nba.on_off) */
+function onOffHtml(o, name) {
+  if (!o || !o.wo || o.wo[0] < 2 || o.w[1] == null || o.wo[1] == null) return "";
+  const f = v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${num(Math.abs(v), 1)}`, dlt = o.w[1] - o.wo[1];
+  return `<div class="onoff"><span class="oo-k">La squadra con e senza</span>
+    <span class="oo-b ${o.w[1] >= 0 ? "pos" : "neg"}"><small>con lui</small><b>${f(o.w[1])}</b><small>${o.w[0]} partite</small></span>
+    <span class="oo-b ${o.wo[1] >= 0 ? "pos" : "neg"}"><small>senza</small><b>${f(o.wo[1])}</b><small>${o.wo[0]} partite</small></span>
+    <span class="oo-d">${Math.abs(dlt) < 1 ? "quasi nessuna differenza" : `${dlt > 0 ? "con lui" : "senza di lui"} ${num(Math.abs(dlt), 1)} punti meglio`}</span></div>`;
+}
 /* medie del giocatore: una riga per periodo (ultime 5, 10, 15 partite), una colonna per statistica */
 function avgTable(rows) {
   rows = rows.filter(([, a]) => a && a.pts != null);
@@ -1645,7 +1712,7 @@ function nbaPlayers(d, cH, cA) {
       <div class="p-head"><a class="p-name" href="${plHref(d, p._side, p)}">${esc(p.name)} ›</a>${tag}<button type="button" class="pl-tog" aria-expanded="${open}" aria-label="Apri o chiudi le statistiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
       ${mini ? `<div class="pl-mini">${mini} <span>attesi · tocca per le soglie</span></div>` : ""}
       <div class="pl-body">
-      ${avgTable([["Ultime 5", a], ["Ultime 10", a10], ["Ultime 15", a15]])}
+      ${avgTable([["Ultime 5", a], ["Ultime 10", a10], ["Ultime 15", a15]])}${onOffHtml(d.onoff?.[p._side]?.[String(p.pid)], p.name)}
       ${p.out ? "" : `<div class="lines">${props}</div>`}</div></div></div>`;
   }).join("") : `<p class="note">Tabellini non ancora disponibili.</p>`;
   const all = `<div class="pl-all"><button type="button" class="link-btn" data-pl-all="1">Apri tutti</button><button type="button" class="link-btn" data-pl-all="0">Chiudi tutti</button></div>`;

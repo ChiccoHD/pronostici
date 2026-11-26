@@ -16,6 +16,7 @@ URL = "https://site.web.api.espn.com/apis/site/v2/sports/soccer/all/teams/{tid}/
 PATH = CACHE / "soccer" / "rotation.json"
 WINDOW_DAYS = 4          # partite di oggi e dei prossimi 4 giorni
 MAX_REQ = 160            # richieste al massimo per giro (poche e lente)
+ENABLED = True           # spento dai dati di esempio (nessuna rete)
 TTL_H = 20
 
 COMP = {"conmebol.libertadores": "Copa Libertadores", "conmebol.sudamericana": "Copa Sudamericana", "uefa.champions": "Champions League",
@@ -87,6 +88,8 @@ def _risk(this_id: str, this_lg: str, when: datetime, evs: list):
 
 
 def apply(events: list[dict], status: dict):
+    if not ENABLED:
+        return
     try:
         mem = store.load(PATH, {})
         now = datetime.now(timezone.utc)

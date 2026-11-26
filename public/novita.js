@@ -1,6 +1,14 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Partita del giorno, quote nel tempo e altro", items: [
+    "Partita del giorno: la prima carta della fila «Le migliori di oggi» è la partita più interessante del giorno (competizione importante, equilibrio, la tua squadra, modello lontano dalle quote), con le percentuali. Toccala per aprirla con il «Perché».",
+    "Pagina squadra: «Il modello con questa squadra», quante volte ha preso il risultato più probabile nelle partite già giocate e se ci si può fidare.",
+    "Costruisci la multipla: in cima c'è una proposta «Con le quote dei bookmaker», che arriva alla quota pagata davvero con giocate dove il modello è più ottimista del mercato.",
+    "Notifica del gol: dice anche come cambiano le percentuali (es. «ora 1 83% X 13% 2 4%»).",
+    "Scheda Esito: grafico «Quote nel tempo», come si sono mosse le percentuali dei bookmaker con il modello tratteggiato. Si riempie man mano che arrivano gli aggiornamenti.",
+    "Home: «⭐ Solo le mie» accanto a «Filtra per giocata» mostra solo le partite delle squadre e dei tennisti che segui o con la campanella.",
+    "NBA, scheda Giocatori: «La squadra con e senza», margine medio della squadra nelle partite con lui in campo e senza." ] },
   { d: "2026-11-26", t: "Campionati più ricchi, il tuo conto e la schedina a sistema", items: [
     "Classifiche dei campionati di calcio: le zone colorate (titolo, Champions o promozione, retrocessione) e quattro schede nuove. Proiezione: probabilità di titolo, posto europeo e retrocessione simulando 10.000 volte le partite che mancano, con i punti attesi. Altre classifiche: in casa, in trasferta, forma delle ultime 10 e gol attesi. Marcatori: capocannonieri e assist. Calendario: le prossime 5 partite di ogni squadra colorate per difficoltà.",
     "Pagina squadra: le prossime 5 partite in tutte le competizioni (verde facile, giallo equilibrata, rosso difficile, grigio le coppe) e «Come può finire» la stagione.",

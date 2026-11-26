@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Partite in corso nell'elenco", items: [
+    "Nell'elenco, per le partite in corso i cerchi a destra mostrano le percentuali di adesso (calcolate sul risultato e sul tempo che manca); sotto resta il pronostico di prima del via, es. «1: 45% · X: 28% · 2: 27%»." ] },
   { d: "2026-11-26", t: "Squadre con il nome italiano", items: [
     "Le squadre straniere ora hanno il nome che si usa in Italia: Marsiglia, Lione, Nizza, Bayern Monaco, Barcellona, Siviglia, Sporting Lisbona, Stella Rossa, Dinamo Zagabria, Copenaghen, Inter, Milan, Roma e altre. Squadre seguite e schedine salvate si aggiornano da sole." ] },
   { d: "2026-11-26", t: "Account e sincronizzazione", items: [

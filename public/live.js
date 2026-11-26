@@ -274,6 +274,21 @@ function liveChance(L, info, ix) {
   }
   return null;
 }
+/* risultato principale adesso (1 X 2 o 1 2), per l'elenco; null se non si può stimare */
+function liveMain(e, info) {
+  try {
+    if (!info || info.state !== "in") return null;
+    const H = Number(info.H), A = Number(info.A);
+    if (!Number.isFinite(H) || !Number.isFinite(A)) return null;
+    if (e.sport === "soccer" && e.main.length === 3) {
+      const d = soccerDist(e.xg, H, A, minuteOf(info));
+      return [soccerP(d, (h, a) => h > a), soccerP(d, (h, a) => h === a), soccerP(d, (h, a) => h < a)];
+    }
+    if (e.sport === "nba") { if (info.winProb != null) return [info.winProb, 1 - info.winProb]; const ex = e.exp_score || [112, 112]; return nbaLive(info.comp, ex[0] - ex[1], H, A); }
+    if (e.sport === "tennis") return tennisLive(info, e, e.bo || 3);
+  } catch { /* niente */ }
+  return null;
+}
 const chanceTag = p => p == null ? "" : `<span class="lv-ch ${p >= .6 ? "hi" : p < .3 ? "lo" : ""}" title="Stima del modello adesso">ora ${pct(p)}</span>`;
 
 function erf(x) { const t = 1 / (1 + .3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; }

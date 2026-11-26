@@ -807,6 +807,7 @@ def main():
         return
     if "arbitri" in sys.argv[1:]:
         # nome dell'arbitro e cartellini/rigori nel summary ESPN (partita finita e partita in programma)
+        import json
         out(f"# Arbitri — {date.today()}\n")
         for lg, eid in (("ita.1", "401875009"), ("ita.1", "401875004"), ("eng.1", None)):
             if not eid:

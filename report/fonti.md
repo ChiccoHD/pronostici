@@ -1,20 +1,103 @@
-# Arbitri — 2026-11-26
+# Nazione delle squadre — 2026-11-26
 
-## ita.1 401875009
-- chiavi summary: ['boxscore', 'format', 'gameInfo', 'lastFiveGames', 'leaders', 'broadcasts', 'pickcenter', 'odds', 'hasOdds', 'rosters', 'news', 'videos', 'header', 'seasonseries', 'keyEvents', 'commentary', 'wallclockAvailable', 'meta', 'standings']
-- gameInfo: ['venue', 'attendance']; officials: null
-- keyEvents 21, tipi: ['End Delay', 'End Regular Time', 'Goal', 'Goal - Volley', 'Halftime', 'Kickoff', 'Penalty - Scored', 'Start 2nd Half', 'Start Delay', 'Substitution', 'Yellow Card']
-- MON: gialli 0, rossi 0, falli 8, rigori? ['penaltyKickGoals', 'penaltyKickShots']
-- FIO: gialli 1, rossi 0, falli 13, rigori? ['penaltyKickGoals', 'penaltyKickShots']
-## ita.1 401875004
-- chiavi summary: ['boxscore', 'format', 'gameInfo', 'lastFiveGames', 'leaders', 'broadcasts', 'pickcenter', 'odds', 'hasOdds', 'rosters', 'news', 'header', 'wallclockAvailable', 'meta', 'seasonseries', 'standings']
-- gameInfo: ['venue']; officials: null
-- keyEvents 0, tipi: []
-- VEN: gialli None, rossi None, falli None, rigori? []
-- BOL: gialli None, rossi None, falli None, rigori? []
-## eng.1 401879227
-- chiavi summary: ['boxscore', 'format', 'gameInfo', 'lastFiveGames', 'leaders', 'broadcasts', 'pickcenter', 'odds', 'hasOdds', 'rosters', 'news', 'header', 'ticketsInfo', 'wallclockAvailable', 'seasonseries', 'meta', 'standings']
-- gameInfo: ['venue']; officials: null
-- keyEvents 0, tipi: []
-- LEE: gialli None, rossi None, falli None, rigori? []
-- COV: gialli None, rossi None, falli None, rigori? []
+## Inter d'Escaldes (20703)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa.conf/teams/20703` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'uid']
+  - {"location": "Inter D'Escaldes", "country": null, "countryCode": null, "nickname": null, "slug": "inter_descaldes", "shortDisplayName": "Inter D'Escaldes"}
+  - defaultLeague: {"abbreviation": "UEFA Conference League", "alternateId": "2467", "id": "20296", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.europa.conf", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:20296", "isExternal": false, "i
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/20703` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'uid']
+  - {"location": "Inter D'Escaldes", "country": null, "countryCode": null, "nickname": null, "slug": "inter_descaldes", "shortDisplayName": "Inter D'Escaldes"}
+  - defaultLeague: {"abbreviation": "UEFA Conference League", "alternateId": "2467", "id": "20296", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.europa.conf", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:20296", "isExternal": false, "i
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf/teams/20703` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Inter D'Escaldes", "country": null, "countryCode": null, "nickname": null, "slug": "inter_descaldes", "shortDisplayName": "Inter D'Escaldes"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf/franchises/20703?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf?lang=en&region=us"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf/seasons/2026/teams/20703` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Inter D'Escaldes", "country": null, "countryCode": null, "nickname": null, "slug": "inter_descaldes", "shortDisplayName": "Inter D'Escaldes"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf/franchises/20703?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa.conf?lang=en&region=us"}
+## Shakhtar (493)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams/493` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'uid']
+  - {"location": "Shakhtar Donetsk", "country": null, "countryCode": null, "nickname": null, "slug": "ukr.shakhtar_donetsk", "shortDisplayName": "Shakhtar"}
+  - defaultLeague: {"abbreviation": "UEFA Champions League", "alternateId": "2", "id": "775", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.champions", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:775", "isExternal": false, "isPremium":
+  - groups: {"id": "1"}
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/493` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'uid']
+  - {"location": "Shakhtar Donetsk", "country": null, "countryCode": null, "nickname": null, "slug": "ukr.shakhtar_donetsk", "shortDisplayName": "Shakhtar"}
+  - defaultLeague: {"abbreviation": "UEFA Champions League", "alternateId": "2", "id": "775", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.champions", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:775", "isExternal": false, "isPremium":
+  - groups: {"id": "1"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/teams/493` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Shakhtar Donetsk", "country": null, "countryCode": null, "nickname": null, "slug": "ukr.shakhtar_donetsk", "shortDisplayName": "Shakhtar"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/franchises/493?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/seasons/2026/types/1/groups/1?lang=en&region=us"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/seasons/2026/teams/493` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Shakhtar Donetsk", "country": null, "countryCode": null, "nickname": null, "slug": "ukr.shakhtar_donetsk", "shortDisplayName": "Shakhtar"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/franchises/493?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/seasons/2026/types/1/groups/1?lang=en&region=us"}
+## Dinamo Zagreb (597)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa/teams/597` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Dinamo Zagreb", "country": null, "countryCode": null, "nickname": null, "slug": "cro.dinamo_zagreb", "shortDisplayName": "Dinamo Zagreb"}
+  - defaultLeague: {"abbreviation": "UEFA Europa League", "alternateId": "2310", "id": "776", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.europa", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:776", "isExternal": false, "isPremium": fa
+  - standingSummary: "9th in UEFA Europa League"
+  - groups: {"id": "1"}
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/597` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Dinamo Zagreb", "country": null, "countryCode": null, "nickname": null, "slug": "cro.dinamo_zagreb", "shortDisplayName": "Dinamo Zagreb"}
+  - defaultLeague: {"abbreviation": "UEFA Europa League", "alternateId": "2310", "id": "776", "links": [{"href": "https://www.espn.com/soccer/league/_/name/uefa.europa", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:776", "isExternal": false, "isPremium": fa
+  - standingSummary: "9th in UEFA Europa League"
+  - groups: {"id": "1"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/teams/597` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Dinamo Zagreb", "country": null, "countryCode": null, "nickname": null, "slug": "cro.dinamo_zagreb", "shortDisplayName": "Dinamo Zagreb"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/franchises/597?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/types/1/groups/1?lang=en&region=us"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/teams/597` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Dinamo Zagreb", "country": null, "countryCode": null, "nickname": null, "slug": "cro.dinamo_zagreb", "shortDisplayName": "Dinamo Zagreb"}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/franchises/597?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/types/1/groups/1?lang=en&region=us"}
+## Maccabi Tel-Aviv (524)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa/teams/524` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Maccabi Tel-Aviv", "country": null, "countryCode": null, "nickname": null, "slug": "team.maccabi_tel-aviv", "shortDisplayName": "Maccabi Tel-Aviv"}
+  - defaultLeague: {"abbreviation": "Israeli Premier League", "alternateId": "2359", "id": "10750", "links": [{"href": "https://www.espn.com/soccer/league/_/name/isr.1", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:10750", "isExternal": false, "isPremium": 
+  - standingSummary: "2nd in Israeli Premier League"
+  - groups: {"id": "1"}
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/524` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'record', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Maccabi Tel-Aviv", "country": null, "countryCode": null, "nickname": null, "slug": "team.maccabi_tel-aviv", "shortDisplayName": "Maccabi Tel-Aviv"}
+  - defaultLeague: {"abbreviation": "Israeli Premier League", "alternateId": "2359", "id": "10750", "links": [{"href": "https://www.espn.com/soccer/league/_/name/isr.1", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:10750", "isExternal": false, "isPremium": 
+  - standingSummary: "2nd in Israeli Premier League"
+  - groups: {"id": "1"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/teams/524` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'venue', 'groups', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Maccabi Tel-Aviv", "country": null, "countryCode": null, "nickname": null, "slug": "team.maccabi_tel-aviv", "shortDisplayName": "Maccabi Tel-Aviv"}
+  - venue: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/venues/1198?lang=en&region=us", "id": "1198", "guid": "ea90fc35-b712-3137-9ba2-4eb9cd4ec7ce", "fullName": "Bloomfield Stadium", "address": {"city": "Tel-Aviv", "country": "Israel"}, "images": []}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/franchises/524?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/isr.1?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/types/1/groups/1?lang=en&region=us"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/teams/524` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'venue', 'groups', 'links', 'injuries', 'notes', 'franchise', 'events', 'seasons', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Maccabi Tel-Aviv", "country": null, "countryCode": null, "nickname": null, "slug": "team.maccabi_tel-aviv", "shortDisplayName": "Maccabi Tel-Aviv"}
+  - venue: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/venues/1198?lang=en&region=us", "id": "1198", "guid": "ea90fc35-b712-3137-9ba2-4eb9cd4ec7ce", "fullName": "Bloomfield Stadium", "address": {"city": "Tel-Aviv", "country": "Israel"}, "images": []}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/franchises/524?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/isr.1?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/seasons/2026/types/1/groups/1?lang=en&region=us"}
+## Inter (110)
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams/110` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Internazionale", "country": null, "countryCode": null, "nickname": null, "slug": "ita.inter_milan", "shortDisplayName": "Inter Milan"}
+  - defaultLeague: {"abbreviation": "Serie A", "alternateId": "12", "id": "730", "links": [{"href": "https://www.espn.com/soccer/league/_/name/ita.1", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:730", "isExternal": false, "isPremium": false, "language": "e
+  - standingSummary: "3rd in Italian Serie A"
+  - groups: {"id": "1"}
+- `https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/110` chiavi ['abbreviation', 'alternateColor', 'color', 'defaultLeague', 'displayName', 'groups', 'id', 'isActive', 'leagueAbbrev', 'links', 'location', 'logos', 'name', 'nextEvent', 'record', 'shortDisplayName', 'slug', 'standingSummary', 'uid']
+  - {"location": "Internazionale", "country": null, "countryCode": null, "nickname": null, "slug": "ita.inter_milan", "shortDisplayName": "Inter Milan"}
+  - defaultLeague: {"abbreviation": "Serie A", "alternateId": "12", "id": "730", "links": [{"href": "https://www.espn.com/soccer/league/_/name/ita.1", "isExternal": false, "isPremium": false, "language": "en-US", "rel": ["index", "desktop", "league"], "shortText": "Index", "text": "Index"}, {"href": "sportscenter://x-callback-url/showClubhouse?uid=s:600~l:730", "isExternal": false, "isPremium": false, "language": "e
+  - standingSummary: "3rd in Italian Serie A"
+  - groups: {"id": "1"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/teams/110` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'venue', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'coaches', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Internazionale", "country": null, "countryCode": null, "nickname": null, "slug": "ita.inter_milan", "shortDisplayName": "Inter Milan"}
+  - venue: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/venues/26?lang=en&region=us", "id": "26", "guid": "171e1de6-a6e3-360e-8304-aeeb342e1a91", "fullName": "San Siro", "address": {"city": "Milano", "country": "Italy"}, "images": []}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/franchises/110?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/seasons/2026/types/1/groups/1?lang=en&region=us"}
+- `https://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/seasons/2026/teams/110` chiavi ['$ref', 'id', 'guid', 'uid', 'alternateIds', 'slug', 'location', 'name', 'abbreviation', 'displayName', 'shortDisplayName', 'color', 'alternateColor', 'isActive', 'isAllStar', 'logos', 'record', 'athletes', 'venue', 'groups', 'statistics', 'leaders', 'links', 'injuries', 'notes', 'franchise', 'events', 'coaches', 'seasons', 'summary', 'isNational', 'form', 'defaultLeague']
+  - {"location": "Internazionale", "country": null, "countryCode": null, "nickname": null, "slug": "ita.inter_milan", "shortDisplayName": "Inter Milan"}
+  - venue: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/venues/26?lang=en&region=us", "id": "26", "guid": "171e1de6-a6e3-360e-8304-aeeb342e1a91", "fullName": "San Siro", "address": {"city": "Milano", "country": "Italy"}, "images": []}
+  - franchise: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/franchises/110?lang=en&region=us"}
+  - defaultLeague: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1?lang=en&region=us"}
+  - groups: {"$ref": "http://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1/seasons/2026/types/1/groups/1?lang=en&region=us"}

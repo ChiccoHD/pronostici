@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Partite in corso più ordinate", items: [
+    "Nell'elenco la scritta «adesso» delle partite in corso sta sopra i cerchi, con un pallino che lampeggia, e non tocca più le lettere 1 X 2 né la riga «prima del via»." ] },
   { d: "2026-11-27", t: "Tasto Preferiti con la campanella", items: [
     "Il tasto Preferiti in alto ora è una campanella: vuota se non segui partite, piena e con il numero delle partite seguite appena ne aggiungi una." ] },
   { d: "2026-11-27", t: "Formazioni a partita finita e preferiti più comodi", items: [

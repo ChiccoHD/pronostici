@@ -2449,8 +2449,11 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .acc-code { font: 800 20px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; text-align: center; padding: 14px 10px; border-radius: 14px; background: var(--soft); word-break: break-all; user-select: all; }
 .duel-reset { width: 100%; margin-top: 12px; }
 /* elenco, partita in corso: percentuali di adesso a destra, quelle di prima del via sotto */
-.fx-rings.fx-live { position: relative; padding-bottom: 12px; }
-.fx-rings.fx-live .fx-now { position: absolute; left: 0; right: 0; bottom: -2px; text-align: center; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #ef4444; }
+/* «adesso» sopra i cerchi, in una riga sua: non tocca le lettere 1 X 2 né la riga «prima del via» */
+.fx-rings.fx-live { flex-wrap: wrap; justify-content: center; align-content: center; row-gap: 3px; }
+.fx-rings.fx-live .fx-now { order: -1; flex: 0 0 100%; display: flex; align-items: center; justify-content: center; gap: 4px; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #ef4444; line-height: 1; }
+.fx-rings.fx-live .fx-now::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: lvpulse 1.6s ease-in-out infinite; }
+@keyframes lvpulse { 50% { opacity: .3; } }
 .fx-sub .fx-pre { white-space: nowrap; }
 .acc-gbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: 700 15px/1 inherit; cursor: pointer; margin: 4px 0 0; }
 .acc-cfg { width: 100%; box-sizing: border-box; font-size: 13px; margin: 6px 0 8px; resize: vertical; }

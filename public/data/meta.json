@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T16:23+00:00",
+ "updated": "2026-11-26T16:28+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -215,14 +215,22 @@
     "espn_uefa.europa": "261 giocate, 12 giorni controllati",
     "espn_uefa.europa.conf": "206 giocate, 12 giorni controllati",
     "abbinamenti_scartati": [
-     "Inter D'Escaldes ≠ Inter",
-     "Inter D'Escaldes ≠ Inter",
-     "Inter D'Escaldes ≠ Inter",
-     "Inter D'Escaldes ≠ Inter",
-     "Inter D'Escaldes ≠ Inter",
      "Inter D'Escaldes ≠ Inter"
     ],
     "partite_modello": "18398 di campionato, 746 di coppa",
+    "livello_senza_campionato": {
+     "level": 0.9,
+     "date": "2026-11-26",
+     "logloss": {
+      "1.0": 0.9876,
+      "0.9": 0.987,
+      "0.8": 0.9891,
+      "0.7": 0.9949,
+      "0.6": 1.0065,
+      "0.5": 1.0275
+     },
+     "squadre": 39
+    },
     "in_arrivo_champions": 18,
     "classifica_champions": "36 squadre (ESPN)",
     "in_arrivo_europa-league": 36,
@@ -275,7 +283,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T16:23+00:00"
+   "aggiornato": "2026-11-26T16:28+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -316,7 +324,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T16:23+00:00"
+   "aggiornato": "2026-11-26T16:28+00:00"
   },
   "archivio": {
    "partite": 607,
@@ -349,7 +357,7 @@
   "turnover": {
    "ok": true,
    "partite": 14,
-   "richieste": 1
+   "richieste": 0
   }
  }
 }

@@ -8,6 +8,9 @@
   // Ogni minuto: notifiche delle partite; gli orari dell'aggiornamento dati sono in worker/index.js (UPDATE)
   "triggers": { "crons": ["* * * * *"] },
   // Abbonamenti alle notifiche e stato delle partite: Durable Object con archivio SQLite (piano gratuito)
-  "durable_objects": { "bindings": [{ "name": "PUSH", "class_name": "Push" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Push"] }]
+  // Account (email e password, Google) e copia dei dati del telefono: worker/accounts.js
+  "durable_objects": { "bindings": [{ "name": "PUSH", "class_name": "Push" }, { "name": "ACCOUNTS", "class_name": "Accounts" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Push"] }, { "tag": "v2", "new_sqlite_classes": ["Accounts"] }],
+  // Client ID OAuth di Google (pubblico): vuoto = accesso con Google nascosto
+  "vars": { "GOOGLE_CLIENT_ID": "" }
 }

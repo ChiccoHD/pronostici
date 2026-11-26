@@ -77,7 +77,8 @@ function duelSection() {
   return sec(`${meIc("⚔️", "#7c3aed")}Tu contro il modello`, `<div class="duel-score"><div><b>${you}</b><small>prese da te</small></div><div class="vs">${done.length ? `${lead}` : "In attesa dei risultati"}</div><div><b>${mod}</b><small>prese dal modello</small></div></div>
     ${done.length ? `<p class="note">${done.length} sfide finite: l'hai battuto ${beat} ${beat === 1 ? "volta" : "volte"} (tu giusto, lui sbagliato), lui ti ha battuto ${lost}.${open.length ? ` In attesa: ${open.length}.` : ""}</p>
     <table class="vs-table duel-t"><tr><th>Campionato</th><th>Sfide</th><th>Tu</th><th>Modello</th></tr>${rows}</table>
-    <h3 class="lb-h3">Ultime sfide</h3><div class="rows">${last}</div>` : `<p class="note">${open.length} ${open.length === 1 ? "sfida aperta" : "sfide aperte"}: il punteggio arriva a fine partita.</p>`}`, `${done.length}`, "Tu sfida");
+    <h3 class="lb-h3">Ultime sfide</h3><div class="rows">${last}</div>` : `<p class="note">${open.length} ${open.length === 1 ? "sfida aperta" : "sfide aperte"}: il punteggio arriva a fine partita.</p>`}
+    <button type="button" class="btn-main alt duel-reset" id="duel-reset">Azzera e ricomincia</button>`, `${done.length}`, "Tu sfida");
 }
 
 /* ------------------------------------------------------------------ numero sull'icona dell'app */

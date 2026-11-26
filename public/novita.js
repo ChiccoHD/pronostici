@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Account e sincronizzazione", items: [
+    "In Tu puoi creare un account con email e password: schedine, squadre seguite, storico, sfide e impostazioni restano salvati e li ritrovi su ogni telefono, tablet o computer in cui accedi. Le modifiche si sincronizzano da sole.",
+    "Quando crei l'account ricevi un codice di recupero: serve se dimentichi la password.",
+    "Tu contro il modello: nuovo tasto «Azzera e ricomincia»." ] },
   { d: "2026-11-26", t: "Coppe europee: pronostici più precisi", items: [
     "Ogni squadra delle coppe parte dal livello della sua nazione (coefficiente UEFA): così una squadra norvegese o croata non viene più considerata forte come una spagnola o inglese solo perché domina il suo campionato. Sulle partite di coppa già giocate l'errore del modello scende da 0,987 a 0,941 (log-loss) e le percentuali si avvicinano molto a quelle dei bookmaker.",
     "Le squadre di cui non abbiamo il campionato (Andorra, Malta, Ucraina, Croazia, Serbia...) partono dal livello della loro nazione; quelle di serie B (es. Torreense) un po' più in basso." ] },

@@ -8,7 +8,9 @@ function showMe() {
   const st = s => slipState(s).cls;
   const openSlips = slips.filter(s => !["win", "lose"].includes(st(s))), won = slips.filter(s => st(s) === "win"), lost = slips.filter(s => st(s) === "lose");
   const closed = meClosed();
-  let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips);
+  let html = meHero(teams, openSlips, won, lost, closed);
+  if (typeof accountSection === "function") html += accountSection();
+  html += meTrend(closed, slips);
   if (typeof weekSection === "function") html += weekSection();
   if (typeof moneySection === "function") html += moneySection();
 
@@ -41,7 +43,7 @@ function showMe() {
 
   // dati sul telefono
   const bAt = load("backup_at", ""), bDays = bAt ? Math.floor((Date.now() - Date.parse(bAt)) / 864e5) : null;
-  html += sec(`${meIc("💾", "#64748b")}I tuoi dati`, `<p class="note" style="margin-top:0">Squadre seguite, schedine e storico restano solo su questo telefono. Per non perderli se cambi telefono o cancelli i dati del browser, crea un <b>link di backup</b>: aprendolo su un altro telefono ritrovi tutto.</p>
+  html += sec(`${meIc("💾", "#64748b")}I tuoi dati`, `<p class="note" style="margin-top:0">${typeof acct === "function" && acct() ? "I dati sono già salvati nel tuo account. Puoi comunque tenerne una copia in un link o in un file." : "Senza account, squadre seguite, schedine e storico restano solo su questo telefono. Per non perderli <b>accedi</b> (in cima a questa pagina) oppure crea un <b>link di backup</b>."}</p>
     <div class="bk-card ${bDays == null || bDays > 14 ? "warn" : ""}"><span class="bk-ic">🔗</span><span><b>Link di backup</b><small>${bDays == null ? "non ancora creato" : bDays === 0 ? "aggiornato oggi" : `ultimo ${bDays === 1 ? "ieri" : `${bDays} giorni fa`}`}${bDays != null && bDays > 14 ? ": conviene rifarlo" : ""}</small></span>
       <button type="button" class="btn-main" id="me-backup">${bAt ? "Aggiorna" : "Crea"}</button></div>
     <div class="me-acts"><button type="button" class="btn-main alt" id="me-export">Salva una copia in un file</button>
@@ -61,6 +63,11 @@ function showMe() {
   } catch { /* niente */ }
   if (typeof wireNotifs === "function") wireNotifs(); wirePlayed(); attachSlipStatus();
   if (typeof wireWeek === "function") wireWeek();
+  if (typeof wireAccount === "function") wireAccount();
+  document.getElementById("duel-reset")?.addEventListener("click", async () => {
+    if (!(await askConfirm("Tutte le sfide, anche quelle ancora aperte, vengono cancellate e il punteggio riparte da 0–0.", { title: "Azzerare Tu contro il modello?", ok: "Azzera", danger: true }))) return;
+    localStorage.removeItem("p_duel"); toast("Sfida azzerata"); showMe();
+  });
 
   document.getElementById("me-name")?.addEventListener("click", avatarSheet);
   $app.querySelectorAll("[data-unfollow]").forEach(b => b.onclick = () => { const l = myTeams(); l.splice(Number(b.dataset.unfollow), 1); saveMyTeams(l); showMe(); });
@@ -88,7 +95,7 @@ function showMe() {
 
 /* ------------------------------------------------------------------ backup in un link (niente server: i dati stanno nel link, compressi) */
 
-const BACKUP_KEYS = ["p_slips", "p_favs", "p_myteams", "p_follow", "p_notif", "p_name", "p_avatar", "p_theme", "p_sport", "p_news_seen", "p_shut"];
+const BACKUP_KEYS = ["p_slips", "p_favs", "p_myteams", "p_follow", "p_notif", "p_name", "p_avatar", "p_theme", "p_sport", "p_news_seen", "p_shut", "p_duel"];
 const b64u = {
   enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
   dec: s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0)),

@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Coppe: squadre di campionati piccoli più realistiche", items: [
+    "Le squadre di cui il modello non ha il campionato (Andorra, Malta, Kosovo, Gibilterra...) non partono più dalla media delle big europee ma da un livello più basso, scelto provando sulle partite di coppa già giocate. Poi i risultati in coppa lo correggono." ] },
   { d: "2026-11-26", t: "Coppe europee: squadre abbinate meglio", items: [
     "Corretto un errore nelle coppe: l'Inter d'Escaldes (Andorra) veniva presa per l'Inter, così il Copenaghen sembrava sfavorito. Ora ogni squadra viene cercata solo nel suo campionato, e Copenaghen, AGF, Rapid Vienna e Craiova usano anche lo storico del loro campionato." ] },
   { d: "2026-11-26", t: "Partita del giorno, quote nel tempo e altro", items: [

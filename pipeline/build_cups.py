@@ -46,6 +46,33 @@ def _cup_events(code: str, start: date, end: date, today: date, status: dict) ->
     return sorted(events.values(), key=lambda e: e["date"])
 
 
+PRIOR_LEVELS = (1.0, 0.9, 0.8, 0.7, 0.6, 0.5)
+
+
+def _prior_level(matches, cup_only, since, is_test, today, status) -> float:
+    """Sceglie il livello di partenza delle squadre senza campionato con la log-loss sulle coppe."""
+    path = CACHE / "cups" / "prior_level.json"
+    old = store.load(path, {})
+    if old.get("level") and old.get("date", "") >= (today - timedelta(days=7)).isoformat():
+        status["livello_senza_campionato"] = old
+        return old["level"]
+    res = {}
+    for lv in PRIOR_LEVELS:
+        try:
+            bt = S.backtest(matches, since, is_test=is_test, prior={t: lv for t in cup_only})
+            res[str(lv)] = bt["1x2"].get("logloss")
+        except Exception:
+            log.exception("Livello %s", lv)
+    ok = {k: v for k, v in res.items() if v is not None}
+    if not ok:
+        return 1.0
+    best = float(min(ok, key=ok.get))
+    out = {"level": best, "date": today.isoformat(), "logloss": res, "squadre": len(cup_only)}
+    store.save(path, out)
+    status["livello_senza_campionato"] = out
+    return best
+
+
 def _as_match(e: dict, home: str, away: str, comp: str) -> dict:
     return {"date": e["date"][:10], "home": home, "away": away, "hg": float(e["home"]["score"]),
             "ag": float(e["away"]["score"]), "comp": comp}
@@ -178,10 +205,17 @@ def build_men(today: date):
                 cup_matches.append(_as_match(e, nm(e["home"]), nm(e["away"]), key))
     matches = sorted(pool + cup_matches, key=lambda m: m["date"])
     status["partite_modello"] = f"{len(pool)} di campionato, {len(cup_matches)} di coppa"
-    ratings = S.fit(matches, today)
+    # Squadre senza storico di campionato (Andorra, Malta, Kosovo...): partono sotto la media,
+    # al livello scelto provando sulle partite di coppa già giocate (cache settimanale).
+    league_teams = {t for m in pool for t in (m["home"], m["away"])}
+    cup_only = {t for m in cup_matches for t in (m["home"], m["away"])} - league_teams
+    is_cup = lambda m: m.get("comp") is not None
+    lvl = _prior_level(matches, cup_only, date(y - 1, 9, 1).isoformat(), is_cup, today, status)
+    prior = {t: lvl for t in cup_only}
+    ratings = S.fit(matches, today, prior=prior)
     if ratings is None:
         return [], {}, {**status, "errore": "storico insufficiente"}
-    bt = S.backtest(matches, date(y - 1, 9, 1).isoformat(), is_test=lambda m: m.get("comp") is not None)
+    bt = S.backtest(matches, date(y - 1, 9, 1).isoformat(), is_test=is_cup, prior=prior)
     reliability["coppe"] = {"name": "Coppe europee", **bt}
     share = S.ht_share(pool)
     for key, cup in CUPS.items():

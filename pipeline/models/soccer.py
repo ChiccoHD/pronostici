@@ -60,7 +60,9 @@ def sot_conversion(matches: list[dict]) -> float | None:
     return g / s if s > 50 else None
 
 
-def fit(matches: list[dict], as_of: date, iters: int = 80) -> Ratings | None:
+def fit(matches: list[dict], as_of: date, iters: int = 80, prior: dict | None = None) -> Ratings | None:
+    """prior: {squadra: livello} per le squadre senza storico di campionato; il voto parte da lì
+    (attacco = livello, difesa = 1/livello) invece che dalla media."""
     hist = [m for m in matches if m["date"] < as_of.isoformat()]
     if len(hist) < 30:
         return None
@@ -79,11 +81,12 @@ def fit(matches: list[dict], as_of: date, iters: int = 80) -> Ratings | None:
     H = 1.25
     base = (w * (yh + ya)).sum() / (2 * w.sum()) / math.sqrt(H)
     k = PRIOR
+    lv = np.array([(prior or {}).get(t, 1.0) for t in teams])
     for _ in range(iters):
-        num = np.bincount(hi, w * yh, n) + np.bincount(ai, w * ya, n) + k
+        num = np.bincount(hi, w * yh, n) + np.bincount(ai, w * ya, n) + k * lv
         den = np.bincount(hi, w * base * H * D[ai], n) + np.bincount(ai, w * base * D[hi], n) + k
         A = num / den
-        num = np.bincount(ai, w * yh, n) + np.bincount(hi, w * ya, n) + k
+        num = np.bincount(ai, w * yh, n) + np.bincount(hi, w * ya, n) + k / lv
         den = np.bincount(ai, w * base * H * A[hi], n) + np.bincount(hi, w * base * A[ai], n) + k
         D = num / den
         H = (w * yh).sum() / (w * base * A[hi] * D[ai]).sum()
@@ -372,7 +375,7 @@ def player_finalize(base: list[dict], lam_team: float, team_avg_goals: float) ->
 
 # --------------------------------------------------------------- verifica affidabilità
 
-def backtest(matches: list[dict], from_date: str, is_test=None) -> dict:
+def backtest(matches: list[dict], from_date: str, is_test=None, prior: dict | None = None) -> dict:
     """Rifà le previsioni settimana per settimana usando solo i dati disponibili prima.
     is_test: funzione che sceglie quali partite verificare (tutte se None)."""
     s1x2, sou = Scorer(), Scorer()
@@ -383,7 +386,7 @@ def backtest(matches: list[dict], from_date: str, is_test=None) -> dict:
         weeks[d.isocalendar()[:2]].append(m)
     for _, ms in sorted(weeks.items()):
         first = min(date.fromisoformat(m["date"]) for m in ms)
-        rt = fit(matches, first, iters=40)
+        rt = fit(matches, first, iters=40, prior=prior)
         if rt is None:
             continue
         for m in ms:

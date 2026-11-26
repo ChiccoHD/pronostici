@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T15:56+00:00",
+ "updated": "2026-11-26T16:23+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -214,6 +214,14 @@
     "espn_uefa.champions": "279 giocate, 12 giorni controllati",
     "espn_uefa.europa": "261 giocate, 12 giorni controllati",
     "espn_uefa.europa.conf": "206 giocate, 12 giorni controllati",
+    "abbinamenti_scartati": [
+     "Inter D'Escaldes ≠ Inter",
+     "Inter D'Escaldes ≠ Inter",
+     "Inter D'Escaldes ≠ Inter",
+     "Inter D'Escaldes ≠ Inter",
+     "Inter D'Escaldes ≠ Inter",
+     "Inter D'Escaldes ≠ Inter"
+    ],
     "partite_modello": "18398 di campionato, 746 di coppa",
     "in_arrivo_champions": 18,
     "classifica_champions": "36 squadre (ESPN)",
@@ -222,17 +230,14 @@
     "in_arrivo_conference": 36,
     "classifica_conference": "36 squadre (ESPN)",
     "squadre_senza_campionato": [
-     "AGF",
      "Ararat-Armenia",
      "Borac Banja Luka",
      "Breidablik",
      "CSKA Sofia",
-     "CSU Craiova",
      "Dinamo Zagreb",
      "Drita Gjilan",
      "Dynamo Kyiv",
      "Egnatia",
-     "F.C. København",
      "FC Noah",
      "FK Qarabag",
      "Ferencvaros",
@@ -240,6 +245,7 @@
      "Hamrun Spartans",
      "Hapoel Be'er",
      "Iberia 1999",
+     "Inter D'Escaldes",
      "Jablonec",
      "KF Shkëndija",
      "Kairat Almaty",
@@ -251,7 +257,6 @@
      "NK Celje",
      "Omonia Nicosia",
      "Pafos",
-     "Rapid Vienna",
      "Red Star Belgrade",
      "Riga FC",
      "Rijeka",
@@ -270,7 +275,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T15:55+00:00"
+   "aggiornato": "2026-11-26T16:23+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -311,7 +316,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T15:56+00:00"
+   "aggiornato": "2026-11-26T16:23+00:00"
   },
   "archivio": {
    "partite": 607,
@@ -321,7 +326,7 @@
    "soccer": "x0.94 su 395 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 101 partite",
-   "partite_ritoccate": 430
+   "partite_ritoccate": 89
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -344,7 +349,7 @@
   "turnover": {
    "ok": true,
    "partite": 14,
-   "richieste": 22
+   "richieste": 1
   }
  }
 }

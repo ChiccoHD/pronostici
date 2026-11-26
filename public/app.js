@@ -312,8 +312,28 @@ async function cachedJSON(path) {
   } catch { return null; }
 }
 
+/* nomi delle squadre in italiano (clubs_it.json, lo stesso elenco della pipeline): aggiorna una volta
+   squadre seguite, schedine, giocate e sfide salvate con i nomi vecchi */
+const NAMES_IT_V = "1";
+async function migrateNamesIt() {
+  if (load("names_it", "") === NAMES_IT_V) return;
+  try {
+    const r = await fetch("clubs_it.json", { cache: "no-cache" });
+    if (!r.ok) return;
+    const m = Object.fromEntries(Object.entries(await r.json()).filter(([k, v]) => k !== v));
+    const keys = Object.keys(m).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    const re = new RegExp(`(?<![\\p{L}\\p{N}_])(${keys.join("|")})(?![\\p{L}\\p{N}_])`, "gu");
+    for (const k of ["p_myteams", "p_slips", "p_favs", "p_duel", "p_slip", "p_finals"]) {
+      const v = localStorage.getItem(k);
+      if (v) { const nv = v.replace(re, x => m[x]); if (nv !== v) localStorage.setItem(k, nv); }
+    }
+    save("names_it", NAMES_IT_V);
+  } catch { /* riprova alla prossima apertura */ }
+}
+
 async function boot() {
   measureHeader();
+  migrateNamesIt();
   window.addEventListener("resize", measureHeader);
   // prima la copia sul telefono (l'elenco compare subito), poi i dati dalla rete in sottofondo
   const fresh = Promise.all([getJSON("data/index.json"), getJSON("data/meta.json")]);

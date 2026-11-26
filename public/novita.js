@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Squadre con il nome italiano", items: [
+    "Le squadre straniere ora hanno il nome che si usa in Italia: Marsiglia, Lione, Nizza, Bayern Monaco, Barcellona, Siviglia, Sporting Lisbona, Stella Rossa, Dinamo Zagabria, Copenaghen, Inter, Milan, Roma e altre. Squadre seguite e schedine salvate si aggiornano da sole." ] },
   { d: "2026-11-26", t: "Account e sincronizzazione", items: [
     "In Tu puoi creare un account con email e password: schedine, squadre seguite, storico, sfide e impostazioni restano salvati e li ritrovi su ogni telefono, tablet o computer in cui accedi. Le modifiche si sincronizzano da sole.",
     "Quando crei l'account ricevi un codice di recupero: serve se dimentichi la password.",

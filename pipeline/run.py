@@ -115,6 +115,8 @@ def main():
         picks.write([e["id"] for e in keep if e["date"] > now.isoformat()[:16]])
     except Exception:
         logging.exception("Classifica delle giocate non creata")
+    from . import clubs_it
+    clubs_it.apply()                   # nomi delle squadre in italiano, per ultimo (i confronti tra fonti sono già fatti)
     logging.info("Fatto: %d eventi", len(keep))
 
 

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T17:10+00:00",
+ "updated": "2026-11-26T17:21+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -182,7 +182,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 94, Wikipedia 39, ESPN 8"
    },
-   "aggiornato": "2026-11-26T17:08+00:00"
+   "aggiornato": "2026-11-26T17:18+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -196,7 +196,7 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 270,
-   "aggiornato": "2026-11-26T17:10+00:00"
+   "aggiornato": "2026-11-26T17:20+00:00"
   },
   "tennis": {
    "atp": {
@@ -207,7 +207,7 @@
     "storico": "12472 incontri (+0)",
     "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-26T17:10+00:00"
+   "aggiornato": "2026-11-26T17:20+00:00"
   },
   "coppe": {
    "uomini": {
@@ -247,14 +247,14 @@
      "Borac Banja Luka",
      "Breidablik",
      "CSKA Sofia",
-     "Dinamo Zagreb",
+     "Dinamo Zagabria",
      "Drita Gjilan",
-     "Dynamo Kyiv",
+     "Dinamo Kiev",
      "Egnatia",
      "FC Noah",
      "FK Qarabag",
      "Ferencvaros",
-     "Hajduk Split",
+     "Hajduk Spalato",
      "Hamrun Spartans",
      "Hapoel Be'er",
      "Iberia 1999",
@@ -270,17 +270,17 @@
      "NK Celje",
      "Omonia Nicosia",
      "Pafos",
-     "Red Star Belgrade",
+     "Stella Rossa",
      "Riga FC",
      "Rijeka",
      "Sabah FK",
      "Shakhtar Donetsk",
      "Sigma Olomouc",
-     "Slavia Prague",
+     "Slavia Praga",
      "Slovan Bratislava",
-     "Sparta Prague",
+     "Sparta Praga",
      "Torreense",
-     "Viktoria Plzen",
+     "Viktoria Plzeň",
      "Zrinjski Mostar"
     ]
    },
@@ -288,7 +288,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T17:09+00:00"
+   "aggiornato": "2026-11-26T17:20+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -325,18 +325,18 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-26T17:09+00:00"
+   "aggiornato": "2026-11-26T17:20+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T17:10+00:00"
+   "esiti": "1 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-26T17:21+00:00"
   },
   "archivio": {
-   "partite": 607,
-   "nuove": 0
+   "partite": 608,
+   "nuove": 1
   },
   "taratura": {
-   "soccer": "x0.94 su 395 partite",
+   "soccer": "x0.93 su 396 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 101 partite",
    "partite_ritoccate": 430
@@ -356,9 +356,9 @@
    "mercato_22": "87 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-26T17:10+00:00"
+   "aggiornato": "2026-11-26T17:21+00:00"
   },
-  "quote_in_movimento": 6,
+  "quote_in_movimento": 7,
   "turnover": {
    "ok": true,
    "partite": 14,

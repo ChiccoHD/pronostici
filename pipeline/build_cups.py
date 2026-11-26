@@ -71,7 +71,14 @@ SLUG_CC = {"eng": "England", "ita": "Italy", "esp": "Spain", "ger": "Germany", "
            "lux": "Luxembourg", "mne": "Montenegro", "wal": "Wales", "smr": "San Marino"}
 COUNTRY_ALIAS = {"Türkiye": "Turkey", "Czech Republic": "Czechia", "Republic of Ireland": "Ireland",
                  "Bosnia and Herzegovina": "Bosnia", "Bosnia-Herzegovina": "Bosnia", "Macedonia": "North Macedonia"}
-PRIOR_GRID = [(g, b) for g in (1.0, 0.9) for b in (0.0, 0.2, 0.35, 0.5, 0.7)]   # livello = g · (coef/30)^b
+# livello di partenza = (coef/30)^b; scope "cup": solo squadre senza campionato (senza nazione: NO_COUNTRY),
+# "all": anche le squadre dei campionati, così la forza dei campionati non dipende solo dalle poche partite di coppa
+PRIOR_GRID = [("cup", 0.0), ("cup", 0.2), ("cup", 0.35), ("all", 0.1), ("all", 0.2), ("all", 0.3), ("all", 0.45)]
+NO_COUNTRY = 0.9
+CODE_COUNTRY = {"I1": "Italy", "E0": "England", "SP1": "Spain", "D1": "Germany", "F1": "France", "N1": "Netherlands",
+                "T1": "Turkey", "SC0": "Scotland", "B1": "Belgium", "P1": "Portugal", "G1": "Greece", "AUT": "Austria",
+                "DNK": "Denmark", "POL": "Poland", "ROU": "Romania", "SWE": "Sweden", "SWZ": "Switzerland", "NOR": "Norway",
+                "IRL": "Ireland", "FIN": "Finland"}   # le serie B (I2, E1) restano fuori
 COUNTRY_MAX_REQ = 40
 COUNTRY_NET = True   # spento dai dati di esempio
 
@@ -127,33 +134,37 @@ def team_countries(cup_events: dict, ids: dict, status: dict) -> dict:
     return out
 
 
-def _levels(cup_only, countries, g, b) -> dict:
-    return {t: g * min(1.15, (UEFA_COEF[countries[t]] / COEF_REF) ** b) if t in countries else g for t in cup_only}
+def _levels(cup_only, countries, league_country, scope, b) -> dict:
+    lv = lambda c: (UEFA_COEF[c] / COEF_REF) ** b
+    out = {t: lv(countries[t]) if t in countries else NO_COUNTRY for t in cup_only}
+    if scope == "all":
+        out.update({t: lv(c) for t, c in league_country.items()})
+    return out
 
 
-def _prior_level(matches, cup_only, countries, since, is_test, today, status) -> tuple[float, float]:
-    """Sceglie (g, b) con la log-loss sulle coppe: livello di partenza = g · (coefficiente della nazione / 30)^b."""
+def _prior_level(matches, cup_only, countries, league_country, since, is_test, today, status) -> tuple[str, float]:
+    """Sceglie (scope, b) con la log-loss sulle coppe: livello di partenza = (coefficiente della nazione / 30)^b."""
     path = CACHE / "cups" / "prior_level.json"
     old = store.load(path, {})
-    if old.get("g") and old.get("date", "") >= (today - timedelta(days=7)).isoformat():
+    if old.get("scope") and old.get("date", "") >= (today - timedelta(days=7)).isoformat():
         status["livello_senza_campionato"] = old
-        return old["g"], old["b"]
+        return old["scope"], old["b"]
     res = {}
-    for g, b in PRIOR_GRID:
+    for scope, b in PRIOR_GRID:
         try:
-            bt = S.backtest(matches, since, is_test=is_test, prior=_levels(cup_only, countries, g, b))
-            res[f"{g}|{b}"] = bt["1x2"].get("logloss")
+            bt = S.backtest(matches, since, is_test=is_test, prior=_levels(cup_only, countries, league_country, scope, b))
+            res[f"{scope}|{b}"] = bt["1x2"].get("logloss")
         except Exception:
-            log.exception("Livello %s %s", g, b)
+            log.exception("Livello %s %s", scope, b)
     ok = {k: v for k, v in res.items() if v is not None}
     if not ok:
-        return 1.0, 0.0
-    g, b = map(float, min(ok, key=ok.get).split("|"))
-    out = {"g": g, "b": b, "date": today.isoformat(), "logloss": res, "squadre": len(cup_only),
+        return "cup", 0.0
+    scope, b = min(ok, key=ok.get).split("|")
+    out = {"scope": scope, "b": float(b), "date": today.isoformat(), "logloss": res, "squadre": len(cup_only),
            "con_nazione": sum(1 for t in cup_only if t in countries)}
     store.save(path, out)
     status["livello_senza_campionato"] = out
-    return g, b
+    return scope, float(b)
 
 
 def _as_match(e: dict, home: str, away: str, comp: str) -> dict:
@@ -249,6 +260,9 @@ def build_men(today: date):
             rows = store.load(path, [])
             status.setdefault("campionati_mancanti", []).append(country)
         pool += rows
+        for r in rows:
+            for t in (r["home"], r["away"]):
+                codes_of.setdefault(t, set()).add(country)
     matcher = Matcher([m["home"] for m in pool] + [m["away"] for m in pool], min_score=0.86)
     # Controllo del campionato: una squadra dei nostri campionati ha l'id ESPN nella base giocatori.
     # Senza questo «Inter D'Escaldes» (Andorra) veniva presa per l'Inter.
@@ -304,8 +318,9 @@ def build_men(today: date):
         countries = team_countries(cup_events, ids, status)
     except Exception:
         log.exception("Nazioni"); countries = {}
-    g, b = _prior_level(matches, cup_only, countries, date(y - 1, 9, 1).isoformat(), is_cup, today, status)
-    prior = _levels(cup_only, countries, g, b)
+    league_country = {t: CODE_COUNTRY[c] for t, cs in codes_of.items() for c in sorted(cs) if c in CODE_COUNTRY}
+    scope, b = _prior_level(matches, cup_only, countries, league_country, date(y - 1, 9, 1).isoformat(), is_cup, today, status)
+    prior = _levels(cup_only, countries, league_country, scope, b)
     ratings = S.fit(matches, today, prior=prior)
     if ratings is None:
         return [], {}, {**status, "errore": "storico insufficiente"}

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T18:56+00:00",
+ "updated": "2026-11-26T23:31+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -144,7 +144,7 @@
     "espn_tabellini": "521 partite",
     "meteo": "8 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 6, Wikipedia 228, ESPN 226, TheSportsDB 2, da controllare 98"
+    "foto_giocatori": "senza foto 12, Wikipedia 228, ESPN 226, TheSportsDB 16, da controllare 78"
    },
    "eliteserien": {
     "football-data": "ok",
@@ -182,7 +182,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 94, Wikipedia 39, ESPN 8"
    },
-   "aggiornato": "2026-11-26T18:54+00:00"
+   "aggiornato": "2026-11-26T23:30+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -196,7 +196,7 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 270,
-   "aggiornato": "2026-11-26T18:56+00:00"
+   "aggiornato": "2026-11-26T23:31+00:00"
   },
   "tennis": {
    "atp": {
@@ -204,21 +204,21 @@
     "espn": "0 incontri in programma"
    },
    "wta": {
-    "storico": "12472 incontri (+0)",
-    "espn": "6 incontri in programma"
+    "storico": "12475 incontri (+3)",
+    "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-26T18:56+00:00"
+   "aggiornato": "2026-11-26T23:31+00:00"
   },
   "coppe": {
    "uomini": {
     "espn_uefa.champions": "279 giocate, 12 giorni controllati",
-    "espn_uefa.europa": "261 giocate, 12 giorni controllati",
-    "espn_uefa.europa.conf": "207 giocate, 12 giorni controllati",
+    "espn_uefa.europa": "279 giocate, 12 giorni controllati",
+    "espn_uefa.europa.conf": "224 giocate, 12 giorni controllati",
     "abbinamenti_scartati": [
      "Inter D'Escaldes ≠ Inter"
     ],
-    "partite_modello": "18398 di campionato, 747 di coppa",
-    "nazioni_squadre": "31 su 39 (0 richieste)",
+    "partite_modello": "18398 di campionato, 782 di coppa",
+    "nazioni_squadre": "31 su 40 (1 richieste)",
     "livello_senza_campionato": {
      "scope": "all",
      "b": 0.6,
@@ -238,9 +238,9 @@
     },
     "in_arrivo_champions": 18,
     "classifica_champions": "36 squadre (ESPN)",
-    "in_arrivo_europa-league": 36,
+    "in_arrivo_europa-league": 18,
     "classifica_europa-league": "36 squadre (ESPN)",
-    "in_arrivo_conference": 35,
+    "in_arrivo_conference": 18,
     "classifica_conference": "36 squadre (ESPN)",
     "squadre_senza_campionato": [
      "Ararat-Armenia",
@@ -280,6 +280,7 @@
      "Slovan Bratislava",
      "Sparta Praga",
      "Torreense",
+     "Universitatea Craiova",
      "Viktoria Plzeň",
      "Zrinjski Mostar"
     ]
@@ -288,7 +289,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T18:55+00:00"
+   "aggiornato": "2026-11-26T23:30+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -325,21 +326,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-26T18:55+00:00"
+   "aggiornato": "2026-11-26T23:31+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T18:56+00:00"
+   "esiti": "38 nuovi esiti, 3 calendari letti",
+   "aggiornato": "2026-11-26T23:31+00:00"
   },
   "archivio": {
-   "partite": 608,
-   "nuove": 0
+   "partite": 646,
+   "nuove": 38
   },
   "taratura": {
-   "soccer": "x0.93 su 396 partite",
+   "soccer": "x0.96 su 431 partite",
    "nba": "x1.09 su 110 partite",
-   "tennis": "x0.92 su 101 partite",
-   "partite_ritoccate": 411
+   "tennis": "x0.92 su 104 partite",
+   "partite_ritoccate": 391
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -353,16 +354,16 @@
     "logloss_uniform": 3.091,
     "brier_podium": 0.085
    },
-   "mercato_22": "87 prezzi",
+   "mercato_22": "86 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-26T18:56+00:00"
+   "aggiornato": "2026-11-26T23:31+00:00"
   },
-  "quote_in_movimento": 8,
+  "quote_in_movimento": 2,
   "turnover": {
    "ok": true,
    "partite": 14,
-   "richieste": 17
+   "richieste": 7
   }
  }
 }

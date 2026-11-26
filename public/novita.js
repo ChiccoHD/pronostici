@@ -1,6 +1,10 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Preferiti, colori e formazioni", items: [
+    "Nuovo tasto ⭐ Preferiti accanto a Classifiche: le partite che segui con la campanella (anche in corso, con il risultato) e le prossime partite delle tue squadre, a portata di tocco. Il numero sul tasto dice quante partite seguite devono ancora finire.",
+    "Squadre con colori simili (es. Olympiakos–Milan, tutte e due rosse): la seconda ora prende la sua seconda maglia o un colore ben diverso.",
+    "Formazioni ufficiali: i giocatori nel campo sono messi in base al ruolo indicato da ESPN (terzino, centrale, mediano, esterno, trequartista, punta), non più in base a un numero d'ordine che a volte li spostava fuori posizione. La formazione viene ricontrollata ogni 4 minuti fino al via: se ESPN la corregge, si aggiorna da sola. Se è incompleta o il modulo non torna, viene mostrata in elenco." ] },
   { d: "2026-11-26", t: "Partite in corso nell'elenco", items: [
     "Nell'elenco, per le partite in corso i cerchi a destra mostrano le percentuali di adesso (calcolate sul risultato e sul tempo che manca); sotto resta il pronostico di prima del via, es. «1: 45% · X: 28% · 2: 27%»." ] },
   { d: "2026-11-26", t: "Squadre con il nome italiano", items: [

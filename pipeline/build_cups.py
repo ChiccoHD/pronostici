@@ -227,7 +227,7 @@ def _index_entry(d):
     return {"id": d["id"], "sport": "soccer", "league": d["league"], "league_name": d["league_name"],
             "date": d["date"], "home": d["home"]["name"], "away": d["away"]["name"],
             "home_short": d["home"].get("abbr") or d["home"]["short"], "away_short": d["away"].get("abbr") or d["away"]["short"],
-            "home_color": d["home"].get("color"), "away_color": d["away"].get("color"),
+            "home_color": d["home"].get("color"), "away_color": d["away"].get("color"), "home_alt": d["home"].get("alt"), "away_alt": d["away"].get("alt"),
             "home_logo": d["home"].get("logo"), "away_logo": d["away"].get("logo"),
             "main": mk["1x2"], "main_labels": ["1", "X", "2"], "book": (d.get("book") or {}).get("1x2"),
             "extra": {"Over 2,5": mk["ou"]["2.5"], "Goal": mk["btts"]}, "xg": mk["xg"]}

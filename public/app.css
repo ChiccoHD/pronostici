@@ -2456,3 +2456,9 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .acc-cfg { width: 100%; box-sizing: border-box; font-size: 13px; margin: 6px 0 8px; resize: vertical; }
 .acc-av.on { box-shadow: 0 0 0 3px rgba(34,197,94,.35); }
 .acc-av.ko { background: linear-gradient(135deg, #ef4444, #f97316); }
+/* Preferiti */
+.fav-btn { position: relative; }
+.fav-btn svg { stroke: #f59e0b; fill: rgba(245,158,11,.18); stroke-width: 2; stroke-linejoin: round; }
+.fav-n { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #f59e0b; color: #1c1300; font: 800 10.5px/17px inherit; font-style: normal; text-align: center; box-sizing: border-box; }
+.fav-h { font-size: 15px; margin: 18px 2px 4px; display: flex; align-items: center; gap: 6px; }
+.fav-h small { color: var(--ink-3); font-weight: 700; }

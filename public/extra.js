@@ -219,6 +219,44 @@ function showTeamCalendar() {
     <p class="note">Con le notifiche attive (in Tu) la mattina del giorno della partita arriva un promemoria con l'orario e il pronostico.</p>`;
 }
 
+/* ------------------------------------------------------------------ Preferiti */
+/* #/preferiti, dal tasto con la stella accanto a Classifiche: partite seguite con la campanella (anche in corso o appena
+   finite), prossime partite delle squadre seguite e giocate salvate ancora aperte */
+function favEvents() {
+  const ids = new Set(typeof followed === "function" ? followed().map(x => x.id) : []);
+  return INDEX.events.filter(e => ids.has(e.id)).sort((a, b) => a.date.localeCompare(b.date));
+}
+function favBtn() {
+  const n = favEvents().filter(e => !e.final).length;
+  return `<a class="std-btn fav-btn" href="#/preferiti" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Preferiti</span>${n ? `<em class="fav-n">${n}</em>` : ""}</a>`;
+}
+function showFavorites() {
+  const back = backBtn("Partite", "#/");
+  const evs = favEvents();
+  const teams = typeof myTeams === "function" ? myTeams() : [];
+  const seen = new Set(evs.map(e => e.id));
+  const lim = Date.now() + 7 * 864e5;
+  const teamEvs = INDEX.events.filter(e => !seen.has(e.id) && !e.final && Date.parse(e.date) > Date.now() - 3 * 3600e3 && Date.parse(e.date) < lim && teams.some(t => teamPlays(t, e)))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const open = (typeof favs === "function" ? favs() : []).filter(f => !f.result);
+  const group = list => {
+    const days = {};
+    for (const e of list) (days[isoDay(e.date)] ||= []).push(e);
+    return Object.entries(days).map(([k, l]) => `<h2 class="day">${esc(dayChipLabel(k))}<span>${new Date(k + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</span></h2><section class="group">${l.map(fixture).join("")}</section>`).join("");
+  };
+  $app.innerHTML = back + `<h1 class="page-h">Preferiti</h1>
+    <h2 class="fav-h">🔔 Partite seguite <small>${evs.length}</small></h2>
+    ${evs.length ? group(evs) : `<div class="empty"><b>Nessuna partita seguita</b>Tocca la campanella 🔔 di una partita, nell'elenco o nella scheda: la ritrovi qui e ti arrivano gli avvisi.</div>`}
+    ${teams.length ? `<h2 class="fav-h">⭐ Le tue squadre, prossimi 7 giorni <small>${teamEvs.length}</small></h2>${teamEvs.length ? group(teamEvs) : `<p class="note">Nessuna partita delle tue squadre nei prossimi giorni.</p>`}` : ""}
+    ${open.length ? `<a class="std-link" href="#/schedina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/></svg>${open.length} ${open.length === 1 ? "giocata salvata" : "giocate salvate"} nella schedina<span>›</span></a>` : ""}`;
+  // partite in corso: punteggio e percentuali di adesso, aggiornati finché la pagina resta aperta
+  if (typeof liveData === "function" && evs.concat(teamEvs).some(e => !e.final && Date.parse(e.date) < Date.now())) {
+    clearTimeout(FAV_T);
+    FAV_T = setTimeout(() => liveData(7000).then(() => { if (location.hash === "#/preferiti" && !document.hidden) { const y = scrollY; showFavorites(); scrollTo(0, y); } }).catch(() => {}), 15000);
+  }
+}
+let FAV_T = 0;
+
 /* ------------------------------------------------------------------ pagina del giocatore (NBA e calcio) */
 /* #/giocatore/<partita>/<home|away>/<id ESPN>: dati della prossima partita (file della partita) e partita per partita
    dalla gamelog pubblica di ESPN (letta dal telefono, verificata con Verifica fonti modo giocatori). */

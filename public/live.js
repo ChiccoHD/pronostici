@@ -548,12 +548,22 @@ async function attachLineups(d) {
     if (start - 90 * 60e3 - now < 3 * 3600e3) lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, start - 90 * 60e3 - now);
     return;
   }
-  let lu = LINEUPS.get(d.id);
+  const old = LINEUPS.get(d.id), fresh = old && Date.now() - old.at < 3.5 * 60e3;
+  let lu = fresh ? old : null;
   if (!lu) { try { lu = await fetchLineups(tg); } catch { lu = null; } }
   if (location.hash !== hash) return;
-  if (lu) { LINEUPS.set(d.id, lu); showLineups(d, lu); }
-  else lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, 3 * 60e3);
+  if (lu) {
+    lu.at = lu.at || Date.now();
+    lu.sig = lu.sig || lineupSig(lu);
+    const changed = old && old.sig !== lu.sig;
+    LINEUPS.set(d.id, lu);
+    if (!old || changed || !document.getElementById("lu-top")) showLineups(d, lu);
+    if (changed) toast("Formazioni aggiornate da ESPN");
+  }
+  // ESPN a volte pubblica prima formazioni provvisorie o con ruoli sbagliati: ricontrollo ogni 4 minuti fino a poco dopo il via
+  if (Date.now() < start + 15 * 60e3) lineupTimer = later(() => { if (location.hash === hash) attachLineups(d); }, (lu ? 4 : 3) * 60e3);
 }
+const lineupSig = lu => ["home", "away"].map(s => `${lu[s].formation}|${lu[s].starters.map(p => `${p.pid}:${p.pos}:${p.fp}`).join(",")}`).join("#");
 
 /* ------------------------------------------------------------------ come sta andando una giocata salvata */
 

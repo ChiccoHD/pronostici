@@ -191,10 +191,24 @@ function flagColors(ccA, ccB) {
   return [ca, cb];
 }
 
+/* distanza tra due colori ("redmean", 0-765): sotto COLOR_NEAR due squadre sembrano uguali */
+const COLOR_NEAR = 150;
+function colorDist(x, y) {
+  const p = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ""); if (!m) return null; const v = parseInt(m[1], 16); return [v >> 16, (v >> 8) & 255, v & 255]; };
+  const a = p(x), b = p(y);
+  if (!a || !b) return 999;
+  const r = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+  return Math.sqrt((2 + r / 256) * dr * dr + 4 * dg * dg + (2 + (255 - r) / 256) * db * db);
+}
+const COLOR_SPARE = ["#1d4ed8", "#111827", "#f59e0b", "#0d9488", "#7c3aed", "#ea580c"];
 function teamColors(a, b) {
   const pick = (c, alt) => usable(c) ? c : usable(alt) ? alt : null;
   let ca = pick(a?.color, a?.alt) || "#6d5a6b", cb = pick(b?.color, b?.alt) || "#a08a9e";
-  if (ca.toLowerCase() === cb.toLowerCase()) cb = usable(b?.alt) && b.alt.toLowerCase() !== ca.toLowerCase() ? b.alt : "#a08a9e";
+  if (colorDist(ca, cb) < COLOR_NEAR) {
+    // colori troppo simili (es. due rosse): la seconda maglia degli ospiti, altrimenti un colore di riserva lontano da quello di casa
+    if (usable(b?.alt) && colorDist(ca, b.alt) >= COLOR_NEAR) cb = b.alt;
+    else cb = COLOR_SPARE.reduce((best, c) => colorDist(ca, c) > colorDist(ca, best) ? c : best, COLOR_SPARE[0]);
+  }
   return [ca, cb];
 }
 const onColor = hex => (lum(hex) ?? 0) > .36 ? "#20162b" : "#ffffff";
@@ -446,6 +460,7 @@ function route() {
   if (view === "affidabilita") { location.replace("#/info/affidabilita"); return; }
   if (view === "tu") return showMe();
   if (view === "calendario") return showTeamCalendar();
+  if (view === "preferiti") return showFavorites();
   if (view === "giocatore" && arg) { const [, , e, s, p] = location.hash.split("/"); return showPlayer(decodeURIComponent(e), s, decodeURIComponent(p)); }
   if (view === "migliori") return showBest();
   if (view === "schedina") return showSlip();
@@ -731,7 +746,7 @@ function renderList() {
   };
   let html = `<div class="search-row"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
     <input id="q" type="search" placeholder="Cerca squadra o tennista" autocomplete="off" enterkeyhint="search" aria-label="Cerca" value="${esc(state.q || "")}"></div>
-    <a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
+    ${favBtn()}<a class="std-btn" href="#/classifiche/${state.sport === "nba" ? "nba" : state.sport === "f1" ? "f1" : TABLE_LEAGUES.some(([k]) => k === state.league) ? state.league : ""}" aria-label="Classifiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Classifiche</span></a></div>
     <div id="search-res"></div><div id="list-main">${todayWidget()}<div id="f-mark"></div><div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     sportBtn(s, count(s.key), s.key === "f1" ? "sessioni" : "partite")).join("")}</div>`;
   const seg = [["all", "Tutte", stCount(bySport, "all")], ["live", "In diretta", liveN ?? "…"], ["next", "Da giocare", stCount(bySport, "next")], ["done", "Concluse", stCount(bySport, "done")]];
@@ -980,7 +995,7 @@ function liveMin(L) {
 }
 function fixtureLive(e, L) {
   const three = e.main.length === 3, labels = three ? ["1", "X", "2"] : ["1", "2"];
-  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color, alt: e.home_alt }, { color: e.away_color, alt: e.away_alt });
   const H = Number(L.H), A = Number(L.A), max = Math.max(...e.main);
   const now = Number.isFinite(H) && Number.isFinite(A) ? (H > A ? 0 : H < A ? (three ? 2 : 1) : three ? 1 : null) : null;
   let sub = "";
@@ -1010,7 +1025,7 @@ function fixture(e) {
   if (L) return fixtureLive(e, L);
   const three = e.main.length === 3;
   const pH = e.main[0], pA = e.main[three ? 2 : 1];
-  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color, alt: e.home_alt }, { color: e.away_color, alt: e.away_alt });
   const max = Math.max(...e.main);
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
   const sub = [];
@@ -1040,7 +1055,7 @@ function fixture(e) {
 function fixtureDone(e) {
   if (e.sport === "f1") return f1Fixture(e);
   const f = e.final, three = e.main.length === 3;
-  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color }, { color: e.away_color });
+  const [cH, cA] = e.sport === "tennis" ? flagColors(e.home_short, e.away_short) : teamColors({ color: e.home_color, alt: e.home_alt }, { color: e.away_color, alt: e.away_alt });
   const labels = three ? ["1", "X", "2"] : ["1", "2"];
   const oi = outcomeIx(e), max = Math.max(...e.main), top = e.main.indexOf(max);
   const sc = side => f.void ? "" : `<b class="fx-sc">${side === "h" ? f.h : f.a}</b>`;
@@ -1562,21 +1577,60 @@ function lineupImpact(d, lu) {
 /* formazioni ufficiali arrivate (da live.js): riquadro con titolari e panchina, e tabella giocatori ricalcolata */
 /* formazioni in campo: metà campo per squadra, file dal portiere in avanti secondo il modulo (es. 4-3-3);
    l'ordine dentro la fila viene da formationPlace di ESPN (se manca, dall'ordine dei titolari) */
+/* ruolo ESPN (es. "CD-L", "LB", "DM", "AM-R", "CF") → profondità (0 portiere … 6 punta) e lato (-1 sinistra … +1 destra) */
+function posInfo(pos) {
+  const p = String(pos || "").toUpperCase().replace(/\s+/g, "");
+  if (!p) return null;
+  const side = /-L$|^L(B|WB|M|W|F|CB|AM|CM)$|^L$/.test(p) ? -1 : /-R$|^R(B|WB|M|W|F|CB|AM|CM)$|^R$/.test(p) ? 1 : 0;
+  const base = p.replace(/-[LRC]$/, "");
+  let depth;
+  if (/^(G|GK)$/.test(base)) depth = 0;
+  else if (/^(LB|RB|CD|CB|D|LCB|RCB|SW)$/.test(base)) depth = 1;
+  else if (/^(LWB|RWB|WB)$/.test(base)) depth = 1.5;
+  else if (/^(DM|CDM)$/.test(base)) depth = 2;
+  else if (/^(CM|M|LM|RM|LCM|RCM)$/.test(base)) depth = 3;
+  else if (/^(AM|CAM|LAM|RAM)$/.test(base)) depth = 4;
+  else if (/^(LW|RW|W)$/.test(base)) depth = 5;
+  else if (/^(F|CF|ST|LF|RF|SS|FW)$/.test(base)) depth = 6;
+  else return null;
+  const central = ["CD", "CB", "CM", "AM", "CF", "DM", "M", "D", "F"].includes(base);
+  if (depth === 3 && side && !central) depth = 3.3;   // esterni di centrocampo: nella fila più avanzata (es. 4-2-3-1)
+  return { depth, side: central ? side * 0.5 : side };
+}
+/* controlli sulle formazioni ufficiali: 11 titolari diversi, un solo portiere, modulo che torna */
+function lineupOk(t) {
+  if (!t || t.starters.length !== 11) return false;
+  if (new Set(t.starters.map(p => p.pid || p.name)).size !== 11) return false;
+  const shape = (t.formation || "").split("-").map(Number).filter(n => n > 0);
+  if (shape.reduce((a, b) => a + b, 0) !== 10) return false;
+  const gk = t.starters.filter(p => posInfo(p.pos)?.depth === 0).length;
+  return gk <= 1;
+}
 function pitchHtml(d, lu, cH, cA) {
   const lines = t => {
-    const st = [...t.starters].sort((a, b) => (a.fp || 99) - (b.fp || 99));
-    const shape = (t.formation || "").split("-").map(Number).filter(n => n > 0);
-    if (shape.reduce((a, b) => a + b, 0) !== st.length - 1) return null;
+    if (!lineupOk(t)) return null;
+    const shape = t.formation.split("-").map(Number).filter(n => n > 0);
+    const info = p => posInfo(p.pos);
+    const known = t.starters.every(p => info(p));
+    let st;
+    if (known) {
+      // file e posizioni dai ruoli: il portiere, poi dalla difesa all'attacco; dentro la fila da sinistra a destra
+      st = [...t.starters].sort((a, b) => info(a).depth - info(b).depth || (a.fp || 99) - (b.fp || 99));
+    } else st = [...t.starters].sort((a, b) => (a.fp || 99) - (b.fp || 99));
     const out = [[st[0]]];
     let i = 1;
-    for (const n of shape) { out.push(st.slice(i, i + n)); i += n; }
+    for (const n of shape) {
+      const row = st.slice(i, i + n);
+      if (known) row.sort((a, b) => info(a).side - info(b).side || (a.fp || 99) - (b.fp || 99));
+      out.push(row); i += n;
+    }
     return out;
   };
   const sur = n => { const p = String(n).split(" "); return p.length > 1 ? p.slice(1).join(" ") : n; };
   const half = (side, t, c) => {
     const L = lines(t);
     if (!L) return "";
-    const rows = side === "home" ? [...L].reverse() : L;      // casa in basso con il portiere in fondo, ospite in alto
+    const rows = side === "home" ? [...L].reverse() : L.map(r => [...r].reverse());   // casa in basso con il portiere in fondo; ospite in alto, specchiata
     const fg = onColor(c);
     return `<div class="pt-half ${side}">${rows.map(r => `<div class="pt-row">${r.map(p => {
       const has = d.players?.[side]?.some(x => String(x.pid) === String(p.pid));
@@ -1623,6 +1677,7 @@ function showLineups(d, lu) {
   // riquadro richiudibile come gli altri (tocca il titolo): resta chiuso anche nelle partite successive
   document.querySelector('[data-pane="esito"]')?.insertAdjacentHTML("afterbegin",
     sec("Formazioni ufficiali", `${imp?.changed ? impHtml : ""}
+      ${pitch ? "" : `<p class="note">Le formazioni di ESPN non sono ancora complete o il modulo non torna con i titolari: le mostro in elenco finché non vengono corrette.</p>`}
       ${pitch || `<div class="lu-grid">${team(lu.home, d.home.short || d.home.name, cH)}${team(lu.away, d.away.short || d.away.name, cA)}</div>`}
       ${imp && !imp.changed ? `<p class="note">Giocano tutti i giocatori più importanti: le percentuali restano quelle del modello.</p>` : ""}`, "da ESPN", "Formazioni campo").replace("<section ", '<section id="lu-top" '));
   const tab = document.querySelector('[data-tab="gioc"]');

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T06:26+00:00",
+ "updated": "2026-11-26T09:56+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -135,7 +135,7 @@
     "espn_tabellini": "357 partite",
     "meteo": "9 partite",
     "partite_in_arrivo": 20,
-    "foto_giocatori": "senza foto 427, Wikipedia 131, ESPN 6, TheSportsDB 38, da controllare 112"
+    "foto_giocatori": "senza foto 439, Wikipedia 131, ESPN 6, TheSportsDB 46, da controllare 92"
    },
    "mls": {
     "football-data": "ok",
@@ -182,7 +182,7 @@
     "partite_in_arrivo": 3,
     "foto_giocatori": "da controllare 70, Wikipedia 29, ESPN 7"
    },
-   "aggiornato": "2026-11-26T06:24+00:00"
+   "aggiornato": "2026-11-26T09:54+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -196,7 +196,7 @@
    },
    "partite_in_arrivo": 26,
    "partite_stagione": 270,
-   "aggiornato": "2026-11-26T06:25+00:00"
+   "aggiornato": "2026-11-26T09:56+00:00"
   },
   "tennis": {
    "atp": {
@@ -207,7 +207,7 @@
     "storico": "12472 incontri (+0)",
     "espn": "6 incontri in programma"
    },
-   "aggiornato": "2026-11-26T06:26+00:00"
+   "aggiornato": "2026-11-26T09:56+00:00"
   },
   "coppe": {
    "uomini": {
@@ -267,7 +267,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T06:25+00:00"
+   "aggiornato": "2026-11-26T09:55+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -304,15 +304,15 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-26T06:25+00:00"
+   "aggiornato": "2026-11-26T09:55+00:00"
   },
   "risultati": {
-   "esiti": "2 nuovi esiti, 2 calendari letti",
-   "aggiornato": "2026-11-26T06:26+00:00"
+   "esiti": "0 nuovi esiti, 0 calendari letti",
+   "aggiornato": "2026-11-26T09:56+00:00"
   },
   "archivio": {
    "partite": 607,
-   "nuove": 2
+   "nuove": 0
   },
   "taratura": {
    "soccer": "x0.94 su 395 partite",
@@ -332,16 +332,16 @@
     "logloss_uniform": 3.091,
     "brier_podium": 0.085
    },
-   "mercato_22": "87 prezzi",
+   "mercato_22": "86 prezzi",
    "mercato_23": "0 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-26T06:26+00:00"
+   "aggiornato": "2026-11-26T09:56+00:00"
   },
-  "quote_in_movimento": 2,
+  "quote_in_movimento": 3,
   "turnover": {
    "ok": true,
    "partite": 13,
-   "richieste": 0
+   "richieste": 160
   }
  }
 }

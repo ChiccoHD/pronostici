@@ -261,6 +261,16 @@ async function showInfoHub(tab) {
 /* ------------------------------------------------------------------ archivio dei pronostici (data/archive.json) */
 let ARCHIVE = null, ARCH_SPORT = "all", ARCH_DAYS = 7;
 let CALIB = null;
+/* controllo del mese (pipeline/monthly.py): dove il modello è tarato bene, dove è troppo sicuro, dove i bookmaker fanno meglio */
+let CONTROL = null;
+function monthControl() {
+  const c = CONTROL;
+  if (!c || !c.signals) return "";
+  const ic = { warn: "⚠️", info: "ℹ️", ok: "✅" };
+  const d = new Date(c.date + "T12:00:00Z").toLocaleDateString("it-IT", { day: "numeric", month: "long" });
+  return sec("Controllo del mese", `<ul class="mc-l">${c.signals.map(s => `<li class="mc-${s.kind}"><span>${ic[s.kind] || "•"}</span><span>${esc(s.txt)}</span></li>`).join("")}</ul>
+    <p class="note">Fatto in automatico il ${esc(d)} sugli ultimi ${c.days} giorni (${c.rows} partite). Segnala soltanto: le correzioni automatiche sono quelle della taratura, le altre si decidono quando si rivede il modello.</p>`, "", "Controllo del mese");
+}
 async function infoArchive() {
   if (!ARCHIVE) { try { ARCHIVE = await getJSON("data/archive.json"); } catch { ARCHIVE = { rows: [] }; } }
   const rowsAll = (ARCHIVE.rows || []).filter(r => ARCH_SPORT === "all" || r.s === ARCH_SPORT);
@@ -312,7 +322,8 @@ async function infoArchive() {
     return fixtureDone(e).replace(/href="[^"]*"/, 'href="javascript:void 0"');
   };
   const sportBtn = (k, l) => `<button type="button" class="nt-chip" data-ar-sport="${k}" aria-pressed="${ARCH_SPORT === k}">${l}</button>`;
-  return `<div class="mk-grid" style="margin-top:10px">${sportBtn("all", "Tutto")}${sportBtn("soccer", "Calcio")}${sportBtn("nba", "Basket")}${sportBtn("tennis", "Tennis")}${sportBtn("f1", "F1")}</div>`
+  if (CONTROL === null) { try { CONTROL = await getJSON("data/controllo.json"); } catch { CONTROL = false; } }
+  return monthControl() + `<div class="mk-grid" style="margin-top:10px">${sportBtn("all", "Tutto")}${sportBtn("soccer", "Calcio")}${sportBtn("nba", "Basket")}${sportBtn("tennis", "Tennis")}${sportBtn("f1", "F1")}</div>`
     + sec("In sintesi", `<div class="ar-grid">${box("Pronostico più probabile", hitTop)}${box("Quando il modello è sicuro", strong, " · favorita al 60% o più")}
         ${o25.length ? box("Over/Under 2,5", o25, " · quando è al 60% o più") : ""}${gg.length ? box("Goal/No Goal", gg, " · quando è al 60% o più") : ""}</div>
       <p class="note">Ultimi ${Math.round((Date.now() - Date.parse(rows[rows.length - 1]?.d + "Z")) / 864e5) + 1 || 0} giorni, ${rows.length} partite concluse. Le percentuali restano stime: servono tante partite perché questi numeri diventino stabili.</p>`, "", "Archivio sintesi")

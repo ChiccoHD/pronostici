@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Controllo del mese", items: [
+    "Il primo giorno di ogni mese l'app rilegge da sola le partite finite negli ultimi 90 giorni e scrive in Info → Archivio cosa ha trovato: dove il modello è troppo sicuro o troppo prudente, dove i bookmaker sono stati più precisi e in quali campionati fidarsi meno.",
+    "Da ora l'archivio ricorda anche le partite segnalate per possibile turnover, così tra qualche mese si potrà misurare quanto pesa davvero." ] },
   { d: "2026-11-25", t: "Perché: l'esito spiegato a parole", items: [
     "In cima alla scheda Esito di ogni partita non iniziata c'è la sezione «Perché»: l'esito più probabile (o la doppia chance, se la favorita è sotto il 45%) con i motivi in elenco: forza in attacco e difesa, gol attesi, classifica, forma, casa e trasferta, precedenti, serie aperte e cosa dicono i bookmaker.",
     "Sotto, «Cosa può andare storto»: i numeri contro, come un avversario in forma, bookmaker meno convinti, possibile turnover o un campionato dove il modello è meno preciso. Vale per calcio, NBA e tennis." ] },

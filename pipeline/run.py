@@ -89,6 +89,11 @@ def main():
         calibrate.apply(keep, status)     # taratura con l'archivio, prima di elenco e Migliori
     except Exception:
         logging.exception("Taratura non applicata")
+    try:
+        from . import monthly
+        monthly.maybe_write(status)       # controllo del mese: al primo giro di ogni mese
+    except Exception:
+        logging.exception("Controllo del mese non fatto")
     from . import odds_move
     odds_move.apply(keep, status)
     from . import rotation

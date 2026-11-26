@@ -27,6 +27,8 @@ def _row(e: dict) -> dict | None:
          "r": [f["h"], f["a"]] + ([f["w"]] if f.get("w") is not None else [])}
     if e.get("book"):
         r["b"] = [round(x, 3) for x in e["book"]]
+    if e.get("rot"):
+        r["rot"] = e["rot"]          # rischio turnover segnalato prima del via: per misurarne l'effetto più avanti
     x = e.get("extra") or {}
     if x.get("Over 2,5") is not None:
         r["o"] = round(x["Over 2,5"], 3)

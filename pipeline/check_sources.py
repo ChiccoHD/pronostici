@@ -827,6 +827,31 @@ def main():
                 out(f"- {t.get('team', {}).get('abbreviation')}: gialli {st.get('yellowCards')}, rossi {st.get('redCards')}, falli {st.get('foulsCommitted')}, rigori? {[k for k in st if 'enalt' in k]}")
         _write()
         return
+    if "nazione" in sys.argv[1:]:
+        # nazione di una squadra di coppa (per il livello di partenza delle squadre senza campionato)
+        import json
+        out(f"# Nazione delle squadre — {date.today()}\n")
+        S = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+        C = "https://sports.core.api.espn.com/v2/sports/soccer/leagues"
+        for name, tid, lg in (("Inter d'Escaldes", 20703, "uefa.europa.conf"), ("Shakhtar", 493, "uefa.champions"), ("Dinamo Zagreb", 597, "uefa.europa"),
+                              ("Maccabi Tel-Aviv", 524, "uefa.europa"), ("Inter", 110, "ita.1")):
+            out(f"## {name} ({tid})")
+            for url in (f"{S}/{lg}/teams/{tid}", f"{S}/all/teams/{tid}", f"{C}/{lg}/teams/{tid}", f"{C}/{lg}/seasons/2026/teams/{tid}"):
+                try:
+                    js = http.get_json(url, tries=1)
+                except Exception as e:
+                    out(f"- `{url}` errore {e}"); continue
+                if not js:
+                    out(f"- `{url}` vuoto"); continue
+                t = js.get("team") or js
+                keys = {k: t.get(k) for k in ("location", "country", "countryCode", "nickname", "slug", "shortDisplayName")}
+                out(f"- `{url}` chiavi {list(t)[:40]}")
+                out(f"  - {json.dumps(keys, ensure_ascii=False)[:300]}")
+                for k in ("venue", "franchise", "defaultLeague", "standingSummary", "groups"):
+                    if t.get(k):
+                        out(f"  - {k}: {json.dumps(t[k], ensure_ascii=False)[:400]}")
+        _write()
+        return
     if "turnover" in sys.argv[1:]:
         # calendario di una squadra in tutte le competizioni (per capire se fa turnover prima/dopo una partita importante)
         out(f"# Turnover — {date.today()}\n")

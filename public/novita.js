@@ -1,6 +1,14 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Campionati più ricchi, il tuo conto e la schedina a sistema", items: [
+    "Classifiche dei campionati di calcio: le zone colorate (titolo, Champions o promozione, retrocessione) e quattro schede nuove. Proiezione: probabilità di titolo, posto europeo e retrocessione simulando 10.000 volte le partite che mancano, con i punti attesi. Altre classifiche: in casa, in trasferta, forma delle ultime 10 e gol attesi. Marcatori: capocannonieri e assist. Calendario: le prossime 5 partite di ogni squadra colorate per difficoltà.",
+    "Pagina squadra: le prossime 5 partite in tutte le competizioni (verde facile, giallo equilibrata, rosso difficile, grigio le coppe) e «Come può finire» la stagione.",
+    "Tu → Il tuo conto: saldo, resa sulle puntate, grafico nel tempo e risultati per sport, numero di giocate e quota, dalle schedine segnate come giocate.",
+    "Schedina → Schedina a sistema: con 3 o più giocate vedi la probabilità di prenderne almeno 2, 3… e la quota minima di ogni sistema.",
+    "Migliori: filtro per quota equa (1,10–1,40, 1,40–1,80, 1,80–2,50, 2,50+).",
+    "Notifica delle formazioni ufficiali: ora dice chi manca tra i giocatori importanti e quanto cambia la percentuale (es. «Il 1 passa dal 62% al 57%»).",
+    "Home: sport e stato delle partite più compatti, su una riga sola." ] },
   { d: "2026-11-26", t: "Classifiche delle coppe europee", items: [
     "In Classifiche ci sono Champions League, Europa League e Conference League (gruppo «Coppe europee»). La classifica della fase a campionato ha le zone colorate: verde le prime 8 (ottavi diretti), giallo dalla 9ª alla 24ª (playoff), rosso le eliminate, con la forma delle ultime 5.",
     "Scheda Proiezione: il modello gioca 10.000 volte le partite che mancano e dice per ogni squadra la probabilità di finire tra le prime 8, ai playoff o fuori, con i punti attesi a fine fase.",

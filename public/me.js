@@ -10,6 +10,7 @@ function showMe() {
   const closed = meClosed();
   let html = meHero(teams, openSlips, won, lost, closed) + meTrend(closed, slips);
   if (typeof weekSection === "function") html += weekSection();
+  if (typeof moneySection === "function") html += moneySection();
 
   // squadre seguite e loro prossime partite
   const names = t => new Set([t.name, t.short].filter(Boolean));

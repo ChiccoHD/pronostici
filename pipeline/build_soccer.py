@@ -302,7 +302,7 @@ def build(today: date) -> tuple[list[dict], dict, dict]:
                 store.save(PUBLIC_DATA / "events" / f"{detail['id']}.json", detail)
                 index.append(_index_entry(detail))
             try:  # classifica e schede squadra: un errore qui non tocca le partite
-                league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table)
+                league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table, ratings)
             except Exception:
                 log.exception("Pagina campionato %s", key)
             if unmatched:
@@ -420,7 +420,7 @@ def rounds_of(events: list[dict], season_from) -> list[dict]:
     return [{"n": k, "m": out[k]} for k in sorted(out)]
 
 
-def league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table):
+def league_page(key, lg, matches, events, matcher, lines, completed_by_team, season_from, table, ratings=None):
     """Scrive public/data/leagues/<campionato>.json (classifica e squadre) e i ritmi dei giocatori per le coppe."""
     sf = season_from.isoformat()
     espn_of = {}                      # nome football-data -> dati ESPN della squadra
@@ -463,9 +463,27 @@ def league_page(key, lg, matches, events, matcher, lines, completed_by_team, sea
                       "season": summ["season"], "home_season": summ["home_season"], "away_season": summ["away_season"],
                       "players": players, "trends": trends.soccer(summ["last"])}
     store.save(PLAYER_BASE, base_cache)
+    extra = {}
+    if ratings is not None:
+        from . import season_sim
+        try:   # come può finire: titolo, zone europee, retrocessione
+            sim = season_sim.simulate(key, rows, matches, sf, ratings)
+            if sim:
+                for r in rows:
+                    r["sim"] = sim["teams"].get(r["fd"])
+                extra["sim"] = {"labels": sim["labels"], "cut": sim["cut"], "left": sim["left"]}
+        except Exception:
+            log.exception("Simulazione %s", key)
+        try:   # prossime 5 partite con la difficoltà
+            info = {tid: {"abbr": t.get("abbr"), "short": t.get("short"), "fd": t.get("fd")} for tid, t in teams.items()}
+            nx = season_sim.next5(info, lg.get("espn", ""), ratings)
+            for tid, lst in nx.items():
+                teams[tid]["next5"] = lst
+        except Exception:
+            log.exception("Prossime 5 %s", key)
     store.save(PUBLIC_DATA / "leagues" / f"{key}.json", {
         "key": key, "name": lg["name"], "sport": "soccer", "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
-        "table": rows, "teams": teams, "rounds": _safe_rounds(events, season_from)})
+        "table": rows, "teams": teams, "rounds": _safe_rounds(events, season_from), **extra})
 
 
 def _safe_rounds(events, season_from):

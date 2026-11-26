@@ -1845,7 +1845,8 @@ async function showBest() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
   const now = Date.now();
   const live = it => new Date(it.date).getTime() > now - 3 * 3600e3 && (state.sport === "all" || it.sport === state.sport);
-  const ok = it => live(it) && (state.day === "all" || isoDay(it.date) === state.day) && slotOk(it.date);
+  const ok0 = it => live(it) && (state.day === "all" || isoDay(it.date) === state.day) && slotOk(it.date);
+  const ok = it => ok0(it) && (typeof oddBandOk !== "function" || oddBandOk(it));
   const allItems = BEST.categories.flatMap(c => c.items.filter(live));
   const seen = new Set(), oneEach = allItems.filter(it => !seen.has(it.event) && seen.add(it.event));
   const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
@@ -1858,6 +1859,7 @@ async function showBest() {
   const valueItems = (() => { const s = new Set(); return cats.flatMap(c => c.items.map(it => ({ ...it, cat: it.cat || c.name }))).filter(isValue)
     .filter(it => { const k = `${it.event}|${it.label}`; return !s.has(k) && s.add(k); }).sort((a, b) => (b.p / b.book) - (a.p / a.book)); })();
   const mode = load("best_mode", "all");
+  if (typeof oddBandRow === "function") html += oddBandRow(BEST.categories.flatMap(c => c.items.filter(ok0)));
   html += `<div class="bm-row"><button type="button" class="nt-chip" data-bm="all" aria-pressed="${mode !== "value"}">Tutte</button><button type="button" class="nt-chip" data-bm="value" aria-pressed="${mode === "value"}">💰 Quote convenienti <b>${valueItems.length}</b></button></div>`;
   if (mode === "value") {
     const vRow = it => pickRow(it, false, true).replace(/<span class="edge[^"]*">[^<]*<\/span>/, `<span class="edge pos">quota equa ${odd(it.p)} · bookmaker ${odd(it.book)} (+${Math.round((it.p - it.book) * 100)} punti)</span>`);
@@ -1869,6 +1871,7 @@ async function showBest() {
     $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
     $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
     $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showBest(); });
+    $app.querySelectorAll("[data-ob]").forEach(b => b.onclick = () => { save("best_odds", b.dataset.ob); showBest(); });
     requestAnimationFrame(centerDays);
     return;
   }
@@ -1922,6 +1925,7 @@ async function showBest() {
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
   $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showBest(); });
+  $app.querySelectorAll("[data-ob]").forEach(b => b.onclick = () => { save("best_odds", b.dataset.ob); showBest(); });
   $app.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { save("best_mode", b.dataset.bm); showBest(); });
   requestAnimationFrame(centerDays);
   countUp($app);
@@ -1991,7 +1995,7 @@ function showSlip() {
       <button type="button" class="btn-main alt" id="slip-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Condividi</button>
       <button type="button" class="btn-main alt" id="slip-img"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4.5 3.5"/></svg>Immagine</button>
       <button type="button" class="link-btn" id="slip-clear">Svuota la schedina</button></div>` : ""}</section>
-    <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + (typeof simBox === "function" ? simBox(next) : "") + toMe;
+    <section class="sec">${open.map(f => slipRow(f, now)).join("")}</section>` + (typeof simBox === "function" ? simBox(next) : "") + (typeof systemBox === "function" ? systemBox(next) : "") + toMe;
   $app.innerHTML = html;
   if (typeof wireSim === "function") wireSim(next, simSwapFav);
   const sv = document.getElementById("slip-save");

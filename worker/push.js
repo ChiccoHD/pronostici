@@ -4,6 +4,7 @@
 import { newVapidKeys, sendPush } from "./webpush.js";
 import { judge } from "./judge.js";
 import { liveChance } from "./risk.js";
+import { lineupNote } from "./lineup.js";
 
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports";
 const MAX_BOARDS = 30;              // tabelloni letti al massimo per minuto
@@ -273,7 +274,13 @@ export class Push {
           const starters = (s.rosters || []).map(t => (t.roster || []).filter(p => p.starter).length);
           if (starters.length === 2 && starters.every(n => n >= 11)) {
             await this.store.put("lu:" + e.id, now);
-            for (const [key, sub] of fol) if (gen(sub).lineup) outbox.push({ key, s: sub, payload: { title: `📋 Formazioni ufficiali: ${e.home} – ${e.away}`, body: "Tocca per vedere i titolari e le percentuali dei giocatori aggiornate", tag: `${e.id}-lineup`, url: `#/e/${e.id}` } });
+            // chi manca e quanto cambia il pronostico (file della partita dal sito)
+            let note = null;
+            try {
+              const fr = this.env.ASSETS ? await this.env.ASSETS.fetch(new Request(`https://assets.local/data/events/${encodeURIComponent(e.id)}.json`)) : null;
+              if (fr?.ok) note = lineupNote(await fr.json(), s);
+            } catch { note = null; }
+            for (const [key, sub] of fol) if (gen(sub).lineup) outbox.push({ key, s: sub, payload: { title: `📋 Formazioni ufficiali: ${e.home} – ${e.away}`, body: note || "Nessun titolare importante fuori. Tocca per vedere le formazioni e le percentuali aggiornate", tag: `${e.id}-lineup`, url: `#/e/${e.id}` } });
           }
         } catch (err) { status.errors.push(`formazioni: ${err.message || err}`); }
       }

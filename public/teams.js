@@ -88,6 +88,14 @@ async function showStandings(key) {
         ${rows.map(r => `<div class="std-r"><span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.name)}</b></span>
           <span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><span><b>${r.pts}</b></span></div>`).join("")}</div>`, "", `Classifica ${key} ${g}`);
     }).join("") + `<p class="note">Classifiche ufficiali dei gironi, da ESPN. G partite giocate, DR differenza reti.</p>`;
+  } else if (L.sport === "soccer" && L.teams && Object.keys(L.teams).length) {
+    // campionati di calcio: Classifica (con le zone), Proiezione, Altre classifiche, Marcatori, Calendario, Giornate
+    const tabs = leagueTabs(key, L, mark, form);
+    const rounds = L.rounds?.length ? roundsBox(key, L) : "";
+    $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + tabsView("std", tabs.concat(rounds ? [["gio", "Giornate", rounds]] : []));
+    wire("std"); if (rounds) wireRounds(key, L);
+    wireLeagueTabs(key, L, mark, form);
+    return;
   } else {
     body = sec(L.name, `<div class="std"><div class="std-r head"><span>#</span><span>Squadra</span><span>G</span><span>DR</span><span>Pt</span><span>Forma</span></div>
       ${L.table.map(r => `<a class="std-r" href="${teamHref(key, r.id)}"><span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.short || r.name)}</b></span>
@@ -98,6 +106,87 @@ async function showStandings(key) {
   const rounds = L.rounds?.length ? roundsBox(key, L) : "";
   $app.innerHTML = backBtn("Partite") + `<h1 class="page-h">Classifiche</h1>` + chips + tabsView("std", [["tab", "Classifica", body + (L.groups ? "" : `<p class="note">Tocca una squadra per la sua pagina.</p>`)]].concat(rounds ? [["gio", "Giornate", rounds]] : []));
   if (rounds) { wire("std"); wireRounds(key, L); }
+}
+
+/* ------------------------------------------------------------------ campionati di calcio: schede in più */
+const pctOr = x => x >= 0.995 ? "✓" : x < 0.005 ? "–" : pct(x);
+function zoneOf(L, pos) {
+  const c = L.sim?.cut;
+  if (!c) return "";
+  return pos <= c[0] ? "z-top" : pos <= c[1] ? "z-eu" : pos > c[2] ? "z-out" : "";
+}
+function leagueTabs(key, L, mark, form) {
+  const row = (r, inner, cls = "") => `<a class="std-r ${cls}" href="${teamHref(key, r.id)}">${inner}</a>`;
+  const tab = sec(L.name, `<div class="std lg"><div class="std-r head"><span>#</span><span>Squadra</span><span>G</span><span>DR</span><span>Pt</span><span>Forma</span></div>
+    ${L.table.map(r => row(r, `<span>${r.pos}</span><span class="std-t">${mark(r)}<b>${esc(r.short || r.name)}</b></span><span>${r.p}</span><span>${r.gd > 0 ? "+" : ""}${r.gd}</span><span><b>${r.pts}</b></span>${form(r.form)}`, zoneOf(L, r.pos))).join("")}</div>`,
+    `${L.table[0]?.p ?? 0} giornate`, `Classifica ${key}`)
+    + (L.sim ? `<p class="note"><i class="zk z-top"></i>${esc(L.sim.labels[0])} <i class="zk z-eu"></i>${esc(L.sim.labels[1])} <i class="zk z-out"></i>${esc(L.sim.labels[2])}</p>` : "")
+    + `<p class="note">G partite giocate, DR differenza reti. Forma: ultime 5, la più recente a destra. La classifica è calcolata dai risultati: penalizzazioni e criteri di parità ufficiali possono cambiare qualche posizione. Tocca una squadra per la sua pagina.</p>`;
+  const out = [["tab", "Classifica", tab]];
+  if (L.sim) {
+    const [l1, l2, l3] = L.sim.labels;
+    const rows = L.table.filter(r => r.sim).slice().sort((a, b) => a.sim.xpos - b.sim.xpos);
+    out.push(["proj", "Proiezione", sec("Come può finire", `<div class="lg-proj"><div class="lp-r head"><span>Squadra</span><span>${esc(l1)}</span><span>${esc(l2)}</span><span>Retroc.</span></div>
+      ${rows.map(r => `<a class="lp-r" href="${teamHref(key, r.id)}"><span class="std-t">${mark(r)}<span class="cp-n"><b>${esc(r.short || r.name)}</b><small>ora ${r.pos}ª · ${num(r.sim.xpts, 0)} punti attesi</small></span></span>
+        <span class="t1">${pctOr(r.sim.title)}</span><span class="t2">${pctOr(r.sim.top)}</span><span class="t3">${pctOr(r.sim.rel)}</span></a>`).join("")}</div>`, `${L.sim.left} partite da giocare`, "Proiezione campionato")
+      + `<p class="note">Il modello gioca 10.000 volte tutte le partite che mancano e conta quante volte ogni squadra vince (${esc(l1)}), finisce nelle prime ${L.sim.cut[1]} (${esc(l2)}) o retrocede. In ordine di posizione media prevista. Spareggi, playoff e penalizzazioni non sono considerati. Sono stime, non certezze.</p>`]);
+  }
+  out.push(["altre", "Altre classifiche", `<div class="lg-alt-pick" role="group" aria-label="Tipo di classifica">${[["casa", "In casa"], ["fuori", "In trasferta"], ["forma", "Forma (ultime 10)"], ["xg", "Gol attesi"]].map(([k, l], i) =>
+    `<button type="button" class="nt-chip" data-alt="${k}" aria-pressed="${i === 0}">${l}</button>`).join("")}</div><div id="lg-alt"></div>`]);
+  const scorers = [];
+  for (const [tid, t] of Object.entries(L.teams)) for (const p of t.players || []) if (p.tot) scorers.push({ ...p, team: t.short || t.name, tid, logo: t.logo });
+  if (scorers.length) {
+    const list = (k, lab) => scorers.filter(p => p.tot[k] > 0).sort((a, b) => b.tot[k] - a.tot[k] || a.apps - b.apps).slice(0, 15)
+      .map((p, i) => `<a class="sc-r" href="${teamHref(key, p.tid)}"><i>${i + 1}</i><span class="sc-ph">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span>
+        <span class="sc-n"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${p.apps} presenze</small></span><span class="sc-v">${p.tot[k]}<small>${lab}</small></span></a>`).join("");
+    out.push(["mar", "Marcatori", sec("Capocannonieri", `<div class="sc-l">${list("g", "gol")}</div>`, "", "Marcatori") + sec("Assist", `<div class="sc-l">${list("a", "assist")}</div>`, "", "Assist")
+      + `<p class="note">Dai tabellini ESPN della stagione in campionato.</p>`]);
+  }
+  const anyNext = Object.values(L.teams).some(t => t.next5?.length);
+  if (anyNext) out.push(["cal", "Calendario", sec("Prossime 5 partite", `<div class="n5-l">${L.table.map(r => {
+    const t = L.teams[r.id];
+    if (!t?.next5?.length) return "";
+    const ease = t.next5.filter(x => x[4] != null).reduce((a, x) => a + x[4], 0) / Math.max(1, t.next5.filter(x => x[4] != null).length);
+    return `<a class="n5-r" href="${teamHref(key, r.id)}"><span class="std-t">${mark(r)}<b>${esc(r.short || r.name)}</b></span><span class="n5-dots">${t.next5.map(next5Dot).join("")}</span><span class="n5-e ${easeCls(ease)}">${pct(ease)}</span></a>`;
+  }).join("")}</div>`, "facilità", "Calendario squadre")
+    + `<p class="note">Ogni pallino è una partita: verde facile, giallo equilibrata, rosso difficile (probabilità di vittoria secondo il modello), grigio le coppe. A destra la probabilità media di vittoria nelle prossime partite di campionato. Maiuscolo = in casa.</p>`]);
+  return out;
+}
+const easeCls = p => p == null ? "" : p >= 0.55 ? "e-easy" : p >= 0.35 ? "e-mid" : "e-hard";
+function next5Dot(x) {
+  const [d, opp, home, comp, p, ab] = x;
+  const day = new Date(d).toLocaleDateString("it-IT", { day: "numeric", month: "numeric" });
+  const s3 = String(ab || opp).slice(0, 3), lab = home ? s3.toUpperCase() : s3.toLowerCase();
+  return `<i class="n5 ${comp ? "e-cup" : easeCls(p)}" title="${esc(`${day} ${home ? "in casa" : "fuori"} contro ${opp}${comp ? ` (${comp})` : p != null ? `, vittoria ${pct(p)}` : ""}`)}"><b>${esc(lab)}</b></i>`;
+}
+function wireLeagueTabs(key, L, mark, form) {
+  const box = document.getElementById("lg-alt");
+  if (!box) return;
+  const draw = k => {
+    const T = L.table.map(r => ({ r, t: L.teams[r.id] })).filter(x => x.t);
+    let rows, head, cell, note;
+    if (k === "casa" || k === "fuori") {
+      const f = k === "casa" ? "home_season" : "away_season";
+      rows = T.filter(x => x.t[f]?.n).sort((a, b) => b.t[f].pts - a.t[f].pts || (b.t[f].gf - b.t[f].ga) - (a.t[f].gf - a.t[f].ga));
+      head = `<span>G</span><span>V-N-P</span><span>Pt</span>`;
+      cell = x => `<span>${x.t[f].n}</span><span>${x.t[f].w}-${x.t[f].d}-${x.t[f].l}</span><span><b>${x.t[f].pts}</b></span>`;
+      note = `Solo le partite ${k === "casa" ? "giocate in casa" : "giocate fuori casa"} in questa stagione.`;
+    } else if (k === "forma") {
+      rows = T.filter(x => x.t.form10?.n).sort((a, b) => b.t.form10.pts - a.t.form10.pts);
+      head = `<span>G</span><span>V-N-P</span><span>Pt</span>`;
+      cell = x => `<span>${x.t.form10.n}</span><span>${x.t.form10.w}-${x.t.form10.d}-${x.t.form10.l}</span><span><b>${x.t.form10.pts}</b></span>`;
+      note = "Punti nelle ultime 10 partite di campionato: chi è più in forma adesso.";
+    } else {
+      rows = T.filter(x => x.t.season?.xg_f != null).sort((a, b) => (b.t.season.xg_f - b.t.season.xg_a) - (a.t.season.xg_f - a.t.season.xg_a));
+      head = `<span>xG+</span><span>xG−</span><span>Diff</span>`;
+      cell = x => { const s = x.t.season, d = s.xg_f - s.xg_a; return `<span>${num(s.xg_f, 2)}</span><span>${num(s.xg_a, 2)}</span><span><b class="${d >= 0 ? "pos" : "neg"}">${d >= 0 ? "+" : ""}${num(d, 2)}</b></span>`; };
+      note = "Gol attesi a partita creati (xG+) e concessi (xG−): misura chi crea e concede più occasioni, al di là dei gol fatti. In alto chi merita di più.";
+    }
+    box.innerHTML = sec({ casa: "Classifica in casa", fuori: "Classifica in trasferta", forma: "Classifica della forma", xg: "Classifica dei gol attesi" }[k],
+      `<div class="std alt"><div class="std-r head"><span>#</span><span>Squadra</span>${head}</div>${rows.map((x, i) => `<a class="std-r" href="${teamHref(key, x.r.id)}"><span>${i + 1}</span><span class="std-t">${mark(x.r)}<b>${esc(x.r.short || x.r.name)}</b></span>${cell(x)}</a>`).join("")}</div>`, "", "Altre classifiche") + `<p class="note">${note}</p>`;
+  };
+  draw("casa");
+  $app.querySelectorAll("[data-alt]").forEach(b => b.onclick = () => { $app.querySelectorAll("[data-alt]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(b.dataset.alt); });
 }
 
 /* coppe europee: Classifica (zone della fase a campionato), Proiezione (simulazione delle partite che mancano), Numeri */
@@ -226,7 +315,16 @@ async function showTeam(lk, id) {
 
   // prossime partite (anche di coppa): dall'elenco delle partite in programma
   const next = INDEX.events.filter(e => teamPlays({ ...T, lk }, e));
-  const upcoming = next.filter(e => !e.final), nextHtml = upcoming.length ? upcoming.map(e => `<section class="group">${fixture(e)}</section>`).join("") : `<p class="note">Nessuna partita nei prossimi giorni.</p>`;
+  const upcoming = next.filter(e => !e.final);
+  // prossime 5 in tutte le competizioni, con la difficoltà (pipeline/season_sim.py next5)
+  const n5 = (T.next5 || []).length ? `<div class="n5-list">${T.next5.map(x => {
+    const [d, opp, home, comp, p] = x;
+    return `<div class="n5-it ${comp ? "e-cup" : easeCls(p)}"><span class="n5-d">${esc(new Date(d).toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }))}</span>
+      <b>${home ? "" : "@ "}${esc(opp)}</b><small>${comp ? esc(comp) : p != null ? `vittoria ${pct(p)}` : ""}</small></div>`;
+  }).join("")}</div><p class="note">Verde facile, giallo equilibrata, rosso difficile secondo il modello; grigio le coppe. «@» = in trasferta.</p>` : "";
+  const nextHtml = n5 + (upcoming.length ? upcoming.map(e => `<section class="group">${fixture(e)}</section>`).join("") : n5 ? "" : `<p class="note">Nessuna partita nei prossimi giorni.</p>`);
+  const simT = (L.table || []).find(r => r.id === T.id)?.sim;
+  const simHtml = simT && L.sim ? `<div class="tp-sim"><b>Come può finire</b><span>${esc(L.sim.labels[0])} <i>${pctOr(simT.title)}</i></span><span>${esc(L.sim.labels[1])} <i>${pctOr(simT.top)}</i></span><span>Retrocessione <i>${pctOr(simT.rel)}</i></span><span>Punti attesi <i>${num(simT.xpts, 0)}</i></span></div>` : "";
 
   const oppName = o => nba ? ((L.names || {})[o] || o) : o;
   const last = `<div class="rows games">${(T.last || []).map(g => `<div class="r"><span class="l">${fmtShort(g.date)}, ${g.home ? "in casa con" : "fuori con"} ${esc(oppName(g.opp))}</span>
@@ -257,13 +355,13 @@ async function showTeam(lk, id) {
   const nextBox = first ? `<div class="tp-next"><span class="tp-next-k">Prossima partita</span><section class="group">${fixture(first)}</section></div>` : "";
   const box = (inner, note = "") => `<section class="sec tp-pane">${inner}${note}</section>`;
   const tabs = [
-    ["partite", "Partite", box(`${upcoming.length > 1 ? `<h3 class="lb-h3">In programma</h3>${upcoming.slice(1).map(e => `<section class="group">${fixture(e)}</section>`).join("")}` : ""}
+    ["partite", "Partite", box(`${n5 ? `<h3 class="lb-h3">Prossime 5 (tutte le competizioni)</h3>${n5}` : ""}${upcoming.length > 1 ? `<h3 class="lb-h3">In programma</h3>${upcoming.slice(1).map(e => `<section class="group">${fixture(e)}</section>`).join("")}` : ""}
       <h3 class="lb-h3">Ultime partite</h3>${last}`)],
     ["stagione", "Stagione", box(stats + (T.form10?.seq ? formChart(T.short || T.name, "", c, "transparent", T.form10.seq, []) : ""))],
     ["giocatori", "Giocatori", box(plHtml, nba ? `<p class="note">Medie a partita.</p>` : `<p class="note">In campionato.</p>`)],
   ];
   if (T.trends?.length) tabs.push(["tendenze", "Tendenze", box(trendsList(T.trends, nba ? "nba" : "soccer"), `<p class="note">Serie aperte nelle ultime partite. Prima o poi si interrompono: sono un'informazione, non un pronostico.</p>`)]);
-  $app.innerHTML = backBtn("Indietro") + head + nextBox + tabsView("team", tabs)
+  $app.innerHTML = backBtn("Indietro") + head + nextBox + simHtml + tabsView("team", tabs)
     + `<p class="note">Dati aggiornati ${esc(ago(L.updated))}.</p>`;
   wire("team");
 }

@@ -73,7 +73,7 @@ COUNTRY_ALIAS = {"Türkiye": "Turkey", "Czech Republic": "Czechia", "Republic of
                  "Bosnia and Herzegovina": "Bosnia", "Bosnia-Herzegovina": "Bosnia", "Macedonia": "North Macedonia"}
 # livello di partenza = (coef/30)^b; scope "cup": solo squadre senza campionato (senza nazione: NO_COUNTRY),
 # "all": anche le squadre dei campionati, così la forza dei campionati non dipende solo dalle poche partite di coppa
-PRIOR_GRID = [("cup", 0.0), ("cup", 0.2), ("cup", 0.35), ("all", 0.1), ("all", 0.2), ("all", 0.3), ("all", 0.45)]
+PRIOR_GRID = [("cup", 0.0), ("cup", 0.2), ("all", 0.3), ("all", 0.45), ("all", 0.6), ("all", 0.8), ("all", 1.0), ("all", 1.25)]
 NO_COUNTRY = 0.9
 CODE_COUNTRY = {"I1": "Italy", "E0": "England", "SP1": "Spain", "D1": "Germany", "F1": "France", "N1": "Netherlands",
                 "T1": "Turkey", "SC0": "Scotland", "B1": "Belgium", "P1": "Portugal", "G1": "Greece", "AUT": "Austria",

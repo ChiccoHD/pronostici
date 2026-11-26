@@ -918,6 +918,22 @@ def main():
         f1_check()
         _write()
         return
+    if "posizioni" in sys.argv[1:]:
+        # ruoli dei titolari nelle formazioni ESPN (per disegnarle nel campo nel posto giusto)
+        out(f"# Posizioni nelle formazioni ESPN — {date.today()}\n")
+        for lg, ev in (("uefa.europa", "401915521"), ("ita.1", "401874991"), ("eng.1", "401849190")):
+            try:
+                js = http.get_json(f"https://site.api.espn.com/apis/site/v2/sports/soccer/{lg}/summary?event={ev}", tries=1) or {}
+            except Exception as e:
+                out(f"## {lg} {ev}: errore {e}"); continue
+            for t in js.get("rosters", []):
+                out(f"## {lg} {ev} {t.get('homeAway')} {t.get('team', {}).get('displayName')} modulo {t.get('formation')!r}")
+                for r in t.get("roster", []):
+                    if r.get("starter"):
+                        pos = r.get("position") or {}
+                        out(f"- fp {r.get('formationPlace')} #{r.get('jersey')} {r.get('athlete', {}).get('displayName')} — {pos.get('abbreviation')} / {pos.get('name')} / {pos.get('displayName')}")
+        _write()
+        return
     if "formazioni" in sys.argv[1:]:
         logging.basicConfig(level=logging.WARNING)
         lineups_check()

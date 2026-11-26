@@ -1,8 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
-  { d: "2026-11-26", t: "Coppe: squadre di campionati piccoli più realistiche", items: [
-    "Le squadre di cui il modello non ha il campionato (Andorra, Malta, Kosovo, ma anche Ucraina, Croazia, Serbia...) partono dal livello della loro nazione secondo il coefficiente UEFA, invece che dalla media delle big europee. Quanto pesa il coefficiente lo sceglie il modello provando sulle partite di coppa già giocate; poi i risultati in coppa correggono il voto." ] },
+  { d: "2026-11-26", t: "Coppe europee: pronostici più precisi", items: [
+    "Ogni squadra delle coppe parte dal livello della sua nazione (coefficiente UEFA): così una squadra norvegese o croata non viene più considerata forte come una spagnola o inglese solo perché domina il suo campionato. Sulle partite di coppa già giocate l'errore del modello scende da 0,987 a 0,941 (log-loss) e le percentuali si avvicinano molto a quelle dei bookmaker.",
+    "Le squadre di cui non abbiamo il campionato (Andorra, Malta, Ucraina, Croazia, Serbia...) partono dal livello della loro nazione; quelle di serie B (es. Torreense) un po' più in basso." ] },
   { d: "2026-11-26", t: "Coppe europee: squadre abbinate meglio", items: [
     "Corretto un errore nelle coppe: l'Inter d'Escaldes (Andorra) veniva presa per l'Inter, così il Copenaghen sembrava sfavorito. Ora ogni squadra viene cercata solo nel suo campionato, e Copenaghen, AGF, Rapid Vienna e Craiova usano anche lo storico del loro campionato." ] },
   { d: "2026-11-26", t: "Partita del giorno, quote nel tempo e altro", items: [

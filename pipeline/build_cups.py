@@ -75,6 +75,7 @@ COUNTRY_ALIAS = {"Türkiye": "Turkey", "Czech Republic": "Czechia", "Republic of
 # "all": anche le squadre dei campionati, così la forza dei campionati non dipende solo dalle poche partite di coppa
 PRIOR_GRID = [("cup", 0.0), ("cup", 0.2), ("all", 0.3), ("all", 0.45), ("all", 0.6), ("all", 0.8), ("all", 1.0), ("all", 1.25)]
 NO_COUNTRY = 0.9
+LOWER_DIV = 0.7
 CODE_COUNTRY = {"I1": "Italy", "E0": "England", "SP1": "Spain", "D1": "Germany", "F1": "France", "N1": "Netherlands",
                 "T1": "Turkey", "SC0": "Scotland", "B1": "Belgium", "P1": "Portugal", "G1": "Greece", "AUT": "Austria",
                 "DNK": "Denmark", "POL": "Poland", "ROU": "Romania", "SWE": "Sweden", "SWZ": "Switzerland", "NOR": "Norway",
@@ -136,7 +137,11 @@ def team_countries(cup_events: dict, ids: dict, status: dict) -> dict:
 
 def _levels(cup_only, countries, league_country, scope, b) -> dict:
     lv = lambda c: (UEFA_COEF[c] / COEF_REF) ** b
-    out = {t: lv(countries[t]) if t in countries else NO_COUNTRY for t in cup_only}
+    top = set(CODE_COUNTRY.values())
+    # senza campionato ma di una nazione di cui abbiamo la prima divisione (es. Torreense, serie B portoghese):
+    # è una squadra di categoria inferiore, parte più in basso della sua nazione
+    out = {t: (lv(countries[t]) * LOWER_DIV if countries[t] in top else lv(countries[t])) if t in countries else NO_COUNTRY
+           for t in cup_only}
     if scope == "all":
         out.update({t: lv(c) for t, c in league_country.items()})
     return out

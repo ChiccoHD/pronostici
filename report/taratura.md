@@ -126,3 +126,10 @@ del tennis non esiste più su GitHub. Le due prove restano pronte nel codice se 
 **Turnover (novembre 2026)**: Chapecoense–Palmeiras del 24/11 (3-0), modello Palmeiras 71%, bookmaker 46%: Palmeiras
 aveva la finale di Libertadores 4 giorni dopo. Ora `rotation.py` lo segnala (solo come avviso). Prima di metterlo nel
 modello serve un archivio di partite con e senza turnover per misurare l'effetto.
+
+
+## Coppe europee: livello della nazione (26 novembre 2026)
+Prova sulle partite di coppa dal settembre 2025 (746 partite, log-loss 1X2): il voto di partenza di ogni squadra = (coefficiente UEFA della nazione / 30)^b.
+- solo squadre senza campionato: b 0 → 0,9872, b 0,2 → 0,9871 (nessun guadagno)
+- tutte le squadre: b 0,3 → 0,949; 0,45 → 0,941; **0,6 → 0,9406**; 0,8 → 0,953; 1,0 → 0,982; 1,25 → 1,047
+Il modello prima sottostimava le differenze fra campionati (taratura: previste 40-50% uscite 53%). Scelta automatica ogni settimana (`_prior_level`).

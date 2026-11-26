@@ -539,6 +539,20 @@ function dayChips(items, getDate, what = "partite", done = 0, allPast = false) {
   return `<div class="days" role="group" aria-label="Giorno"><button data-day="all" class="d-all" aria-pressed="${state.day === "all"}"><span class="d-top">Tutti</span><b>${allPast ? items.length : items.filter(it => isoDay(getDate(it)) >= today).length}</b><span class="d-mon">${what || "giorni"}</span></button>${done ? `<button data-day="done" class="d-done" aria-pressed="${state.day === "done"}" aria-label="Partite concluse, ${done}"><span class="d-top">Concluse</span><b>${done}</b><span class="d-mon">esiti</span></button>` : ""}${keys.map(chip).join("")}</div>`;
 }
 if (!state.day) state.day = "all";
+/* fasce orarie dentro il giorno scelto (ora italiana del telefono): per farsi la schedina del mattino, del pomeriggio… */
+const SLOTS = [["n", "Notte", "0–9", 0, 9], ["m", "Mattina", "9–15", 9, 15], ["p", "Pomeriggio", "15–21", 15, 21], ["s", "Sera", "21–24", 21, 24]];
+state.slot = "all";
+const slotOf = iso => { const h = new Date(iso).getHours(); return (SLOTS.find(s => h >= s[3] && h < s[4]) || SLOTS[0])[0]; };
+const slotOk = iso => state.slot === "all" || slotOf(iso) === state.slot;
+function slotChips(items, getDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(state.day)) { state.slot = "all"; return ""; }
+  const n = { all: items.length };
+  for (const it of items) { const k = slotOf(getDate(it)); n[k] = (n[k] || 0) + 1; }
+  if (state.slot !== "all" && !n[state.slot]) state.slot = "all";
+  if (SLOTS.filter(s => n[s[0]]).length < 2) return "";        // tutte nella stessa fascia: il filtro non serve
+  const b = (k, l, h) => `<button type="button" data-slot="${k}" aria-pressed="${state.slot === k}" ${k !== "all" && !n[k] ? "disabled" : ""}><span>${l}</span>${h ? `<small>${h}</small>` : ""}<b>${n[k] || 0}</b></button>`;
+  return `<div class="slots" role="group" aria-label="Fascia oraria">${b("all", "Tutto il giorno", "")}${SLOTS.map(([k, l, h]) => b(k, l, h)).join("")}</div>`;
+}
 
 function showList() {
   if (typeof listInSide === "function" && listInSide()) return;   // computer: l'elenco sta nella colonna a sinistra
@@ -649,14 +663,16 @@ function renderList() {
   const ahead = st === "next" ? nextIx : bySport.filter(e => !isPastDay(e));
   // nel calendario di Tutte ci sono anche i giorni passati (partite finite, restano tre giorni); "Tutti" resta da oggi in avanti
   const chipItems = st === "all" ? bySport : ahead;
-  const byDay = st === "done" ? ended.filter(e => state.day === "all" || state.day === "done" || isoDay(e.date) === state.day) : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
+  const byDay0 = st === "done" ? ended.filter(e => state.day === "all" || state.day === "done" || isoDay(e.date) === state.day) : st === "live" ? [] : state.day === "all" ? ahead : chipItems.filter(e => isoDay(e.date) === state.day);
+  const slotRow = st === "live" ? "" : slotChips(byDay0, e => e.date);
+  const byDay = byDay0.filter(e => slotOk(e.date));
   if (state.league !== "all" && !byDay.some(e => e.league === state.league)) state.league = "all";
   const evs = byDay.filter(e => state.league === "all" || e.league === state.league);
   if (st !== "done") evs.sort((a, b) => a.date.localeCompare(b.date));   // in ordine di orario (le sessioni F1 sono aggiunte in fondo)
   // i numeri degli sport seguono lo stato scelto (Tutte / In diretta / Da giocare / Concluse) e il filtro per giocata,
   // così coincidono con quelli dello stato e dei giorni
   // tutti i numeri (sport e stato) seguono anche il giorno scelto: con «Oggi» contano solo le partite di oggi
-  const dayOk = e => state.day === "all" || state.day === "done" || isoDay(e.date) === state.day;
+  const dayOk = e => state.day === "all" || state.day === "done" || (isoDay(e.date) === state.day && slotOk(e.date));   // anche la fascia oraria
   const stCount = (L, s) => s === "next" ? L.filter(e => Date.parse(e.date) > now && dayOk(e)).length
     : s === "done" ? L.filter(e => isEnded(e) && !e._ses && dayOk(e)).length
     : L.filter(e => state.day === "all" ? !isPastDay(e) : dayOk(e)).length;
@@ -674,6 +690,7 @@ function renderList() {
     `<button data-status="${k}" aria-pressed="${st === k}" class="st-${k}">${k === "live" ? `<i class="pulse-dot ${n > 0 ? "on" : ""}"></i>` : ""}${l}<small>${n}</small></button>`).join("")}</div>`;
   if (st === "all" || st === "next") html += dayChips(chipItems, e => e.date, state.sport === "f1" ? "sessioni" : "partite");
   else if (st === "done" && ended.length) html += dayChips(ended, e => e.date, "partite", 0, true);
+  html += slotRow;
   // filtro per giocata: sotto il calendario
   html += `<div class="mk-row">${state.mk
     ? `<button type="button" class="mk-on" data-mk-open>🎯 ${esc(MK[state.mk.m][1])} almeno ${Math.round(state.mk.min * 100)}%</button><button type="button" class="mk-x" data-mk-clear aria-label="Togli il filtro">×</button>`
@@ -727,6 +744,7 @@ function renderList() {
     state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showList();
   });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showList(); });
+  $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showListKeepScroll(); });
   requestAnimationFrame(centerDays); countUp(document.querySelector(".tw") || $app);
   $app.querySelectorAll("[data-status]").forEach(b => b.onclick = () => {
     const was = state.status;
@@ -1826,14 +1844,14 @@ async function showBest() {
   if (!BEST) { try { BEST = await getJSON("data/migliori.json"); } catch { BEST = { categories: [] }; } }
   const now = Date.now();
   const live = it => new Date(it.date).getTime() > now - 3 * 3600e3 && (state.sport === "all" || it.sport === state.sport);
-  const ok = it => live(it) && (state.day === "all" || isoDay(it.date) === state.day);
+  const ok = it => live(it) && (state.day === "all" || isoDay(it.date) === state.day) && slotOk(it.date);
   const allItems = BEST.categories.flatMap(c => c.items.filter(live));
   const seen = new Set(), oneEach = allItems.filter(it => !seen.has(it.event) && seen.add(it.event));
   const cats = BEST.categories.map(c => ({ name: c.name, items: c.items.filter(ok) })).filter(c => c.items.length);
   const count = k => BEST.categories.reduce((n, c) => n + c.items.filter(it => (k === "all" || it.sport === k) && new Date(it.date).getTime() > now - 3 * 3600e3).length, 0);
   let html = `<div class="filters"><div class="sports" role="group" aria-label="Sport">${SPORTS.map(s =>
     sportBtn(s, count(s.key), "giocate")).join("")}</div>
-    ${dayChips(oneEach, it => it.date, "partite")}</div>`;
+    ${dayChips(oneEach, it => it.date, "partite")}${slotChips(oneEach.filter(it => isoDay(it.date) === state.day), it => it.date)}</div>`;
   // quote convenienti: il modello è un po' più ottimista del mercato, ma non così lontano da fidarsi più del mercato
   const isValue = it => it.book != null && it.p >= 0.45 && it.p - it.book >= 0.03 && it.p - it.book < TRUST_GAP;
   const valueItems = (() => { const s = new Set(); return cats.flatMap(c => c.items.map(it => ({ ...it, cat: it.cat || c.name }))).filter(isValue)
@@ -1849,6 +1867,7 @@ async function showBest() {
     $app.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { save("best_mode", b.dataset.bm); showBest(); });
     $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
     $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
+    $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showBest(); });
     requestAnimationFrame(centerDays);
     return;
   }
@@ -1901,6 +1920,7 @@ async function showBest() {
   $app.innerHTML = html;
   $app.querySelectorAll("[data-sport]").forEach(b => b.onclick = () => { state.sport = b.dataset.sport; state.league = "all"; save("sport", state.sport); save("league", "all"); showBest(); });
   $app.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; showBest(); });
+  $app.querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { state.slot = b.dataset.slot; showBest(); });
   $app.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { save("best_mode", b.dataset.bm); showBest(); });
   requestAnimationFrame(centerDays);
   countUp($app);

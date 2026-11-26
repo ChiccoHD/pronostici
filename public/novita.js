@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-26", t: "Fasce orarie", items: [
+    "Scelto un giorno, sotto il calendario trovi le fasce orarie: Notte (0–9), Mattina (9–15), Pomeriggio (15–21) e Sera (21–24), ognuna con il numero di partite. Così vedi solo quelle che ti interessano, per esempio per farti la schedina del pomeriggio.",
+    "Le fasce ci sono anche in Migliori, e i numeri di sport e stato seguono la fascia scelta. Gli orari sono quelli del telefono." ] },
   { d: "2026-11-26", t: "Controllo del mese", items: [
     "Il primo giorno di ogni mese l'app rilegge da sola le partite finite negli ultimi 90 giorni e scrive in Info → Archivio cosa ha trovato: dove il modello è troppo sicuro o troppo prudente, dove i bookmaker sono stati più precisi e in quali campionati fidarsi meno.",
     "Da ora l'archivio ricorda anche le partite segnalate per possibile turnover, così tra qualche mese si potrà misurare quanto pesa davvero." ] },

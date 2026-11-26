@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T16:50+00:00",
+ "updated": "2026-11-26T16:53+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -288,7 +288,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-26T16:50+00:00"
+   "aggiornato": "2026-11-26T16:53+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -329,7 +329,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-26T16:50+00:00"
+   "aggiornato": "2026-11-26T16:53+00:00"
   },
   "archivio": {
    "partite": 607,

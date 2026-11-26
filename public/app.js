@@ -591,7 +591,7 @@ function matchOfDay(pick) {
   const lab = m.length === 3 ? [["1", m[0]], ["X", m[1]], ["2", m[2]]] : [[e.home.split(" ").pop(), m[0]], [e.away.split(" ").pop(), m[1]]];
   return `<a class="twb tw-motd" href="#/e/${encodeURIComponent(e.id)}">
     <span class="twb-sp"><i>🔥</i>Partita del giorno</span>
-    <b class="motd-t">${esc(e.home)}<br>${esc(e.away)}</b>
+    <b class="motd-t"><span>${esc(e.home)}</span><span>${esc(e.away)}</span></b>
     <span class="motd-p">${lab.map(([l, p]) => `<span><small>${esc(l)}</small><b>${pct(p)}</b></span>`).join("")}</span>
     <small class="twb-m">${esc(top.tags.join(" · ") || e.league_name || "")}</small>
     <span class="twb-f"><span>${esc(fmtTime(e.date, e.time_valid))}</span><span>perché ›</span></span></a>`;

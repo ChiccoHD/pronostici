@@ -2,6 +2,7 @@
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
   { d: "2026-11-26", t: "Partita del giorno, quote nel tempo e altro", items: [
+    "Le migliori di oggi: carte di nuovo leggibili, la Partita del giorno è larga il doppio con i nomi interi.",
     "Partita del giorno: la prima carta della fila «Le migliori di oggi» è la partita più interessante del giorno (competizione importante, equilibrio, la tua squadra, modello lontano dalle quote), con le percentuali. Toccala per aprirla con il «Perché».",
     "Pagina squadra: «Il modello con questa squadra», quante volte ha preso il risultato più probabile nelle partite già giocate e se ci si può fidare.",
     "Costruisci la multipla: in cima c'è una proposta «Con le quote dei bookmaker», che arriva alla quota pagata davvero con giocate dove il modello è più ottimista del mercato.",

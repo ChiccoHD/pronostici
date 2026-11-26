@@ -7,7 +7,7 @@ La Champions femminile usa solo i risultati ESPN della competizione (meno dati, 
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from . import config, store
+from . import config, http, store
 from .config import CACHE, CUPS, EURO_LINK_FD, EURO_LINK_FDNEW, PUBLIC_DATA, SOCCER_LEAGUES, WOMEN_CUPS
 from .names import Matcher, norm
 from .sources import espn, footballdata
@@ -46,31 +46,114 @@ def _cup_events(code: str, start: date, end: date, today: date, status: dict) ->
     return sorted(events.values(), key=lambda e: e["date"])
 
 
-PRIOR_LEVELS = (1.0, 0.9, 0.8, 0.7, 0.6, 0.5)
+# Coefficiente UEFA delle federazioni (5 anni, uomini; aggiornare a ogni stagione, fonte uefa.com / Wikipedia
+# "UEFA coefficient", novembre 2026). Serve solo a far partire le squadre senza campionato dal livello della nazione.
+UEFA_COEF = {
+    "England": 103.1, "Italy": 88.3, "Spain": 83.2, "Germany": 81.3, "France": 68.7, "Portugal": 65.0, "Belgium": 59.1,
+    "Netherlands": 52.6, "Turkey": 49.9, "Poland": 45.1, "Czechia": 44.7, "Greece": 44.2, "Norway": 38.6, "Denmark": 38.3,
+    "Cyprus": 34.2, "Switzerland": 30.2, "Austria": 27.7, "Hungary": 27.3, "Scotland": 26.3, "Sweden": 25.8, "Croatia": 25.7,
+    "Romania": 24.9, "Ukraine": 24.3, "Israel": 23.9, "Azerbaijan": 23.7, "Slovenia": 22.8, "Slovakia": 22.4, "Bulgaria": 20.6,
+    "Serbia": 18.3, "Russia": 17.3, "Iceland": 17.0, "Ireland": 16.3, "Armenia": 15.8, "Kosovo": 14.0, "Bosnia": 14.0,
+    "Latvia": 13.9, "Finland": 13.6, "Kazakhstan": 12.4, "Liechtenstein": 11.0, "Moldova": 10.3, "Faroe Islands": 9.9,
+    "Albania": 9.0, "North Macedonia": 9.0, "Belarus": 8.7, "Lithuania": 8.1, "Andorra": 7.8, "Malta": 7.6, "Gibraltar": 7.2,
+    "Estonia": 7.0, "Northern Ireland": 6.6, "Georgia": 6.5, "Luxembourg": 6.3, "Montenegro": 5.8, "Wales": 4.5, "San Marino": 3.0,
+}
+COEF_REF = 30.0
+# prefisso dello slug ESPN (es. "ukr.shakhtar_donetsk") → nazione
+SLUG_CC = {"eng": "England", "ita": "Italy", "esp": "Spain", "ger": "Germany", "fra": "France", "por": "Portugal", "bel": "Belgium",
+           "ned": "Netherlands", "tur": "Turkey", "pol": "Poland", "cze": "Czechia", "gre": "Greece", "nor": "Norway", "den": "Denmark",
+           "cyp": "Cyprus", "sui": "Switzerland", "aut": "Austria", "hun": "Hungary", "sco": "Scotland", "swe": "Sweden",
+           "cro": "Croatia", "rou": "Romania", "ukr": "Ukraine", "isr": "Israel", "aze": "Azerbaijan", "svn": "Slovenia", "slo": "Slovenia",
+           "svk": "Slovakia", "bul": "Bulgaria", "srb": "Serbia", "rus": "Russia", "isl": "Iceland", "irl": "Ireland", "arm": "Armenia",
+           "kos": "Kosovo", "bih": "Bosnia", "lva": "Latvia", "fin": "Finland", "kaz": "Kazakhstan", "lie": "Liechtenstein",
+           "mda": "Moldova", "fro": "Faroe Islands", "alb": "Albania", "mkd": "North Macedonia", "blr": "Belarus", "ltu": "Lithuania",
+           "and": "Andorra", "mlt": "Malta", "gib": "Gibraltar", "est": "Estonia", "nir": "Northern Ireland", "geo": "Georgia",
+           "lux": "Luxembourg", "mne": "Montenegro", "wal": "Wales", "smr": "San Marino"}
+COUNTRY_ALIAS = {"Türkiye": "Turkey", "Czech Republic": "Czechia", "Republic of Ireland": "Ireland",
+                 "Bosnia and Herzegovina": "Bosnia", "Bosnia-Herzegovina": "Bosnia", "Macedonia": "North Macedonia"}
+PRIOR_GRID = [(g, b) for g in (1.0, 0.9) for b in (0.0, 0.2, 0.35, 0.5, 0.7)]   # livello = g · (coef/30)^b
+COUNTRY_MAX_REQ = 40
+COUNTRY_NET = True   # spento dai dati di esempio
 
 
-def _prior_level(matches, cup_only, since, is_test, today, status) -> float:
-    """Sceglie il livello di partenza delle squadre senza campionato con la log-loss sulle coppe."""
+def _country(name: str | None) -> str | None:
+    if not name:
+        return None
+    name = COUNTRY_ALIAS.get(name, name)
+    return name if name in UEFA_COEF else None
+
+
+def team_countries(cup_events: dict, ids: dict, status: dict) -> dict:
+    """{nome squadra: nazione} per le squadre senza campionato. Prima lo slug ESPN della squadra
+    (es. "cro.dinamo_zagreb"), poi lo stadio della scheda ESPN, poi lo stadio più frequente nelle partite in casa
+    (Verifica fonti modo `nazione`). Cache permanente per id."""
+    path = CACHE / "cups" / "countries.json"
+    cache = store.load(path, {})
+    venue = {}
+    for evs in cup_events.values():
+        for e in evs:
+            c = _country(e.get("country"))
+            if c and not e.get("neutral"):
+                venue.setdefault(e["home"]["name"], []).append(c)
+    out, n_req = {}, 0
+    for name, tid in ids.items():
+        c = cache.get(str(tid))
+        if c is None and COUNTRY_NET and n_req < COUNTRY_MAX_REQ:
+            n_req += 1
+            c = ""
+            js = None
+            try:
+                js = http.get_json(f"{espn.SITE}/soccer/all/teams/{tid}", delay=0.4, tries=1)
+            except Exception:
+                log.exception("Nazione %s", name)
+            t = (js or {}).get("team") or {}
+            pre = str(t.get("slug") or "").split(".")[0] if "." in str(t.get("slug") or "") else ""
+            c = SLUG_CC.get(pre, "")
+            if not c:
+                try:
+                    core = http.get_json(f"https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.europa/teams/{tid}", delay=0.4, tries=1)
+                    c = _country((((core or {}).get("venue") or {}).get("address") or {}).get("country")) or ""
+                except Exception:
+                    pass
+            if js is not None:
+                cache[str(tid)] = c
+        if not c and venue.get(name):
+            vs = venue[name]
+            c = max(set(vs), key=vs.count)
+        if c:
+            out[name] = c
+    store.save(path, cache)
+    status["nazioni_squadre"] = f"{len(out)} su {len(ids)} ({n_req} richieste)"
+    return out
+
+
+def _levels(cup_only, countries, g, b) -> dict:
+    return {t: g * min(1.15, (UEFA_COEF[countries[t]] / COEF_REF) ** b) if t in countries else g for t in cup_only}
+
+
+def _prior_level(matches, cup_only, countries, since, is_test, today, status) -> tuple[float, float]:
+    """Sceglie (g, b) con la log-loss sulle coppe: livello di partenza = g · (coefficiente della nazione / 30)^b."""
     path = CACHE / "cups" / "prior_level.json"
     old = store.load(path, {})
-    if old.get("level") and old.get("date", "") >= (today - timedelta(days=7)).isoformat():
+    if old.get("g") and old.get("date", "") >= (today - timedelta(days=7)).isoformat():
         status["livello_senza_campionato"] = old
-        return old["level"]
+        return old["g"], old["b"]
     res = {}
-    for lv in PRIOR_LEVELS:
+    for g, b in PRIOR_GRID:
         try:
-            bt = S.backtest(matches, since, is_test=is_test, prior={t: lv for t in cup_only})
-            res[str(lv)] = bt["1x2"].get("logloss")
+            bt = S.backtest(matches, since, is_test=is_test, prior=_levels(cup_only, countries, g, b))
+            res[f"{g}|{b}"] = bt["1x2"].get("logloss")
         except Exception:
-            log.exception("Livello %s", lv)
+            log.exception("Livello %s %s", g, b)
     ok = {k: v for k, v in res.items() if v is not None}
     if not ok:
-        return 1.0
-    best = float(min(ok, key=ok.get))
-    out = {"level": best, "date": today.isoformat(), "logloss": res, "squadre": len(cup_only)}
+        return 1.0, 0.0
+    g, b = map(float, min(ok, key=ok.get).split("|"))
+    out = {"g": g, "b": b, "date": today.isoformat(), "logloss": res, "squadre": len(cup_only),
+           "con_nazione": sum(1 for t in cup_only if t in countries)}
     store.save(path, out)
     status["livello_senza_campionato"] = out
-    return best
+    return g, b
 
 
 def _as_match(e: dict, home: str, away: str, comp: str) -> dict:
@@ -210,8 +293,19 @@ def build_men(today: date):
     league_teams = {t for m in pool for t in (m["home"], m["away"])}
     cup_only = {t for m in cup_matches for t in (m["home"], m["away"])} - league_teams
     is_cup = lambda m: m.get("comp") is not None
-    lvl = _prior_level(matches, cup_only, date(y - 1, 9, 1).isoformat(), is_cup, today, status)
-    prior = {t: lvl for t in cup_only}
+    ids = {}
+    for evs in cup_events.values():
+        for e in evs:
+            for side in ("home", "away"):
+                t = e[side]
+                if t["name"] in cup_only and t.get("id"):
+                    ids[t["name"]] = t["id"]
+    try:
+        countries = team_countries(cup_events, ids, status)
+    except Exception:
+        log.exception("Nazioni"); countries = {}
+    g, b = _prior_level(matches, cup_only, countries, date(y - 1, 9, 1).isoformat(), is_cup, today, status)
+    prior = _levels(cup_only, countries, g, b)
     ratings = S.fit(matches, today, prior=prior)
     if ratings is None:
         return [], {}, {**status, "errore": "storico insufficiente"}

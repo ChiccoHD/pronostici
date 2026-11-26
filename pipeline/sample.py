@@ -703,6 +703,8 @@ def main():
     photos.ENABLED = False  # nessuna rete con i dati di esempio
     from . import rotation
     rotation.ENABLED = False
+    from . import build_cups
+    build_cups.COUNTRY_NET = False
     import sys
     from . import run
     sys.argv = ["run"]

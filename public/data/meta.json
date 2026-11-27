@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27T17:00+00:00",
+ "updated": "2026-11-27T18:17+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -338,7 +338,7 @@
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-27T17:00+00:00"
+   "aggiornato": "2026-11-27T18:17+00:00"
   },
   "archivio": {
    "partite": 650,
@@ -348,7 +348,7 @@
    "soccer": "x0.96 su 434 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 105 partite",
-   "partite_ritoccate": 419
+   "partite_ritoccate": 0
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -363,9 +363,9 @@
     "brier_podium": 0.085
    },
    "mercato_22": "86 prezzi",
-   "mercato_23": "0 prezzi",
+   "mercato_23": "20 prezzi",
    "openf1_richieste": 4,
-   "aggiornato": "2026-11-27T17:00+00:00"
+   "aggiornato": "2026-11-27T18:17+00:00"
   },
   "quote_in_movimento": 4,
   "turnover": {

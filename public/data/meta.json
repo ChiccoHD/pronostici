@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27T15:58+00:00",
+ "updated": "2026-11-27T16:15+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -10,7 +10,7 @@
     "xg_partite": 120,
     "espn": "ok",
     "espn_tabellini": "120 partite",
-    "meteo": "8 partite",
+    "meteo": "9 partite",
     "partite_in_arrivo": 20,
     "foto_giocatori": "TheSportsDB 226, Wikipedia 350, senza foto 86, ESPN 42"
    },
@@ -181,7 +181,23 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 94, Wikipedia 39, ESPN 8"
    },
-   "aggiornato": "2026-11-27T15:56+00:00"
+   "romania": {
+    "football-data": "ok",
+    "xg_partite": 0,
+    "espn": "nessun evento ricevuto",
+    "espn_tabellini": "0 partite",
+    "partite_in_arrivo": 0
+   },
+   "saudi": {
+    "espn": "ok",
+    "storico": "ESPN, 306 partite stagione scorsa + 109 di questa",
+    "xg_partite": 0,
+    "espn_tabellini": "109 partite",
+    "meteo": "5 partite",
+    "partite_in_arrivo": 15,
+    "foto_giocatori": "ESPN 10, Wikipedia 190, da controllare 328"
+   },
+   "aggiornato": "2026-11-27T16:15+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -328,18 +344,18 @@
    "aggiornato": "2026-11-27T15:57+00:00"
   },
   "risultati": {
-   "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-27T15:58+00:00"
+   "esiti": "1 nuovi esiti, 1 calendari letti",
+   "aggiornato": "2026-11-27T16:15+00:00"
   },
   "archivio": {
-   "partite": 649,
-   "nuove": 0
+   "partite": 650,
+   "nuove": 1
   },
   "taratura": {
-   "soccer": "x0.96 su 433 partite",
+   "soccer": "x0.96 su 434 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 105 partite",
-   "partite_ritoccate": 405
+   "partite_ritoccate": 325
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -362,7 +378,7 @@
   "turnover": {
    "ok": true,
    "partite": 14,
-   "richieste": 17
+   "richieste": 8
   }
  }
 }

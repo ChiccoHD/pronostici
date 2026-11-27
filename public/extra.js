@@ -344,3 +344,48 @@ async function showPlayer(eid, side, pid) {
       ${last.map(r => `<tr><td>${esc(new Date(r.date).toLocaleDateString("it-IT", { day: "numeric", month: "short" }))}</td><td>${esc(r.at)} ${esc(r.opp)} <span class="f ${r.res === "W" ? "V" : r.res === "L" ? "P" : "N"}">${r.res === "W" ? "V" : r.res === "L" ? "P" : r.res ? "N" : ""}</span></td>${K.map(([k]) => `<td>${esc(r.s[k] ?? "–")}</td>`).join("")}</tr>`).join("")}</table>
       <p class="note">Dati ESPN, ultime ${last.length} partite giocate.</p>`);
 }
+
+/* ------------------------------------------------------------------ installa l'app (banner alla prima apertura) */
+/* Solo nel browser (non quando l'app è già sulla Home). Android/Chrome: il tasto apre la finestra di installazione
+   del browser (beforeinstallprompt); iPhone/iPad con Safari: i due passaggi Condividi → «Aggiungi alla schermata Home».
+   Chiuso con la X non ricompare per INSTALL_PAUSE giorni (p_install_off); sempre disponibile in Info → Come funziona. */
+const INSTALL_PAUSE = 21;
+let INSTALL_EVT = null;
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const iosSafari = () => isIOS() && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(navigator.userAgent);
+const SHARE_IC = `<svg class="ins-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5v10h14V11h-1"/></svg>`;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); INSTALL_EVT = e; setTimeout(installBanner, 3500); });
+window.addEventListener("appinstalled", () => { INSTALL_EVT = null; document.getElementById("ins-bar")?.remove(); localStorage.setItem("p_installed", "1"); });
+
+function canInstall() { return !isStandalone() && (!!INSTALL_EVT || iosSafari()); }
+function installBanner(force = false) {
+  if (!canInstall() || document.getElementById("ins-bar")) return;
+  const off = Number(localStorage.getItem("p_install_off") || 0);
+  if (!force && (localStorage.getItem("p_installed") || Date.now() - off < INSTALL_PAUSE * 864e5)) return;
+  const ios = !INSTALL_EVT;
+  const bar = document.createElement("div");
+  bar.id = "ins-bar"; bar.className = "ins-bar"; bar.setAttribute("role", "dialog"); bar.setAttribute("aria-label", "Installa l'app");
+  bar.innerHTML = `<img src="icon-192.png" alt="" class="ins-ic">
+    <div class="ins-tx"><b>Installa Pronostici</b>${ios
+      ? `<small>Tocca ${SHARE_IC} <b>Condividi</b> in basso, poi <b>«Aggiungi alla schermata Home»</b>. Così si apre come un'app e ricevi le notifiche.</small>`
+      : `<small>Si apre come un'app, a tutto schermo, dalla schermata Home, e ricevi le notifiche.</small>`}</div>
+    ${ios ? "" : `<button type="button" class="ins-go">Installa</button>`}
+    <button type="button" class="ins-x" aria-label="Chiudi">✕</button>`;
+  document.body.appendChild(bar);
+  requestAnimationFrame(() => bar.classList.add("on"));
+  const close = () => { bar.classList.remove("on"); setTimeout(() => bar.remove(), 250); };
+  bar.querySelector(".ins-x").onclick = () => { localStorage.setItem("p_install_off", String(Date.now())); close(); };
+  bar.querySelector(".ins-go")?.addEventListener("click", async () => {
+    const ev = INSTALL_EVT; if (!ev) return close();
+    ev.prompt();
+    try { const r = await ev.userChoice; if (r.outcome === "accepted") localStorage.setItem("p_installed", "1"); else localStorage.setItem("p_install_off", String(Date.now())); } catch { /* niente */ }
+    INSTALL_EVT = null; close();
+  });
+}
+// riquadro in Info → Come funziona (anche dopo aver chiuso il banner)
+function installCard() {
+  if (!canInstall()) return "";
+  return `<div class="ins-card"><img src="icon-192.png" alt="" class="ins-ic"><div class="ins-tx"><b>Installa l'app sul telefono</b><small>${INSTALL_EVT ? "Si apre dalla schermata Home, a tutto schermo, con le notifiche." : `Su iPhone: ${SHARE_IC} Condividi → «Aggiungi alla schermata Home».`}</small></div>${INSTALL_EVT ? `<button type="button" class="ins-go" onclick="installBanner(true);document.querySelector('#ins-bar .ins-go')?.click()">Installa</button>` : ""}</div>`;
+}
+// iPhone: nessun evento dal browser, il banner parte da solo dopo qualche secondo
+window.addEventListener("load", () => { if (iosSafari()) setTimeout(installBanner, 4000); });

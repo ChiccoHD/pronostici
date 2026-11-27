@@ -258,7 +258,7 @@ async function showInfoHub(tab) {
   }).join("")}</div>`;
   $app.innerHTML = `<h1 class="page-h">Info</h1>${tabs}<p class="muted" style="padding:12px 4px">Caricamento…</p>`;
   let body = "";
-  if (tab === "come") body = infoHow();
+  if (tab === "come") body = (typeof installCard === "function" ? installCard() : "") + infoHow();
   if (tab === "affidabilita") body = await infoReliability();
   if (tab === "dati") { body = newsSection() + infoStatus(); markNewsSeen(); }
   if (tab === "archivio") body = await infoArchive();

@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Installa l'app", items: [
+    "Chi apre il sito dal browser vede in basso «Installa Pronostici»: su Android il tasto Installa la mette sulla schermata Home, su iPhone spiega i due passaggi (Condividi → Aggiungi alla schermata Home). Si chiude con la X e non ricompare per 3 settimane; resta anche in Info → Come funziona." ] },
   { d: "2026-11-27", t: "Partite in corso più ordinate", items: [
     "Partite in corso nell'elenco: «adesso» più grande e attaccato ai cerchi (anche loro più grandi), «prima del via» su una riga intera sotto, così i nomi delle squadre non vengono più tagliati. In Preferiti, dopo aver ricaricato la pagina, le partite in corso tornano subito con punteggio e percentuali di adesso." ] },
   { d: "2026-11-27", t: "Tasto Preferiti con la campanella", items: [

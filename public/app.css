@@ -2478,3 +2478,14 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 /* partita in corso: LIVE, minuto e campanella centrati in altezza su tutto il riquadro (anche sulla riga «prima del via») */
 .fx.live .fx-time { grid-row: 1 / span 2; align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .fx.live .fx-time .bell.sm { margin-top: 4px; }
+/* banner «Installa l'app» */
+.ins-bar { position: fixed; left: 50%; bottom: calc(70px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; transition: transform .25s, opacity .25s; z-index: 9; width: calc(100% - 20px); max-width: 520px; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 18px; background: var(--card); border: 1px solid var(--rule-strong); box-shadow: 0 10px 30px rgba(0,0,0,.35); box-sizing: border-box; }
+.ins-bar.on { transform: translate(-50%, 0); opacity: 1; }
+.ins-ic { width: 42px; height: 42px; border-radius: 11px; flex: none; }
+.ins-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.ins-tx small { color: var(--ink-3); font-size: 12px; line-height: 1.35; }
+.ins-tx small b { color: var(--ink-2); }
+.ins-share { width: 15px; height: 15px; vertical-align: -3px; fill: none; stroke: #0a84ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ins-go { flex: none; border: 0; border-radius: 999px; background: var(--go); color: #fff; font: 800 13px/1 inherit; padding: 10px 14px; cursor: pointer; }
+.ins-x { flex: none; align-self: flex-start; border: 0; background: transparent; color: var(--ink-3); font-size: 15px; padding: 2px 4px; cursor: pointer; }
+.ins-card { display: flex; align-items: center; gap: 10px; padding: 12px; margin: 4px 0 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--rule); }

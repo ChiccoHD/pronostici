@@ -22,7 +22,7 @@ const LEAGUES = {
   soccer: [["serie-a", "Serie A"], ["premier-league", "Premier"], ["la-liga", "LaLiga"], ["bundesliga", "Bundesliga"], ["ligue-1", "Ligue 1"],
     ["champions", "Champions"], ["europa-league", "Europa League"], ["conference", "Conference"], ["champions-femminile", "Champions femminile"],
     ["primeira-liga", "Portogallo"], ["eredivisie", "Eredivisie"], ["serie-b", "Serie B"], ["championship", "Championship"],
-    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["a-league", "Australia"], ["romania", "Romania"], ["saudi", "Arabia Saudita"],
+    ["super-lig", "Süper Lig"], ["scozia", "Scozia"], ["belgio", "Belgio"], ["eliteserien", "Norvegia"], ["mls", "MLS"], ["j1", "Giappone"], ["brasileirao", "Brasile"], ["argentina", "Argentina"], ["a-league", "Australia"], ["saudi", "Arabia Saudita"],
     ["nations-league", "Nations League"], ["mondiali", "Mondiali"], ["europei", "Europei"], ["qual-europei", "Qual. Europei"],
     ["qual-mondiali", "Qual. Mondiali"], ["qual-mondiali-sudamerica", "Qual. Mondiali Sudamerica"], ["qual-mondiali-concacaf", "Qual. Mondiali CONCACAF"],
     ["qual-mondiali-asia", "Qual. Mondiali Asia"], ["qual-mondiali-africa", "Qual. Mondiali Africa"], ["copa-america", "Copa América"],
@@ -40,7 +40,7 @@ const LEAGUE_LOGO = {
   "qual-mondiali-concacaf": 64, "qual-mondiali-asia": 62, "qual-mondiali-africa": 63, "copa-america": 83, "coppa-africa": 76,
   "qual-coppa-africa": 76, "coppa-asia": 2243, "gold-cup": 59, "concacaf-nations": 2406, "amichevoli": 53,
 };
-const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "a-league": "🇦🇺", "romania": "🇷🇴", "saudi": "🇸🇦", "f1": "🏎️" };
+const LEAGUE_FLAG = { "eliteserien": "🇳🇴", "a-league": "🇦🇺", "saudi": "🇸🇦", "f1": "🏎️" };
 function leagueMark(key, sport) {
   if (LEAGUE_LOGO[key]) { const id = LEAGUE_LOGO[key];
     // la versione per il tema scuro non esiste per tutti (es. Serie B): se manca si usa quella normale

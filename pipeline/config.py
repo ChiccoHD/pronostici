@@ -27,7 +27,8 @@ SOCCER_LEAGUES = {
     "brasileirao": {"name": "Brasileirão", "country": "Brasile", "espn": "bra.1", "kind": "fdnew", "fdnew": ("BRA", "Serie A"), "season": "cal"},
     "a-league": {"name": "A-League", "country": "Australia", "espn": "aus.1", "kind": "espn", "season": "aug"},
     "argentina": {"name": "Liga Profesional", "country": "Argentina", "espn": "arg.1", "kind": "fdnew", "fdnew": ("ARG", "Liga Profesional"), "season": "cal"},
-    "romania": {"name": "Superliga rumena", "country": "Romania", "espn": "rou.1", "kind": "fdnew", "fdnew": ("ROU", "Liga 1"), "season": "aug"},
+    # Romania: ESPN ha il campionato (rou.1) ma nessuna partita in calendario (Verifica fonti modo `codici`), e
+    # football-data dà solo i risultati: senza calendario niente pronostici, quindi resta fuori (solo nel modello delle coppe)
     # Saudi Pro League (Cristiano Ronaldo): non c'è su football-data, storico dai risultati ESPN come l'A-League
     "saudi": {"name": "Saudi Pro League", "country": "Arabia Saudita", "espn": "ksa.1", "kind": "espn", "season": "aug"},
 }

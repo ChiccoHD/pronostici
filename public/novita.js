@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Multipla per giornata più precisa", items: [
+    "Costruisci la multipla → Per giornata: dopo il tipo di giocata scegli anche il dettaglio. Under/Over: la linea (0,5, 1,5, 2,5, 3,5, 4,5, 5,5) e se Over o Under. Multigol: la fascia (0-1, 1-2, 1-3, 2-3, 2-4, 3-5, 4-6). Multigol squadra: fascia e casa o ospite. E poi il segno per 1X2, Doppia chance, Draw No Bet, Goal/No Goal e la combo che vuoi. «Qualsiasi» lascia scegliere al modello." ] },
   { d: "2026-11-27", t: "Installa l'app", items: [
     "Chi apre il sito dal browser vede in basso «Installa Pronostici»: su Android il tasto Installa la mette sulla schermata Home, su iPhone spiega i due passaggi (Condividi → Aggiungi alla schermata Home). Si chiude con la X e non ricompare per 3 settimane; resta anche in Info → Come funziona." ] },
   { d: "2026-11-27", t: "Partite in corso più ordinate", items: [

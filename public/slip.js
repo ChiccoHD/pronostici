@@ -160,21 +160,46 @@ async function showMultipla() {
    di quel tipo (dai file delle partite), poi tiene le partite più sicure. Le etichette sono quelle della scheda della partita,
    così l'esito si controlla da solo come per le altre giocate. */
 const RS_TYPES = [["mix", "Le più sicure"], ["1x2", "1X2"], ["dc", "Doppia chance"], ["dnb", "Draw No Bet"], ["ou", "Under/Over"], ["gg", "Goal/No Goal"], ["mg", "Multigol"], ["mgt", "Multigol squadra"], ["combo", "Combo"], ["exact", "Risultato esatto"]];
-const RS = { league: load("rs_league", "serie-a"), round: null, n: Number(load("rs_n", 4)), type: load("rs_type", "mix") };
+const RS = { league: load("rs_league", "serie-a"), round: null, n: Number(load("rs_n", 4)), type: load("rs_type", "mix"), f: load("rs_f", {}) };
+/* dettaglio per tipo di giocata: prima riga (a) e, per Under/Over e Multigol squadra, seconda riga (b); "all" = qualsiasi */
+const MG_RANGES = ["0-1", "1-2", "1-3", "2-3", "2-4", "3-5", "4-6"];
+const RS_SUB = {
+  "1x2": { a: ["Quale segno", [["1", "1"], ["X", "X"], ["2", "2"]]] },
+  dc: { a: ["Quale", [["1X", "1X"], ["X2", "X2"], ["12", "12"]]] },
+  dnb: { a: ["Quale squadra", [["home", "Casa"], ["away", "Ospite"]]] },
+  ou: { a: ["Linea", ["0.5", "1.5", "2.5", "3.5", "4.5", "5.5"].map(l => [l, l.replace(".", ",")])], b: ["Over o Under", [["over", "Over"], ["under", "Under"]]] },
+  gg: { a: ["Quale", [["goal", "Goal"], ["nogoal", "No Goal"]]] },
+  mg: { a: ["Fascia di gol", MG_RANGES.map(r => [r, r])] },
+  mgt: { a: ["Fascia di gol", MG_RANGES.slice(0, 5).map(r => [r, r])], b: ["Squadra", [["home", "Casa"], ["away", "Ospite"]]] },
+  combo: { a: ["Quale combo", ["1 + Over 2,5", "1 + Under 2,5", "X + Under 2,5", "X + Over 2,5", "2 + Over 2,5", "2 + Under 2,5", "1 + Goal", "2 + Goal", "Goal + Over 2,5", "No Goal + Under 2,5"].map(k => [k, k])] },
+};
 function rsCands(d, type) {
   const m = d.markets || {}, H = d.home.short || d.home.name, A = d.away.short || d.away.name, out = [];
-  const add = (t, label, p) => { if (p != null && p < 0.985) out.push({ t, label, p }); };
-  if (m["1x2"]) { add("1x2", `${H} vince`, m["1x2"][0]); add("1x2", "Pareggio", m["1x2"][1]); add("1x2", `${A} vince`, m["1x2"][2]); }
-  for (const [k, p] of Object.entries(m.dc || {})) add("dc", { "1X": `${H} o pareggio`, "X2": `${A} o pareggio`, "12": "Una delle due vince" }[k] || k, p);
-  if (m["1x2"]) { const dn = dnbOf(m); add("dnb", `DNB ${H}`, dn.home); add("dnb", `DNB ${A}`, dn.away); }
-  for (const l of ["1.5", "2.5", "3.5"]) if (m.ou?.[l] != null) { const L = l.replace(".", ","); add("ou", `Over ${L}`, m.ou[l]); add("ou", `Under ${L}`, 1 - m.ou[l]); }
-  if (m.btts != null) { add("gg", "Goal, segnano entrambe", m.btts); add("gg", "No Goal", 1 - m.btts); }
-  for (const [k, p] of Object.entries(m.combo || {})) add("combo", k, p);
+  const add = (t, label, p, a = null, b = null) => { if (p != null && p < 0.985) out.push({ t, label, p, a, b }); };
+  if (m["1x2"]) { add("1x2", `${H} vince`, m["1x2"][0], "1"); add("1x2", "Pareggio", m["1x2"][1], "X"); add("1x2", `${A} vince`, m["1x2"][2], "2"); }
+  for (const [k, p] of Object.entries(m.dc || {})) add("dc", { "1X": `${H} o pareggio`, "X2": `${A} o pareggio`, "12": "Una delle due vince" }[k] || k, p, k);
+  if (m["1x2"]) { const dn = dnbOf(m); add("dnb", `DNB ${H}`, dn.home, "home"); add("dnb", `DNB ${A}`, dn.away, "away"); }
+  // nel «più sicure» restano le linee 1,5-3,5; con il tipo Under/Over tutte quelle calcolate
+  for (const l of type === "ou" || type === "all" ? Object.keys(m.ou || {}) : ["1.5", "2.5", "3.5"]) if (m.ou?.[l] != null) { const L = l.replace(".", ","); add("ou", `Over ${L}`, m.ou[l], l, "over"); add("ou", `Under ${L}`, 1 - m.ou[l], l, "under"); }
+  if (m.btts != null) { add("gg", "Goal, segnano entrambe", m.btts, "goal"); add("gg", "No Goal", 1 - m.btts, "nogoal"); }
+  for (const [k, p] of Object.entries(m.combo || {})) add("combo", k, p, k);
   if (m.exact?.[0]) add("exact", m.exact[0].score, m.exact[0].p);
-  for (const [k, p] of Object.entries(m.multigol || {})) add("mg", `Multigol ${k}`, p);
-  for (const [k, p] of Object.entries(m.multigol_team?.home || {})) add("mgt", `Multigol ${H} ${k}`, p);
-  for (const [k, p] of Object.entries(m.multigol_team?.away || {})) add("mgt", `Multigol ${A} ${k}`, p);
-  return type === "all" ? out : type === "mix" ? out.filter(c => !["exact", "mg", "mgt"].includes(c.t)) : out.filter(c => c.t === type);
+  for (const [k, p] of Object.entries(m.multigol || {})) add("mg", `Multigol ${k}`, p, k);
+  for (const [k, p] of Object.entries(m.multigol_team?.home || {})) add("mgt", `Multigol ${H} ${k}`, p, k, "home");
+  for (const [k, p] of Object.entries(m.multigol_team?.away || {})) add("mgt", `Multigol ${A} ${k}`, p, k, "away");
+  if (type === "all") return out;
+  if (type === "mix") return out.filter(c => !["exact", "mg", "mgt"].includes(c.t));
+  const f = RS.f[type] || {};
+  return out.filter(c => c.t === type && (!f.a || f.a === "all" || c.a === f.a) && (!f.b || f.b === "all" || c.b === f.b));
+}
+// righe di dettaglio sotto «Tipo di giocata» (es. Under/Over: linea 0,5…5,5 e Over o Under; Multigol: fascia di gol)
+function rsSubHtml() {
+  const S = RS_SUB[RS.type];
+  if (!S) return "";
+  const f = RS.f[RS.type] || {};
+  const row = (g, [lab, opts]) => `<div class="mp-lab mp-sub">${esc(lab)}</div><div class="mp-chips mp-subchips">${[["all", "Qualsiasi"], ...opts].map(([v, l]) =>
+    `<button data-rsf="${g}" data-v="${esc(v)}" aria-pressed="${(f[g] || "all") === v}">${esc(l)}</button>`).join("")}</div>`;
+  return `<div class="rs-sub">${row("a", S.a)}${S.b ? row("b", S.b) : ""}</div>`;
 }
 async function showRoundSlip() {
   $app.innerHTML = backBtn("Schedina") + `<h1 class="page-h">Costruisci la multipla</h1><p class="muted" style="padding:16px 4px">Caricamento…</p>`;
@@ -194,10 +219,16 @@ async function showRoundSlip() {
       <div class="mp-lab">Giornata</div><select class="rs-sel" id="rs-round">${R.filter(r => r.m.some(m => m[3] == null)).map(r => `<option value="${r.n}" ${r.n === RS.round ? "selected" : ""}>Giornata ${r.n} · ${esc(fmtShort(r.m[0][0]))}</option>`).join("") || `<option>Nessuna giornata da giocare</option>`}</select>
       <div class="mp-lab">Quante partite</div><div class="mp-chips">${[2, 3, 4, 5, 6, 8, 10].map(n => chip("n", n, String(n), RS.n)).join("")}</div>
       <div class="mp-lab">Tipo di giocata</div><div class="mp-chips">${RS_TYPES.map(([v, l]) => chip("type", v, l, RS.type)).join("")}</div>
+      ${rsSubHtml()}
     </section><div id="rs-out"><p class="muted" style="padding:8px 4px">Calcolo…</p></div>`;
   $app.innerHTML = html;
   $app.querySelector("#rs-league").onchange = e => { RS.league = e.target.value; RS.round = null; save("rs_league", RS.league); showRoundSlip(); };
   $app.querySelector("#rs-round").onchange = e => { RS.round = Number(e.target.value); showRoundSlip(); };
+  $app.querySelectorAll("[data-rsf]").forEach(b => b.onclick = () => {
+    const f = RS.f[RS.type] = { ...(RS.f[RS.type] || {}) };
+    f[b.dataset.rsf] = b.dataset.v;
+    save("rs_f", RS.f); showRoundSlip();
+  });
   $app.querySelectorAll("[data-rs]").forEach(b => b.onclick = () => { const g = b.dataset.rs; RS[g] = g === "n" ? Number(b.dataset.v) : b.dataset.v; save("rs_" + g, b.dataset.v); showRoundSlip(); });
   const out = $app.querySelector("#rs-out");
   if (!round) { out.innerHTML = `<div class="empty"><b>Giornate non disponibili</b>Arrivano con il prossimo aggiornamento dei dati.</div>`; return; }
@@ -451,7 +482,7 @@ async function replayCandidate(f) {
     try { d = await getJSON(`data/events/${encodeURIComponent(e.id)}.json`); } catch { d = null; }
     if (!d) continue;
     let p = null;
-    if (d.sport === "soccer") p = (rsCands(d, "mix").concat(rsCands(d, "exact"))).find(c => c.label === f.label)?.p ?? null;
+    if (d.sport === "soccer") p = rsCands(d, "all").find(c => c.label === f.label)?.p ?? null;
     else if (/ vince$/.test(f.label) && d.main) {
       const who = f.label.replace(/ vince$/, "");
       p = [d.home.short, d.home.name].includes(who) ? d.main[0] : [d.away.short, d.away.name].includes(who) ? d.main[d.main.length - 1] : null;

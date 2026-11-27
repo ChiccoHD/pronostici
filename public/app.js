@@ -30,6 +30,8 @@ const LEAGUES = {
     ["concacaf-nations", "Nations League CONCACAF"], ["amichevoli", "Amichevoli"]],
   tennis: [["atp", "ATP"], ["wta", "WTA"]],
 };
+// con «Tutto» la fila dei campionati raccoglie quelli di ogni sport
+LEAGUES.all = [...LEAGUES.soccer, ["nba", "NBA"], ...LEAGUES.tennis, ["f1", "F1"]];
 /* logo di ogni campionato (da ESPN, con la versione per il tema scuro); bandiera dove ESPN non ce l'ha */
 const LG = "https://a.espncdn.com/i/leaguelogos/soccer/";
 const LEAGUE_LOGO = {
@@ -771,7 +773,7 @@ function renderList() {
     for (const e of byDay) n[e.league] = (n[e.league] || 0) + 1;
     const opts = LEAGUES[state.sport].filter(([k]) => n[k]);
     if (opts.length > 1) html += `<div class="leagues" role="group" aria-label="Campionato">${[["all", "Tutti", byDay.length], ...opts.map(([k, l]) => [k, l, n[k]])].map(([k, l, c]) =>
-      `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k)}${l} <span>${c}</span></button>`).join("")}</div>`;
+      `<button data-league="${k}" aria-pressed="${state.league === k}">${k === "all" ? "" : leagueMark(k, k === "nba" || k === "f1" ? k : undefined)}${l} <span>${c}</span></button>`).join("")}</div>`;
   }
   html += `</div><div id="f-end"></div>`;
   if (st === "live") html += `<div id="live-embed"></div>`;

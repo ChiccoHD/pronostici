@@ -1,6 +1,8 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Campionati anche con «Tutto»", items: [
+    "La fila dei campionati sotto i filtri ora c'è anche con «Tutto»: raccoglie calcio, NBA, ATP/WTA e F1 del giorno scelto." ] },
   { d: "2026-11-27", t: "Arabia Saudita", items: [
     "Nuovo campionato: Saudi Pro League (quella di Cristiano Ronaldo), con pronostici, classifiche e diretta.",
     "Fila dei campionati nell'elenco: toccando un campionato la fila non torna più all'inizio, quello scelto resta al centro." ] },

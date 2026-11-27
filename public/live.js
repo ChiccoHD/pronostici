@@ -315,6 +315,16 @@ function espnTarget(eventId) {
 const normName = s => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const statNum = v => { const n = parseFloat(String(v ?? "").replace(",", ".")); return isNaN(n) ? 0 : n; };
 
+/* stato ESPN affidabile: «post» solo se la partita è davvero conclusa. Una partita sospesa (es. per
+   maltempo o incidenti) ESPN può darla «post» con il punteggio del momento ma completed: false: resta «in»
+   finché non riprende; rinviata, annullata o abbandonata torna «pre» (nessun esito). */
+function espnState(ty) {
+  const st = ty?.state || "pre", nm = String(ty?.name || "");
+  if (/POSTPON|CANCEL|ABANDON/.test(nm)) return "pre";
+  if (/SUSPEND|DELAY|INTERRUPT/.test(nm)) return st === "pre" ? "pre" : "in";
+  if (st === "post" && ty.completed === false) return "in";
+  return st;
+}
 /* stato di una partita (calcio/NBA) da una "competition" ESPN: va bene sia quella del tabellone sia quella del riepilogo */
 function infoFromComp(c, sport, extraStatus) {
   if (!c) return null;
@@ -325,7 +335,7 @@ function infoFromComp(c, sport, extraStatus) {
   const half = (t.home.linescores || []).length && (t.away.linescores || []).length
     ? [statNum(t.home.linescores[0].displayValue ?? t.home.linescores[0].value), statNum(t.away.linescores[0].displayValue ?? t.away.linescores[0].value)] : null;
   return {
-    sport, state: ty.state || "pre", detail: ty.shortDetail || ty.detail || "", clock: st.displayClock, period: st.period || 0,
+    sport, state: espnState(ty), detail: ty.shortDetail || ty.detail || "", clock: st.displayClock, period: st.period || 0,
     H: statNum(t.home.score), A: statNum(t.away.score), half,
     home: { name: t.home.team?.displayName, logo: t.home.team?.logo, keys: names("home") },
     away: { name: t.away.team?.displayName, logo: t.away.team?.logo, keys: names("away") },
@@ -402,7 +412,7 @@ function tennisInfo(tg, evs) {
     const setWin = (ps[0].linescores || []).map((x, k) => x.winner ? 0 : ps[1].linescores?.[k]?.winner ? 1 : null);
     let won = [0, 0];
     sets[0].forEach((g, i) => { const o = sets[1][i] ?? 0; const done = ty.state === "post" || i < sets[0].length - 1; if (done && g !== o) won[g > o ? 0 : 1]++; });
-    return { sport: "tennis", state: ty.state || "pre", detail: ty.shortDetail || "", tournament: ev.name, sets, won, tb, setWin,
+    return { sport: "tennis", state: espnState(ty), detail: ty.shortDetail || "", tournament: ev.name, sets, won, tb, setWin,
       period: c.status?.period || sets[0].length, round: c.round?.displayName || "", note: (c.notes || [])[0]?.text || "",
       winner: ps[0].winner ? 0 : ps[1].winner ? 1 : null, H: won[0], A: won[1],
       games: sets[0].reduce((a, b) => a + b, 0) + sets[1].reduce((a, b) => a + b, 0),
@@ -730,6 +740,45 @@ function slipLiveHtml(s, info, label = "", ch = null) {
 }
 
 /* esito da salvare quando una giocata si chiude: risultato finale e, se persa, cosa è mancato */
+/* risultato ufficiale (campo `final` dell'elenco, scritto dalla pipeline solo per partite concluse davvero):
+   giudica le giocate ancora aperte e corregge quelle decise dal telefono con un punteggio diverso
+   (es. partita sospesa sullo 0-0 e poi ripresa). Calcio e NBA; tennis e F1 hanno i loro controlli. */
+function finalInfo(ix) {
+  const f = ix?.final;
+  if (!f || f.void || f.h == null || f.a == null || !["soccer", "nba"].includes(ix.sport)) return null;
+  const keys = side => [ix[side], ix[side + "_short"]].filter(Boolean).map(normName);
+  const st = f.stats || {}, ts = k => st[k] ? { home: { [k]: statNum(st[k][0]) }, away: { [k]: statNum(st[k][1]) } } : null;
+  const corners = ts("wonCorners");
+  return { sport: ix.sport, state: "post", H: f.h, A: f.a, half: f.ht || null, detail: "Finale",
+    home: { name: ix.home, keys: keys("home") }, away: { name: ix.away, keys: keys("away") },
+    players: new Map(), teamStats: corners, winProb: null, comp: null, fromIndex: true };
+}
+function settleFromIndex() {
+  if (!INDEX?.events) return false;
+  const byId = new Map(INDEX.events.filter(e => e.final).map(e => [e.id, e]));
+  if (!byId.size) return false;
+  const fix = f => {
+    const ix = byId.get(f.event), info = finalInfo(ix);
+    if (!info) return false;
+    let s = null;
+    try { s = pickStatus(f.label, info); } catch { s = null; }
+    if (!s || !["win", "lose", "void"].includes(s.cls)) return false;
+    const score = `${info.H}-${info.A}`;
+    if (f.result === s.cls && (!f.final_score || f.final_score === score)) return false;
+    if (f.result && f.final_score === score) return false;          // stesso punteggio: l'esito del telefono è già giusto
+    Object.assign(f, closedFields({ ...s, _info: info }, f), { closed: f.closed || new Date().toISOString(), fixed: f.result ? true : undefined });
+    return true;
+  };
+  let a = false, b = false;
+  const list = favs();
+  for (const f of list) if (fix(f)) a = true;
+  if (a) saveFavs(list);
+  const slips = mySlips();
+  for (const sl of slips) for (const f of sl.legs) if (fix(f)) b = true;
+  if (b) saveMySlips(slips);
+  return a || b;
+}
+
 function closedFields(s, f) {
   const info = s._info || {};
   const score = info.sport === "tennis" ? (info.sets ? info.sets[0].map((g, i) => `${g}-${info.sets[1][i]}`).join(" ") : "") : (info.H != null ? `${info.H}-${info.A}` : "");
@@ -1188,6 +1237,10 @@ async function attachSlipStatus() {
   clearTimeout(slipTimer);
   const now = Date.now(), hash = location.hash;
   if (typeof f1Settle === "function" && f1Settle()) {             // Formula 1: esito dal risultato nei dati, niente diretta ESPN
+    if (location.hash.startsWith("#/schedina")) { showSlip(); return; }
+    if (location.hash.startsWith("#/tu")) { showMe(); return; }
+  }
+  if (settleFromIndex()) {                                          // esiti corretti dal risultato ufficiale dei dati
     if (location.hash.startsWith("#/schedina")) { showSlip(); return; }
     if (location.hash.startsWith("#/tu")) { showMe(); return; }
   }

@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Esito delle schedine più sicuro", items: [
+    "Corretto un errore: una partita sospesa (es. Beşiktaş–Hapoel Be'er, ferma sullo 0-0 e poi ripresa) veniva considerata finita e la giocata segnata come persa. Ora una partita sospesa resta «in corso» finché non riprende, e una rinviata o annullata non dà nessun esito.",
+    "Le schedine salvate vengono ricontrollate con il risultato ufficiale dei dati: se l'esito segnato dal telefono era sbagliato si corregge da solo, e le giocate rimaste senza esito vengono chiuse." ] },
   { d: "2026-11-27", t: "Multipla per giornata più precisa", items: [
     "Costruisci la multipla → Per giornata: dopo il tipo di giocata scegli anche il dettaglio. Under/Over: la linea (0,5, 1,5, 2,5, 3,5, 4,5, 5,5) e se Over o Under. Multigol: la fascia (0-1, 1-2, 1-3, 2-3, 2-4, 3-5, 4-6). Multigol squadra: fascia e casa o ospite. E poi il segno per 1X2, Doppia chance, Draw No Bet, Goal/No Goal e la combo che vuoi. «Qualsiasi» lascia scegliere al modello." ] },
   { d: "2026-11-27", t: "Installa l'app", items: [

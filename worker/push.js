@@ -28,6 +28,16 @@ async function hashId(s) {
 }
 
 /* ------------------------------------------------------------------ istantanee da ESPN */
+/* «post» solo per partite concluse davvero: sospesa (completed false o STATUS_SUSPENDED) = ancora in corso,
+   rinviata/annullata/abbandonata = nessun esito (come espnState in public/live.js) */
+function espnState(ty) {
+  const st = ty?.state || "pre", nm = String(ty?.name || "");
+  if (/POSTPON|CANCEL|ABANDON/.test(nm)) return "pre";
+  if (/SUSPEND|DELAY|INTERRUPT/.test(nm)) return st === "pre" ? "pre" : "in";
+  if (st === "post" && ty.completed === false) return "in";
+  return st;
+}
+
 function teamSnap(ev) {
   const c = (ev.competitions || [])[0] || {};
   const st = c.status || ev.status || {}, ty = st.type || {};
@@ -43,7 +53,7 @@ function teamSnap(ev) {
   const stat = (x, name) => { const v = (x.statistics || []).find(s => s.name === name); return v ? num(v.displayValue ?? v.value) : null; };
   const ch = stat(side.home, "wonCorners"), ca = stat(side.away, "wonCorners");
   return {
-    st: ty.state || "pre", nm: ty.name || "", p: st.period || 0, det: ty.shortDetail || "",
+    st: espnState(ty), nm: ty.name || "", p: st.period || 0, det: ty.shortDetail || "",
     min: parseInt(String(st.displayClock || "").replace(/[^0-9].*$/, ""), 10) || 0,
     h: num(side.home.score), a: num(side.away.score), hn: tn(side.home), an: tn(side.away),
     ls: [side.home, side.away].map(x => (x.linescores || []).map(l => num(l.value))), goals, reds, yellows,
@@ -57,7 +67,7 @@ function tennisSnap(c) {
   const ty = c.status?.type || {};
   const sets = ps.map(p => (p.linescores || []).map(x => num(x.value)));
   return {
-    st: ty.state || "pre", nm: ty.name || "", det: ty.shortDetail || "",
+    st: espnState(ty), nm: ty.name || "", det: ty.shortDetail || "",
     hn: ps[0].athlete?.displayName || ps[0].athlete?.shortName || "", an: ps[1].athlete?.displayName || ps[1].athlete?.shortName || "",
     sets, w: ps[0].winner ? 0 : ps[1].winner ? 1 : null,
     gt: sets[0].reduce((x, y) => x + y, 0) + (sets[1] || []).reduce((x, y) => x + y, 0),
@@ -417,7 +427,7 @@ export class Push {
         const c = comps.filter(c => Math.abs(Date.parse(c.date || c.startDate) - t) < 90 * 60e3)
           .sort((a, b) => Math.abs(Date.parse(a.date || a.startDate) - t) - Math.abs(Date.parse(b.date || b.startDate) - t))[0];
         if (!c) continue;
-        const st = c.status?.type?.state, k = `st:${e.id}:${s.k}`, prev = await this.store.get(k);
+        const st = c.status?.type ? espnState(c.status.type) : null, k = `st:${e.id}:${s.k}`, prev = await this.store.get(k);
         if (!st || prev?.st === st) continue;
         await this.store.put(k, { st, t: now });
         const order = (c.competitors || []).map((x, i) => ({ o: x.order ?? x.position ?? i + 1, n: last(x.athlete?.displayName || x.athlete?.shortName || "") }))

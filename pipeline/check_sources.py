@@ -918,6 +918,24 @@ def main():
         f1_check()
         _write()
         return
+    if "codici" in sys.argv[1:]:
+        # codici ESPN dei campionati (tabellone dei prossimi giorni)
+        from datetime import timedelta
+        out(f"# Codici ESPN — {date.today()}\n")
+        d1, d2 = date.today(), date.today() + timedelta(days=6)
+        for code in ("rou.1", "rom.1", "rou.liga1", "ksa.1"):
+            n = 0
+            for k in range(7):
+                dd = (d1 + timedelta(days=k)).strftime("%Y%m%d")
+                try:
+                    js = http.get_json(f"https://site.api.espn.com/apis/site/v2/sports/soccer/{code}/scoreboard?dates={dd}", tries=1) or {}
+                    n += len(js.get("events", []))
+                    lg = (js.get("leagues") or [{}])[0].get("name")
+                except Exception as e:
+                    lg = f"errore {e}"
+            out(f"- `{code}`: {n} partite nei prossimi 7 giorni, campionato {lg!r}")
+        _write()
+        return
     if "posizioni" in sys.argv[1:]:
         # ruoli dei titolari nelle formazioni ESPN (per disegnarle nel campo nel posto giusto)
         out(f"# Posizioni nelle formazioni ESPN — {date.today()}\n")

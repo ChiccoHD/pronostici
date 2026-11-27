@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-27T14:46+00:00",
+ "updated": "2026-11-27T15:58+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -181,7 +181,7 @@
     "partite_in_arrivo": 4,
     "foto_giocatori": "da controllare 94, Wikipedia 39, ESPN 8"
    },
-   "aggiornato": "2026-11-27T12:56+00:00"
+   "aggiornato": "2026-11-27T15:56+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -195,7 +195,7 @@
    },
    "partite_in_arrivo": 33,
    "partite_stagione": 270,
-   "aggiornato": "2026-11-27T12:58+00:00"
+   "aggiornato": "2026-11-27T15:57+00:00"
   },
   "tennis": {
    "atp": {
@@ -206,7 +206,7 @@
     "storico": "12476 incontri (+0)",
     "espn": "4 incontri in programma"
    },
-   "aggiornato": "2026-11-27T12:58+00:00"
+   "aggiornato": "2026-11-27T15:57+00:00"
   },
   "coppe": {
    "uomini": {
@@ -288,7 +288,7 @@
     "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-27T12:57+00:00"
+   "aggiornato": "2026-11-27T15:56+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
@@ -325,11 +325,11 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-27T12:57+00:00"
+   "aggiornato": "2026-11-27T15:57+00:00"
   },
   "risultati": {
    "esiti": "0 nuovi esiti, 0 calendari letti",
-   "aggiornato": "2026-11-27T14:46+00:00"
+   "aggiornato": "2026-11-27T15:58+00:00"
   },
   "archivio": {
    "partite": 649,
@@ -339,7 +339,7 @@
    "soccer": "x0.96 su 433 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.92 su 105 partite",
-   "partite_ritoccate": 0
+   "partite_ritoccate": 405
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -353,16 +353,16 @@
     "logloss_uniform": 3.091,
     "brier_podium": 0.085
    },
-   "mercato_22": "86 prezzi",
+   "mercato_22": "87 prezzi",
    "mercato_23": "0 prezzi",
-   "openf1_richieste": 0,
-   "aggiornato": "2026-11-27T14:46+00:00"
+   "openf1_richieste": 4,
+   "aggiornato": "2026-11-27T15:58+00:00"
   },
-  "quote_in_movimento": 3,
+  "quote_in_movimento": 4,
   "turnover": {
    "ok": true,
    "partite": 14,
-   "richieste": 0
+   "richieste": 17
   }
  }
 }

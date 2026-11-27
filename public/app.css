@@ -2475,3 +2475,6 @@ a.p-name, .sp-name a { color: inherit; text-decoration: none; }
 .fav-clear { margin-left: auto; border: 1px solid var(--rule-strong); background: var(--card); color: #ef4444; font: 700 12px/1 inherit; padding: 7px 12px; border-radius: 999px; cursor: pointer; }
 
 .bell.sm svg { width: 17px; height: 17px; }
+/* partita in corso: LIVE, minuto e campanella centrati in altezza su tutto il riquadro (anche sulla riga «prima del via») */
+.fx.live .fx-time { grid-row: 1 / span 2; align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.fx.live .fx-time .bell.sm { margin-top: 4px; }

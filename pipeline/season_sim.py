@@ -15,7 +15,7 @@ from .config import CACHE
 from .models import soccer as S
 
 SIMS = 10000
-SKIP = {"mls", "argentina", "scozia", "belgio", "a-league"}
+SKIP = {"mls", "argentina", "scozia", "belgio", "a-league", "romania"}   # play-off o fasi finali: la sola stagione regolare non basta
 # zone: (etichetta, ultima posizione) dall'alto; "rel" = quante retrocedono (dirette)
 ZONES = {
     "serie-a": {"top": [("Scudetto", 1), ("Champions", 4)], "rel": 3},

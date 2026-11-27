@@ -1,6 +1,9 @@
 "use strict";
 /* Novità dell'app, dalla più recente. Ogni nuova funzione va aggiunta qui in cima, con data (AAAA-MM-GG) e testo breve. */
 const NOVITA = [
+  { d: "2026-11-27", t: "Romania e Arabia Saudita", items: [
+    "Nuovi campionati: Superliga rumena e Saudi Pro League (quella di Cristiano Ronaldo), con pronostici, classifiche e diretta.",
+    "Fila dei campionati nell'elenco: toccando un campionato la fila non torna più all'inizio, quello scelto resta al centro." ] },
   { d: "2026-11-27", t: "Esito delle schedine più sicuro", items: [
     "Corretto un errore: una partita sospesa (es. Beşiktaş–Hapoel Be'er, ferma sullo 0-0 e poi ripresa) veniva considerata finita e la giocata segnata come persa. Ora una partita sospesa resta «in corso» finché non riprende, e una rinviata o annullata non dà nessun esito.",
     "Le schedine salvate vengono ricontrollate con il risultato ufficiale dei dati: se l'esito segnato dal telefono era sbagliato si corregge da solo, e le giocate rimaste senza esito vengono chiuse." ] },

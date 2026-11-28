@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-28T00:06+00:00",
+ "updated": "2026-11-28T01:49+00:00",
  "sample": false,
  "status": {
   "calcio": {
@@ -10,6 +10,7 @@
     "xg_partite": 120,
     "espn": "ok",
     "espn_tabellini": "121 partite",
+    "meteo": "8 partite",
     "partite_in_arrivo": 19,
     "foto_giocatori": "TheSportsDB 213, senza foto 85, Wikipedia 336, ESPN 38"
    },
@@ -20,6 +21,7 @@
     "xg_partite": 110,
     "espn": "ok",
     "espn_tabellini": "111 partite",
+    "meteo": "18 partite",
     "partite_in_arrivo": 29,
     "foto_giocatori": "Wikipedia 798, ESPN 76, senza foto 33, TheSportsDB 94"
    },
@@ -30,6 +32,7 @@
     "xg_partite": 129,
     "espn": "ok",
     "espn_tabellini": "130 partite",
+    "meteo": "10 partite",
     "partite_in_arrivo": 21,
     "foto_giocatori": "Wikipedia 382, TheSportsDB 278, ESPN 22, senza foto 70"
    },
@@ -40,6 +43,7 @@
     "xg_partite": 90,
     "espn": "ok",
     "espn_tabellini": "91 partite",
+    "meteo": "7 partite",
     "partite_in_arrivo": 17,
     "foto_giocatori": "TheSportsDB 205, Wikipedia 315, senza foto 47, ESPN 21"
    },
@@ -50,6 +54,7 @@
     "xg_partite": 99,
     "espn": "ok",
     "espn_tabellini": "100 partite",
+    "meteo": "8 partite",
     "partite_in_arrivo": 17,
     "foto_giocatori": "TheSportsDB 133, senza foto 125, Wikipedia 305, ESPN 30"
    },
@@ -59,8 +64,9 @@
     "xg_partite": 130,
     "espn": "ok",
     "espn_tabellini": "130 partite",
-    "partite_in_arrivo": 20,
-    "foto_giocatori": "senza foto 371, TheSportsDB 154, Wikipedia 175, ESPN 10"
+    "meteo": "10 partite",
+    "partite_in_arrivo": 25,
+    "foto_giocatori": "senza foto 471, TheSportsDB 181, Wikipedia 222, ESPN 13"
    },
    "championship": {
     "football-data": "ok",
@@ -68,8 +74,9 @@
     "xg_partite": 204,
     "espn": "ok",
     "espn_tabellini": "205 partite",
-    "partite_in_arrivo": 23,
-    "foto_giocatori": "TheSportsDB 276, Wikipedia 451, senza foto 56, ESPN 29"
+    "meteo": "11 partite",
+    "partite_in_arrivo": 31,
+    "foto_giocatori": "TheSportsDB 367, Wikipedia 616, senza foto 70, ESPN 41"
    },
    "eredivisie": {
     "football-data": "ok",
@@ -77,6 +84,7 @@
     "xg_partite": 117,
     "espn": "ok",
     "espn_tabellini": "118 partite",
+    "meteo": "7 partite",
     "partite_in_arrivo": 17,
     "foto_giocatori": "TheSportsDB 48, ESPN 415, Wikipedia 72, senza foto 49"
    },
@@ -86,6 +94,7 @@
     "xg_partite": 108,
     "espn": "ok",
     "espn_tabellini": "110 partite",
+    "meteo": "7 partite",
     "partite_in_arrivo": 16,
     "foto_giocatori": "Wikipedia 214, senza foto 188, TheSportsDB 132, ESPN 23"
    },
@@ -95,7 +104,7 @@
     "xg_partite": 83,
     "espn": "ok",
     "espn_tabellini": "83 partite",
-    "meteo": "6 partite",
+    "meteo": "12 partite",
     "partite_in_arrivo": 18,
     "foto_giocatori": "Wikipedia 229, TheSportsDB 291, senza foto 78, ESPN 23"
    },
@@ -144,16 +153,16 @@
     "espn_tabellini": "216 partite",
     "meteo": "7 partite",
     "partite_in_arrivo": 16,
-    "foto_giocatori": "senza foto 44, TheSportsDB 58, Wikipedia 124, ESPN 8, da controllare 332"
+    "foto_giocatori": "senza foto 50, TheSportsDB 72, Wikipedia 124, ESPN 8, da controllare 312"
    },
    "brasileirao": {
     "football-data": "ok",
     "xg_partite": 0,
     "espn": "ok",
-    "espn_tabellini": "362 partite",
+    "espn_tabellini": "363 partite",
     "meteo": "7 partite",
-    "partite_in_arrivo": 18,
-    "foto_giocatori": "Wikipedia 243, da controllare 372, ESPN 25"
+    "partite_in_arrivo": 17,
+    "foto_giocatori": "da controllare 348, Wikipedia 233, ESPN 23"
    },
    "a-league": {
     "espn": "ok",
@@ -181,7 +190,7 @@
     "partite_in_arrivo": 13,
     "foto_giocatori": "da controllare 292, Wikipedia 158, ESPN 8"
    },
-   "aggiornato": "2026-11-28T00:04+00:00"
+   "aggiornato": "2026-11-28T01:47+00:00"
   },
   "nba": {
    "espn": "ok",
@@ -193,9 +202,9 @@
     "logloss_espn": 0.598,
     "logloss_mix": 0.6004
    },
-   "partite_in_arrivo": 33,
+   "partite_in_arrivo": 41,
    "partite_stagione": 270,
-   "aggiornato": "2026-11-28T00:05+00:00"
+   "aggiornato": "2026-11-28T01:48+00:00"
   },
   "tennis": {
    "atp": {
@@ -203,16 +212,16 @@
     "espn": "0 incontri in programma"
    },
    "wta": {
-    "storico": "12479 incontri (+1)",
+    "storico": "12479 incontri (+0)",
     "espn": "2 incontri in programma"
    },
-   "aggiornato": "2026-11-28T00:05+00:00"
+   "aggiornato": "2026-11-28T01:48+00:00"
   },
   "coppe": {
    "uomini": {
-    "espn_uefa.champions": "279 giocate, 12 giorni controllati",
-    "espn_uefa.europa": "279 giocate, 12 giorni controllati",
-    "espn_uefa.europa.conf": "224 giocate, 12 giorni controllati",
+    "espn_uefa.champions": "279 giocate, 11 giorni controllati",
+    "espn_uefa.europa": "279 giocate, 11 giorni controllati",
+    "espn_uefa.europa.conf": "224 giocate, 11 giorni controllati",
     "abbinamenti_scartati": [
      "Inter D'Escaldes ≠ Inter"
     ],
@@ -285,14 +294,14 @@
     ]
    },
    "donne": {
-    "espn_uefa.wchampions": "174 giocate, 12 giorni controllati",
+    "espn_uefa.wchampions": "174 giocate, 11 giorni controllati",
     "partite_storico": 174
    },
-   "aggiornato": "2026-11-28T00:05+00:00"
+   "aggiornato": "2026-11-28T01:47+00:00"
   },
   "nazionali": {
    "storico": "12547 partite, fino al 2026-11-17",
-   "nations-league": "5 giorni controllati",
+   "nations-league": "15 giorni controllati",
    "mondiali": "fuori stagione",
    "europei": "fuori stagione",
    "qual-europei": "fuori stagione",
@@ -303,11 +312,11 @@
    "qual-mondiali-africa": "fuori stagione",
    "copa-america": "fuori stagione",
    "coppa-africa": "fuori stagione",
-   "qual-coppa-africa": "5 giorni controllati",
-   "coppa-asia": "5 giorni controllati",
+   "qual-coppa-africa": "15 giorni controllati",
+   "coppa-asia": "15 giorni controllati",
    "gold-cup": "fuori stagione",
-   "concacaf-nations": "5 giorni controllati",
-   "amichevoli": "0 giorni controllati",
+   "concacaf-nations": "15 giorni controllati",
+   "amichevoli": "2 giorni controllati",
    "risultati_recenti_da_espn": 3,
    "in_arrivo_amichevoli": 3,
    "classifica_nations-league": 54,
@@ -325,21 +334,21 @@
    "classifica_coppa-asia": 24,
    "classifica_gold-cup": 16,
    "classifica_concacaf-nations": 37,
-   "aggiornato": "2026-11-28T00:05+00:00"
+   "aggiornato": "2026-11-28T01:48+00:00"
   },
   "risultati": {
    "esiti": "1 nuovi esiti, 1 calendari letti",
-   "aggiornato": "2026-11-28T00:06+00:00"
+   "aggiornato": "2026-11-28T01:49+00:00"
   },
   "archivio": {
-   "partite": 666,
+   "partite": 667,
    "nuove": 1
   },
   "taratura": {
-   "soccer": "x0.96 su 446 partite",
+   "soccer": "x0.96 su 447 partite",
    "nba": "x1.09 su 110 partite",
    "tennis": "x0.93 su 109 partite",
-   "partite_ritoccate": 403
+   "partite_ritoccate": 418
   },
   "f1": {
    "gp_in_arrivo": 2,
@@ -356,9 +365,9 @@
    "mercato_22": "87 prezzi",
    "mercato_23": "19 prezzi",
    "openf1_richieste": 0,
-   "aggiornato": "2026-11-28T00:06+00:00"
+   "aggiornato": "2026-11-28T01:49+00:00"
   },
-  "quote_in_movimento": 3,
+  "quote_in_movimento": 2,
   "turnover": {
    "ok": true,
    "partite": 14,
